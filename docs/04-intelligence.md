@@ -235,7 +235,7 @@ Un changement de modèle ou de prompt qui fait baisser un score sur le dataset d
 Les factures fournisseurs peuvent contenir des données personnelles (nom, adresse du client de la PME si c'est un particulier qui reçoit un service). Conséquences :
 
 1. **Contrat Google Cloud Vertex AI** : les données envoyées à Gemini via Genkit/Vertex **ne sont pas utilisées pour entraîner** les modèles dans le cadre de l'offre entreprise. À vérifier et documenter en ADR dédié quand on signe.
-2. **Résidence** : choix de région à figer (probablement `europe-west1` ou `europe-west9`). À acter en chapitre 06 Sécurité.
+2. **Résidence** : choix de région à figer (probablement `europe-west1` ou `europe-west9`). À acter en [chapitre 10 — Sécurité §10.9.2](10-securite.md).
 3. **Aucune mémoire persistante côté modèle.** Pas de fine-tuning avec données clients dans la fondation (simplification des obligations RGPD).
 4. **Hash des inputs dans les traces** si ils contiennent du texte libre utilisateur. Les inputs de `extractFactureFournisseur` (URI PDF) sont neutres et peuvent être loggués tels quels.
 

@@ -14,6 +14,17 @@
 3. **Transparence** : le budget est public en interne. Tout le monde peut consulter le dashboard de facturation GCP.
 4. **Alerting** : alerte email si dépassement 80 % du cible, arrêt Genkit si dépassement 200 % (voir §9.5).
 
+## 9.1.1 Hypothèse d'environnements chiffrés
+
+**Le chiffrage §9.3 couvre l'environnement de production uniquement.** Les environnements `dev` et `staging` (voir [02 §2.5](02-architecture.md)) sont conçus pour **ne pas** consommer de socle payant :
+
+- **`local`** : 100 % Firebase Emulators Suite + Postgres Docker. Zéro coût cloud.
+- **`dev`** (CI, démos internes) : émulateurs en CI ; instance Cloud SQL **stoppée par défaut**, démarrée ponctuellement (< 10 h/mois estimées) via procédure Stop/Start documentée en chapitre 08. Coût marginal (~1-3 €/mois).
+- **`staging`** : instance Cloud SQL `db-f1-micro` **tournant uniquement pendant une recette active** (quelques jours par release). Coût amorti ~3-5 €/mois.
+- **`prod`** : instance Cloud SQL `db-f1-micro` **24/7**. C'est la ligne "Cloud SQL Postgres" de §9.3.
+
+**Si cette hypothèse est violée** (par exemple dev + staging laissés en 24/7), le coût mensuel peut doubler. Le guardrail §9.5 inclut la surveillance du coût **cumulé tous projets GCP**, pas seulement prod.
+
 ## 9.2 Hypothèses de volume (PME BTP Sosson, 30-50 salariés)
 
 À remplacer par des mesures réelles après 3 mois de prod.

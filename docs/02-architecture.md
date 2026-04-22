@@ -314,8 +314,8 @@ Comment on se prépare à **changer** un de ces composants sans tout refaire.
 - Détail des entités et du schéma GraphQL → [03 — Architecture des Données](03-data-architecture.md).
 - Détail des prompts et flows Genkit → [04 — Couche Intelligence](04-intelligence.md).
 - Détail de la sérialisation d'archive → [05 — Archivage](05-archival-strategy.md).
-- Spécification détaillée des intégrations Gmail / Google Calendar → chapitre 06 (à écrire).
-- Sécurité, rôles, permissions internes → chapitre 06.
+- Spécification détaillée des intégrations Gmail / Google Calendar → [chapitre 06](06-integrations.md).
+- Sécurité, rôles, permissions internes → [chapitre 10](10-securite.md).
 - Choix frontend précis (Next.js / Flutter / React Native) → chapitre 07.
 - Coûts réels par composant au volume Sosson → chapitre 09.
 

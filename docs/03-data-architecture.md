@@ -3,7 +3,7 @@
 > **Statut** : stable v0.2 (schéma refondu mono-tenant, non fiscal ; à valider par prototypage)
 > **Dernière révision** : 2026-04-22
 > **Prérequis** : [02 — Architecture](02-architecture.md)
-> **ADRs référencés** : [0002](adr/0002-data-connect-relational.md), [0004](adr/0004-cold-storage-strategy.md), [0006](adr/0006-internal-tool-scope.md), [0007](adr/0007-not-a-billing-tool.md), [0008](adr/0008-architecture-postgres-firestore-hybrid.md)
+> **ADRs référencés** : [0002](adr/0002-data-connect-relational.md) *(Superseded by 0009)*, [0004](adr/0004-cold-storage-strategy.md), [0006](adr/0006-internal-tool-scope.md), [0007](adr/0007-not-a-billing-tool.md), [0008](adr/0008-architecture-postgres-firestore-hybrid.md), [0009](adr/0009-sql-connect-repivot-justification.md)
 
 ---
 
@@ -77,7 +77,7 @@ Pour chaque entité : sa responsabilité, ses invariants, ses champs essentiels.
 #### User
 - Utilisateur humain interne à Sosson.
 - Invariants : `firebaseUid` unique, mappé 1-1 avec Firebase Auth.
-- Rôles : `OWNER`, `ADMIN`, `OPERATOR`, `MOBILE` (chef de chantier, accès mobile restreint), `VIEWER`. Voir chapitre 06.
+- Rôles : `OWNER`, `ADMIN`, `OPERATOR`, `MOBILE` (chef de chantier, accès mobile restreint), `VIEWER`. Voir [chapitre 10 — Sécurité §10.4](10-securite.md).
 
 #### Client
 - Client final de l'entreprise.
@@ -579,9 +579,9 @@ Indexes nécessaires prévus (à matérialiser via `@index` SQL Connect ou SQL d
 ## 3.8 Ce que ce chapitre **ne couvre pas**
 
 - Le contenu exact du fichier `fiche_client.json` produit à l'archivage → [05 — Archivage](05-archival-strategy.md).
-- Les règles d'autorisation SQL Connect (qui peut lire/écrire quoi selon le rôle) → chapitre 06 Sécurité.
-- Le schéma Firestore (collections adjointes : CR brouillons mobile, planning collaboratif, présence) → chapitre 06 ou addendums à [ADR 0005](adr/0005-firestore-adjoint-only.md).
-- Les définitions Gmail / Google Calendar côté intégration → chapitre 06 Intégrations.
+- Les règles d'autorisation SQL Connect (qui peut lire/écrire quoi selon le rôle) → [chapitre 10 — Sécurité](10-securite.md).
+- Le schéma Firestore (collections adjointes : CR brouillons mobile, planning collaboratif, présence) → [chapitre 10 §10.5](10-securite.md) ou addendums à [ADR 0005](adr/0005-firestore-adjoint-only.md).
+- Les définitions Gmail / Google Calendar côté intégration → [chapitre 06 — Intégrations](06-integrations.md).
 - La stratégie de seed et de fixtures → chapitre 08 Opérations.
 
 ---

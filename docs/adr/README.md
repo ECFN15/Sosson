@@ -69,10 +69,11 @@ Points qu'on laisse explicitement non tranchés, à revoir dans un futur ADR si 
 | # | Titre | Statut | Date |
 |---|---|---|---|
 | [0001](0001-platform-firebase.md) | Plateforme : Firebase/GCP plutôt que Supabase | Accepté | 2026-04-22 |
-| [0002](0002-data-connect-relational.md) | Persistance relationnelle via Firebase Data Connect | Accepté | 2026-04-22 |
+| [0002](0002-data-connect-relational.md) | Persistance relationnelle via Firebase Data Connect | `Superseded by 0009` | 2026-04-22 |
 | [0003](0003-genkit-ai-layer.md) | Firebase Genkit comme couche d'orchestration IA | Accepté | 2026-04-22 |
 | [0004](0004-cold-storage-strategy.md) | Archivage en Cloud Storage Archive class | Accepté | 2026-04-22 |
 | [0005](0005-firestore-adjoint-only.md) | Firestore adjoint uniquement, jamais source de vérité | Accepté | 2026-04-22 |
 | [0006](0006-internal-tool-scope.md) | Outil interne mono-tenant (pas un SaaS) | Accepté | 2026-04-22 |
 | [0007](0007-not-a-billing-tool.md) | Hub opérationnel, pas un outil de facturation légal | Accepté | 2026-04-22 |
 | [0008](0008-architecture-postgres-firestore-hybrid.md) | Architecture hybride Postgres + Firestore (Option β) | Accepté | 2026-04-22 |
+| [0009](0009-sql-connect-repivot-justification.md) | Re-justification de SQL Connect après repivot mono-tenant non fiscal (remplace 0002) | Accepté | 2026-04-22 |

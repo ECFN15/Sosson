@@ -1,12 +1,14 @@
 # ADR 0002 — Persistance relationnelle via Firebase SQL Connect (ex-Data Connect)
 
-> **Statut** : Accepté
+> **Statut** : `Superseded by 0009`
 > **Date** : 2026-04-22
 > **Auteurs** : fondateur
 > **Remplace** : —
-> **Remplacé par** : —
+> **Remplacé par** : [ADR 0009](0009-sql-connect-repivot-justification.md)
 >
 > **Prérequis de lecture** : [03 — Architecture des Données](../03-data-architecture.md), [ADR 0001](0001-platform-firebase.md)
+
+> ⚠️ **Cet ADR est remplacé par [ADR 0009](0009-sql-connect-repivot-justification.md).** La **décision** (choisir SQL Connect) reste valide. La **motivation** rédigée ci-dessous s'appuie sur deux hypothèses invalidées depuis : fiscalité des factures ([ADR 0007](0007-not-a-billing-tool.md)) et architecture multi-tenant ([ADR 0006](0006-internal-tool-scope.md)). Conservé en l'état pour traçabilité historique. **Ne pas citer comme source de vérité.** Lire l'ADR 0009 pour la motivation en vigueur.
 
 > **Note de renommage (2026-04-22)** : Google a renommé **Firebase Data Connect → Firebase SQL Connect**. Les APIs n'ont pas changé, aucune migration code. Dans la suite de la documentation, on utilise **SQL Connect** (nom actuel) ; les références historiques à « Data Connect » pointent le même produit. La décision de l'ADR reste inchangée.
 

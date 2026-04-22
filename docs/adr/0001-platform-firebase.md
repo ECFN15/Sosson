@@ -73,4 +73,4 @@ Le facteur décisif est la **combinaison Genkit + Gemini + Cloud Storage Archive
 ## Questions ouvertes
 
 - **Région GCP** : à acter (probablement `europe-west1` Belgique ou `europe-west9` Paris pour la résidence RGPD). Traité en ADR dédié lors de la création du projet GCP.
-- **Identity Platform vs Firebase Auth "classique"** : Identity Platform est nécessaire si on veut du multi-tenancy fort. À acter à la mise en place de l'auth (chapitre 06, à écrire).
+- **Identity Platform vs Firebase Auth "classique"** : Identity Platform est nécessaire si on veut du multi-tenancy fort. **Tranché par [ADR 0006](0006-internal-tool-scope.md)** (mono-tenant) : Firebase Auth classique retenu. Détail : [chapitre 10 §10.3.1](../10-securite.md).

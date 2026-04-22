@@ -2,9 +2,9 @@
 
 > Encyclopédie vivante du projet. Toute décision structurante, tout invariant, toute convention est consignée ici ou dans un chapitre lié depuis ce document.
 >
-> **Version du document** : 0.2.0 — *Repivot : outil interne, hub opérationnel non fiscal*
+> **Version du document** : 0.2.1 — *Stabilisation post-repivot : ADRs cohérents, sécurité posée, archivage aligné*
 > **Dernière révision** : 2026-04-22
-> **Statut global** : Vision re-cadrée (mono-tenant, non fiscal). Architecture en cours d'ajustement. Nouveaux chapitres à écrire : Intégrations (email/calendar), Sécurité interne, Frontend, Opérations, Coûts réels.
+> **Statut global** : Base documentaire stabilisée. Fondations (vision, architecture, données, IA, archivage, intégrations, sécurité, coûts) cadrées. Reste à écrire : Frontend (chap 07), Opérations (chap 08).
 
 ---
 
@@ -64,7 +64,7 @@ Chaque décision structurante produit **un fichier immuable** dans [docs/adr/](d
 | 02 | [Architecture Globale](docs/02-architecture.md) | **stable v0.2** | Stack Postgres+Firestore+Genkit, bounded contexts, 5 flux de référence |
 | 03 | [Architecture des Données](docs/03-data-architecture.md) | **stable v0.2** | Schéma SQL Connect mono-tenant, 23 entités, indexes |
 | 04 | [Couche Intelligence](docs/04-intelligence.md) | stable | Genkit, flows, prompts, gouvernance IA *(à ajuster : ajouter `categoriseDepense`, `trieEmail`, `rattacheEmailAuChantier`)* |
-| 05 | [Stratégie d'Archivage](docs/05-archival-strategy.md) | placeholder | Hot/Warm/Cold, déclencheurs, format de l'archive |
+| 05 | [Stratégie d'Archivage](docs/05-archival-strategy.md) | **placeholder v0.2** | Hot/Warm/Cold, déclencheurs, format de l'archive v1.1.0 aligné mono-tenant |
 
 ### Partie II — Domaines transverses
 
@@ -73,7 +73,8 @@ Chaque décision structurante produit **un fichier immuable** dans [docs/adr/](d
 | 06 | [Intégrations externes](docs/06-integrations.md) | **placeholder v0.2** | Gmail (critique V1), Google Calendar, comptable, Excel, migration legacy |
 | 07 | Frontend | placeholder | Stack UI web + mobile, offline-first, compression images |
 | 08 | Opérations & Observabilité | placeholder | Déploiement, CI/CD, logs, métriques, alerting, FinOps |
-| 09 | [Modèle de Coûts](docs/09-couts.md) | **stable v0.1** | Volumes Sosson, coûts mensuels estimés, guardrails |
+| 09 | [Modèle de Coûts](docs/09-couts.md) | **stable v0.1** | Volumes Sosson, coûts mensuels estimés, guardrails, hypothèse environnements |
+| 10 | [Sécurité & Autorisations](docs/10-securite.md) | **stable v0.1** | Rôles, ACL chantier, Firebase Auth, OAuth Google, secrets, RLS, RGPD |
 
 ### Partie III — Références
 
@@ -92,13 +93,14 @@ Ce tableau est le **point d'entrée canonique** pour comprendre pourquoi le proj
 | ADR | Décision | Statut |
 |---|---|---|
 | [0001](docs/adr/0001-platform-firebase.md) | Plateforme : Firebase/GCP plutôt que Supabase | Accepté |
-| [0002](docs/adr/0002-data-connect-relational.md) | Persistance relationnelle : Firebase SQL Connect (ex-Data Connect, Cloud SQL Postgres) | Accepté |
+| [0002](docs/adr/0002-data-connect-relational.md) | Persistance relationnelle : Firebase SQL Connect (ex-Data Connect, Cloud SQL Postgres) | `Superseded by 0009` |
 | [0003](docs/adr/0003-genkit-ai-layer.md) | Couche IA : Firebase Genkit + Gemini | Accepté |
 | [0004](docs/adr/0004-cold-storage-strategy.md) | Archivage : extraction JSON + médias vers Cloud Storage Archive class | Accepté |
 | [0005](docs/adr/0005-firestore-adjoint-only.md) | Firestore adjoint uniquement, jamais source de vérité | Accepté |
 | [0006](docs/adr/0006-internal-tool-scope.md) | Outil interne mono-tenant (pas un SaaS) | Accepté |
 | [0007](docs/adr/0007-not-a-billing-tool.md) | Hub opérationnel, pas un outil de facturation légal | Accepté |
 | [0008](docs/adr/0008-architecture-postgres-firestore-hybrid.md) | Architecture hybride Postgres + Firestore (Option β) | Accepté |
+| [0009](docs/adr/0009-sql-connect-repivot-justification.md) | Re-justification SQL Connect après repivot (remplace 0002) | Accepté |
 
 ---
 
@@ -140,7 +142,10 @@ Si tu es un agent IA ouvert sur ce projet pour la première fois :
 4. Selon la tâche demandée :
    - Tâche sur données / schéma → [03 — Données](docs/03-data-architecture.md)
    - Tâche IA / Genkit / extraction → [04 — Intelligence](docs/04-intelligence.md)
-   - Tâche d'archivage → [05 — Archivage](docs/05-archival-strategy.md) (à écrire)
+   - Tâche d'archivage → [05 — Archivage](docs/05-archival-strategy.md)
+   - Tâche d'intégration (Gmail, Calendar, Excel) → [06 — Intégrations](docs/06-integrations.md)
+   - Tâche de sécurité / auth / RGPD → [10 — Sécurité](docs/10-securite.md)
+   - Tâche de chiffrage / coût → [09 — Coûts](docs/09-couts.md)
 5. Vérifie la table §4 des ADRs avant de remettre en cause une décision existante.
 6. Respecte les invariants §5. Si tu proposes de les violer, **explique pourquoi et propose un ADR**, ne le fais pas silencieusement.
 

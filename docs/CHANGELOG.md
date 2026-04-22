@@ -7,6 +7,40 @@ Les sections possibles : `Ajouté`, `Modifié`, `Déprécié`, `Retiré`, `Corri
 
 ---
 
+## [0.2.1] — 2026-04-22 — Stabilisation documentaire post-audit
+
+### Contexte
+Audit externe (Codex) sur la base v0.2.0 a relevé 6 points de dette : ADR 0002 invalidé sur le fond mais toujours `Accepté`, chapitre 05 archivage désaligné du modèle, chapitre sécurité fantôme, scope V1 large, coûts optimistes (un seul env chiffré sur 3), glossaire désynchronisé (7 vs 12 bounded contexts). Cette version clôt les 5 points factuels. Le 6ᵉ (scope V1) reste à arbitrer en phase de planification.
+
+### Ajouté
+- [ADR 0009](adr/0009-sql-connect-repivot-justification.md) : re-justification de Firebase SQL Connect après repivot. Remplace [ADR 0002](adr/0002-data-connect-relational.md) dont la motivation (fiscalité, multi-tenant) était invalidée par les ADRs 0006/0007.
+- **Nouveau chapitre** [10 — Sécurité & Autorisations](10-securite.md) : modèle de menace, rôles et ACL chantier, Firebase Auth + MFA, OAuth Google (Gmail/Calendar, scopes minimums, rotation), règles SQL Connect + RLS Postgres, règles Firestore, Cloud Storage (liens signés, buckets privés), Secret Manager, observabilité sécurité (alerting), RGPD (collecte, droits, sous-traitants), checklist V1.
+- §9.1.1 dans [09 — Coûts](09-couts.md) : hypothèse explicite — le chiffrage `< 30 €/mois` couvre prod uniquement ; dev en Stop/Start, staging à la demande, local sur émulateurs.
+
+### Modifié
+- `documentation.md` racine : bump **0.2.0 → 0.2.1**. Ajout chap 10 au sommaire. ADR 0002 marqué `Superseded by 0009`. Guide IA enrichi.
+- [ADR 0002](adr/0002-data-connect-relational.md) : statut passé à `Superseded by 0009`, bandeau d'avertissement en tête.
+- [ADR 0001](adr/0001-platform-firebase.md) : question ouverte "Identity Platform vs Firebase Auth" tranchée (pointeur vers ADR 0006 + chap 10).
+- [ADR README](adr/README.md) : registre mis à jour (0002 superseded, 0009 ajouté).
+- [05 — Archivage](05-archival-strategy.md) : **refonte v0.2**. Retrait de `Paiement` et du bloc `entreprise` dans l'archive. Ajout de `Email` + pièces jointes, `Event`, `AuditLog` (filtré), `LigneDepense` + `Categorie` dénormalisée, `DocumentAttache`, `Creneau` + `Assignation`, snapshot minimal `users`. Bump `archiveVersion` **1.0.0 → 1.1.0** (MINOR). Structure dossier enrichie d'un répertoire `emails/`. `MANIFEST.json` : retrait `entrepriseId`, ajout compteurs par type. Retrait des mentions "légal"/"immuable absolu" (ADR 0007).
+- [99 — Glossaire](99-glossary.md) : "Bounded context" passé de 7 à **12**. Entrée `Archive` reformulée (plus d'immuabilité absolue, tracée via AuditLog). Renvois `Identity Platform`, `RGPD`, `RLS` pointent vers le chapitre 10.
+- [02 — Architecture](02-architecture.md), [03 — Données](03-data-architecture.md), [04 — Intelligence](04-intelligence.md), [05 — Archivage](05-archival-strategy.md) : tous les renvois "chapitre 06 Sécurité" redirigés vers [10](10-securite.md).
+- [03 — Données](03-data-architecture.md) : en-tête ADRs enrichi avec 0009.
+
+### Corrigé
+- Désynchro "7 bounded contexts" vs "12" (glossaire ↔ architecture).
+- Chapitre 06 surchargé (Intégrations + Sécurité à la même adresse).
+- Chiffrage 09 implicitement mono-environnement.
+
+### À venir (non couvert par cette version)
+- **Scope V1 à trancher** : arbitrer une V1 livrable (recommandation audit : V1.0 ingestion+catégorisation+dashboards, V1.1 mobile CR, V1.2 planning+Calendar).
+- Chapitre 07 — Frontend (choix Flutter/RN, offline-first).
+- Chapitre 08 — Opérations & Observabilité (CI/CD, backups, procédure Stop/Start Cloud SQL dev/staging).
+- [04 — Intelligence](04-intelligence.md) : spécs détaillées des flows `categoriseDepense`, `trieEmail`, `rattacheEmailAuChantier`, `synthetiseCR`, `classifieExcel`.
+- ADR : déclenchement d'archivage (stratégie A/B), région GCP, choix mobile.
+
+---
+
 ## [0.2.0] — 2026-04-22 — Repivot produit (4 vagues)
 
 ### Contexte

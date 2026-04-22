@@ -16,7 +16,7 @@ Référence canonique du vocabulaire du projet. **Tout terme métier utilisé da
 Document immuable qui trace une décision structurante. Voir [docs/adr/](adr/README.md).
 
 ### Archive (au sens Sosson)
-État terminal d'un chantier clôturé dont les données relationnelles ont été sérialisées en `fiche_client.json` et déplacées en Cloud Storage Archive class. Immuable par construction (invariant §5.6 doc racine).
+État terminal d'un chantier clôturé dont les données relationnelles ont été sérialisées en `fiche_client.json` et déplacées en Cloud Storage Archive class. Le fichier d'archive sur GCS bénéficie d'**Object Versioning** et (post-V1) d'un **retention lock**, mais les modifications en base d'une donnée vivante restent autorisées et **tracées via `AuditLog`** (voir [ADR 0007](adr/0007-not-a-billing-tool.md)).
 
 ### Archive class (Cloud Storage)
 Classe de stockage GCS la moins chère (~0,004 $/Go/mois), destinée aux données rarement accédées. Latence de récupération de quelques secondes à minutes. Voir [ADR 0004](adr/0004-cold-storage-strategy.md).
@@ -24,7 +24,7 @@ Classe de stockage GCS la moins chère (~0,004 $/Go/mois), destinée aux donnée
 ## B
 
 ### Bounded context
-(DDD) Frontière logique d'un sous-domaine métier avec son propre vocabulaire et ses propres invariants. Sosson en compte 7 — voir [02 §2.3](02-architecture.md).
+(DDD) Frontière logique d'un sous-domaine métier avec son propre vocabulaire et ses propres invariants. Sosson en compte **12** (v0.2) — voir [02 §2.3](02-architecture.md).
 
 ## C
 
@@ -110,7 +110,7 @@ Phases du cycle de vie d'un dossier chantier. Hot = actif (lecture/écriture). W
 ## I
 
 ### Identity Platform
-Version enterprise de Firebase Auth. **Non utilisée dans Sosson** depuis la refonte mono-tenant ([ADR 0006](adr/0006-internal-tool-scope.md)) : Firebase Auth classique suffit.
+Version enterprise de Firebase Auth. **Non utilisée dans Sosson** depuis la refonte mono-tenant ([ADR 0006](adr/0006-internal-tool-scope.md)) : Firebase Auth classique suffit. Voir [chapitre 10 — Sécurité §10.3.1](10-securite.md).
 
 ### Invariant
 Règle architecturale non-négociable. Traverse toute l'application. Un changement d'invariant requiert un ADR. Liste : §5 de [documentation.md](../documentation.md).
@@ -139,10 +139,10 @@ Texte d'instruction envoyé à un LLM. Dans Sosson : `const` TypeScript versionn
 ## R
 
 ### RGPD
-Règlement général sur la protection des données (UE). Contraint : résidence, minimisation, portabilité, droit à l'effacement. Impact structurel : région GCP européenne, format d'archive exportable. Voir [ADR 0004](adr/0004-cold-storage-strategy.md) et chapitre 06 (à écrire).
+Règlement général sur la protection des données (UE). Contraint : résidence, minimisation, portabilité, droit à l'effacement. Impact structurel : région GCP européenne, format d'archive exportable. Voir [ADR 0004](adr/0004-cold-storage-strategy.md) et [chapitre 10 — Sécurité §10.9](10-securite.md).
 
 ### RLS (Row Level Security)
-Politique Postgres restreignant l'accès aux lignes par règle. Dans Sosson mono-tenant : principalement utilisée pour restreindre l'accès selon le rôle (ex. un `MOBILE` ne voit que ses propres chantiers assignés). Détaillé en chapitre 06.
+Politique Postgres restreignant l'accès aux lignes par règle. Dans Sosson mono-tenant : utilisée en défense en profondeur (au-delà des règles SQL Connect) pour les entités sensibles (Email, FactureFournisseur, AuditLog). Détaillé en [chapitre 10 §10.4.4](10-securite.md).
 
 ## S
 
