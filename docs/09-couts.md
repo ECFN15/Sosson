@@ -2,7 +2,7 @@
 
 > **Statut** : stable v0.1 (estimations à affiner avec 3 mois de prod réelle)
 > **Dernière révision** : 2026-04-22
-> **Prérequis** : [02 — Architecture](02-architecture.md), [08 — Opérations](08-operations.md) *(à écrire)*
+> **Prérequis** : [02 — Architecture](02-architecture.md) ; 08 — Opérations *(à écrire, non bloquant)*
 > **ADRs référencés** : [0001](adr/0001-platform-firebase.md), [0008](adr/0008-architecture-postgres-firestore-hybrid.md)
 
 ---

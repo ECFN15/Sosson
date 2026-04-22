@@ -297,9 +297,24 @@ Les chantiers passent à `clos`. Un job `archiveAgedClosedChantiers` tourne (quo
 
 - Bucket dédié à l'archivage : `sosson-{env}-archives`, séparé du bucket hot `sosson-{env}-media`.
 - **Storage class à l'écriture** : `Archive` directement (on sait que c'est froid).
-- **Lifecycle** : pas de transition automatique (déjà en Archive). Versioning d'objet activé **on** (protection contre écrasement accidentel).
-- **Rétention minimum** : 10 ans (object retention policy, verrouillée).
+- **Lifecycle** : pas de transition automatique (déjà en Archive). **Object Versioning** activé (protection contre écrasement accidentel).
+- **Rétention cible** : **10 ans** (cible opérationnelle interne, **pas** un verrou technique). Voir §5.6.1 ci-dessous.
 - **Région** : même que le projet GCP principal (europe-west*).
+
+### 5.6.1 Rétention vs droit à l'effacement : position
+
+Sosson étant un outil **non fiscal** ([ADR 0007](adr/0007-not-a-billing-tool.md)) et devant honorer le droit RGPD à l'effacement ([10 §10.9.2](10-securite.md)), il y a un arbitrage entre "conserver longtemps" et "pouvoir effacer sur demande". La position est la suivante :
+
+| Mécanisme | État en V1 | Raison |
+|---|---|---|
+| **Object Versioning** | **Activé** | Anti-écrasement accidentel (bug, mauvaise manip). Coût négligeable. |
+| **Object Retention Lock GCS** | **Non activé** | Un lock verrouille la suppression : incompatible avec le droit RGPD à l'effacement sur demande. Aucune obligation légale ne l'impose (ADR 0007). |
+| **10 ans** | **Cible interne** | Pratique d'entreprise, pas verrou. Le comptable externe garde ses obligations fiscales (10 ans légaux) de son côté. |
+| **Suppression définitive** | **Possible** | Procédure réservée `OWNER` uniquement, tracée dans `AuditLog` (entité `ArchiveChantier`, opération `DELETE`, raison obligatoire). |
+
+**Conséquence concrète** : en V1, une archive peut être supprimée par l'`OWNER` via une Cloud Function dédiée `purgeArchive(archiveChantierId, raison)`. Aucun utilisateur `ADMIN` ou inférieur ne peut supprimer une archive. Chaque suppression laisse une trace permanente dans `AuditLog`.
+
+Si un jour l'entreprise veut activer un **Retention Lock** (ex. obligation contractuelle client pour une branche d'activité précise), ce sera une évolution **post-V1** actée par ADR dédié — et il faudra alors documenter comment concilier avec le droit à l'effacement (probablement : lock uniquement sur les archives sans données personnelles, ou anonymisation pré-lock).
 
 ## 5.7 Intégrité et désarchivage
 

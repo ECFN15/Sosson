@@ -2,7 +2,7 @@
 
 > Encyclopédie vivante du projet. Toute décision structurante, tout invariant, toute convention est consignée ici ou dans un chapitre lié depuis ce document.
 >
-> **Version du document** : 0.2.1 — *Stabilisation post-repivot : ADRs cohérents, sécurité posée, archivage aligné*
+> **Version du document** : 0.2.2 — *Audit de cohérence : rétention archives & pattern upload tranchés*
 > **Dernière révision** : 2026-04-22
 > **Statut global** : Base documentaire stabilisée. Fondations (vision, architecture, données, IA, archivage, intégrations, sécurité, coûts) cadrées. Reste à écrire : Frontend (chap 07), Opérations (chap 08).
 

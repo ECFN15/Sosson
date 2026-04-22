@@ -114,8 +114,8 @@ sequenceDiagram
     participant Gc as Genkit Flow categoriseDepense
     participant M as Gemini 2.x
     participant SC as SQL Connect
-    U->>S: Upload PDF (compressé si image)
-    S-->>F: Trigger Storage
+    U->>S: Upload PDF (URL signée V4 — voir chap 10 §10.6.1)
+    S-->>F: Trigger Storage onObjectFinalize
     F->>Ge: runFlow({ pdfUri })
     Ge->>M: Extract(prompt + PDF, schéma Zod)
     M-->>Ge: JSON (fournisseur, HT, TVA, date, lignes)

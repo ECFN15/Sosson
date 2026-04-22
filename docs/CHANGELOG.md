@@ -7,6 +7,33 @@ Les sections possibles : `Ajouté`, `Modifié`, `Déprécié`, `Retiré`, `Corri
 
 ---
 
+## [0.2.2] — 2026-04-22 — Cohérence : rétention archives & pattern upload
+
+### Contexte
+Deuxième passe d'audit externe (Codex) sur la v0.2.1 : 2 contradictions inter-chapitres restaient à trancher avant implémentation + glossaire encore désaligné + 2 liens morts. Cette version clôt les 4 points.
+
+### Modifié — décisions tranchées
+- **Rétention des archives** (contradiction [05](05-archival-strategy.md) ↔ [10](10-securite.md)) :
+  - Nouvelle section **[05 §5.6.1](05-archival-strategy.md)** : position explicite — **pas de Retention Lock en V1** (incompatible avec RGPD droit à l'effacement, non requis car Sosson est non fiscal). 10 ans = cible opérationnelle, pas verrou technique.
+  - Introduction d'une procédure `purgeArchive` réservée `OWNER`, tracée dans `AuditLog`.
+  - [05 §5.6](05-archival-strategy.md) corrigé : "rétention cible" au lieu de "rétention minimum verrouillée".
+  - [10 §10.6.2](10-securite.md) et [10 §10.9.2](10-securite.md) alignés avec renvoi explicite à §5.6.1.
+- **Pattern d'upload** (contradiction [02](02-architecture.md)/[06](06-integrations.md) ↔ [10](10-securite.md)) :
+  - **[10 §10.6.1](10-securite.md) refondu** : pattern canonique **URL signée V4** émise par Cloud Function après check auth/ACL/MIME/taille, puis upload direct client → GCS. Remplace l'interdiction "upload direct client → bucket" qui laissait 02 et 06 incohérents.
+  - Justification explicite du choix vs proxy Cloud Function (limites mémoire/timeout sur gros PDF).
+  - Diagrammes [02 §2.4](02-architecture.md) et [06 §6.6.2](06-integrations.md) annotés pour pointer vers le pattern canonique sans surcharger.
+
+### Corrigé
+- [Glossaire](99-glossary.md) : entrées `Cloud SQL` et `SQL Connect` pointent désormais vers [ADR 0009](adr/0009-sql-connect-repivot-justification.md) (et non plus 0002 qui est superseded). Entrée `Devis` : retrait de "immuable une fois accepté" (contredisait [03 §3.3.2](03-data-architecture.md) et [ADR 0007](adr/0007-not-a-billing-tool.md) : modifications tracées, pas interdites) ; ajout de la clarification "pas de conversion Devis → Facture" (FactureCliente est un import).
+- Liens morts : [06](06-integrations.md) et [09](09-couts.md) ne pointent plus vers `07-frontend.md` / `08-operations.md` inexistants (chapitres référencés comme placeholders texte).
+
+### À venir (inchangé)
+- Scope V1 à arbitrer (recommandation audit : V1.0 / V1.1 / V1.2).
+- Chapitres 07 Frontend et 08 Opérations à écrire.
+- ADR stratégie archivage A/B, région GCP, choix mobile.
+
+---
+
 ## [0.2.1] — 2026-04-22 — Stabilisation documentaire post-audit
 
 ### Contexte

@@ -159,19 +159,26 @@ service cloud.firestore {
 
 ## 10.6 Cloud Storage : liens signés et ACL
 
-### 10.6.1 Bucket `sosson-{env}-media` (hot)
+### 10.6.1 Bucket `sosson-{env}-media` (hot) — pattern d'upload canonique
 
-- **ACL par défaut** : privé. Aucune lecture publique.
-- **Accès applicatif** : via SDK Admin côté Cloud Functions (service account) ou via URL signée courte (≤ 15 min) côté frontend.
-- **Upload direct client → bucket** : interdit. Tout upload transite par une Cloud Function qui valide (MIME, taille, scan antivirus optionnel), puis écrit avec un nom normalisé.
-- **Lecture mobile** : URL signée émise par une mutation GraphQL `getSignedUrlForPhoto(photoId)` qui vérifie l'ACL chantier.
+- **ACL par défaut** : privé. Aucune lecture publique. Jamais `allUsers`.
+- **Pattern d'upload canonique : URL signée V4 émise par Cloud Function.** C'est le **seul** modèle d'upload autorisé, valable pour tous les formats (PDF, photo, Excel, document divers). Il se déroule en 3 étapes :
+  1. Le client appelle une mutation GraphQL / Cloud Function `requestUploadUrl({ entityType, entityId, nomFichier, typeMime, tailleBytes })`.
+  2. Le backend **vérifie l'auth et l'ACL** (ex. `MOBILE` a-t-il bien accès au chantier cible ?), **valide la requête** (MIME dans whitelist, taille ≤ plafond par type), calcule un chemin normalisé (ex. `chantiers/{chantierId}/factures-fournisseurs/{uuid}.pdf`), et émet une **URL signée V4** `PUT` valide ≤ 5 min, scopée au chemin + content-type exact + taille max.
+  3. Le client `PUT` directement son fichier à cette URL → **GCS applique les contraintes** (mauvais content-type ou fichier trop gros = upload rejeté). Une fois l'upload terminé, un trigger Storage `onObjectFinalize` lance la suite (extraction IA, création d'entité, scan antivirus async si besoin).
+- **Pourquoi ce pattern et pas un proxy Cloud Function** : avec un proxy, les gros PDF (> 10 Mo) ou les photos mobiles hittent les limites Cloud Functions (mémoire, timeout 540 s, coût du temps de CPU passé à streamer des octets). L'URL signée V4 délègue le transport à GCS tout en gardant **l'autorisation côté backend**.
+- **Pourquoi ce n'est pas équivalent à "upload direct client → bucket anonyme"** : l'URL signée n'existe que si la Cloud Function a validé l'auth, l'ACL, le MIME et la taille. Il n'y a aucun moyen pour un client d'écrire un objet arbitraire sans passer par l'étape 1.
+- **Lecture mobile** : URL signée `GET` émise par une mutation GraphQL `getSignedUrlForMedia({ entityType, entityId })` qui vérifie l'ACL chantier, durée ≤ 15 min.
+- **Cohérence inter-chapitres** : les diagrammes "Upload PDF → Cloud Storage" de [02 §2.4](02-architecture.md) et "Upload .xlsx → Cloud Storage" de [06 §6.6.2](06-integrations.md) sont des vues **logiques** qui masquent cette étape de signature pour ne pas surcharger le diagramme. L'implémentation suit toujours le pattern à 3 étapes ci-dessus.
 
 ### 10.6.2 Bucket `sosson-{env}-archives` (cold)
 
 - **ACL** : privé strict. Aucune URL signée de longue durée.
 - **Lecture** : via Cloud Function `restoreArchive` réservée aux rôles `OWNER` / `ADMIN`.
+- **Écriture** : uniquement par la Cloud Function `archiveChantier` (service account dédié). Aucun utilisateur humain n'a de droit d'écriture direct.
 - **Object Versioning** : activé. Empêche l'écrasement accidentel.
-- **Object Retention Lock** : configurable post-V1 (politique de non-suppression pendant N années).
+- **Object Retention Lock** : **non activé en V1** — incompatible avec le droit RGPD à l'effacement, et non requis puisque Sosson est non fiscal ([ADR 0007](adr/0007-not-a-billing-tool.md)). Position détaillée et procédure `purgeArchive` (réservée `OWNER`) dans [05 §5.6.1](05-archival-strategy.md).
+- **Rétention cible** : 10 ans (cible opérationnelle, pas verrou technique). Voir [05 §5.6](05-archival-strategy.md).
 
 ### 10.6.3 Liens signés vers des clients externes (si portail futur)
 
@@ -229,10 +236,10 @@ Si un client final doit consulter un PDF sans compte :
 | Minimisation | Le schéma [03 §3.4.2](03-data-architecture.md) ne collecte que le strict nécessaire. Pas de données sensibles (santé, opinions...). |
 | Portabilité | Export JSON complet de la base + médias possible en < 24 h (invariant §5.1 de [documentation.md](../documentation.md)). Format documenté [chap 05](05-archival-strategy.md) par chantier, à étendre en export global au niveau outil. |
 | Droit d'accès | Un client final peut demander ses données → export manuel par l'équipe (procédure à figer en chapitre 08). |
-| Droit à l'effacement | Soft delete sur `Client` (`deletedAt`), suppression définitive après 3 ans ou sur demande explicite. Archives GCS : suppression possible mais tracée. |
+| Droit à l'effacement | Soft delete sur `Client` (`deletedAt`), suppression définitive après 3 ans ou sur demande explicite. Archives GCS : suppression possible par procédure `OWNER` uniquement, tracée dans `AuditLog` — voir [05 §5.6.1](05-archival-strategy.md). Pas de Retention Lock en V1, précisément pour garder ce droit opérationnel. |
 | Droit de rectification | Modifications possibles en base, tracées dans `AuditLog`. |
 | Registre des traitements | À produire hors repo (document RH / juridique). |
-| Durée de conservation | Hot : tant que le chantier est actif. Warm : 3 ans post-clôture. Cold : 10 ans (pratique interne, voir [05 §5.2](05-archival-strategy.md)). |
+| Durée de conservation | Hot : tant que le chantier est actif. Warm : 3 ans post-clôture. Cold : **10 ans cible** (pratique interne, pas verrou technique — voir [05 §5.6.1](05-archival-strategy.md)). |
 | Notification de violation | Procédure à figer : détection via alerting §10.8 → notification CNIL sous 72 h si données personnelles compromises. |
 
 ### 10.9.3 Sous-traitants

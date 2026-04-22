@@ -16,7 +16,7 @@ Référence canonique du vocabulaire du projet. **Tout terme métier utilisé da
 Document immuable qui trace une décision structurante. Voir [docs/adr/](adr/README.md).
 
 ### Archive (au sens Sosson)
-État terminal d'un chantier clôturé dont les données relationnelles ont été sérialisées en `fiche_client.json` et déplacées en Cloud Storage Archive class. Le fichier d'archive sur GCS bénéficie d'**Object Versioning** et (post-V1) d'un **retention lock**, mais les modifications en base d'une donnée vivante restent autorisées et **tracées via `AuditLog`** (voir [ADR 0007](adr/0007-not-a-billing-tool.md)).
+État terminal d'un chantier clôturé dont les données relationnelles ont été sérialisées en `fiche_client.json` et déplacées en Cloud Storage Archive class. Le fichier d'archive sur GCS bénéficie d'**Object Versioning** (anti-écrasement). **Pas de Retention Lock en V1** : la suppression reste possible via procédure `purgeArchive` réservée `OWNER`, tracée dans `AuditLog`, pour honorer le droit RGPD à l'effacement. Voir [05 §5.6.1](05-archival-strategy.md). Les modifications en base d'une donnée vivante restent autorisées et **tracées via `AuditLog`** (voir [ADR 0007](adr/0007-not-a-billing-tool.md)).
 
 ### Archive class (Cloud Storage)
 Classe de stockage GCS la moins chère (~0,004 $/Go/mois), destinée aux données rarement accédées. Latence de récupération de quelques secondes à minutes. Voir [ADR 0004](adr/0004-cold-storage-strategy.md).
@@ -38,7 +38,7 @@ Rôle métier : utilisateur responsable de l'exécution d'un ou plusieurs Chanti
 Client final de l'entreprise. Un Client peut être particulier ou professionnel. Sert de pivot pour regrouper chantiers, emails, documents et factures.
 
 ### Cloud SQL
-Service GCP de Postgres managé. Sous-jacent à Firebase Data Connect. Voir [ADR 0002](adr/0002-data-connect-relational.md).
+Service GCP de Postgres managé. Sous-jacent à Firebase SQL Connect. Voir [ADR 0009](adr/0009-sql-connect-repivot-justification.md).
 
 ### Cloud Functions (v2)
 Fonctions serverless Node.js/TS sur GCP. Utilisées pour : orchestration (archivage, génération PDF), triggers d'événements, webhooks, appel de flows Genkit.
@@ -58,10 +58,10 @@ Note texte rédigée par un utilisateur sur un Chantier, en Markdown, éventuell
 Ancien nom de **SQL Connect**. Renommé par Google en 2026. Voir **SQL Connect**.
 
 ### SQL Connect (Firebase, ex-Data Connect)
-Service Firebase exposant une base PostgreSQL (Cloud SQL) derrière une couche GraphQL typée avec SDKs auto-générés (JS, Kotlin, Swift, Flutter). Source de vérité relationnelle de Sosson. Supporte recherche vectorielle et full-text search natifs. Voir [ADR 0002](adr/0002-data-connect-relational.md).
+Service Firebase exposant une base PostgreSQL (Cloud SQL) derrière une couche GraphQL typée avec SDKs auto-générés (JS, Kotlin, Swift, Flutter). Source de vérité relationnelle de Sosson. Supporte recherche vectorielle et full-text search natifs. Voir [ADR 0009](adr/0009-sql-connect-repivot-justification.md) *(ADR 0002 remplacé par 0009)*.
 
 ### Devis
-Proposition commerciale chiffrée adressée au Client. Statuts : `BROUILLON`, `ENVOYE`, `ACCEPTE`, `REFUSE`, `EXPIRE`. Immuable une fois accepté. Peut être converti en Facture.
+Proposition commerciale chiffrée adressée au Client. Statuts : `BROUILLON`, `ENVOYE`, `ACCEPTE`, `REFUSE`, `EXPIRE`. **Modifications après envoi tracées dans `AuditLog`, pas interdites** ([ADR 0007](adr/0007-not-a-billing-tool.md) : Sosson n'est pas un outil fiscal). Un Devis ne se convertit pas en Facture dans Sosson : la FactureCliente est **importée** depuis le logiciel comptable externe (voir [03 §3.4.2](03-data-architecture.md)).
 
 ## E
 

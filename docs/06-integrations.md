@@ -164,13 +164,15 @@ Excel est **omniprésent** dans les PMEs BTP. Sosson doit savoir l'avaler sans b
 
 ### 6.6.2 Flow technique
 
+> **Note upload** : l'étape "Upload .xlsx → Cloud Storage" utilise le pattern canonique **URL signée V4** émise par Cloud Function après check d'auth et de MIME. Détail : [10 §10.6.1](10-securite.md).
+
 ```
-Upload .xlsx
+Upload .xlsx (URL signée V4)
      │
      ▼
 Cloud Storage
      │
-     ▼ trigger
+     ▼ trigger onObjectFinalize
 Cloud Function onExcelUploaded
      │
      ├─► Parse avec `xlsx` ou `exceljs` (TS)
@@ -191,4 +193,4 @@ La détection de structure est volontairement **permissive** : même un Excel ma
 
 ---
 
-**Chapitre suivant** : [07 — Frontend](07-frontend.md) *(à écrire)*.
+**Chapitre suivant** : 07 — Frontend *(à écrire)*.
