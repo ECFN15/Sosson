@@ -1,7 +1,7 @@
 # Sosson — MVP Démo Roadmap
-> **Objectif** : Démo verticale convaincante — lundi 28 avril 2026
-> **Durée de démo cible** : 3 minutes chrono
-> **Stack démo** : React + TailwindCSS + shadcn/ui — données seedées, zéro infra réelle requise
+> **Statut** : archive historique
+> **Portée** : ce document décrit un ancien cadrage démo et ne doit plus être utilisé pour prioriser le développement.
+> **Directive active** : la roadmap produit vit désormais dans `documentation.md`, `docs/` et les décisions d'architecture en vigueur.
 
 ---
 

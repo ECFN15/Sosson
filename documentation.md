@@ -2,9 +2,11 @@
 
 > Encyclopédie vivante du projet. Toute décision structurante, tout invariant, toute convention est consignée ici ou dans un chapitre lié depuis ce document.
 >
-> **Version du document** : 0.2.2 — *Audit de cohérence : rétention archives & pattern upload tranchés*
-> **Dernière révision** : 2026-04-22
+> **Version du document** : 0.2.3 — *Recentrage sur le développement produit continu*
+> **Dernière révision** : 2026-04-23
 > **Statut global** : Base documentaire stabilisée. Fondations (vision, architecture, données, IA, archivage, intégrations, sécurité, coûts) cadrées. Reste à écrire : Frontend (chap 07), Opérations (chap 08).
+>
+> **Directive active (2026-04-23)** : le projet n'est plus piloté par une logique de démo ou de MVP compressé. Les artefacts historiques orientés démo, en particulier `CLAUDE.md` dans ses parties legacy et `MVProadmap.md`, ne doivent plus servir de source de vérité de roadmap.
 
 ---
 
@@ -147,7 +149,8 @@ Si tu es un agent IA ouvert sur ce projet pour la première fois :
    - Tâche de sécurité / auth / RGPD → [10 — Sécurité](docs/10-securite.md)
    - Tâche de chiffrage / coût → [09 — Coûts](docs/09-couts.md)
 5. Vérifie la table §4 des ADRs avant de remettre en cause une décision existante.
-6. Respecte les invariants §5. Si tu proposes de les violer, **explique pourquoi et propose un ADR**, ne le fais pas silencieusement.
+6. Ignore les anciennes consignes de type "démo", "avant lundi", "MVP rapide" quand elles contredisent la trajectoire produit actuelle.
+7. Respecte les invariants §5. Si tu proposes de les violer, **explique pourquoi et propose un ADR**, ne le fais pas silencieusement.
 
 ---
 

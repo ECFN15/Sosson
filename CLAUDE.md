@@ -1,13 +1,26 @@
-# CLAUDE.md — Sosson Demo
+# CLAUDE.md — Sosson
 ## Le livre de bord complet du projet
 
-> **Usage** : Ce document est la référence exhaustive du projet `sosson-demo`.
+> **Usage** : Ce document est la référence exhaustive du projet `sosson`.
 > Il est structuré comme un livre : chaque chapitre couvre un aspect précis avec
 > description, décisions, et code associé. Codex ou tout autre agent IA doit lire
 > ce fichier en priorité avant d'intervenir sur le projet.
 >
-> **Dernière mise à jour** : 22 avril 2026
-> **Version** : 0.1.0 (démo lundi 28 avril 2026)
+> **Dernière mise à jour** : 23 avril 2026
+> **Version** : 0.2.1
+>
+> **Directive active (2026-04-23)** : la phase "démo/MVP" est abandonnée.
+> Les références à une démo, à un MVP, à "avant lundi", ou à une roadmap post-démo
+> doivent être lues comme de l'historique. Elles ne doivent plus piloter les priorités
+> du projet. La trajectoire active est le développement continu du produit, aligné avec
+> `documentation.md` et `docs/`.
+
+> **Note d'audit ajoutée le 2026-04-23 01:42:02 +02:00** :
+> depuis la connexion Firebase jusqu'à l'initialisation SQL Connect locale,
+> le repo a été rebasculé d'une logique démo vers une logique produit.
+> Les environnements `sosson-sandbox` et `sosson-prod` existent, SQL Connect / Data Connect
+> est actif dans les deux en `europe-west9`, l'initialisation locale a été faite une seule fois
+> avec `sosson-sandbox`, et les dossiers de skills Firebase sont conservés localement mais exclus de Git.
 
 ---
 
@@ -31,9 +44,9 @@
 16. [Pages — Emails](#chapitre-16--pages--emails)
 17. [Pages — Planning](#chapitre-17--pages--planning)
 18. [Système de déploiement](#chapitre-18--système-de-déploiement)
-19. [Script de démo (3 minutes)](#chapitre-19--script-de-démo-3-minutes)
-20. [Ce qui est hors périmètre avant lundi](#chapitre-20--ce-qui-est-hors-périmètre-avant-lundi)
-21. [Roadmap post-démo](#chapitre-21--roadmap-post-démo)
+19. [Archive de la phase démo](#chapitre-19--archive-de-la-phase-démo)
+20. [Périmètre historique écarté](#chapitre-20--périmètre-historique-écarté)
+21. [Orientation active](#chapitre-21--orientation-active)
 
 ---
 
@@ -53,14 +66,14 @@ bureau a envoyé. Le bureau ne sait pas ce qui se passe sur site.
 les documents, les comptes-rendus terrain, le planning, et extraire intelligemment de
 la valeur de cette masse (catégorisation des coûts, dashboards prévisionnels, alertes).
 
-### 1.2 Objectif de la démo — lundi 28 avril 2026
+### 1.2 Orientation actuelle du projet
 
-**Durée** : 3 minutes chrono.
-**But** : vendre la valeur produit, pas finir l'infra.
-**Résultat attendu** : après la démo, l'interlocuteur comprend immédiatement comment
-Sosson peut devenir le point central d'un chantier et faire gagner du temps tout de suite.
+Le projet n'est plus cadré comme une démo ni comme un MVP compressé.
+La priorité est désormais de construire le produit proprement, en réduisant la dette
+de transition et en branchant progressivement les briques réelles de l'architecture
+cible (Postgres / SQL Connect, Firebase Auth, Storage, Functions, IA).
 
-### 1.3 Parcours de démo (fil rouge)
+### 1.3 Parcours fonctionnel actuellement représenté dans le front
 
 ```
 Login → Dashboard gérant → Liste chantiers → Fiche chantier (en dérive)
@@ -68,9 +81,10 @@ Login → Dashboard gérant → Liste chantiers → Fiche chantier (en dérive)
 → Dashboard mis à jour (chiffres bougent)
 ```
 
-Ce parcours doit fonctionner sans aucun bug avant toute autre chose.
+Ce parcours reste utile comme colonne vertébrale UX du front, mais il ne constitue
+plus une contrainte de démonstration ni une priorisation absolue.
 
-### 1.4 Utilisateurs représentés dans la démo
+### 1.4 Comptes de travail représentés dans le seed
 
 | Persona | Email | Rôle | Ce qu'il voit |
 |---|---|---|---|
@@ -78,7 +92,7 @@ Ce parcours doit fonctionner sans aucun bug avant toute autre chose.
 | Claire Morel | claire@sosson.fr | Assistante de gestion | Factures, clients, upload |
 | Romain Faure | romain@sosson.fr | Chef de chantier | Ses chantiers uniquement, sans marges |
 
-Mot de passe démo universel : `demo`
+Mot de passe seed universel actuel : `demo`
 
 ---
 
@@ -105,7 +119,7 @@ Mot de passe démo universel : `demo`
               │
               ▼
 ┌─────────────────────────────────────────────────────────┐
-│              FIREBASE (optionnel pour la démo)          │
+│        FIREBASE (socle branché progressivement)         │
 │                                                         │
 │  sosson-sandbox  ←── npm run dev / build:sandbox        │
 │  sosson-prod     ←── npm run dev:prod / build:prod      │
@@ -124,7 +138,9 @@ La variable `isFirebaseConfigured` dans `src/lib/auth.ts` vérifie si
 - **Avec Firebase** : login Firebase Auth, profil lu dans Firestore collection `users/{uid}`,
   fallback sur le seed si le profil n'existe pas encore.
 
-Cela permet de coder et tester l'interface sans attendre la config Firebase.
+Cela permet de continuer à développer l'interface pendant le branchement progressif
+de l'infrastructure réelle. Ce fallback est transitoire et ne définit pas la cible
+d'architecture.
 
 ---
 
@@ -134,7 +150,7 @@ Cela permet de coder et tester l'interface sans attendre la config Firebase.
 Sosson/                         # Racine du projet (tout est ici, pas de sous-dossier app/)
 │
 ├── docs/                       # Documentation produit (vision, architecture, intelligence, ADR)
-├── MVProadmap.md               # Roadmap démo lundi
+├── MVProadmap.md               # Archive de la roadmap démo (historique, non directif)
 ├── documentation.md            # Doc générale
 │
 ├── deploy/                     # Système de déploiement Firebase (npm run dashboard)
@@ -162,7 +178,7 @@ Sosson/                         # Racine du projet (tout est ici, pas de sous-do
 │   │       └── AppLayout.tsx   # Layout protégé (redirect si non connecté)
 │   │
 │   ├── pages/
-│   │   ├── LoginPage.tsx       # Page de connexion + accès rapide démo
+│   │   ├── LoginPage.tsx       # Page de connexion + accès rapide seed
 │   │   ├── DashboardPage.tsx   # Dashboard gérant (KPIs + alertes + graphique)
 │   │   ├── ChantiersPage.tsx   # Liste des chantiers
 │   │   ├── ChantierDetailPage.tsx  # ⭐ Fiche chantier + upload facture
@@ -181,7 +197,7 @@ Sosson/                         # Racine du projet (tout est ici, pas de sous-do
 ├── .firebaserc                 # Alias projets Firebase (à remplir)
 ├── firebase.json               # Config hosting + Firestore
 ├── firestore.rules             # Règles Firestore V1 (auth requise)
-├── firestore.indexes.json      # Index Firestore (vide pour la démo)
+├── firestore.indexes.json      # Index Firestore (placeholder actuel)
 ├── vite.config.ts              # Vite + TailwindCSS v4 + chunks + drop console prod
 ├── tsconfig.app.json           # TypeScript avec alias @/ → src/
 ├── package.json                # Scripts npm
@@ -256,26 +272,53 @@ Exemple : `import { useApp } from '@/lib/store'`
 
 ### 5.0 État actuel et action à faire maintenant
 
-> ⚠️ **Blocage infra identifié au 2026-04-22** :
-> la démo prend forme, mais les **deux environnements Firebase ne sont pas encore créés/configurés**.
-> Avant de brancher l'auth réelle, Firestore, ou le dashboard de déploiement, il faut :
+> **Mise à jour du 2026-04-23** :
+> les projets Firebase `sandbox` et `production` existent et sont branchés.
+> Les variables d'environnement sont renseignées, `.firebaserc` est en place,
+> et SQL Connect / Data Connect est actif dans les deux environnements.
 >
-> 1. **Créer / activer le projet Firebase `sandbox`**
-> 2. **Créer / activer le projet Firebase `production`**
-> 3. **Créer les comptes / accès Google/Firebase nécessaires** pour administrer ces deux environnements
-> 4. **Renseigner les vrais IDs projet** dans `deploy/config.mjs`
-> 5. **Créer les vrais fichiers** `.env.sandbox` et `.env.production`
-> 6. **Compléter** `.firebaserc` avec les alias `default` → sandbox et `prod` → production
->
-> Tant que ce point n'est pas fait, l'application reste essentiellement en **mode seed / fallback local**,
-> ce qui est acceptable pour avancer sur la démo UI, mais **pas suffisant** pour valider le flux Firebase réel.
+> Le travail à faire maintenant n'est plus d'activer Firebase, mais de :
+> 1. **aligner la config locale `dataconnect/` avec les vrais services / instances créés dans Firebase**
+> 2. **remplacer le schéma SQL Connect d'exemple généré par Firebase**
+> 3. **valider les opérations en `sandbox` avant tout déploiement vers `production`**
+> 4. **renforcer progressivement Auth / Firestore / Storage côté règles et architecture**
+
+### 5.0.1 Audit clair des actions réalisées et du guidage fourni
+
+**Date et heure de la note** : `2026-04-23 01:42:02 +02:00`
+
+Ce qui a été fait :
+
+1. Le cadrage "démo / MVP" a été explicitement abandonné et reclassé en historique.
+2. Les deux environnements Firebase `sosson-sandbox` et `sosson-prod` ont été vérifiés.
+3. SQL Connect / Data Connect a été activé côté Firebase dans `sandbox` et `production`.
+4. La région retenue pour SQL Connect a été fixée à `europe-west9`.
+5. L'initialisation locale SQL Connect a été lancée **une seule fois** dans le repo avec :
+   `firebase init dataconnect --project sosson-sandbox`
+6. Le guidage fourni a insisté sur le fait de :
+   - ne **pas** générer le schéma avec Gemini
+   - ne **pas** refaire `firebase init` pour `production`
+   - ne **pas** cliquer sur `Deploy to production` tant que le schéma Sosson n'est pas prêt
+   - ne **pas** travailler le schéma directement dans la console Firebase
+7. Firebase a généré localement :
+   - `dataconnect/dataconnect.yaml`
+   - `dataconnect/schema/schema.gql`
+   - `dataconnect/example/*`
+   - `src/dataconnect-generated/*`
+   - `src/dataconnect-admin-generated/*`
+8. Un point de vigilance a été identifié :
+   les IDs générés localement par Firebase peuvent ne pas correspondre aux IDs créés manuellement dans la console.
+   Cet alignement reste à faire avant tout déploiement sérieux.
+9. Les dossiers de skills Firebase (`.agents`, `.claude`, `.vibe`, `.windsurf`) ont été conservés en local
+   parce qu'ils peuvent aider les agents sur la stack Firebase, mais ils ont été exclus de Git.
+10. Le dossier `.firebase/`, qui ne servait qu'au debug / tooling local, a été supprimé du workspace.
 
 ### 5.1 Deux projets distincts
 
 | Environnement | Alias `.firebaserc` | Usage |
 |---|---|---|
-| `sandbox` | `default` | Développement + démo lundi |
-| `production` | `prod` | Usage réel post-démo |
+| `sandbox` | `default` | Développement / intégration |
+| `production` | `prod` | Production |
 
 ### 5.2 Fichiers d'environnement
 
@@ -298,11 +341,10 @@ VITE_FIREBASE_APP_ID=
 VITE_ENV=sandbox   # ou production
 ```
 
-> ⚠️ Ces fichiers ne sont pas commités (`.gitignore`). Copier `.env.example`
-> et remplir avec les vraies valeurs Firebase.
+> ⚠️ Ces fichiers ne sont pas commités (`.gitignore`).
 >
-> **Rappel** : à la date actuelle, cette étape reste à faire. Les comptes / projets Firebase
-> `sandbox` et `production` doivent être créés puis branchés ici.
+> **Mise à jour 2026-04-23** : les fichiers `.env.sandbox` et `.env.production`
+> sont maintenant renseignés avec les vraies valeurs Firebase.
 
 ### 5.3 Initialisation Firebase (`src/lib/firebase.ts`)
 
@@ -332,8 +374,8 @@ export const ENV = import.meta.env.VITE_ENV ?? 'sandbox'
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // V1 démo : accès authentifié uniquement
-    // À renforcer post-démo avec RBAC (gerant / assistante / chef_chantier)
+    // V1 actuelle : accès authentifié uniquement
+    // À renforcer avec RBAC et règles ciblées par collection / rôle
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
@@ -346,11 +388,28 @@ service cloud.firestore {
 ```json
 {
   "projects": {
-    "default": "ID_SANDBOX",
-    "prod": "ID_PRODUCTION"
+    "default": "sosson-sandbox",
+    "prod": "sosson-prod"
   }
 }
 ```
+
+### 5.6 SQL Connect / Data Connect
+
+SQL Connect est désormais initialisé localement dans le repo et visible dans VS Code
+via l'extension Firebase SQL Connect.
+
+État validé :
+- `firebase init dataconnect --project sosson-sandbox` a déjà été exécuté
+- l'initialisation locale ne doit **pas** être relancée pour `production`
+- les deux environnements Firebase ont un service SQL Connect actif en `europe-west9`
+- `firebase.json` contient maintenant une section `dataconnect` et une config d'émulateur
+- `package.json` contient les dépendances locales `@dataconnect/generated` et `@dataconnect/admin-generated`
+
+État provisoire à corriger ensuite :
+- `dataconnect/schema/schema.gql` est encore le template d'exemple Firebase
+- `dataconnect/example/*` et `seed_data.gql` sont des fichiers générés, non encore alignés avec Sosson
+- `dataconnect/dataconnect.yaml` doit être revu pour correspondre aux vrais IDs créés côté Firebase
 
 ---
 
@@ -1006,89 +1065,30 @@ compte est connecté avant toute action.
 
 ---
 
-## Chapitre 19 — Script de démo (3 minutes)
+## Chapitre 19 — Archive de la phase démo
 
-### Minute 1 — Le gérant ouvre son matin
+Les anciens scripts, parcours narratifs et contraintes "3 minutes" sont conservés
+uniquement pour mémoire. Ils ne doivent plus influencer ni la priorisation, ni les
+choix d'architecture, ni le séquencement des travaux.
 
-> *"Patrick arrive le matin, il ouvre Sosson."*
+## Chapitre 20 — Périmètre historique écarté
 
-1. Page Login → cliquer "Connexion rapide démo" → sélectionner Patrick Sosson (Gérant)
-2. Dashboard : montrer les 4 KPIs
-3. **Pointer l'alerte rouge** : "Rénovation salle de bain — Dérive budget +8%"
-4. Cliquer sur l'alerte
+Les restrictions du type :
+- "pas besoin de vraie infra"
+- "pas besoin de vrai Auth"
+- "Firestore seul suffit pour la démo"
+- "pas de tests avant lundi"
 
-### Minute 2 — La fiche chantier unifiée
+... sont désormais **obsolètes**. Elles correspondent à un cadrage passé et ne doivent
+plus être reprises dans les prochains arbitrages.
 
-> *"Tout le dossier en un seul endroit."*
+## Chapitre 21 — Orientation active
 
-1. Fiche chantier Dupont s'ouvre
-2. Montrer : infos client, 3 blocs budget/dépenses/marge (la marge est en rouge)
-3. **Pointer l'email non lu** dans la colonne droite : "Inquiétude délai" — priorité haute
-4. Faire défiler la liste des 4 factures déjà traitées
-
-### Minute 3 — L'upload qui impressionne
-
-> *"L'assistante reçoit une facture papier scannée."*
-
-1. Glisser-déposer le PDF de démo sur la zone d'upload
-2. Laisser la progression s'afficher (1,2s upload → 1,8s analyse IA)
-3. **Résultat** : "Matériaux Rhône, 847,20 €, TVA 20%, Bois & matériaux, confiance 94%"
-4. Cliquer "Valider et rattacher au chantier"
-5. Retourner au Dashboard → **les chiffres ont bougé**
-
-> *"En moins de 10 secondes, la facture est catégorisée, rattachée au chantier,
-> et le gérant voit l'impact sur sa marge."*
-
-### Fichier PDF de démo à préparer
-
-Créer ou utiliser n'importe quel PDF (facture fictive ou document quelconque).
-L'extraction est simulée côté code — le fichier n'est pas analysé réellement.
-
----
-
-## Chapitre 20 — Ce qui est hors périmètre avant lundi
-
-| ❌ Fonctionnalité | Raison |
-|---|---|
-| Mobile / responsive mobile | Pas le sujet de la démo desktop |
-| Offline / PWA | Inutile pour une démo en salle |
-| Firebase Auth réel | Mock seed suffisant |
-| Firestore / Cloud SQL réel | Données seedées suffisantes |
-| Gmail API live | 2 emails seedés suffisent |
-| Google Calendar sync | Gantt statique convaincant |
-| Archivage / GCS | Pas visible en démo |
-| Tests unitaires | Post-démo |
-| RBAC Firestore complet | 3 rôles mockés via `user.role` |
-| Fiche client détaillée (`/clients/:id`) | Non lié → page liste suffit |
-| Comptes-rendus terrain | Non lié au parcours de démo |
-
----
-
-## Chapitre 21 — Roadmap post-démo
-
-### Priorité 1 — Brancher Firebase réel
-- Créer les 3 comptes Firebase Auth (Patrick, Claire, Romain)
-- Écrire le script de seed Firestore (migrer `src/data/*.ts` → Firestore)
-- Renforcer `firestore.rules` avec les rôles réels
-
-### Priorité 2 — Extraction IA réelle
-- Cloud Function triggered sur upload GCS
-- Appel à Gemini Vision ou Document AI pour extraire fournisseur, montants, date
-- Retour des données vers Firestore → mise à jour de l'interface
-
-### Priorité 3 — Gmail integration
-- OAuth Gmail API
-- Ingestion + classification automatique (Gemini)
-- Rattachement email ↔ chantier/client
-
-### Priorité 4 — Mobile (chef de chantier)
-- PWA avec offline-first
-- Prise de photo + dictée vocale
-- Compression client avant upload
-
-### Priorité 5 — Firestore live
-- Remplacer le Context seedé par des hooks Firestore (`onSnapshot`)
-- Temps réel collaboratif sur la fiche chantier
+Priorités de travail actives :
+- remettre le socle technique en état de build et de développement continu
+- brancher progressivement l'infrastructure réelle au lieu d'étendre le mode seed
+- préparer la couche de persistance relationnelle cible autour de Postgres / SQL Connect
+- faire converger la documentation produit, la structure de code, et les environnements
 
 ---
 
