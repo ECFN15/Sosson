@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "sosson-sandbox",
+    "prod": "sosson-prod"
+  }
+}
