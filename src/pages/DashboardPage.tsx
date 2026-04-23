@@ -14,7 +14,7 @@ import {
   Users,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useApp, clients } from '@/lib/store'
+import { useApp } from '@/lib/store'
 import { categorieLabels } from '@/data/factures'
 import type { CategorieDepense } from '@/data/factures'
 import {
@@ -140,7 +140,7 @@ function RiskBadge({ level }: { level: 'high' | 'medium' }) {
 }
 
 export function DashboardPage() {
-  const { chantiers, factures, user } = useApp()
+  const { chantiers, factures, user, clients } = useApp()
   const navigate = useNavigate()
 
   const chantiersActifs = chantiers.filter(c => c.statut === 'en_cours')

@@ -47,7 +47,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { clients, emails, useApp } from '@/lib/store'
+import { emails, useApp } from '@/lib/store'
 import { categorieLabels } from '@/data/factures'
 import { getChantierCover, getChantierGallery } from '@/data/media'
 import type { CategorieDepense } from '@/data/factures'
@@ -693,7 +693,7 @@ function MobileChantierView({ chantier, client, progress }: { chantier: Chantier
 export function ChantierDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { chantiers, factures } = useApp()
+  const { chantiers, factures, clients } = useApp()
   const [showUploadHint, setShowUploadHint] = useState(false)
 
   const chantier = chantiers.find(item => item.id === id)

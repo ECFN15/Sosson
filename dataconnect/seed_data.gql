@@ -18,7 +18,7 @@
 # =============================================================================
 
 mutation @transaction {
-  client_insertMany(data: [
+  client_upsertMany(data: [
     {
       id: "aaaaaaaa-0000-0000-0000-000000000001",
       type: "particulier",
@@ -51,7 +51,7 @@ mutation @transaction {
     }
   ])
 
-  chantier_insertMany(data: [
+  chantier_upsertMany(data: [
     {
       id: "bbbbbbbb-0000-0000-0000-000000000001",
       clientId: "aaaaaaaa-0000-0000-0000-000000000001",
@@ -59,6 +59,7 @@ mutation @transaction {
       statut: "en_cours",
       dateDebut: "2026-02-10",
       dateFinPrevue: "2026-04-30",
+      dateFin: null,
       budgetPrevisionnel: 8500.00,
       description: "Rénovation complète de la salle de bain principale : carrelage, plomberie, sanitaires, peinture.",
       adresse: "14 rue des Lilas, 26000 Valence"
@@ -70,6 +71,7 @@ mutation @transaction {
       statut: "en_cours",
       dateDebut: "2026-01-15",
       dateFinPrevue: "2026-06-30",
+      dateFin: null,
       budgetPrevisionnel: 24000.00,
       description: "Agrandissement du garage existant : fondations, maçonnerie, charpente, couverture, électricité.",
       adresse: "8 avenue du Rhône, 26100 Romans-sur-Isère"
@@ -81,6 +83,7 @@ mutation @transaction {
       statut: "en_cours",
       dateDebut: "2026-03-01",
       dateFinPrevue: "2026-07-15",
+      dateFin: null,
       budgetPrevisionnel: 31000.00,
       description: "Réfection complète de la toiture du bâtiment annexe de la mairie : dépose, isolation, couverture tuiles.",
       adresse: "Bâtiment annexe, 3 rue Championnet, 26000 Valence"
@@ -99,7 +102,7 @@ mutation @transaction {
     }
   ])
 
-  facture_insertMany(data: [
+  facture_upsertMany(data: [
     {
       id: "cccccccc-0000-0000-0000-000000000001",
       chantierId: "bbbbbbbb-0000-0000-0000-000000000001",

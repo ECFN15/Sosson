@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Building2, User, Landmark, ArrowRight, X, Check } from 'lucide-react'
-import { clients as initialClients } from '@/data/clients'
 import type { Client } from '@/data/clients'
 import { useApp } from '@/lib/store'
 import { getChantierCover } from '@/data/media'
@@ -15,9 +14,8 @@ const typeColor = {
 }
 
 export function ClientsPage() {
-  const { chantiers, user } = useApp()
+  const { chantiers, user, clients, addClient } = useApp()
   const navigate = useNavigate()
-  const [clientsList, setClientsList] = useState<Client[]>(initialClients)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({
     nom: '', type: 'particulier' as Client['type'],
@@ -35,7 +33,7 @@ export function ClientsPage() {
       dateCreation: new Date().toISOString().split('T')[0],
       chantierIds: [],
     }
-    setClientsList(prev => [...prev, newClient])
+    addClient(newClient)
     setSaved(true)
     setTimeout(() => { setSaved(false); setShowModal(false) }, 1200)
     setForm({ nom: '', type: 'particulier', email: '', telephone: '', adresse: '', ville: '', codePostal: '' })
@@ -46,7 +44,7 @@ export function ClientsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
-          <p className="text-slate-500 text-sm mt-1">{clientsList.length} clients</p>
+          <p className="text-slate-500 text-sm mt-1">{clients.length} clients</p>
         </div>
         {canCreate && (
           <button
@@ -59,7 +57,7 @@ export function ClientsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {clientsList.map(client => {
+        {clients.map(client => {
           const Icon = typeIcon[client.type]
           const clientChantiers = chantiers.filter(c => c.clientId === client.id)
           return (

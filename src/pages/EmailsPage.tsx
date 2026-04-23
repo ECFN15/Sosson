@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { clients, emails, useApp } from '@/lib/store'
+import { emails, useApp } from '@/lib/store'
 import { getChantierCover } from '@/data/media'
 import type { Email } from '@/data/emails'
 import type { LucideIcon } from 'lucide-react'
@@ -218,7 +218,7 @@ function ProjectThumbnail({ src }: { src: string }) {
 }
 
 export function EmailsPage() {
-  const { chantiers } = useApp()
+  const { chantiers, clients } = useApp()
   const [activeTab, setActiveTab] = useState<EmailTab>('toutes')
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState(emails[0]?.id ?? '')

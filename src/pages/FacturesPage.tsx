@@ -13,7 +13,7 @@ import {
   SlidersHorizontal,
   Upload,
 } from 'lucide-react'
-import { clients, useApp } from '@/lib/store'
+import { useApp } from '@/lib/store'
 import { categorieLabels } from '@/data/factures'
 import type { CategorieDepense, Facture } from '@/data/factures'
 
@@ -174,7 +174,7 @@ function PendingRow({ row }: { row: (typeof demoPending)[number] }) {
 }
 
 function ValidatedRow({ facture }: { facture: Facture }) {
-  const { chantiers } = useApp()
+  const { chantiers, clients } = useApp()
   const chantier = chantiers.find(item => item.id === facture.chantierId)
   const client = clients.find(item => item.id === chantier?.clientId)
   const status = statusFor(facture.statut)

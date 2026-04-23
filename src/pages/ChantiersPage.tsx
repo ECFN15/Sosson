@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { HardHat, Euro, AlertTriangle, CheckCircle, Clock, ArrowRight } from 'lucide-react'
-import { useApp, clients } from '@/lib/store'
+import { useApp } from '@/lib/store'
 import { getChantierCover } from '@/data/media'
 
 function StatutBadge({ statut }: { statut: string }) {
@@ -24,7 +24,7 @@ function StatutBadge({ statut }: { statut: string }) {
 }
 
 export function ChantiersPage() {
-  const { chantiers, user } = useApp()
+  const { chantiers, user, clients } = useApp()
   const navigate = useNavigate()
   const isGerant = user?.role === 'gerant'
   const isAssistante = user?.role === 'assistante'
