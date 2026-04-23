@@ -25,8 +25,8 @@ export function SossonLogoIcon({
       aria-hidden="true"
       {...props}
     >
-      <polyline points="22 117 22 73 97 18 157 58 157 154" />
-      <path d="M10 117H97" />
+      <polyline points="13 117 13 79 97 18 157 58 157 154" />
+      <path d="M1 117H97" />
       <path d="M97 18V141" />
       <path d="M117 31V145" />
       <path d="M137 45V149" />
