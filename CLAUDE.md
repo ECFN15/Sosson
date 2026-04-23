@@ -7,7 +7,7 @@
 > ce fichier en priorité avant d'intervenir sur le projet.
 >
 > **Dernière mise à jour** : 23 avril 2026
-> **Version** : 0.2.1
+> **Version** : 0.2.4
 >
 > **Directive active (2026-04-23)** : la phase "démo/MVP" est abandonnée.
 > Les références à une démo, à un MVP, à "avant lundi", ou à une roadmap post-démo
@@ -15,12 +15,22 @@
 > du projet. La trajectoire active est le développement continu du produit, aligné avec
 > `documentation.md` et `docs/`.
 
-> **Note d'audit ajoutée le 2026-04-23 01:42:02 +02:00** :
+> **Note d'audit #1 — 2026-04-23 01:42** :
 > depuis la connexion Firebase jusqu'à l'initialisation SQL Connect locale,
 > le repo a été rebasculé d'une logique démo vers une logique produit.
 > Les environnements `sosson-sandbox` et `sosson-prod` existent, SQL Connect / Data Connect
 > est actif dans les deux en `europe-west9`, l'initialisation locale a été faite une seule fois
 > avec `sosson-sandbox`, et les dossiers de skills Firebase sont conservés localement mais exclus de Git.
+
+> **Note d'audit #2 — 2026-04-23 ~02:00** :
+> Le schéma SQL Connect Sosson est écrit et valide (`User`, `Client`, `Chantier`, `Facture`).
+> Le connecteur `example/` a été remplacé par `sosson/` (queries + mutations métier).
+> Les SDKs TypeScript ont été régénérés automatiquement. Le `seed_data.gql` reflète le seed front.
+> Le dossier `app/` orphelin a été supprimé, le package renommé `sosson`.
+> Les IDs réels du service sandbox ont été identifiés dans la console Firebase :
+> service = `sosson-sandbox-service`, instance = `sosson-sandbox-instance`.
+> **Le `dataconnect.yaml` local n'est pas encore aligné sur ces IDs — c'est le prochain blocage.**
+> Décision prise : on passe directement à SQL Connect comme couche de persistance, sans passer par Firestore.
 
 ---
 
@@ -108,13 +118,13 @@ Mot de passe seed universel actuel : `demo`
 │                                                         │
 │  AppProvider (Context)                                  │
 │  ├── user (User | null)                                 │
-│  ├── chantiers (Chantier[])   ← seedés en mémoire       │
-│  ├── factures (Facture[])     ← seedées en mémoire      │
+│  ├── chantiers (Chantier[])   ← encore en mémoire       │
+│  ├── factures (Facture[])     ← encore en mémoire       │
 │  ├── setUser()                                          │
 │  └── addFacture()             ← met à jour chantier     │
 │                                                         │
-│  Auth : Firebase Auth si configuré, sinon mock seed     │
-│  Data : Firestore si configuré, sinon arrays en mémoire │
+│  Auth : Firebase Auth (Email/Password)                  │
+│  Data : SQL Connect (cible) — encore en mémoire (seed)  │
 └─────────────────────────────────────────────────────────┘
               │
               ▼
@@ -124,7 +134,7 @@ Mot de passe seed universel actuel : `demo`
 │  sosson-sandbox  ←── npm run dev / build:sandbox        │
 │  sosson-prod     ←── npm run dev:prod / build:prod      │
 │                                                         │
-│  Services utilisés : Auth (Email/Password) + Firestore  │
+│  Services utilisés : Auth (Email/Password) + SQL Connect │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -396,20 +406,52 @@ service cloud.firestore {
 
 ### 5.6 SQL Connect / Data Connect
 
-SQL Connect est désormais initialisé localement dans le repo et visible dans VS Code
-via l'extension Firebase SQL Connect.
+#### Ce qui est fait (au 2026-04-23)
 
-État validé :
-- `firebase init dataconnect --project sosson-sandbox` a déjà été exécuté
-- l'initialisation locale ne doit **pas** être relancée pour `production`
-- les deux environnements Firebase ont un service SQL Connect actif en `europe-west9`
-- `firebase.json` contient maintenant une section `dataconnect` et une config d'émulateur
-- `package.json` contient les dépendances locales `@dataconnect/generated` et `@dataconnect/admin-generated`
+- `firebase init dataconnect --project sosson-sandbox` a déjà été exécuté (ne pas relancer)
+- Les deux environnements Firebase ont un service SQL Connect actif en `europe-west9`
+- `firebase.json` contient la section `dataconnect` + config émulateur
+- `package.json` contient `@dataconnect/generated` et `@dataconnect/admin-generated` comme dépendances locales
+- **Schéma Sosson écrit** dans `dataconnect/schema/schema.gql` : `User`, `Client`, `Chantier`, `Facture`
+- **Connecteur `sosson/`** écrit dans `dataconnect/sosson/` : `queries.gql` + `mutations.gql` + `connector.yaml`
+- **SDKs TypeScript régénérés** automatiquement dans `src/dataconnect-generated/` et `src/dataconnect-admin-generated/`
+- **Seed SQL** écrit dans `dataconnect/seed_data.gql` : 3 clients, 4 chantiers, 12 factures (UUIDs déterministes)
 
-État provisoire à corriger ensuite :
-- `dataconnect/schema/schema.gql` est encore le template d'exemple Firebase
-- `dataconnect/example/*` et `seed_data.gql` sont des fichiers générés, non encore alignés avec Sosson
-- `dataconnect/dataconnect.yaml` doit être revu pour correspondre aux vrais IDs créés côté Firebase
+#### IDs réels identifiés dans la console Firebase (sandbox)
+
+| Champ yaml | Valeur locale actuelle | Valeur réelle console | À corriger |
+|---|---|---|---|
+| `serviceId` | `sosson` | `sosson-sandbox-service` | ✅ oui |
+| `instanceId` | `sosson-fdc` | `sosson-sandbox-instance` | ✅ oui |
+| `location` | `europe-west9` | `europe-west9` | ✅ déjà bon |
+| `database` | `fdcdb` | **à confirmer dans Cloud SQL** | ❓ |
+
+> ⚠ IDs du service production (`sosson-prod`) à déterminer séparément.
+
+#### Ce qui reste à faire pour brancher SQL Connect (dans l'ordre)
+
+**Étape 1 — Aligner `dataconnect/dataconnect.yaml`**
+Corriger les IDs locaux pour qu'ils matchent la console sandbox.
+Nécessite de connaître le nom exact de la base Postgres (onglet Cloud SQL).
+
+**Étape 2 — Déployer le schéma sur Firebase sandbox**
+```bash
+firebase deploy --only dataconnect --project sosson-sandbox
+```
+Cette commande pousse le schéma vers la vraie instance Postgres et crée les tables.
+
+**Étape 3 — Injecter le seed**
+```bash
+firebase dataconnect:execute dataconnect/seed_data.gql --project sosson-sandbox
+```
+Peuple la base avec les 3 clients, 4 chantiers, 12 factures.
+
+**Étape 4 — Initialiser le SDK côté front**
+Créer `src/lib/dataconnect.ts` pour connecter le SDK généré à l'app Firebase.
+
+**Étape 5 — Remplacer le mode mémoire dans `store.tsx`**
+Charger les données depuis SQL Connect au lieu des arrays statiques `src/data/*.ts`.
+Ordre recommandé : `clients` → `chantiers` → `factures`.
 
 ---
 
@@ -1084,11 +1126,27 @@ plus être reprises dans les prochains arbitrages.
 
 ## Chapitre 21 — Orientation active
 
-Priorités de travail actives :
-- remettre le socle technique en état de build et de développement continu
-- brancher progressivement l'infrastructure réelle au lieu d'étendre le mode seed
-- préparer la couche de persistance relationnelle cible autour de Postgres / SQL Connect
-- faire converger la documentation produit, la structure de code, et les environnements
+### Décisions architecturales figées (ne pas remettre en question)
+
+- **SQL Connect** est la couche de persistance cible. On ne passe pas par Firestore.
+- **Pas de refonte front** avant que SQL Connect soit branché — l'UX existante est le bon squelette.
+- **Sandbox d'abord, production ensuite** — aucun déploiement prod sans validation sandbox.
+
+### Priorités de travail actives (dans l'ordre)
+
+1. **Débloquer `dataconnect.yaml`** — obtenir le nom de la base Postgres dans Cloud SQL et corriger les IDs (`serviceId`, `instanceId`, `database`).
+2. **Déployer le schéma** sur sandbox (`firebase deploy --only dataconnect`).
+3. **Injecter le seed** sur sandbox.
+4. **Brancher SQL Connect côté front** — créer `src/lib/dataconnect.ts`, puis remplacer le store mémoire entité par entité (clients → chantiers → factures).
+5. **Commit + push** à chaque étape validée.
+
+### Ce qu'un agent IA doit savoir avant d'intervenir
+
+- Le schéma SQL Connect est dans `dataconnect/schema/schema.gql` — c'est la source de vérité des types de données.
+- Les SDKs TypeScript dans `src/dataconnect-generated/` sont auto-générés — ne pas les éditer à la main.
+- Le front tourne encore en mode mémoire (`src/data/*.ts`) — c'est volontaire et provisoire.
+- La connexion Firebase Auth fonctionne. L'utilisateur connecté a un `auth.uid` réel.
+- Toutes les queries SQL Connect ont `@auth(level: USER)` — l'utilisateur doit être connecté pour lire les données.
 
 ---
 

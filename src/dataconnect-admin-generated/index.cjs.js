@@ -1,72 +1,107 @@
 const { validateAdminArgs } = require('firebase-admin/data-connect');
 
 const connectorConfig = {
-  connector: 'example',
-  serviceId: 'sosson',
+  connector: 'sosson',
+  serviceId: 'sosson-sandbox-service',
   location: 'europe-west9'
 };
 exports.connectorConfig = connectorConfig;
 
-function createMovie(dcOrVarsOrOptions, varsOrOptions, options) {
+function upsertCurrentUser(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeMutation('CreateMovie', inputVars, inputOpts);
+  return dcInstance.executeMutation('UpsertCurrentUser', inputVars, inputOpts);
 }
-exports.createMovie = createMovie;
+exports.upsertCurrentUser = upsertCurrentUser;
 
-function upsertUser(dcOrVarsOrOptions, varsOrOptions, options) {
+function createClient(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeMutation('UpsertUser', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateClient', inputVars, inputOpts);
 }
-exports.upsertUser = upsertUser;
+exports.createClient = createClient;
 
-function addReview(dcOrVarsOrOptions, varsOrOptions, options) {
+function updateClient(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeMutation('AddReview', inputVars, inputOpts);
+  return dcInstance.executeMutation('UpdateClient', inputVars, inputOpts);
 }
-exports.addReview = addReview;
+exports.updateClient = updateClient;
 
-function deleteReview(dcOrVarsOrOptions, varsOrOptions, options) {
+function createChantier(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeMutation('DeleteReview', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateChantier', inputVars, inputOpts);
 }
-exports.deleteReview = deleteReview;
+exports.createChantier = createChantier;
 
-function listMovies(dcOrOptions, options) {
+function updateChantierStatut(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('UpdateChantierStatut', inputVars, inputOpts);
+}
+exports.updateChantierStatut = updateChantierStatut;
+
+function createFacture(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('CreateFacture', inputVars, inputOpts);
+}
+exports.createFacture = createFacture;
+
+function setFactureStatut(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('SetFactureStatut', inputVars, inputOpts);
+}
+exports.setFactureStatut = setFactureStatut;
+
+function getCurrentUser(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListMovies', undefined, inputOpts);
+  return dcInstance.executeQuery('GetCurrentUser', undefined, inputOpts);
 }
-exports.listMovies = listMovies;
+exports.getCurrentUser = getCurrentUser;
 
-function listUsers(dcOrOptions, options) {
+function listClients(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListUsers', undefined, inputOpts);
+  return dcInstance.executeQuery('ListClients', undefined, inputOpts);
 }
-exports.listUsers = listUsers;
+exports.listClients = listClients;
 
-function listUserReviews(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListUserReviews', undefined, inputOpts);
-}
-exports.listUserReviews = listUserReviews;
-
-function getMovieById(dcOrVarsOrOptions, varsOrOptions, options) {
+function getClient(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetMovieById', inputVars, inputOpts);
+  return dcInstance.executeQuery('GetClient', inputVars, inputOpts);
 }
-exports.getMovieById = getMovieById;
+exports.getClient = getClient;
 
-function searchMovie(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, false);
+function listChantiers(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('SearchMovie', inputVars, inputOpts);
+  return dcInstance.executeQuery('ListChantiers', undefined, inputOpts);
 }
-exports.searchMovie = searchMovie;
+exports.listChantiers = listChantiers;
+
+function getChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetChantier', inputVars, inputOpts);
+}
+exports.getChantier = getChantier;
+
+function listFactures(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListFactures', undefined, inputOpts);
+}
+exports.listFactures = listFactures;
+
+function listFacturesByStatut(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListFacturesByStatut', inputVars, inputOpts);
+}
+exports.listFacturesByStatut = listFacturesByStatut;
 

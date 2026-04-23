@@ -11,129 +11,277 @@ export type DateString = string;
 
 
 
-export interface AddReviewData {
-  review_upsert: Review_Key;
+export interface Chantier_Key {
+  id: UUIDString;
+  __typename?: 'Chantier_Key';
 }
 
-export interface AddReviewVariables {
-  movieId: UUIDString;
-  rating: number;
-  reviewText: string;
+export interface Client_Key {
+  id: UUIDString;
+  __typename?: 'Client_Key';
 }
 
-export interface CreateMovieData {
-  movie_insert: Movie_Key;
+export interface CreateChantierData {
+  chantier_insert: Chantier_Key;
 }
 
-export interface CreateMovieVariables {
-  title: string;
-  genre: string;
-  imageUrl: string;
+export interface CreateChantierVariables {
+  clientId: UUIDString;
+  chefChantierId?: string | null;
+  nom: string;
+  statut: string;
+  dateDebut: DateString;
+  dateFinPrevue: DateString;
+  budgetPrevisionnel: number;
+  description?: string | null;
+  adresse?: string | null;
 }
 
-export interface DeleteReviewData {
-  review_delete?: Review_Key | null;
+export interface CreateClientData {
+  client_insert: Client_Key;
 }
 
-export interface DeleteReviewVariables {
-  movieId: UUIDString;
+export interface CreateClientVariables {
+  type: string;
+  nom: string;
+  email?: string | null;
+  telephone?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+  codePostal?: string | null;
 }
 
-export interface GetMovieByIdData {
-  movie?: {
+export interface CreateFactureData {
+  facture_insert: Facture_Key;
+}
+
+export interface CreateFactureVariables {
+  chantierId: UUIDString;
+  fournisseur: string;
+  numeroFacture: string;
+  montantHT: number;
+  tva: number;
+  montantTTC: number;
+  date: DateString;
+  categorie: string;
+  statut: string;
+  description?: string | null;
+}
+
+export interface Facture_Key {
+  id: UUIDString;
+  __typename?: 'Facture_Key';
+}
+
+export interface GetChantierData {
+  chantier?: {
     id: UUIDString;
-    title: string;
-    imageUrl: string;
-    genre?: string | null;
-    metadata?: {
-      rating?: number | null;
-      releaseYear?: number | null;
-      description?: string | null;
-    };
-      reviews: ({
-        reviewText?: string | null;
-        reviewDate: DateString;
-        rating?: number | null;
-        user: {
-          id: string;
-          username: string;
-        } & User_Key;
-      })[];
-  } & Movie_Key;
+    nom: string;
+    statut: string;
+    dateDebut: DateString;
+    dateFinPrevue: DateString;
+    dateFin?: DateString | null;
+    budgetPrevisionnel: number;
+    description?: string | null;
+    adresse?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+      email?: string | null;
+      telephone?: string | null;
+      adresse?: string | null;
+      ville?: string | null;
+      codePostal?: string | null;
+    } & Client_Key;
+      chefChantier?: {
+        id: string;
+        nom: string;
+        prenom: string;
+        email: string;
+        avatar?: string | null;
+      } & User_Key;
+        factures: ({
+          id: UUIDString;
+          fournisseur: string;
+          numeroFacture: string;
+          montantHT: number;
+          tva: number;
+          montantTTC: number;
+          date: DateString;
+          categorie: string;
+          statut: string;
+          description?: string | null;
+        } & Facture_Key)[];
+  } & Chantier_Key;
 }
 
-export interface GetMovieByIdVariables {
+export interface GetChantierVariables {
   id: UUIDString;
 }
 
-export interface ListMoviesData {
-  movies: ({
+export interface GetClientData {
+  client?: {
     id: UUIDString;
-    title: string;
-    imageUrl: string;
-    genre?: string | null;
-  } & Movie_Key)[];
+    type: string;
+    nom: string;
+    email?: string | null;
+    telephone?: string | null;
+    adresse?: string | null;
+    ville?: string | null;
+    codePostal?: string | null;
+    dateCreation: TimestampString;
+    chantiers: ({
+      id: UUIDString;
+      nom: string;
+      statut: string;
+      dateDebut: DateString;
+      dateFinPrevue: DateString;
+      budgetPrevisionnel: number;
+    } & Chantier_Key)[];
+  } & Client_Key;
 }
 
-export interface ListUserReviewsData {
+export interface GetClientVariables {
+  id: UUIDString;
+}
+
+export interface GetCurrentUserData {
   user?: {
     id: string;
-    username: string;
-    reviews: ({
-      rating?: number | null;
-      reviewDate: DateString;
-      reviewText?: string | null;
-      movie: {
-        id: UUIDString;
-        title: string;
-      } & Movie_Key;
-    })[];
+    email: string;
+    nom: string;
+    prenom: string;
+    role: string;
+    avatar?: string | null;
   } & User_Key;
 }
 
-export interface ListUsersData {
-  users: ({
-    id: string;
-    username: string;
-  } & User_Key)[];
-}
-
-export interface MovieMetadata_Key {
-  id: UUIDString;
-  __typename?: 'MovieMetadata_Key';
-}
-
-export interface Movie_Key {
-  id: UUIDString;
-  __typename?: 'Movie_Key';
-}
-
-export interface Review_Key {
-  userId: string;
-  movieId: UUIDString;
-  __typename?: 'Review_Key';
-}
-
-export interface SearchMovieData {
-  movies: ({
+export interface ListChantiersData {
+  chantiers: ({
     id: UUIDString;
-    title: string;
-    genre?: string | null;
-    imageUrl: string;
-  } & Movie_Key)[];
+    nom: string;
+    statut: string;
+    dateDebut: DateString;
+    dateFinPrevue: DateString;
+    dateFin?: DateString | null;
+    budgetPrevisionnel: number;
+    adresse?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+      ville?: string | null;
+    } & Client_Key;
+      chefChantier?: {
+        id: string;
+        nom: string;
+        prenom: string;
+        avatar?: string | null;
+      } & User_Key;
+  } & Chantier_Key)[];
 }
 
-export interface SearchMovieVariables {
-  titleInput?: string | null;
-  genre?: string | null;
+export interface ListClientsData {
+  clients: ({
+    id: UUIDString;
+    type: string;
+    nom: string;
+    email?: string | null;
+    telephone?: string | null;
+    ville?: string | null;
+    codePostal?: string | null;
+    dateCreation: TimestampString;
+  } & Client_Key)[];
 }
 
-export interface UpsertUserData {
+export interface ListFacturesByStatutData {
+  factures: ({
+    id: UUIDString;
+    fournisseur: string;
+    numeroFacture: string;
+    montantTTC: number;
+    date: DateString;
+    categorie: string;
+    statut: string;
+    chantier: {
+      id: UUIDString;
+      nom: string;
+    } & Chantier_Key;
+  } & Facture_Key)[];
+}
+
+export interface ListFacturesByStatutVariables {
+  statut: string;
+}
+
+export interface ListFacturesData {
+  factures: ({
+    id: UUIDString;
+    fournisseur: string;
+    numeroFacture: string;
+    montantHT: number;
+    tva: number;
+    montantTTC: number;
+    date: DateString;
+    categorie: string;
+    statut: string;
+    description?: string | null;
+    chantier: {
+      id: UUIDString;
+      nom: string;
+      client: {
+        id: UUIDString;
+        nom: string;
+      } & Client_Key;
+    } & Chantier_Key;
+  } & Facture_Key)[];
+}
+
+export interface SetFactureStatutData {
+  facture_update?: Facture_Key | null;
+}
+
+export interface SetFactureStatutVariables {
+  id: UUIDString;
+  statut: string;
+}
+
+export interface UpdateChantierStatutData {
+  chantier_update?: Chantier_Key | null;
+}
+
+export interface UpdateChantierStatutVariables {
+  id: UUIDString;
+  statut: string;
+  dateFin?: DateString | null;
+}
+
+export interface UpdateClientData {
+  client_update?: Client_Key | null;
+}
+
+export interface UpdateClientVariables {
+  id: UUIDString;
+  type?: string | null;
+  nom?: string | null;
+  email?: string | null;
+  telephone?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+  codePostal?: string | null;
+}
+
+export interface UpsertCurrentUserData {
   user_upsert: User_Key;
 }
 
-export interface UpsertUserVariables {
-  username: string;
+export interface UpsertCurrentUserVariables {
+  email: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  avatar?: string | null;
 }
 
 export interface User_Key {
@@ -141,111 +289,171 @@ export interface User_Key {
   __typename?: 'User_Key';
 }
 
-interface CreateMovieRef {
+interface UpsertCurrentUserRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars: CreateMovieVariables): MutationRef<CreateMovieData, CreateMovieVariables>;
+  (vars: UpsertCurrentUserVariables): MutationRef<UpsertCurrentUserData, UpsertCurrentUserVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars: CreateMovieVariables): MutationRef<CreateMovieData, CreateMovieVariables>;
+  (dc: DataConnect, vars: UpsertCurrentUserVariables): MutationRef<UpsertCurrentUserData, UpsertCurrentUserVariables>;
   operationName: string;
 }
-export const createMovieRef: CreateMovieRef;
+export const upsertCurrentUserRef: UpsertCurrentUserRef;
 
-export function createMovie(vars: CreateMovieVariables): MutationPromise<CreateMovieData, CreateMovieVariables>;
-export function createMovie(dc: DataConnect, vars: CreateMovieVariables): MutationPromise<CreateMovieData, CreateMovieVariables>;
+export function upsertCurrentUser(vars: UpsertCurrentUserVariables): MutationPromise<UpsertCurrentUserData, UpsertCurrentUserVariables>;
+export function upsertCurrentUser(dc: DataConnect, vars: UpsertCurrentUserVariables): MutationPromise<UpsertCurrentUserData, UpsertCurrentUserVariables>;
 
-interface UpsertUserRef {
+interface CreateClientRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars: UpsertUserVariables): MutationRef<UpsertUserData, UpsertUserVariables>;
+  (vars: CreateClientVariables): MutationRef<CreateClientData, CreateClientVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars: UpsertUserVariables): MutationRef<UpsertUserData, UpsertUserVariables>;
+  (dc: DataConnect, vars: CreateClientVariables): MutationRef<CreateClientData, CreateClientVariables>;
   operationName: string;
 }
-export const upsertUserRef: UpsertUserRef;
+export const createClientRef: CreateClientRef;
 
-export function upsertUser(vars: UpsertUserVariables): MutationPromise<UpsertUserData, UpsertUserVariables>;
-export function upsertUser(dc: DataConnect, vars: UpsertUserVariables): MutationPromise<UpsertUserData, UpsertUserVariables>;
+export function createClient(vars: CreateClientVariables): MutationPromise<CreateClientData, CreateClientVariables>;
+export function createClient(dc: DataConnect, vars: CreateClientVariables): MutationPromise<CreateClientData, CreateClientVariables>;
 
-interface AddReviewRef {
+interface UpdateClientRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars: AddReviewVariables): MutationRef<AddReviewData, AddReviewVariables>;
+  (vars: UpdateClientVariables): MutationRef<UpdateClientData, UpdateClientVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars: AddReviewVariables): MutationRef<AddReviewData, AddReviewVariables>;
+  (dc: DataConnect, vars: UpdateClientVariables): MutationRef<UpdateClientData, UpdateClientVariables>;
   operationName: string;
 }
-export const addReviewRef: AddReviewRef;
+export const updateClientRef: UpdateClientRef;
 
-export function addReview(vars: AddReviewVariables): MutationPromise<AddReviewData, AddReviewVariables>;
-export function addReview(dc: DataConnect, vars: AddReviewVariables): MutationPromise<AddReviewData, AddReviewVariables>;
+export function updateClient(vars: UpdateClientVariables): MutationPromise<UpdateClientData, UpdateClientVariables>;
+export function updateClient(dc: DataConnect, vars: UpdateClientVariables): MutationPromise<UpdateClientData, UpdateClientVariables>;
 
-interface DeleteReviewRef {
+interface CreateChantierRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars: DeleteReviewVariables): MutationRef<DeleteReviewData, DeleteReviewVariables>;
+  (vars: CreateChantierVariables): MutationRef<CreateChantierData, CreateChantierVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars: DeleteReviewVariables): MutationRef<DeleteReviewData, DeleteReviewVariables>;
+  (dc: DataConnect, vars: CreateChantierVariables): MutationRef<CreateChantierData, CreateChantierVariables>;
   operationName: string;
 }
-export const deleteReviewRef: DeleteReviewRef;
+export const createChantierRef: CreateChantierRef;
 
-export function deleteReview(vars: DeleteReviewVariables): MutationPromise<DeleteReviewData, DeleteReviewVariables>;
-export function deleteReview(dc: DataConnect, vars: DeleteReviewVariables): MutationPromise<DeleteReviewData, DeleteReviewVariables>;
+export function createChantier(vars: CreateChantierVariables): MutationPromise<CreateChantierData, CreateChantierVariables>;
+export function createChantier(dc: DataConnect, vars: CreateChantierVariables): MutationPromise<CreateChantierData, CreateChantierVariables>;
 
-interface ListMoviesRef {
+interface UpdateChantierStatutRef {
   /* Allow users to create refs without passing in DataConnect */
-  (): QueryRef<ListMoviesData, undefined>;
+  (vars: UpdateChantierStatutVariables): MutationRef<UpdateChantierStatutData, UpdateChantierStatutVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect): QueryRef<ListMoviesData, undefined>;
+  (dc: DataConnect, vars: UpdateChantierStatutVariables): MutationRef<UpdateChantierStatutData, UpdateChantierStatutVariables>;
   operationName: string;
 }
-export const listMoviesRef: ListMoviesRef;
+export const updateChantierStatutRef: UpdateChantierStatutRef;
 
-export function listMovies(options?: ExecuteQueryOptions): QueryPromise<ListMoviesData, undefined>;
-export function listMovies(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListMoviesData, undefined>;
+export function updateChantierStatut(vars: UpdateChantierStatutVariables): MutationPromise<UpdateChantierStatutData, UpdateChantierStatutVariables>;
+export function updateChantierStatut(dc: DataConnect, vars: UpdateChantierStatutVariables): MutationPromise<UpdateChantierStatutData, UpdateChantierStatutVariables>;
 
-interface ListUsersRef {
+interface CreateFactureRef {
   /* Allow users to create refs without passing in DataConnect */
-  (): QueryRef<ListUsersData, undefined>;
+  (vars: CreateFactureVariables): MutationRef<CreateFactureData, CreateFactureVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect): QueryRef<ListUsersData, undefined>;
+  (dc: DataConnect, vars: CreateFactureVariables): MutationRef<CreateFactureData, CreateFactureVariables>;
   operationName: string;
 }
-export const listUsersRef: ListUsersRef;
+export const createFactureRef: CreateFactureRef;
 
-export function listUsers(options?: ExecuteQueryOptions): QueryPromise<ListUsersData, undefined>;
-export function listUsers(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListUsersData, undefined>;
+export function createFacture(vars: CreateFactureVariables): MutationPromise<CreateFactureData, CreateFactureVariables>;
+export function createFacture(dc: DataConnect, vars: CreateFactureVariables): MutationPromise<CreateFactureData, CreateFactureVariables>;
 
-interface ListUserReviewsRef {
+interface SetFactureStatutRef {
   /* Allow users to create refs without passing in DataConnect */
-  (): QueryRef<ListUserReviewsData, undefined>;
+  (vars: SetFactureStatutVariables): MutationRef<SetFactureStatutData, SetFactureStatutVariables>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect): QueryRef<ListUserReviewsData, undefined>;
+  (dc: DataConnect, vars: SetFactureStatutVariables): MutationRef<SetFactureStatutData, SetFactureStatutVariables>;
   operationName: string;
 }
-export const listUserReviewsRef: ListUserReviewsRef;
+export const setFactureStatutRef: SetFactureStatutRef;
 
-export function listUserReviews(options?: ExecuteQueryOptions): QueryPromise<ListUserReviewsData, undefined>;
-export function listUserReviews(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListUserReviewsData, undefined>;
+export function setFactureStatut(vars: SetFactureStatutVariables): MutationPromise<SetFactureStatutData, SetFactureStatutVariables>;
+export function setFactureStatut(dc: DataConnect, vars: SetFactureStatutVariables): MutationPromise<SetFactureStatutData, SetFactureStatutVariables>;
 
-interface GetMovieByIdRef {
+interface GetCurrentUserRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars: GetMovieByIdVariables): QueryRef<GetMovieByIdData, GetMovieByIdVariables>;
+  (): QueryRef<GetCurrentUserData, undefined>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars: GetMovieByIdVariables): QueryRef<GetMovieByIdData, GetMovieByIdVariables>;
+  (dc: DataConnect): QueryRef<GetCurrentUserData, undefined>;
   operationName: string;
 }
-export const getMovieByIdRef: GetMovieByIdRef;
+export const getCurrentUserRef: GetCurrentUserRef;
 
-export function getMovieById(vars: GetMovieByIdVariables, options?: ExecuteQueryOptions): QueryPromise<GetMovieByIdData, GetMovieByIdVariables>;
-export function getMovieById(dc: DataConnect, vars: GetMovieByIdVariables, options?: ExecuteQueryOptions): QueryPromise<GetMovieByIdData, GetMovieByIdVariables>;
+export function getCurrentUser(options?: ExecuteQueryOptions): QueryPromise<GetCurrentUserData, undefined>;
+export function getCurrentUser(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<GetCurrentUserData, undefined>;
 
-interface SearchMovieRef {
+interface ListClientsRef {
   /* Allow users to create refs without passing in DataConnect */
-  (vars?: SearchMovieVariables): QueryRef<SearchMovieData, SearchMovieVariables>;
+  (): QueryRef<ListClientsData, undefined>;
   /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect, vars?: SearchMovieVariables): QueryRef<SearchMovieData, SearchMovieVariables>;
+  (dc: DataConnect): QueryRef<ListClientsData, undefined>;
   operationName: string;
 }
-export const searchMovieRef: SearchMovieRef;
+export const listClientsRef: ListClientsRef;
 
-export function searchMovie(vars?: SearchMovieVariables, options?: ExecuteQueryOptions): QueryPromise<SearchMovieData, SearchMovieVariables>;
-export function searchMovie(dc: DataConnect, vars?: SearchMovieVariables, options?: ExecuteQueryOptions): QueryPromise<SearchMovieData, SearchMovieVariables>;
+export function listClients(options?: ExecuteQueryOptions): QueryPromise<ListClientsData, undefined>;
+export function listClients(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListClientsData, undefined>;
+
+interface GetClientRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetClientVariables): QueryRef<GetClientData, GetClientVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetClientVariables): QueryRef<GetClientData, GetClientVariables>;
+  operationName: string;
+}
+export const getClientRef: GetClientRef;
+
+export function getClient(vars: GetClientVariables, options?: ExecuteQueryOptions): QueryPromise<GetClientData, GetClientVariables>;
+export function getClient(dc: DataConnect, vars: GetClientVariables, options?: ExecuteQueryOptions): QueryPromise<GetClientData, GetClientVariables>;
+
+interface ListChantiersRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListChantiersData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListChantiersData, undefined>;
+  operationName: string;
+}
+export const listChantiersRef: ListChantiersRef;
+
+export function listChantiers(options?: ExecuteQueryOptions): QueryPromise<ListChantiersData, undefined>;
+export function listChantiers(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListChantiersData, undefined>;
+
+interface GetChantierRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetChantierVariables): QueryRef<GetChantierData, GetChantierVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetChantierVariables): QueryRef<GetChantierData, GetChantierVariables>;
+  operationName: string;
+}
+export const getChantierRef: GetChantierRef;
+
+export function getChantier(vars: GetChantierVariables, options?: ExecuteQueryOptions): QueryPromise<GetChantierData, GetChantierVariables>;
+export function getChantier(dc: DataConnect, vars: GetChantierVariables, options?: ExecuteQueryOptions): QueryPromise<GetChantierData, GetChantierVariables>;
+
+interface ListFacturesRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListFacturesData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListFacturesData, undefined>;
+  operationName: string;
+}
+export const listFacturesRef: ListFacturesRef;
+
+export function listFactures(options?: ExecuteQueryOptions): QueryPromise<ListFacturesData, undefined>;
+export function listFactures(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListFacturesData, undefined>;
+
+interface ListFacturesByStatutRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListFacturesByStatutVariables): QueryRef<ListFacturesByStatutData, ListFacturesByStatutVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListFacturesByStatutVariables): QueryRef<ListFacturesByStatutData, ListFacturesByStatutVariables>;
+  operationName: string;
+}
+export const listFacturesByStatutRef: ListFacturesByStatutRef;
+
+export function listFacturesByStatut(vars: ListFacturesByStatutVariables, options?: ExecuteQueryOptions): QueryPromise<ListFacturesByStatutData, ListFacturesByStatutVariables>;
+export function listFacturesByStatut(dc: DataConnect, vars: ListFacturesByStatutVariables, options?: ExecuteQueryOptions): QueryPromise<ListFacturesByStatutData, ListFacturesByStatutVariables>;
 

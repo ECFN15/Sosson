@@ -1,8 +1,8 @@
 import { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMutation, validateArgs, makeMemoryCacheProvider } from 'firebase/data-connect';
 
 export const connectorConfig = {
-  connector: 'example',
-  service: 'sosson',
+  connector: 'sosson',
+  service: 'sosson-sandbox-service',
   location: 'europe-west9'
 };
 export const dataConnectSettings = {
@@ -10,116 +10,178 @@ export const dataConnectSettings = {
     cacheProvider: makeMemoryCacheProvider()
   }
 };
-export const createMovieRef = (dcOrVars, vars) => {
+export const upsertCurrentUserRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
-  return mutationRef(dcInstance, 'CreateMovie', inputVars);
+  return mutationRef(dcInstance, 'UpsertCurrentUser', inputVars);
 }
-createMovieRef.operationName = 'CreateMovie';
+upsertCurrentUserRef.operationName = 'UpsertCurrentUser';
 
-export function createMovie(dcOrVars, vars) {
+export function upsertCurrentUser(dcOrVars, vars) {
   const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
-  return executeMutation(createMovieRef(dcInstance, inputVars));
+  return executeMutation(upsertCurrentUserRef(dcInstance, inputVars));
 }
 
-export const upsertUserRef = (dcOrVars, vars) => {
+export const createClientRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
-  return mutationRef(dcInstance, 'UpsertUser', inputVars);
+  return mutationRef(dcInstance, 'CreateClient', inputVars);
 }
-upsertUserRef.operationName = 'UpsertUser';
+createClientRef.operationName = 'CreateClient';
 
-export function upsertUser(dcOrVars, vars) {
+export function createClient(dcOrVars, vars) {
   const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
-  return executeMutation(upsertUserRef(dcInstance, inputVars));
+  return executeMutation(createClientRef(dcInstance, inputVars));
 }
 
-export const addReviewRef = (dcOrVars, vars) => {
+export const updateClientRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
-  return mutationRef(dcInstance, 'AddReview', inputVars);
+  return mutationRef(dcInstance, 'UpdateClient', inputVars);
 }
-addReviewRef.operationName = 'AddReview';
+updateClientRef.operationName = 'UpdateClient';
 
-export function addReview(dcOrVars, vars) {
+export function updateClient(dcOrVars, vars) {
   const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
-  return executeMutation(addReviewRef(dcInstance, inputVars));
+  return executeMutation(updateClientRef(dcInstance, inputVars));
 }
 
-export const deleteReviewRef = (dcOrVars, vars) => {
+export const createChantierRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
-  return mutationRef(dcInstance, 'DeleteReview', inputVars);
+  return mutationRef(dcInstance, 'CreateChantier', inputVars);
 }
-deleteReviewRef.operationName = 'DeleteReview';
+createChantierRef.operationName = 'CreateChantier';
 
-export function deleteReview(dcOrVars, vars) {
+export function createChantier(dcOrVars, vars) {
   const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
-  return executeMutation(deleteReviewRef(dcInstance, inputVars));
+  return executeMutation(createChantierRef(dcInstance, inputVars));
 }
 
-export const listMoviesRef = (dc) => {
+export const updateChantierStatutRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateChantierStatut', inputVars);
+}
+updateChantierStatutRef.operationName = 'UpdateChantierStatut';
+
+export function updateChantierStatut(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateChantierStatutRef(dcInstance, inputVars));
+}
+
+export const createFactureRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateFacture', inputVars);
+}
+createFactureRef.operationName = 'CreateFacture';
+
+export function createFacture(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createFactureRef(dcInstance, inputVars));
+}
+
+export const setFactureStatutRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'SetFactureStatut', inputVars);
+}
+setFactureStatutRef.operationName = 'SetFactureStatut';
+
+export function setFactureStatut(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(setFactureStatutRef(dcInstance, inputVars));
+}
+
+export const getCurrentUserRef = (dc) => {
   const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();
-  return queryRef(dcInstance, 'ListMovies');
+  return queryRef(dcInstance, 'GetCurrentUser');
 }
-listMoviesRef.operationName = 'ListMovies';
+getCurrentUserRef.operationName = 'GetCurrentUser';
 
-export function listMovies(dcOrOptions, options) {
+export function getCurrentUser(dcOrOptions, options) {
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
-  return executeQuery(listMoviesRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+  return executeQuery(getCurrentUserRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 
-export const listUsersRef = (dc) => {
+export const listClientsRef = (dc) => {
   const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();
-  return queryRef(dcInstance, 'ListUsers');
+  return queryRef(dcInstance, 'ListClients');
 }
-listUsersRef.operationName = 'ListUsers';
+listClientsRef.operationName = 'ListClients';
 
-export function listUsers(dcOrOptions, options) {
+export function listClients(dcOrOptions, options) {
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
-  return executeQuery(listUsersRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+  return executeQuery(listClientsRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 
-export const listUserReviewsRef = (dc) => {
-  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
-  dcInstance._useGeneratedSdk();
-  return queryRef(dcInstance, 'ListUserReviews');
-}
-listUserReviewsRef.operationName = 'ListUserReviews';
-
-export function listUserReviews(dcOrOptions, options) {
-  
-  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
-  return executeQuery(listUserReviewsRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
-}
-
-export const getMovieByIdRef = (dcOrVars, vars) => {
+export const getClientRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
-  return queryRef(dcInstance, 'GetMovieById', inputVars);
+  return queryRef(dcInstance, 'GetClient', inputVars);
 }
-getMovieByIdRef.operationName = 'GetMovieById';
+getClientRef.operationName = 'GetClient';
 
-export function getMovieById(dcOrVars, varsOrOptions, options) {
+export function getClient(dcOrVars, varsOrOptions, options) {
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
-  return executeQuery(getMovieByIdRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+  return executeQuery(getClientRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 
-export const searchMovieRef = (dcOrVars, vars) => {
-  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars);
+export const listChantiersRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();
-  return queryRef(dcInstance, 'SearchMovie', inputVars);
+  return queryRef(dcInstance, 'ListChantiers');
 }
-searchMovieRef.operationName = 'SearchMovie';
+listChantiersRef.operationName = 'ListChantiers';
 
-export function searchMovie(dcOrVars, varsOrOptions, options) {
+export function listChantiers(dcOrOptions, options) {
   
-  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, false);
-  return executeQuery(searchMovieRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listChantiersRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+
+export const getChantierRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetChantier', inputVars);
+}
+getChantierRef.operationName = 'GetChantier';
+
+export function getChantier(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getChantierRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+
+export const listFacturesRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListFactures');
+}
+listFacturesRef.operationName = 'ListFactures';
+
+export function listFactures(dcOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listFacturesRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+
+export const listFacturesByStatutRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListFacturesByStatut', inputVars);
+}
+listFacturesByStatutRef.operationName = 'ListFacturesByStatut';
+
+export function listFacturesByStatut(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listFacturesByStatutRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 

@@ -1,7 +1,7 @@
 {
-  "name": "sosson-demo",
+  "name": "sosson",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.3",
   "type": "module",
   "scripts": {
     "dev": "vite --mode sandbox",

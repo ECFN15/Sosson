@@ -1,13 +1,12 @@
 specVersion: "v1"
-serviceId: "sosson"
+serviceId: "sosson-sandbox-service"
 location: "europe-west9"
 schemas:
   - source: "./schema"
     datasource:
       postgresql:
+        # "fdcdb" est le nom par défaut créé par Firebase — à vérifier dans Cloud SQL une fois l'instance provisionnée
         database: "fdcdb"
         cloudSql:
-          instanceId: "sosson-fdc"
-          # schemaValidation: "STRICT"     # STRICT mode makes Postgres schema match Data Connect exactly.
-          # schemaValidation: "COMPATIBLE" # COMPATIBLE mode makes Postgres schema compatible with Data Connect.
-connectorDirs: ["./example"]
+          instanceId: "sosson-sandbox-instance"
+connectorDirs: ["./sosson"]

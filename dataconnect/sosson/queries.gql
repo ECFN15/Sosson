@@ -1,0 +1,150 @@
+# =============================================================================
+# Queries — connecteur `sosson`
+# =============================================================================
+# Toutes les lectures sont réservées aux utilisateurs Firebase Auth authentifiés.
+# Le RBAC fin (gérant / assistante / chef_chantier) est géré au niveau applicatif
+# à partir du rôle lu via `GetCurrentUser` — pas dans ces queries.
+# =============================================================================
+
+
+# ---------- Utilisateur courant ---------------------------------------------
+
+query GetCurrentUser @auth(level: USER) {
+  user(key: { id_expr: "auth.uid" }) {
+    id
+    email
+    nom
+    prenom
+    role
+    avatar
+  }
+}
+
+
+# ---------- Clients ----------------------------------------------------------
+
+query ListClients @auth(level: USER) {
+  clients(orderBy: { nom: ASC }) {
+    id
+    type
+    nom
+    email
+    telephone
+    ville
+    codePostal
+    dateCreation
+  }
+}
+
+query GetClient($id: UUID!) @auth(level: USER) {
+  client(id: $id) {
+    id
+    type
+    nom
+    email
+    telephone
+    adresse
+    ville
+    codePostal
+    dateCreation
+    chantiers: chantiers_on_client(orderBy: { dateDebut: DESC }) {
+      id
+      nom
+      statut
+      dateDebut
+      dateFinPrevue
+      budgetPrevisionnel
+    }
+  }
+}
+
+
+# ---------- Chantiers --------------------------------------------------------
+
+query ListChantiers @auth(level: USER) {
+  chantiers(orderBy: { dateDebut: DESC }) {
+    id
+    nom
+    statut
+    dateDebut
+    dateFinPrevue
+    dateFin
+    budgetPrevisionnel
+    adresse
+    client { id nom type ville }
+    chefChantier { id nom prenom avatar }
+  }
+}
+
+query GetChantier($id: UUID!) @auth(level: USER) {
+  chantier(id: $id) {
+    id
+    nom
+    statut
+    dateDebut
+    dateFinPrevue
+    dateFin
+    budgetPrevisionnel
+    description
+    adresse
+    client {
+      id
+      nom
+      type
+      email
+      telephone
+      adresse
+      ville
+      codePostal
+    }
+    chefChantier { id nom prenom email avatar }
+    factures: factures_on_chantier(orderBy: { date: DESC }) {
+      id
+      fournisseur
+      numeroFacture
+      montantHT
+      tva
+      montantTTC
+      date
+      categorie
+      statut
+      description
+    }
+  }
+}
+
+
+# ---------- Factures ---------------------------------------------------------
+
+query ListFactures @auth(level: USER) {
+  factures(orderBy: { date: DESC }) {
+    id
+    fournisseur
+    numeroFacture
+    montantHT
+    tva
+    montantTTC
+    date
+    categorie
+    statut
+    description
+    chantier {
+      id
+      nom
+      client { id nom }
+    }
+  }
+}
+
+query ListFacturesByStatut($statut: String!) @auth(level: USER) {
+  factures(where: { statut: { eq: $statut } }, orderBy: { date: DESC }) {
+    id
+    fournisseur
+    numeroFacture
+    montantTTC
+    date
+    categorie
+    statut
+    chantier { id nom }
+  }
+}

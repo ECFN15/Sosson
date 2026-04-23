@@ -12,26 +12,28 @@ For each operation, there is a wrapper hook that can be used to call the operati
 
 Here are all of the hooks that get generated:
 ```ts
-import { useCreateMovie, useUpsertUser, useAddReview, useDeleteReview, useListMovies, useListUsers, useListUserReviews, useGetMovieById, useSearchMovie } from '@dataconnect/generated/react';
+import { useUpsertCurrentUser, useCreateClient, useUpdateClient, useCreateChantier, useUpdateChantierStatut, useCreateFacture, useSetFactureStatut, useGetCurrentUser, useListClients, useGetClient } from '@dataconnect/generated/react';
 // The types of these hooks are available in react/index.d.ts
 
-const { data, isPending, isSuccess, isError, error } = useCreateMovie(createMovieVars);
+const { data, isPending, isSuccess, isError, error } = useUpsertCurrentUser(upsertCurrentUserVars);
 
-const { data, isPending, isSuccess, isError, error } = useUpsertUser(upsertUserVars);
+const { data, isPending, isSuccess, isError, error } = useCreateClient(createClientVars);
 
-const { data, isPending, isSuccess, isError, error } = useAddReview(addReviewVars);
+const { data, isPending, isSuccess, isError, error } = useUpdateClient(updateClientVars);
 
-const { data, isPending, isSuccess, isError, error } = useDeleteReview(deleteReviewVars);
+const { data, isPending, isSuccess, isError, error } = useCreateChantier(createChantierVars);
 
-const { data, isPending, isSuccess, isError, error } = useListMovies();
+const { data, isPending, isSuccess, isError, error } = useUpdateChantierStatut(updateChantierStatutVars);
 
-const { data, isPending, isSuccess, isError, error } = useListUsers();
+const { data, isPending, isSuccess, isError, error } = useCreateFacture(createFactureVars);
 
-const { data, isPending, isSuccess, isError, error } = useListUserReviews();
+const { data, isPending, isSuccess, isError, error } = useSetFactureStatut(setFactureStatutVars);
 
-const { data, isPending, isSuccess, isError, error } = useGetMovieById(getMovieByIdVars);
+const { data, isPending, isSuccess, isError, error } = useGetCurrentUser();
 
-const { data, isPending, isSuccess, isError, error } = useSearchMovie(searchMovieVars);
+const { data, isPending, isSuccess, isError, error } = useListClients();
+
+const { data, isPending, isSuccess, isError, error } = useGetClient(getClientVars);
 
 ```
 
@@ -70,35 +72,38 @@ If a user is not using a supported framework, they can use the generated SDK dir
 Here's an example of how to use it with the first 5 operations:
 
 ```js
-import { createMovie, upsertUser, addReview, deleteReview, listMovies, listUsers, listUserReviews, getMovieById, searchMovie } from '@dataconnect/generated';
+import { upsertCurrentUser, createClient, updateClient, createChantier, updateChantierStatut, createFacture, setFactureStatut, getCurrentUser, listClients, getClient } from '@dataconnect/generated';
 
 
-// Operation CreateMovie:  For variables, look at type CreateMovieVars in ../index.d.ts
-const { data } = await CreateMovie(dataConnect, createMovieVars);
+// Operation UpsertCurrentUser:  For variables, look at type UpsertCurrentUserVars in ../index.d.ts
+const { data } = await UpsertCurrentUser(dataConnect, upsertCurrentUserVars);
 
-// Operation UpsertUser:  For variables, look at type UpsertUserVars in ../index.d.ts
-const { data } = await UpsertUser(dataConnect, upsertUserVars);
+// Operation CreateClient:  For variables, look at type CreateClientVars in ../index.d.ts
+const { data } = await CreateClient(dataConnect, createClientVars);
 
-// Operation AddReview:  For variables, look at type AddReviewVars in ../index.d.ts
-const { data } = await AddReview(dataConnect, addReviewVars);
+// Operation UpdateClient:  For variables, look at type UpdateClientVars in ../index.d.ts
+const { data } = await UpdateClient(dataConnect, updateClientVars);
 
-// Operation DeleteReview:  For variables, look at type DeleteReviewVars in ../index.d.ts
-const { data } = await DeleteReview(dataConnect, deleteReviewVars);
+// Operation CreateChantier:  For variables, look at type CreateChantierVars in ../index.d.ts
+const { data } = await CreateChantier(dataConnect, createChantierVars);
 
-// Operation ListMovies: 
-const { data } = await ListMovies(dataConnect);
+// Operation UpdateChantierStatut:  For variables, look at type UpdateChantierStatutVars in ../index.d.ts
+const { data } = await UpdateChantierStatut(dataConnect, updateChantierStatutVars);
 
-// Operation ListUsers: 
-const { data } = await ListUsers(dataConnect);
+// Operation CreateFacture:  For variables, look at type CreateFactureVars in ../index.d.ts
+const { data } = await CreateFacture(dataConnect, createFactureVars);
 
-// Operation ListUserReviews: 
-const { data } = await ListUserReviews(dataConnect);
+// Operation SetFactureStatut:  For variables, look at type SetFactureStatutVars in ../index.d.ts
+const { data } = await SetFactureStatut(dataConnect, setFactureStatutVars);
 
-// Operation GetMovieById:  For variables, look at type GetMovieByIdVars in ../index.d.ts
-const { data } = await GetMovieById(dataConnect, getMovieByIdVars);
+// Operation GetCurrentUser: 
+const { data } = await GetCurrentUser(dataConnect);
 
-// Operation SearchMovie:  For variables, look at type SearchMovieVars in ../index.d.ts
-const { data } = await SearchMovie(dataConnect, searchMovieVars);
+// Operation ListClients: 
+const { data } = await ListClients(dataConnect);
+
+// Operation GetClient:  For variables, look at type GetClientVars in ../index.d.ts
+const { data } = await GetClient(dataConnect, getClientVars);
 
 
 ```

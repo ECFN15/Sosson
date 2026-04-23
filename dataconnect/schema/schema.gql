@@ -1,52 +1,91 @@
-# Example schema for simple movie review app
+# =============================================================================
+# Schéma SQL Connect — Sosson
+# =============================================================================
+# Source de vérité relationnelle pour les entités métier :
+#   - User      : utilisateur interne (lié à Firebase Auth via auth.uid)
+#   - Client    : client final (donneur d'ordre)
+#   - Chantier  : dossier opérationnel rattaché à un client
+#   - Facture   : facture fournisseur rattachée à un chantier
+#
+# Les champs dérivés (dépenses engagées d'un chantier, tendance budget, etc.)
+# ne sont PAS stockés ici : ils se calculent à la volée via les relations
+# `factures_on_chantier` et se matérialisent côté client/backend.
+#
+# Conventions :
+#   - IDs techniques en UUID (`@default(expr: "uuidV4()")`)
+#   - User.id est une exception : c'est le Firebase Auth UID (String)
+#   - Dates civiles en `Date`, horodatages système en `Timestamp`
+#   - Montants en `numeric(12, 2)` pour éviter les flottants
+#   - Enums représentés en `varchar` avec liste des valeurs en commentaire
+# =============================================================================
 
-# User table is keyed by Firebase Auth UID.
+
+# Utilisateur interne de l'entreprise Sosson.
+# L'identifiant est le Firebase Auth UID, injecté automatiquement à l'insert.
 type User @table {
-  # `@default(expr: "auth.uid")` sets it to Firebase Auth UID during insert and upsert.
   id: String! @default(expr: "auth.uid")
-  username: String! @col(dataType: "varchar(50)")
-  # The `user: User!` field in the Review table generates the following one-to-many query field.
-  #  reviews_on_user: [Review!]!
-  # The `Review` join table the following many-to-many query field.
-  #  movies_via_Review: [Movie!]!
+  email: String! @col(dataType: "varchar(254)")
+  nom: String! @col(dataType: "varchar(80)")
+  prenom: String! @col(dataType: "varchar(80)")
+  # Rôle applicatif : "gerant" | "assistante" | "chef_chantier"
+  role: String! @col(dataType: "varchar(32)")
+  # Initiales d'affichage pour l'avatar (ex : "PS")
+  avatar: String @col(dataType: "varchar(8)")
+  dateCreation: Timestamp! @default(expr: "request.time")
 }
 
-# Movie is keyed by a randomly generated UUID.
-type Movie @table {
-  # If you do not pass a 'key' to `@table`, Data Connect automatically adds the following 'id' column.
-  # Feel free to uncomment and customize it.
-  #  id: UUID! @default(expr: "uuidV4()")
-  title: String!
-  imageUrl: String!
-  genre: String
+
+# Client final. Un client peut avoir plusieurs chantiers.
+type Client @table {
+  # Type de client : "particulier" | "professionnel" | "public"
+  type: String! @col(dataType: "varchar(32)")
+  nom: String! @col(dataType: "varchar(200)")
+  email: String @col(dataType: "varchar(254)")
+  telephone: String @col(dataType: "varchar(32)")
+  adresse: String @col(dataType: "varchar(255)")
+  ville: String @col(dataType: "varchar(120)")
+  codePostal: String @col(dataType: "varchar(16)")
+  dateCreation: Timestamp! @default(expr: "request.time")
 }
 
-# MovieMetadata is a metadata attached to a Movie.
-# Movie <-> MovieMetadata is a one-to-one relationship
-type MovieMetadata @table {
-  # @unique ensures each Movie can only one MovieMetadata.
-  movie: Movie! @unique
-  # The movie field adds the following foreign key field. Feel free to uncomment and customize it.
-  #  movieId: UUID!
-  rating: Float
-  releaseYear: Int
+
+# Chantier : dossier opérationnel rattaché à un client.
+# Un chantier peut être affecté à un chef de chantier (User) — optionnel au démarrage.
+type Chantier @table {
+  client: Client!
+  chefChantier: User
+  nom: String! @col(dataType: "varchar(200)")
+  # Statut : "en_cours" | "cloture" | "en_attente"
+  statut: String! @col(dataType: "varchar(32)")
+  dateDebut: Date!
+  dateFinPrevue: Date!
+  # Date de clôture réelle — null tant que le chantier n'est pas clôturé.
+  dateFin: Date
+  budgetPrevisionnel: Float! @col(dataType: "numeric(12, 2)")
   description: String
+  adresse: String @col(dataType: "varchar(255)")
+  dateCreation: Timestamp! @default(expr: "request.time")
 }
 
-# Reviews is a join table between User and Movie.
-# It has a composite primary keys `userUid` and `movieId`.
-# A user can leave reviews for many movies. A movie can have reviews from many users.
-# User  <-> Review is a one-to-many relationship
-# Movie <-> Review is a one-to-many relationship
-# Movie <-> User is a many-to-many relationship
-type Review @table(name: "Reviews", key: ["movie", "user"]) {
-  user: User!
-  # The user field adds the following foreign key field. Feel free to uncomment and customize it.
-  #  userUid: String!
-  movie: Movie!
-  # The movie field adds the following foreign key field. Feel free to uncomment and customize it.
-  #  movieId: UUID!
-  rating: Int
-  reviewText: String
-  reviewDate: Date! @default(expr: "request.time")
+
+# Facture fournisseur rattachée à un chantier.
+# Le montant TTC est stocké en dur (cohérence comptable) et non recalculé depuis HT/TVA,
+# pour rester aligné avec ce que le fournisseur a réellement facturé.
+type Facture @table {
+  chantier: Chantier!
+  fournisseur: String! @col(dataType: "varchar(200)")
+  numeroFacture: String! @col(dataType: "varchar(64)")
+  montantHT: Float! @col(dataType: "numeric(12, 2)")
+  # Taux de TVA en pourcentage (ex : 20.0, 10.0, 5.5)
+  tva: Float! @col(dataType: "numeric(5, 2)")
+  montantTTC: Float! @col(dataType: "numeric(12, 2)")
+  date: Date!
+  # Catégorie : "bois_materiaux" | "quincaillerie" | "sous_traitance"
+  #           | "carburant" | "location_materiel" | "plomberie"
+  #           | "electricite" | "peinture"
+  categorie: String! @col(dataType: "varchar(48)")
+  # Statut : "validee" | "en_attente" | "rejetee"
+  statut: String! @col(dataType: "varchar(16)")
+  description: String
+  dateCreation: Timestamp! @default(expr: "request.time")
 }

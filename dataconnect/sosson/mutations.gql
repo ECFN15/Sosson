@@ -1,0 +1,147 @@
+# =============================================================================
+# Mutations — connecteur `sosson`
+# =============================================================================
+# Toutes les écritures requièrent une session Firebase Auth active.
+# Les contrôles fins de permission par rôle (qui peut créer un chantier,
+# qui peut valider une facture, etc.) sont ajoutés ensuite via :
+#   - restrictions applicatives côté front / fonctions
+#   - règles `@check` sur les opérations sensibles
+# =============================================================================
+
+
+# ---------- Utilisateur courant ---------------------------------------------
+
+# Crée ou met à jour le profil de l'utilisateur authentifié.
+# L'ID est forcé à `auth.uid` côté serveur — un utilisateur ne peut écrire
+# que son propre profil.
+mutation UpsertCurrentUser(
+  $email: String!
+  $nom: String!
+  $prenom: String!
+  $role: String!
+  $avatar: String
+) @auth(level: USER) {
+  user_upsert(data: {
+    id_expr: "auth.uid"
+    email: $email
+    nom: $nom
+    prenom: $prenom
+    role: $role
+    avatar: $avatar
+  })
+}
+
+
+# ---------- Clients ----------------------------------------------------------
+
+mutation CreateClient(
+  $type: String!
+  $nom: String!
+  $email: String
+  $telephone: String
+  $adresse: String
+  $ville: String
+  $codePostal: String
+) @auth(level: USER) {
+  client_insert(data: {
+    type: $type
+    nom: $nom
+    email: $email
+    telephone: $telephone
+    adresse: $adresse
+    ville: $ville
+    codePostal: $codePostal
+  })
+}
+
+mutation UpdateClient(
+  $id: UUID!
+  $type: String
+  $nom: String
+  $email: String
+  $telephone: String
+  $adresse: String
+  $ville: String
+  $codePostal: String
+) @auth(level: USER) {
+  client_update(id: $id, data: {
+    type: $type
+    nom: $nom
+    email: $email
+    telephone: $telephone
+    adresse: $adresse
+    ville: $ville
+    codePostal: $codePostal
+  })
+}
+
+
+# ---------- Chantiers --------------------------------------------------------
+
+mutation CreateChantier(
+  $clientId: UUID!
+  $chefChantierId: String
+  $nom: String!
+  $statut: String!
+  $dateDebut: Date!
+  $dateFinPrevue: Date!
+  $budgetPrevisionnel: Float!
+  $description: String
+  $adresse: String
+) @auth(level: USER) {
+  chantier_insert(data: {
+    clientId: $clientId
+    chefChantierId: $chefChantierId
+    nom: $nom
+    statut: $statut
+    dateDebut: $dateDebut
+    dateFinPrevue: $dateFinPrevue
+    budgetPrevisionnel: $budgetPrevisionnel
+    description: $description
+    adresse: $adresse
+  })
+}
+
+mutation UpdateChantierStatut(
+  $id: UUID!
+  $statut: String!
+  $dateFin: Date
+) @auth(level: USER) {
+  chantier_update(id: $id, data: {
+    statut: $statut
+    dateFin: $dateFin
+  })
+}
+
+
+# ---------- Factures ---------------------------------------------------------
+
+mutation CreateFacture(
+  $chantierId: UUID!
+  $fournisseur: String!
+  $numeroFacture: String!
+  $montantHT: Float!
+  $tva: Float!
+  $montantTTC: Float!
+  $date: Date!
+  $categorie: String!
+  $statut: String!
+  $description: String
+) @auth(level: USER) {
+  facture_insert(data: {
+    chantierId: $chantierId
+    fournisseur: $fournisseur
+    numeroFacture: $numeroFacture
+    montantHT: $montantHT
+    tva: $tva
+    montantTTC: $montantTTC
+    date: $date
+    categorie: $categorie
+    statut: $statut
+    description: $description
+  })
+}
+
+mutation SetFactureStatut($id: UUID!, $statut: String!) @auth(level: USER) {
+  facture_update(id: $id, data: { statut: $statut })
+}
