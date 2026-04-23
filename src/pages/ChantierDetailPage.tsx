@@ -1,17 +1,58 @@
-import { useState, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useDropzone } from 'react-dropzone'
+import { useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Upload, CheckCircle,
-  MapPin, Calendar, User, Euro, FileText, Mail, AlertTriangle,
-  Sparkles, Check, X, ChevronRight, Share2, ChevronDown,
-  Plus, TrendingUp, Image,
-  Pencil, ArrowRight, MoreHorizontal,
+  AlertTriangle,
+  ArrowRight,
+  Bell,
+  CalendarDays,
+  Camera,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  CircleDot,
+  ClipboardCheck,
+  Euro,
+  FileText,
+  FileSpreadsheet,
+  HardHat,
+  Home,
+  Keyboard,
+  ListChecks,
+  Mail,
+  Menu,
+  MessageSquare,
+  MapPin,
+  Mic,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  ReceiptText,
+  Share2,
+  ShieldCheck,
+  Sparkles,
+  Sun,
+  Upload,
+  UsersRound,
+  WifiOff,
 } from 'lucide-react'
-import { useApp } from '@/lib/store'
+import {
+  Area,
+  AreaChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { clients, emails, useApp } from '@/lib/store'
 import { categorieLabels } from '@/data/factures'
-import type { CategorieDepense, Facture } from '@/data/factures'
-import { PieChart, Pie, Cell } from 'recharts'
+import { getChantierCover, getChantierGallery } from '@/data/media'
+import type { CategorieDepense } from '@/data/factures'
+import type { Chantier } from '@/data/chantiers'
+import type { Client } from '@/data/clients'
 
 const DONUT_COLORS: Record<string, string> = {
   bois_materiaux: '#F06B21',
@@ -21,225 +62,760 @@ const DONUT_COLORS: Record<string, string> = {
   location_materiel: '#EADBC8',
   plomberie: '#F89A62',
   electricite: '#6B6B6B',
-  autre: '#9CA3AF',
+  peinture: '#3C3C3C',
 }
 
-const EXTRACTION_RESULT = {
-  fournisseur: 'Matériaux Rhône',
-  numeroFacture: 'MR-2026-0287',
-  montantHT: 706.0,
-  tva: 20,
-  montantTTC: 847.2,
-  date: new Date().toISOString().split('T')[0],
-  categorie: 'bois_materiaux' as CategorieDepense,
-  description: 'Bois de charpente sapin 63m², vis tirefond inox, chevrons 63x75',
-  confidence: 94,
+const tabs = ['Vue d’ensemble', 'Documents', 'Factures', 'Emails', 'Planning', 'Rapports', 'Photos', 'Équipe', 'Infos chantier']
+
+const lots = [
+  { label: 'Gros œuvre', pct: 100, color: '#1E8E3E' },
+  { label: 'Charpente', pct: 75, color: '#1E8E3E' },
+  { label: 'Isolation', pct: 60, color: '#F06B21' },
+  { label: 'Bardage', pct: 40, color: '#F06B21' },
+  { label: 'Menuiseries', pct: 0, color: '#D7D0C8' },
+]
+
+const timeline = [
+  { label: 'Devis signé', date: '10/12/2025', status: 'done' },
+  { label: 'Préparation', date: '15/12/2025', status: 'done' },
+  { label: 'Démarrage chantier', date: '12/01/2026', status: 'done' },
+  { label: 'Fondations', date: '28/01/2026', status: 'done' },
+  { label: 'Élévation murs', date: '15/02/2026', status: 'done' },
+  { label: 'Charpente', date: '10/03/2026', status: 'active' },
+  { label: 'Isolation', date: '25/03/2026', status: 'active' },
+  { label: 'Bardage', date: '15/04/2026', status: 'todo' },
+  { label: 'Menuiseries', date: '05/05/2026', status: 'todo' },
+  { label: 'Livraison', date: 'Mai 2026', status: 'todo' },
+] as const
+
+const activities = [
+  { icon: ReceiptText, bg: '#E6F4EA', color: '#1E8E3E', title: 'Facture validée – Bois & Matériaux', sub: '842,50 € – Catégorie : Bois', time: 'Il y a 10 min' },
+  { icon: Camera, bg: '#E6F4EA', color: '#1E8E3E', title: 'Compte-rendu ajouté par Paul Martin', sub: 'Avancement fondations + photos (3)', time: 'Il y a 45 min' },
+  { icon: Mail, bg: '#FAF6F2', color: '#1E1E1E', title: 'Email reçu – Demande de devis extension', sub: 'Leroy Construction', time: 'Il y a 1 h' },
+  { icon: FileText, bg: '#FAF6F2', color: '#1E1E1E', title: 'Devis envoyé – Extension bois 20m²', sub: 'Devis n° DEV-2026-0158', time: 'Il y a 2 h' },
+  { icon: CheckCircle2, bg: '#E6F4EA', color: '#1E8E3E', title: 'Paiement fournisseur enregistré', sub: 'Bois & Matériaux – 1 250,00 €', time: 'Il y a 1 j' },
+]
+
+const documents = [
+  { name: 'Plan_Masse_V2.pdf', type: 'PDF – 1.2 Mo', time: 'Il y a 2 h', color: '#DC2626' },
+  { name: 'Devis_EXTENSION_BOIS.pdf', type: 'PDF – 890 Ko', time: 'Il y a 5 h', color: '#DC2626' },
+  { name: 'Facture_Bois_Materiaux.pdf', type: 'PDF – 1.1 Mo', time: 'Hier', color: '#1E8E3E' },
+  { name: 'Plan_Fondations.dwg', type: 'DWG – 2.5 Mo', time: 'Hier', color: '#6B91B5' },
+  { name: 'Attestation_RT2020.pdf', type: 'PDF – 560 Ko', time: 'Il y a 2 j', color: '#6B91B5' },
+]
+
+const deadlines = [
+  { day: '23', month: 'AVR.', title: 'Livraison matériaux', sub: '23 avril 2026 à 10:30' },
+  { day: '05', month: 'MAI', title: 'Réunion de chantier', sub: '5 mai 2026 à 09:00' },
+  { day: '15', month: 'MAI', title: 'Contrôle isolation', sub: '15 mai 2026 à 14:00' },
+]
+
+const team = [
+  { name: 'Jean Dupont', role: 'Conducteur de travaux', tag: 'Responsable', tagClass: 'bg-[#E6F4EA] text-[#1E8E3E]' },
+  { name: 'Paul Martin', role: 'Chef d’équipe', tag: 'Terrain', tagClass: 'bg-[#DCE9F2] text-[#3C3C3C]' },
+  { name: 'Lucas Bernard', role: 'Charpentier', tag: 'Terrain', tagClass: 'bg-[#DCE9F2] text-[#3C3C3C]' },
+  { name: 'Sophie Leroy', role: 'Assistante de gestion', tag: 'Bureau', tagClass: 'bg-[#FEF3C7] text-[#B45309]' },
+]
+
+const indicators = [
+  { label: 'Délai', value: 'J-32', sub: 'vs planning', chip: '+2 jours' },
+  { label: 'Qualité', value: '100%', sub: 'Réserves levées' },
+  { label: 'Sécurité', value: '0', sub: 'Incident' },
+  { label: 'Heures effectuées', value: '320 h', sub: 'vs prévision 350 h', chip: '-8%' },
+  { label: 'Heures à venir', value: '180 h', sub: 'Prévisionnelles' },
+]
+
+const budgetCurve = [
+  { month: 'Janv.', real: 0, target: 0 },
+  { month: 'Fév.', real: 21000, target: 24000 },
+  { month: 'Mars', real: 42000, target: 45000 },
+  { month: 'Avr.', real: 64000, target: 68000 },
+  { month: 'Mai', real: 79000, target: 90000 },
+  { month: 'Juin', real: 103000, target: 113000 },
+  { month: 'Juil.', real: 118000, target: 130000 },
+  { month: 'Août', real: 137000, target: 141000 },
+  { month: 'Sept.', real: 140000, target: 143000 },
+  { month: 'Oct.', real: 145000, target: 148000 },
+]
+
+function formatEuros(value: number) {
+  return `${Math.round(value).toLocaleString('fr-FR')} €`
 }
 
-type UploadStep = 'idle' | 'uploading' | 'analyzing' | 'result' | 'done'
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <section className={`rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${className}`}>
+      {children}
+    </section>
+  )
+}
 
+function LinkButton({ children }: { children: React.ReactNode }) {
+  return (
+    <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] px-1 py-1 text-[12px] font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+      {children}
+      <ArrowRight className="h-3.5 w-3.5 text-[#6B6B6B]" strokeWidth={1.75} />
+    </button>
+  )
+}
+
+function ProjectPhoto({ src }: { src: string }) {
+  return (
+    <div className="relative h-full min-h-[220px] overflow-hidden rounded-[14px] border border-[#F2E8DC] bg-[#EADBC8]">
+      <img src={src} alt="Photo du chantier" className="h-full w-full object-cover" loading="lazy" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1E1E1E]/18 via-transparent to-transparent" />
+    </div>
+  )
+}
+
+function PhotoTile({ src }: { src: string }) {
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden rounded-[12px] border border-[#F2E8DC] bg-[#EADBC8]">
+      <img src={src} alt="Photo récente du chantier" className="h-full w-full object-cover" loading="lazy" />
+    </div>
+  )
+}
+
+function KpiCard({
+  label,
+  value,
+  sub,
+  children,
+}: {
+  label: string
+  value: string
+  sub?: string
+  children?: React.ReactNode
+}) {
+  return (
+    <Card className="min-h-[126px] p-5">
+      <p className="text-[12px] font-medium text-[#3C3C3C]">{label}</p>
+      <div className="mt-3 text-[24px] font-bold leading-none tracking-tight text-[#1E1E1E]">{value}</div>
+      {children}
+      {sub && <p className="mt-3 text-[11px] text-[#6B6B6B]">{sub}</p>}
+    </Card>
+  )
+}
+
+type MobileTab = 'report' | 'photos' | 'activity'
+
+const mobileTabs: Array<{ key: MobileTab; label: string }> = [
+  { key: 'report', label: 'Compte-rendu' },
+  { key: 'photos', label: 'Photos (12)' },
+  { key: 'activity', label: 'Activité' },
+]
+
+const mobileCrew = [
+  { initials: 'JD', name: 'Jean Dupont', role: 'Conducteur de travaux' },
+  { initials: 'LB', name: 'Lucas Bernard', role: 'Charpentier' },
+  { initials: 'PM', name: 'Paul Martin', role: "Chef d'équipe" },
+]
+
+const mobileSteps = [
+  { label: 'Début bardage', date: '22 avril 2026' },
+  { label: 'Livraison linteaux', date: '22 avril 2026' },
+  { label: 'Réunion client', date: '25 avril 2026' },
+]
+
+const mobileActivity = [
+  {
+    kind: 'report',
+    title: 'Compte-rendu ajouté',
+    author: 'Jean Dupont',
+    time: "Aujourd'hui à 14:30",
+    text: "Pose de l'ossature terminée. Début du bardage demain matin. Prévoir livraison linteaux.",
+    action: 'Voir le compte-rendu',
+  },
+  {
+    kind: 'photos',
+    title: '4 photos ajoutées',
+    author: 'Lucas Bernard',
+    time: "Aujourd'hui à 11:15",
+    action: 'Voir les photos',
+  },
+  {
+    kind: 'document',
+    title: 'Document ajouté',
+    author: 'Paul Martin',
+    time: 'Hier à 16:45',
+    text: 'Plan_Masse_V2.pdf',
+    action: 'Voir le document',
+  },
+  {
+    kind: 'progress',
+    title: 'Avancement mis à jour',
+    author: 'Jean Dupont',
+    time: 'Hier à 16:30',
+    action: "Voir l'historique",
+  },
+  {
+    kind: 'comment',
+    title: 'Commentaire',
+    author: 'Sophie Leroy',
+    time: 'Hier à 15:20',
+    text: 'Pensez à vérifier la livraison des menuiseries.',
+    action: 'Voir le commentaire',
+  },
+]
+
+function MobileCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <section className={`rounded-[16px] border border-[#F2E8DC] bg-white ${className}`}>
+      {children}
+    </section>
+  )
+}
+
+function MobilePhotoTile({ src, small = false }: { src: string; small?: boolean }) {
+  return (
+    <div className={`relative overflow-hidden rounded-[12px] border border-[#F2E8DC] bg-[#EADBC8] ${small ? 'aspect-square' : 'aspect-square'}`}>
+      <img src={src} alt="Photo terrain du chantier" className="h-full w-full object-cover" loading="lazy" />
+    </div>
+  )
+}
+
+function MobileHeader({ chantier, active, onTabChange }: { chantier: Chantier; active: MobileTab; onTabChange: (tab: MobileTab) => void }) {
+  return (
+    <header className={`${active === 'report' ? 'bg-[#1E1E1E] text-white' : 'bg-white text-[#1E1E1E]'} sticky top-0 z-30 border-b border-[#F2E8DC]`}>
+      <div className="flex h-14 items-center gap-3 px-4">
+        <button type="button" className="grid h-10 w-10 place-items-center rounded-full">
+          <ArrowRight className="h-5 w-5 rotate-180" strokeWidth={1.75} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[16px] font-semibold">{chantier.nom}</h1>
+          <p className={`mt-0.5 flex items-center gap-1 text-[11px] ${active === 'report' ? 'text-[#C9C9C9]' : 'text-[#6B6B6B]'}`}>
+            <span className="h-1.5 w-1.5 rounded-full bg-[#1E8E3E]" />
+            En cours
+          </p>
+        </div>
+        <button type="button" className="h-10 rounded-[10px] bg-[#F06B21] px-3 text-[13px] font-semibold text-white">
+          Enregistrer
+        </button>
+      </div>
+      <nav className="grid grid-cols-3">
+        {mobileTabs.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => onTabChange(tab.key)}
+            className={`border-b-2 px-2 py-3 text-[13px] font-medium ${
+              active === tab.key
+                ? 'border-[#F06B21] text-[#F06B21]'
+                : active === 'report'
+                  ? 'border-transparent text-[#C9C9C9]'
+                  : 'border-transparent text-[#1E1E1E]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+    </header>
+  )
+}
+
+function MobileBottomNav() {
+  const items = [
+    { icon: Home, label: 'Accueil', active: false },
+    { icon: HardHat, label: 'Chantiers', active: true },
+    { icon: Bell, label: 'Notifications', active: false, badge: true },
+    { icon: Menu, label: 'Menu', active: false },
+  ]
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 items-center border-t border-[#F2E8DC] bg-white px-3">
+      {items.slice(0, 2).map(item => {
+        const Icon = item.icon
+        return (
+          <button key={item.label} type="button" className={`flex flex-col items-center gap-1 text-[10px] font-medium ${item.active ? 'text-[#F06B21]' : 'text-[#6B6B6B]'}`}>
+            <Icon className="h-5 w-5" strokeWidth={1.75} />
+            {item.label}
+          </button>
+        )
+      })}
+      <button type="button" className="mx-auto -mt-7 grid h-14 w-14 place-items-center rounded-full bg-[#F06B21] text-white shadow-[0_8px_24px_rgba(240,107,33,0.35)] ring-4 ring-[#FAF6F2]">
+        <Plus className="h-6 w-6" strokeWidth={2.25} />
+      </button>
+      {items.slice(2).map(item => {
+        const Icon = item.icon
+        return (
+          <button key={item.label} type="button" className="relative flex flex-col items-center gap-1 text-[10px] font-medium text-[#6B6B6B]">
+            <span className="relative">
+              <Icon className="h-5 w-5" strokeWidth={1.75} />
+              {item.badge && <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-[#F06B21] px-1 text-[9px] font-bold text-white">3</span>}
+            </span>
+            {item.label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
+function MobileReportTab({ progress }: { progress: number }) {
+  return (
+    <main className="space-y-3 px-4 pb-24 pt-4">
+      <MobileCard className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FAF6F2]">
+            <CalendarDays className="h-5 w-5 text-[#1E1E1E]" strokeWidth={1.75} />
+          </div>
+          <div>
+            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Aujourd'hui</h2>
+            <p className="mt-1 text-[12px] text-[#6B6B6B]">21 avril 2026 à 14:30</p>
+          </div>
+        </div>
+        <div className="mt-5">
+          <p className="text-[12px] text-[#6B6B6B]">Avancement des travaux</p>
+          <p className="mt-2 text-[14px] font-medium text-[#1E1E1E]">Gros œuvre</p>
+        </div>
+        <div className="mt-5 flex items-center justify-between">
+          <p className="text-[13px] text-[#6B6B6B]">Avancement</p>
+          <p className="text-[18px] font-semibold text-[#1E1E1E]">{progress}%</p>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
+          <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
+        </div>
+      </MobileCard>
+
+      <MobileCard className="p-4">
+        <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Météo</h2>
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#FDEBDD]">
+              <Sun className="h-5 w-5 text-[#F06B21]" strokeWidth={1.75} />
+            </div>
+            <div>
+              <p className="text-[20px] font-semibold text-[#1E1E1E]">18°C</p>
+              <p className="text-[12px] text-[#6B6B6B]">Ensoleillé</p>
+            </div>
+          </div>
+          <p className="flex items-center gap-1 text-[12px] text-[#6B6B6B]">
+            <MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Le Mans
+          </p>
+        </div>
+      </MobileCard>
+
+      <MobileCard className="p-4">
+        <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Équipe sur site</h2>
+        <div className="mt-4 space-y-3">
+          {mobileCrew.map(member => (
+            <div key={member.name} className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-[#EADBC8] text-[12px] font-semibold text-[#1E1E1E]">{member.initials}</div>
+              <div>
+                <p className="text-[14px] font-medium text-[#1E1E1E]">{member.name}</p>
+                <p className="text-[12px] text-[#6B6B6B]">{member.role}</p>
+              </div>
+            </div>
+          ))}
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F2E8DC] bg-white text-[13px] font-medium text-[#1E1E1E]">+2</div>
+        </div>
+        <button type="button" className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
+          Voir toute l'équipe
+          <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+        </button>
+      </MobileCard>
+
+      <MobileCard className="p-4">
+        <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Prise de notes</h2>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { icon: Keyboard, label: 'Clavier', active: false },
+            { icon: Mic, label: 'Dictée', active: true },
+            { icon: ClipboardCheck, label: 'Modèle', active: false },
+          ].map(item => {
+            const Icon = item.icon
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className={`flex h-[66px] flex-col items-center justify-center gap-1.5 rounded-[14px] border text-[12px] font-medium ${
+                  item.active ? 'border-[#F06B21] bg-[#F06B21] text-white' : 'border-[#F2E8DC] bg-white text-[#1E1E1E]'
+                }`}
+              >
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-4 flex h-12 items-center gap-3 rounded-[14px] border border-[#F2E8DC] bg-white px-3">
+          <button type="button" className="grid h-8 w-8 place-items-center rounded-full border border-[#F06B21] text-[#F06B21]">
+            <span className="h-3 w-3 rounded-sm border-x-2 border-[#F06B21]" />
+          </button>
+          <div className="flex flex-1 items-center gap-0.5">
+            {Array.from({ length: 34 }).map((_, index) => (
+              <span key={index} className="w-0.5 rounded-full bg-[#9CA3AF]" style={{ height: `${8 + ((index * 7) % 22)}px` }} />
+            ))}
+          </div>
+          <span className="text-[12px] text-[#6B6B6B]">00:45</span>
+        </div>
+        <div className="mt-4 rounded-[12px] border border-[#F2E8DC] bg-[#FDEBDD]/40 p-4 text-[14px] leading-[1.55] text-[#1E1E1E]">
+          <p>Pose de l'ossature terminée.</p>
+          <p>Début du bardage demain matin.</p>
+          <p>Prévoir livraison linteaux.</p>
+          <p className="mt-3">Réunion avec le client prévue vendredi pour validation menuiseries.</p>
+        </div>
+        <h3 className="mt-5 text-[14px] font-semibold text-[#1E1E1E]">Tags</h3>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[
+            ['Gros œuvre', 'bg-[#E6F4EA] text-[#1E8E3E]'],
+            ['Bardage', 'bg-[#FDEBDD] text-[#F06B21]'],
+            ['Livraison', 'bg-[#DCE9F2] text-[#315A78]'],
+          ].map(([label, style]) => (
+            <span key={label} className={`rounded-[8px] px-3 py-1.5 text-[12px] font-medium ${style}`}>{label}</span>
+          ))}
+          <button type="button" className="grid h-8 w-8 place-items-center rounded-[8px] border border-[#F2E8DC] text-[#6B6B6B]">
+            <Plus className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+        </div>
+      </MobileCard>
+
+      <button type="button" className="h-12 w-full rounded-[14px] bg-[#F06B21] text-[14px] font-semibold text-white">
+        Enregistrer le compte-rendu
+      </button>
+      <p className="flex items-center justify-center gap-1.5 text-[12px] text-[#1E8E3E]">
+        <CheckCircle2 className="h-4 w-4" strokeWidth={1.75} />
+        Enregistré automatiquement
+      </p>
+    </main>
+  )
+}
+
+function MobilePhotosTab({ chantier }: { chantier: Chantier }) {
+  const gallery = getChantierGallery(chantier.id)
+
+  return (
+    <main className="space-y-5 px-4 pb-40 pt-5">
+      <section>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Photos du chantier</h2>
+            <p className="mt-2 text-[13px] text-[#6B6B6B]">12 photos</p>
+          </div>
+          <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[13px] font-medium text-[#1E1E1E]">
+            <Plus className="h-4 w-4" strokeWidth={1.75} />
+            Ajouter
+          </button>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {Array.from({ length: 9 }).map((_, index) => (
+            <MobilePhotoTile key={index} src={gallery[index % gallery.length]} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Documents liés</h2>
+        <div className="mt-3 space-y-2">
+          {[
+            { icon: FileText, name: 'Plan_Masse_V2.pdf', type: 'PDF · 1.2 Mo', color: '#DC2626' },
+            { icon: FileSpreadsheet, name: 'Planning_Intervention.xlsx', type: 'XLSX · 240 Ko', color: '#1E8E3E' },
+          ].map(doc => {
+            const Icon = doc.icon
+            return (
+              <MobileCard key={doc.name} className="flex items-center gap-3 p-3">
+                <div className="grid h-10 w-10 place-items-center rounded-[10px] bg-[#FAF6F2]">
+                  <Icon className="h-5 w-5" style={{ color: doc.color }} strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-medium text-[#1E1E1E]">{doc.name}</p>
+                  <p className="mt-1 text-[12px] text-[#6B6B6B]">{doc.type}</p>
+                </div>
+                <MoreHorizontal className="h-5 w-5 rotate-90 text-[#1E1E1E]" strokeWidth={1.75} />
+              </MobileCard>
+            )
+          })}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Localisation</h2>
+        <MobileCard className="mt-3 overflow-hidden">
+          <div className="relative h-28 bg-[#EADBC8] bg-[linear-gradient(135deg,#FAF6F2_25%,transparent_25%),linear-gradient(225deg,#FAF6F2_25%,transparent_25%),linear-gradient(45deg,#F2E8DC_25%,transparent_25%),linear-gradient(315deg,#F2E8DC_25%,#EADBC8_25%)] bg-[length:38px_38px]">
+            <MapPin className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 fill-[#F06B21] text-[#F06B21]" strokeWidth={1.75} />
+          </div>
+          <div className="p-4">
+            <p className="text-[13px] font-medium text-[#1E1E1E]">{chantier.adresse}</p>
+            <button type="button" className="mt-2 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
+              Voir sur la carte
+              <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+            </button>
+          </div>
+        </MobileCard>
+      </section>
+
+      <MobileCard className="p-4">
+        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Prochaines étapes</h2>
+        <div className="mt-4 space-y-4">
+          {mobileSteps.map(step => (
+            <div key={step.label} className="flex items-center gap-3">
+              <ListChecks className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              <span className="flex-1 text-[14px] text-[#1E1E1E]">{step.label}</span>
+              <span className="text-[12px] text-[#6B6B6B]">{step.date}</span>
+            </div>
+          ))}
+        </div>
+        <button type="button" className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
+          Voir le planning complet
+          <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+        </button>
+      </MobileCard>
+
+      <div className="fixed bottom-16 left-0 right-0 z-30 rounded-t-[24px] bg-[#1E1E1E] px-5 pb-5 pt-4 text-white">
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-2 text-[14px] font-semibold">
+            <WifiOff className="h-4 w-4" strokeWidth={1.75} />
+            Mode hors-ligne
+          </p>
+          <span className="text-[11px] text-[#C9C9C9]">En attente · 3 fichiers</span>
+        </div>
+        <p className="mt-2 text-[12px] leading-5 text-[#C9C9C9]">Vous travaillez hors connexion. Les données seront synchronisées lors du prochain accès à internet.</p>
+        <button type="button" className="mt-4 h-11 w-full rounded-[12px] bg-[#F06B21] text-[13px] font-semibold text-white">Synchroniser maintenant</button>
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-[#8A8A8A]">
+          <CheckCircle2 className="h-3.5 w-3.5 text-[#1E8E3E]" strokeWidth={1.75} />
+          Dernière synchronisation : Hier à 18:45
+        </p>
+      </div>
+    </main>
+  )
+}
+
+function MobileActivityIcon({ kind }: { kind: string }) {
+  const config = {
+    report: { icon: Camera, color: '#F06B21', bg: '#FDEBDD' },
+    photos: { icon: Camera, color: '#1E1E1E', bg: '#FAF6F2' },
+    document: { icon: FileText, color: '#315A78', bg: '#DCE9F2' },
+    progress: { icon: CheckCircle2, color: '#1E8E3E', bg: '#E6F4EA' },
+    comment: { icon: MessageSquare, color: '#1E1E1E', bg: '#FAF6F2' },
+  }[kind] ?? { icon: CircleDot, color: '#6B6B6B', bg: '#FAF6F2' }
+  const Icon = config.icon
+
+  return (
+    <div className="relative z-10 grid h-10 w-10 place-items-center rounded-full border border-[#F2E8DC] bg-white">
+      <div className="grid h-8 w-8 place-items-center rounded-full" style={{ backgroundColor: config.bg }}>
+        <Icon className="h-4 w-4" style={{ color: config.color }} strokeWidth={1.75} />
+      </div>
+    </div>
+  )
+}
+
+function MobileActivityTab({ chantier, client, progress }: { chantier: Chantier; client?: Client; progress: number }) {
+  const gallery = getChantierGallery(chantier.id)
+
+  return (
+    <main className="space-y-3 px-4 pb-24 pt-5">
+      <div className="relative">
+        <div className="absolute left-5 top-0 bottom-0 w-px bg-[#EADBC8]" />
+        <div className="space-y-6">
+          {mobileActivity.map((item, index) => (
+            <article key={`${item.kind}-${index}`} className="relative grid grid-cols-[40px_minmax(0,1fr)] gap-4">
+              <div className={`absolute left-[3px] top-2 h-2.5 w-2.5 rounded-full ${index === 0 ? 'bg-[#F06B21]' : index === 3 ? 'bg-[#1E8E3E]' : 'bg-[#C9C9C9]'}`} />
+              <MobileActivityIcon kind={item.kind} />
+              <div className="pb-2">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">{item.title}</h2>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">Par {item.author}</p>
+                <p className="mt-1 text-[13px] text-[#6B6B6B]">{item.time}</p>
+                {(item.text || item.kind === 'photos' || item.kind === 'progress') && (
+                  <MobileCard className="mt-3 p-4">
+                    {item.text && <p className="text-[14px] leading-[1.55] text-[#3C3C3C]">{item.text}</p>}
+                    {(item.kind === 'report' || item.kind === 'photos') && (
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        {[0, 1, 2].map(photoIndex => (
+                          <MobilePhotoTile key={photoIndex} src={gallery[(photoIndex + index) % gallery.length]} small />
+                        ))}
+                      </div>
+                    )}
+                    {item.kind === 'progress' && (
+                      <div className="mt-1">
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="text-[12px] text-[#6B6B6B]">Avancement</span>
+                          <span className="text-[16px] font-semibold text-[#1E1E1E]">{progress}%</span>
+                        </div>
+                        <div className="h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
+                          <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
+                        </div>
+                      </div>
+                    )}
+                    <button type="button" className="mt-3 text-[13px] font-semibold text-[#F06B21]">{item.action}</button>
+                  </MobileCard>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+      <button type="button" className="inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
+        Voir toute l'activité
+        <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+      </button>
+
+      <MobileCard className="p-4">
+        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Informations chantier</h2>
+        <div className="mt-4 space-y-4">
+          {[
+            ['Client', client?.nom ?? 'Dupont Jean'],
+            ['Adresse', chantier.adresse],
+            ['Type de projet', client?.type === 'public' ? 'Bâtiment public' : client?.type === 'professionnel' ? 'Projet professionnel' : 'Maison individuelle'],
+            ['Responsable', chantier.chefChantier],
+            ['Conducteur de travaux', 'Paul Martin'],
+          ].map(([label, value]) => (
+            <div key={label} className="grid grid-cols-[112px_minmax(0,1fr)] gap-4 text-[13px]">
+              <span className="text-[#1E1E1E]">{label}</span>
+              <span className="text-[#6B6B6B]">{value}</span>
+            </div>
+          ))}
+        </div>
+        <button type="button" className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
+          Voir la fiche chantier
+          <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+        </button>
+      </MobileCard>
+    </main>
+  )
+}
+
+function MobileChantierView({ chantier, client, progress }: { chantier: Chantier; client?: Client; progress: number }) {
+  const [active, setActive] = useState<MobileTab>('report')
+
+  return (
+    <div className="min-h-dvh bg-white text-[#1E1E1E]">
+      <MobileHeader chantier={chantier} active={active} onTabChange={setActive} />
+      {active === 'report' && <MobileReportTab progress={progress} />}
+      {active === 'photos' && <MobilePhotosTab chantier={chantier} />}
+      {active === 'activity' && <MobileActivityTab chantier={chantier} client={client} progress={progress} />}
+      <MobileBottomNav />
+    </div>
+  )
+}
 
 export function ChantierDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { chantiers, factures, addFacture, user } = useApp()
   const navigate = useNavigate()
+  const { chantiers, factures } = useApp()
+  const [showUploadHint, setShowUploadHint] = useState(false)
 
-  const chantier = chantiers.find(c => c.id === id)
-  const chantierFactures = factures.filter(f => f.chantierId === id)
+  const chantier = chantiers.find(item => item.id === id)
 
-  const [uploadStep, setUploadStep] = useState<UploadStep>('idle')
-  const [extracted, setExtracted] = useState({ ...EXTRACTION_RESULT })
-  const [_fileName, setFileName] = useState('')
-  const canUpload = user?.role === 'gerant' || user?.role === 'assistante'
-
-  const onDrop = useCallback((files: File[]) => {
-    if (!files[0]) return
-    setFileName(files[0].name)
-    setUploadStep('uploading')
-    setTimeout(() => setUploadStep('analyzing'), 1200)
-    setTimeout(() => setUploadStep('result'), 3000)
-  }, [])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { 'application/pdf': ['.pdf'], 'image/*': ['.jpg', '.jpeg', '.png'] },
-    maxFiles: 1,
-    disabled: !canUpload || uploadStep !== 'idle',
-  })
-
-  function handleValidate() {
-    const newFacture: Facture = {
-      id: `facture-new-${Date.now()}`,
-      chantierId: id!,
-      fournisseur: extracted.fournisseur,
-      montantHT: extracted.montantHT,
-      tva: extracted.tva,
-      montantTTC: extracted.montantTTC,
-      date: extracted.date,
-      categorie: extracted.categorie,
-      statut: 'validee',
-      numeroFacture: extracted.numeroFacture,
-      description: extracted.description,
-    }
-    addFacture(newFacture)
-    setUploadStep('done')
-    setTimeout(() => setUploadStep('idle'), 2000)
-  }
-
-  function handleCancel() {
-    setUploadStep('idle')
-    setFileName('')
-    setExtracted({ ...EXTRACTION_RESULT })
-  }
+  const chantierFactures = useMemo(
+    () => factures.filter(facture => facture.chantierId === id),
+    [factures, id]
+  )
 
   if (!chantier) {
     return (
-      <div className="p-8 text-center text-[#6B6B6B]">
-        <p>Chantier introuvable.</p>
-        <button onClick={() => navigate('/chantiers')} className="mt-4 text-[#F06B21] hover:underline text-sm">
-          Retour à la liste
-        </button>
+      <div className="flex min-h-full items-center justify-center bg-[#FAF6F2] p-8">
+        <Card className="max-w-md p-8 text-center">
+          <h1 className="text-[22px] font-semibold text-[#1E1E1E]">Chantier introuvable</h1>
+          <p className="mt-2 text-sm text-[#6B6B6B]">Le dossier demandé n’existe pas dans le store local.</p>
+          <button
+            type="button"
+            onClick={() => navigate('/chantiers')}
+            className="mt-5 inline-flex items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#D95B17]"
+          >
+            Retour aux chantiers
+          </button>
+        </Card>
       </div>
     )
   }
 
-  const pct = Math.round((chantier.depensesEngagees / chantier.budgetPrevisionnel) * 100)
-  const marge = chantier.budgetPrevisionnel - chantier.depensesEngagees
-  const margePercent = Math.round((marge / chantier.budgetPrevisionnel) * 100)
+  const client = clients.find(item => item.id === chantier.clientId)
+  const chantierEmails = emails.filter(email => email.chantierId === chantier.id)
+  const progress = Math.min(Math.round((chantier.depensesEngagees / chantier.budgetPrevisionnel) * 100), 100)
+  const rawProgress = Math.round((chantier.depensesEngagees / chantier.budgetPrevisionnel) * 100)
+  const margin = chantier.budgetPrevisionnel - chantier.depensesEngagees
+  const marginPercent = Math.round((margin / chantier.budgetPrevisionnel) * 100)
+  const coverImage = getChantierCover(chantier.id)
+  const galleryImages = getChantierGallery(chantier.id)
 
-  const depensesParCategorie = chantierFactures
-    .filter(f => f.statut === 'validee')
-    .reduce<Record<string, number>>((acc, f) => {
-      acc[f.categorie] = (acc[f.categorie] ?? 0) + f.montantTTC
-      return acc
-    }, {})
-
-  const donutData = Object.entries(depensesParCategorie)
-    .map(([cat, val]) => ({
-      name: categorieLabels[cat as CategorieDepense] ?? cat,
-      value: Math.round(val),
-      color: DONUT_COLORS[cat] ?? '#9CA3AF',
-      pct: Math.round((val / chantier.depensesEngagees) * 100),
+  const donutData = Object.entries(
+    chantierFactures
+      .filter(facture => facture.statut === 'validee')
+      .reduce<Record<string, number>>((acc, facture) => {
+        acc[facture.categorie] = (acc[facture.categorie] ?? 0) + facture.montantTTC
+        return acc
+      }, {})
+  )
+    .map(([category, amount]) => ({
+      name: categorieLabels[category as CategorieDepense] ?? category,
+      value: Math.round(amount),
+      pct: Math.max(1, Math.round((amount / Math.max(chantier.depensesEngagees, 1)) * 100)),
+      color: DONUT_COLORS[category] ?? '#C8B18C',
     }))
     .sort((a, b) => b.value - a.value)
 
-  const TABS = ['Vue d\'ensemble', 'Documents', 'Factures', 'Emails', 'Planning', 'Rapports', 'Photos', 'Équipe', 'Infos chantier']
-
-  const LOTS = [
-    { label: 'Gros œuvre', pct: 100, color: '#1E8E3E' },
-    { label: 'Charpente', pct: 75, color: '#F06B21' },
-    { label: 'Isolation', pct: 60, color: '#F06B21' },
-    { label: 'Bardage', pct: 40, color: '#DC2626' },
-    { label: 'Menuiseries', pct: 0, color: '#9CA3AF' },
-  ]
-
-  const TIMELINE = [
-    { label: 'Devis signé', date: '10/10/2025', done: true },
-    { label: 'Préparation', date: '15/11/2025', done: true },
-    { label: 'Démarrage chantier', date: '12/01/2026', done: true },
-    { label: 'Fondations', date: '28/01/2026', done: true },
-    { label: 'Élévation murs', date: '15/02/2026', done: true },
-    { label: 'Charpente', date: '10/03/2026', done: false, active: true },
-    { label: 'Isolation', date: '25/03/2026', done: false },
-    { label: 'Bardage', date: '15/04/2026', done: false },
-    { label: 'Menuiseries', date: '05/05/2026', done: false },
-    { label: 'Livraison', date: 'Mai 2026', done: false },
-  ]
-
-  const TEAM = [
-    { name: chantier.chefChantier, role: 'Conducteur de travaux', tag: 'Responsable', tagColor: '#1E8E3E' },
-    { name: 'Paul Martin', role: 'Chef d\'équipe', tag: 'Terrain', tagColor: '#F06B21' },
-    { name: 'Lucas Bernard', role: 'Charpentier', tag: 'Terrain', tagColor: '#F06B21' },
-    { name: 'Sophie Leroy', role: 'Assistante de gestion', tag: 'Bureau', tagColor: '#6B91B5' },
-  ]
-
-  const DOCS = [
-    { name: 'Plan_Masse_V2.pdf', size: '1.2 Mo', time: 'il y a 2h', color: '#DC2626' },
-    { name: 'Devis_EXTENSION_BOIS.pdf', size: '890 Ko', time: 'il y a 5h', color: '#DC2626' },
-    { name: 'Facture_Bois_Materiaux.pdf', size: '1.1 Mo', time: 'Hier', color: '#DC2626' },
-    { name: 'Plan_Fondations.dwg', size: '2.5 Mo', time: 'Hier', color: '#6B91B5' },
-    { name: 'Attestation_RT2020.pdf', size: '560 Ko', time: 'il y a 2j', color: '#DC2626' },
-  ]
-
-  const ACTIVITIES = [
-    { icon: FileText, iconBg: '#FDEBDD', iconColor: '#F06B21', label: 'Facture validée – Bois & Matériaux', sub: '842,50 € – Catégorie : Bois', time: 'il y a 10 min' },
-    { icon: Image, iconBg: '#E6F4EA', iconColor: '#1E8E3E', label: 'Compte-rendu ajouté par Paul Martin', sub: 'Avancement fondations + photos (3)', time: 'il y a 45 min' },
-    { icon: Mail, iconBg: '#FDEBDD', iconColor: '#F06B21', label: 'Email reçu – Demande de devis extension', sub: 'Leroy Construction', time: 'il y a 1h' },
-    { icon: FileText, iconBg: '#FAF6F2', iconColor: '#6B6B6B', label: 'Devis envoyé – Extension bois 20m²', sub: 'Devis n° DEV-2026-0158', time: 'il y a 2h' },
-    { icon: CheckCircle, iconBg: '#E6F4EA', iconColor: '#1E8E3E', label: 'Paiement fournisseur enregistré', sub: 'Bois & Matériaux – 1 250,00 €', time: 'il y a 1j' },
-  ]
-
-  const ALERTS_CHANTIER = [
-    { icon: TrendingUp, bg: '#FEE2E2', color: '#DC2626', label: 'Dépassement de budget prévisionnel', sub: 'Le chantier dépasse le budget de 12%.', time: 'il y a 2h' },
-    { icon: FileText, bg: '#FEF3C7', color: '#B45309', label: 'Facture non attachée', sub: '2 factures en attente de rattachement.', time: 'il y a 5h' },
-    { icon: AlertTriangle, bg: '#FEF3C7', color: '#B45309', label: 'Document manquant', sub: "Attestation d'assurance à fournir.", time: 'il y a 1j' },
-  ]
-
-  const ECHEANCES = [
-    { day: '23', month: 'avr', label: 'Livraison matériaux', sub: '23 avril 2026 à 10:30', tag: 'À voir' },
-    { day: '05', month: 'mai', label: 'Réunion de chantier', sub: '5 mai 2026 à 09:00', tag: 'À voir' },
-    { day: '15', month: 'mai', label: 'Contrôle isolation', sub: '15 mai 2026 à 14:00', tag: 'À voir' },
-  ]
-
-  const INDICATEURS = [
-    { label: 'Délai', value: 'J-32', sub: 'vs planning', trend: '+2 jours', up: false },
-    { label: 'Qualité', value: '100%', sub: 'Réserves levées', trend: null, up: true },
-    { label: 'Sécurité', value: '0', sub: 'Incident', trend: null, up: true },
-    { label: 'Heures effectuées', value: '320 h', sub: 'vs prévision 350h', trend: null, up: null },
-    { label: 'Heures à venir', value: '180 h', sub: 'Prévisionnelles', trend: '-8%', up: false },
-  ]
+  const financialData = donutData.length
+    ? donutData
+    : [
+        { name: 'Bois', value: Math.round(chantier.depensesEngagees * 0.38), pct: 38, color: '#F06B21' },
+        { name: 'Sous-traitance', value: Math.round(chantier.depensesEngagees * 0.24), pct: 24, color: '#1E1E1E' },
+        { name: 'Quincaillerie', value: Math.round(chantier.depensesEngagees * 0.15), pct: 15, color: '#A45A2C' },
+        { name: 'Carburant', value: Math.round(chantier.depensesEngagees * 0.08), pct: 8, color: '#C8B18C' },
+        { name: 'Autres', value: Math.round(chantier.depensesEngagees * 0.15), pct: 15, color: '#EADBC8' },
+      ]
 
   return (
-    <div className="bg-[#FAF6F2] min-h-full">
-
-      {/* ── Top header bar ── */}
-      <div className="bg-white border-b border-[#F2E8DC] px-7 py-4">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-[12px] text-[#6B6B6B] mb-3">
-          <button onClick={() => navigate('/chantiers')} className="hover:text-[#F06B21] transition-colors">Chantiers</button>
-          <ChevronRight size={12} />
-          <span className="text-[#1E1E1E] font-medium">{chantier.nom}</span>
+    <>
+    <div className="lg:hidden">
+      <MobileChantierView chantier={chantier} client={client} progress={progress} />
+    </div>
+    <div className="hidden min-h-full bg-[#FAF6F2] lg:block">
+      <div className="border-b border-[#F2E8DC] bg-white px-6 py-5 xl:px-8">
+        <div className="mb-4 flex items-center gap-2 text-[12px] font-medium text-[#6B6B6B]">
+          <button type="button" onClick={() => navigate('/chantiers')} className="hover:text-[#F06B21]">
+            Chantiers
+          </button>
+          <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <span className="text-[#1E1E1E]">{chantier.nom}</span>
         </div>
 
-        {/* Title row */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-[22px] font-bold text-[#1E1E1E]">{chantier.nom}</h1>
-              <span className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                chantier.statut === 'en_cours' ? 'bg-[#E6F4EA] text-[#1E8E3E]' :
-                chantier.statut === 'cloture' ? 'bg-[#F2E8DC] text-[#A45A2C]' :
-                'bg-[#FEF3C7] text-[#B45309]'
-              }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-[#1E1E1E]">{chantier.nom}</h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E6F4EA] px-3 py-1 text-[11px] font-semibold text-[#1E8E3E]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1E8E3E]" />
                 {chantier.statut === 'en_cours' ? 'En cours' : chantier.statut === 'cloture' ? 'Clôturé' : 'En attente'}
               </span>
             </div>
-            <div className="flex items-center gap-5 text-[12px] text-[#6B6B6B]">
-              <span className="flex items-center gap-1.5"><MapPin size={12} /> {chantier.adresse}</span>
-              <span className="flex items-center gap-1.5"><Calendar size={12} /> Démarrage : {new Date(chantier.dateDebut).toLocaleDateString('fr-FR')}</span>
-              <span className="flex items-center gap-1.5"><User size={12} /> Livraison prévue : {new Date(chantier.dateFinPrevue).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[#3C3C3C]">
+              <span className="inline-flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                {chantier.adresse}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                Démarrage : {new Date(chantier.dateDebut).toLocaleDateString('fr-FR')}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <UsersRound className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                Livraison prévue : {new Date(chantier.dateFinPrevue).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              </span>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-[#6B6B6B] bg-white border border-[#F2E8DC] rounded-[10px] hover:text-[#1E1E1E] transition-colors">
-              <Share2 size={13} /> Partager
+            <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+              <Share2 className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              Partager
             </button>
-            <button className="flex items-center gap-2 px-3 py-2 text-[12px] font-semibold text-white bg-[#1E1E1E] hover:bg-black rounded-[10px] transition-colors">
-              Actions <ChevronDown size={13} />
+            <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#1E1E1E] px-4 text-sm font-semibold text-white hover:bg-black">
+              Actions
+              <ChevronDown className="h-4 w-4" strokeWidth={1.75} />
             </button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-0 mt-4 border-b border-[#F2E8DC] -mb-px">
-          {TABS.map((tab, i) => (
+        <div className="mt-6 flex gap-6 overflow-x-auto border-b border-[#F2E8DC]">
+          {tabs.map((tab, index) => (
             <button
               key={tab}
-              className={`px-4 py-2 text-[12px] font-medium border-b-2 transition-colors whitespace-nowrap ${
-                i === 0
-                  ? 'border-[#F06B21] text-[#F06B21]'
-                  : 'border-transparent text-[#6B6B6B] hover:text-[#1E1E1E]'
+              type="button"
+              className={`shrink-0 border-b-2 px-1 pb-3 text-sm font-medium transition-colors ${
+                index === 0 ? 'border-[#F06B21] text-[#F06B21]' : 'border-transparent text-[#3C3C3C] hover:text-[#1E1E1E]'
               }`}
             >
               {tab}
@@ -248,518 +824,469 @@ export function ChantierDetailPage() {
         </div>
       </div>
 
-      {/* ── Main content ── */}
-      <div className="px-7 py-5 flex gap-5">
-
-        {/* ── Left + center (2/3) ── */}
-        <div className="flex-1 min-w-0 space-y-5">
-
-          {/* KPI cards row */}
-          <div className="grid grid-cols-5 gap-3">
-            {/* Avancement */}
-            <div className="bg-white rounded-[16px] p-4 border border-[#F2E8DC]">
-              <p className="text-[11px] text-[#6B6B6B] mb-1">Avancement</p>
-              <p className="text-[28px] font-bold text-[#1E1E1E] leading-none">{pct}%</p>
-              <div className="w-full bg-[#F2E8DC] rounded-full h-1.5 mt-2">
-                <div
-                  className="h-1.5 rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(pct, 100)}%`,
-                    backgroundColor: chantier.tendance === 'rouge' ? '#DC2626' : chantier.tendance === 'orange' ? '#F06B21' : '#1E8E3E',
-                  }}
-                />
+      <div className="grid gap-5 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:px-8 2xl:grid-cols-[minmax(0,1fr)_380px]">
+        <main className="min-w-0 space-y-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+            <KpiCard label="Avancement" value={`${progress}%`}>
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
+                <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
               </div>
-              <p className="text-[10px] text-[#1E8E3E] font-semibold mt-1">+8% vs semaine dernière</p>
-            </div>
-            {/* Budget total */}
-            <div className="bg-white rounded-[16px] p-4 border border-[#F2E8DC]">
-              <p className="text-[11px] text-[#6B6B6B] mb-1">Budget total</p>
-              <p className="text-[22px] font-bold text-[#1E1E1E] leading-none">{chantier.budgetPrevisionnel.toLocaleString('fr-FR')} €</p>
-              <p className="text-[10px] text-[#6B6B6B] mt-1">HT</p>
-            </div>
-            {/* Dépenses */}
-            <div className="bg-white rounded-[16px] p-4 border border-[#F2E8DC]">
-              <p className="text-[11px] text-[#6B6B6B] mb-1">Dépenses engagées</p>
-              <p className="text-[22px] font-bold text-[#1E1E1E] leading-none">{chantier.depensesEngagees.toLocaleString('fr-FR')} €</p>
-              <p className="text-[10px] text-[#6B6B6B] mt-1">{pct}% du budget</p>
-            </div>
-            {/* Marge */}
-            <div className="bg-white rounded-[16px] p-4 border border-[#F2E8DC]">
-              <p className="text-[11px] text-[#6B6B6B] mb-1">Marge prévisionnelle</p>
-              <p className={`text-[22px] font-bold leading-none ${marge < 0 ? 'text-[#DC2626]' : 'text-[#1E1E1E]'}`}>
-                {Math.abs(marge).toLocaleString('fr-FR')} €
-              </p>
-              <p className="text-[10px] text-[#6B6B6B] mt-1">{margePercent}%</p>
-            </div>
-            {/* Prochaine échéance */}
-            <div className="bg-white rounded-[16px] p-4 border border-[#F2E8DC]">
-              <p className="text-[11px] text-[#6B6B6B] mb-1">Prochaine échéance</p>
-              <div className="flex items-center gap-1.5 mb-1">
-                <Calendar size={12} className="text-[#F06B21]" />
-                <p className="text-[12px] font-semibold text-[#1E1E1E]">Livraison matériaux</p>
+              <p className="mt-3 text-[11px] font-semibold text-[#1E8E3E]">+8% vs semaine dernière</p>
+            </KpiCard>
+            <KpiCard label="Budget total" value={formatEuros(chantier.budgetPrevisionnel)} sub="HT" />
+            <KpiCard label="Dépenses engagées" value={formatEuros(chantier.depensesEngagees)} sub={`${rawProgress}% du budget`} />
+            <KpiCard label="Marge prévisionnelle" value={formatEuros(margin)} sub={`${marginPercent}%`} />
+            <KpiCard label="Prochaine échéance" value="Livraison matériaux">
+              <p className="mt-3 text-[11px] text-[#6B6B6B]">23 avril 2026 à 10:30</p>
+              <div className="mt-2">
+                <LinkButton>Voir le planning</LinkButton>
               </div>
-              <p className="text-[10px] text-[#6B6B6B]">23 avril 2026 à 10:30</p>
-              <button className="mt-1 flex items-center gap-1 text-[10px] text-[#F06B21] font-medium hover:text-[#D95B17]">
-                Voir le planning <ArrowRight size={10} />
-              </button>
-            </div>
+            </KpiCard>
           </div>
 
-          {/* Activité récente */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Activité récente</h2>
-              <button className="text-[11px] text-[#F06B21] font-medium hover:text-[#D95B17] flex items-center gap-1">
-                Voir toute l'activité <ArrowRight size={11} />
-              </button>
-            </div>
-            <div className="space-y-3">
-              {ACTIVITIES.map((a, i) => {
-                const Icon = a.icon
-                return (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: a.iconBg }}>
-                      <Icon size={13} strokeWidth={1.75} style={{ color: a.iconColor }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-[#1E1E1E] truncate">{a.label}</p>
-                      <p className="text-[11px] text-[#6B6B6B] truncate">{a.sub}</p>
-                    </div>
-                    <span className="text-[10px] text-[#9CA3AF] shrink-0">{a.time}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Photos récentes */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Photos récentes</h2>
-              <button className="text-[11px] text-[#F06B21] font-medium hover:text-[#D95B17] flex items-center gap-1">
-                Voir toutes les photos <ArrowRight size={11} />
-              </button>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-square rounded-[10px] bg-[#EADBC8] flex items-center justify-center overflow-hidden">
-                  <Image size={22} className="text-[#A45A2C] opacity-60" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Synthèse financière */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Synthèse financière</h2>
-              <button className="flex items-center gap-1 text-[11px] text-[#6B6B6B] bg-[#FAF6F2] border border-[#F2E8DC] px-2 py-1 rounded-[6px]">
-                Ce mois <ChevronDown size={11} />
-              </button>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="relative shrink-0">
-                <PieChart width={150} height={150}>
-                  <Pie
-                    data={donutData.length > 0 ? donutData : [{ name: 'Aucune', value: 1, color: '#EADBC8', pct: 100 }]}
-                    cx={70} cy={70} innerRadius={45} outerRadius={68}
-                    startAngle={90} endAngle={-270} dataKey="value" strokeWidth={2} stroke="#FAF6F2"
-                  >
-                    {(donutData.length > 0 ? donutData : [{ color: '#EADBC8' }]).map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[12px] font-bold text-[#1E1E1E]">{chantier.depensesEngagees.toLocaleString('fr-FR')} €</span>
-                  <span className="text-[9px] text-[#6B6B6B]">Dépenses engagées</span>
-                </div>
-              </div>
-              <div className="flex-1 space-y-1.5">
-                {donutData.slice(0, 6).map(d => (
-                  <div key={d.name} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                      <span className="text-[11px] text-[#3C3C3C] truncate max-w-[80px]">{d.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[11px] font-semibold text-[#1E1E1E]">{d.pct}%</span>
-                      <span className="text-[10px] text-[#6B6B6B] w-16 text-right">{d.value.toLocaleString('fr-FR')} €</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors">
-              Voir le détail des dépenses <ArrowRight size={11} />
-            </button>
-          </div>
-
-          {/* Derniers documents */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Derniers documents</h2>
-              <button className="text-[11px] text-[#F06B21] font-medium hover:text-[#D95B17] flex items-center gap-1">
-                Voir tous les documents <ArrowRight size={11} />
-              </button>
-            </div>
-            <div className="space-y-2.5">
-              {DOCS.map((d, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0" style={{ backgroundColor: d.color + '22' }}>
-                    <FileText size={13} style={{ color: d.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-[#1E1E1E] truncate">{d.name}</p>
-                    <p className="text-[10px] text-[#9CA3AF]">{d.size}</p>
-                  </div>
-                  <span className="text-[10px] text-[#9CA3AF] shrink-0">{d.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Avancement par lot + Dépenses vs Prévisionnel */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Avancement par lot */}
-            <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Avancement par lot</h2>
-              <div className="space-y-3">
-                {LOTS.map(lot => (
-                  <div key={lot.label}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[12px] text-[#3C3C3C]">{lot.label}</span>
-                      <span className="text-[11px] font-semibold text-[#1E1E1E]">{lot.pct}%</span>
-                    </div>
-                    <div className="w-full bg-[#F2E8DC] rounded-full h-1.5">
-                      <div className="h-1.5 rounded-full transition-all" style={{ width: `${lot.pct}%`, backgroundColor: lot.color }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors">
-                Voir le détail des lots <ArrowRight size={11} />
-              </button>
-            </div>
-
-            {/* Échéances clés */}
-            <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Échéances clés</h2>
-              <div className="space-y-3">
-                {ECHEANCES.map((e, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 shrink-0 text-center">
-                      <p className="text-[16px] font-bold text-[#F06B21] leading-none">{e.day}</p>
-                      <p className="text-[9px] text-[#6B6B6B] uppercase">{e.month}</p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-[#1E1E1E]">{e.label}</p>
-                      <p className="text-[10px] text-[#6B6B6B]">{e.sub}</p>
-                    </div>
-                    <span className="text-[10px] font-medium text-[#F06B21] bg-[#FDEBDD] px-2 py-0.5 rounded-full shrink-0">{e.tag}</span>
-                  </div>
-                ))}
-              </div>
-              <button className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors">
-                Voir le planning <ArrowRight size={11} />
-              </button>
-            </div>
-          </div>
-
-          {/* Indicateurs clés */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Indicateurs clés</h2>
-              <button className="text-[11px] text-[#F06B21] font-medium hover:text-[#D95B17] flex items-center gap-1">
-                Voir tous les indicateurs <ArrowRight size={11} />
-              </button>
-            </div>
-            <div className="grid grid-cols-5 gap-3">
-              {INDICATEURS.map((ind, i) => (
-                <div key={i} className="text-center">
-                  <p className="text-[11px] text-[#6B6B6B] mb-1">{ind.label}</p>
-                  <p className="text-[20px] font-bold text-[#1E1E1E] leading-none">{ind.value}</p>
-                  <p className="text-[10px] text-[#6B6B6B] mt-0.5">{ind.sub}</p>
-                  {ind.trend && (
-                    <p className={`text-[10px] font-semibold mt-0.5 ${ind.up === false ? 'text-[#DC2626]' : 'text-[#1E8E3E]'}`}>{ind.trend}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Timeline du chantier</h2>
-              <div className="flex items-center gap-3 text-[10px] text-[#6B6B6B]">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1E8E3E]" /> Terminé</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#F06B21]" /> En cours</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#9CA3AF]" /> À venir</span>
-              </div>
-            </div>
-            <div className="flex items-start gap-0 overflow-x-auto pb-2">
-              {TIMELINE.map((t, i) => (
-                <div key={i} className="flex flex-col items-center min-w-[80px]">
-                  <div className="flex items-center w-full">
-                    {i > 0 && (
-                      <div className={`flex-1 h-0.5 ${t.done || TIMELINE[i - 1].done ? 'bg-[#1E8E3E]' : 'bg-[#EADBC8]'}`} />
-                    )}
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 ${
-                      t.done
-                        ? 'bg-[#1E8E3E] border-[#1E8E3E]'
-                        : (t as any).active
-                        ? 'bg-[#F06B21] border-[#F06B21]'
-                        : 'bg-white border-[#EADBC8]'
-                    }`}>
-                      {t.done ? (
-                        <Check size={12} className="text-white" strokeWidth={2.5} />
-                      ) : (t as any).active ? (
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full bg-[#EADBC8]" />
-                      )}
-                    </div>
-                    {i < TIMELINE.length - 1 && (
-                      <div className={`flex-1 h-0.5 ${t.done ? 'bg-[#1E8E3E]' : 'bg-[#EADBC8]'}`} />
-                    )}
-                  </div>
-                  <p className="text-[10px] font-medium text-[#1E1E1E] text-center mt-1.5 leading-tight">{t.label}</p>
-                  <p className="text-[9px] text-[#9CA3AF] text-center">{t.date}</p>
-                </div>
-              ))}
-            </div>
-            <button className="mt-2 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors">
-              Voir toute la timeline <ArrowRight size={11} />
-            </button>
-          </div>
-        </div>
-
-        {/* ── Right panel (1/3) ── */}
-        <div className="w-[280px] shrink-0 space-y-4">
-
-          {/* Actions rapides */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-4">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-3">Actions rapides</h2>
-            <button
-              onClick={() => setUploadStep(uploadStep === 'idle' ? 'idle' : 'idle')}
-              className="w-full flex items-center justify-center gap-2 bg-[#F06B21] hover:bg-[#D95B17] text-white text-[12px] font-semibold py-2.5 rounded-[10px] mb-2 transition-colors"
-            >
-              <Plus size={14} strokeWidth={2.5} /> Ajouter un document
-            </button>
-            <div className="space-y-1">
-              {[
-                { icon: FileText, label: 'Nouvelle facture fournisseur' },
-                { icon: CheckCircle, label: 'Nouveau compte-rendu' },
-                { icon: Euro, label: 'Créer un devis' },
-              ].map((a, i) => (
-                <button key={i} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-[#3C3C3C] hover:bg-[#FAF6F2] rounded-[8px] transition-colors">
-                  <Plus size={12} className="text-[#F06B21]" strokeWidth={2.5} />
-                  {a.label}
-                </button>
-              ))}
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-[#6B6B6B] hover:bg-[#FAF6F2] rounded-[8px] transition-colors">
-                <MoreHorizontal size={14} /> Plus d'actions…
-              </button>
-            </div>
-          </div>
-
-          {/* Équipe affectée */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-4">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-3">Équipe affectée</h2>
-            <div className="space-y-3">
-              {TEAM.map((m, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#EADBC8] flex items-center justify-center shrink-0">
-                    <User size={13} className="text-[#A45A2C]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold text-[#1E1E1E] truncate leading-tight">{m.name}</p>
-                    <p className="text-[10px] text-[#6B6B6B] truncate">{m.role}</p>
-                  </div>
-                  <span
-                    className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
-                    style={{ backgroundColor: m.tagColor + '22', color: m.tagColor }}
-                  >
-                    {m.tag}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <button className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors">
-              Voir toute l'équipe <ArrowRight size={11} />
-            </button>
-          </div>
-
-          {/* Planning du chantier mini */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Planning du chantier</h2>
-              <span className="text-[11px] text-[#6B6B6B]">21 – 27 avr.</span>
-            </div>
-            <div className="space-y-2">
-              {[
-                { label: 'Maison Dupont', team: 'Gros œuvre', color: '#A45A2C', bg: '#E8DCC5' },
-                { label: 'Villa des Pins', team: 'Charpente', color: '#F06B21', bg: '#FDE9DB' },
-                { label: 'Maison Dupont', team: 'Isolation', color: '#6B91B5', bg: '#DCE9F2' },
-              ].map((e, i) => (
-                <div key={i} className="rounded-[8px] px-2.5 py-1.5" style={{ backgroundColor: e.bg }}>
-                  <p className="text-[11px] font-semibold" style={{ color: e.color }}>{e.label}</p>
-                  <p className="text-[10px]" style={{ color: e.color + 'aa' }}>{e.team}</p>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => navigate('/planning')}
-              className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
-            >
-              Voir le planning complet <ArrowRight size={11} />
-            </button>
-          </div>
-
-          {/* Alertes */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-4">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-3">Alertes</h2>
-            <div className="space-y-3">
-              {ALERTS_CHANTIER.map((a, i) => {
-                const Icon = a.icon
-                return (
-                  <div key={i} className="flex items-start gap-2">
-                    <div className="w-6 h-6 rounded-[6px] flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: a.bg }}>
-                      <Icon size={11} style={{ color: a.color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-[#1E1E1E] leading-tight">{a.label}</p>
-                      <p className="text-[10px] text-[#6B6B6B]">{a.sub}</p>
-                    </div>
-                    <span className="text-[10px] text-[#9CA3AF] shrink-0">{a.time}</span>
-                  </div>
-                )
-              })}
-            </div>
-            <button className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors">
-              Voir toutes les alertes <ArrowRight size={11} />
-            </button>
-          </div>
-
-          {/* Notes */}
-          <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Notes</h2>
-              <button className="text-[#6B6B6B] hover:text-[#1E1E1E] transition-colors">
-                <Pencil size={13} />
-              </button>
-            </div>
-            <p className="text-[12px] text-[#3C3C3C] leading-relaxed">
-              Rappel : vérifier la livraison des fenêtres le 28/04.
-            </p>
-            <p className="text-[10px] text-[#9CA3AF] mt-2">Modifié par {chantier.chefChantier}, il y a 1h</p>
-          </div>
-
-          {/* Upload facture (si autorisé) */}
-          {canUpload && (
-            <div className="bg-white rounded-[16px] border border-[#F2E8DC] p-4">
-              <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-3 flex items-center gap-2">
-                <Upload size={13} className="text-[#F06B21]" /> Ajouter une facture
-              </h2>
-              {uploadStep === 'idle' && (
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-[10px] p-4 text-center cursor-pointer transition-all ${
-                    isDragActive ? 'border-[#F06B21] bg-[#FDEBDD]' : 'border-[#EADBC8] hover:border-[#F06B21] hover:bg-[#FDEBDD]/40'
-                  }`}
-                >
-                  <input {...getInputProps()} />
-                  <Upload size={20} className={`mx-auto mb-2 ${isDragActive ? 'text-[#F06B21]' : 'text-[#C8B18C]'}`} />
-                  <p className="text-[11px] font-medium text-[#6B6B6B]">
-                    {isDragActive ? 'Déposez ici…' : 'Glissez un PDF ou photo'}
-                  </p>
-                  <p className="text-[10px] text-[#9CA3AF] mt-0.5">ou cliquez pour sélectionner</p>
-                </div>
-              )}
-              {uploadStep === 'uploading' && (
-                <div className="text-center py-4">
-                  <div className="w-8 h-8 border-3 border-[#FDEBDD] border-t-[#F06B21] rounded-full animate-spin mx-auto mb-2" />
-                  <p className="text-[11px] text-[#6B6B6B]">Upload en cours…</p>
-                </div>
-              )}
-              {uploadStep === 'analyzing' && (
-                <div className="text-center py-4">
-                  <div className="w-8 h-8 bg-[#FDEBDD] rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Sparkles size={16} className="text-[#F06B21] animate-pulse" />
-                  </div>
-                  <p className="text-[11px] text-[#6B6B6B]">Analyse IA…</p>
-                </div>
-              )}
-              {uploadStep === 'result' && (
+          <div className="grid gap-5 2xl:grid-cols-[1.05fr_1fr]">
+            <Card className="p-5">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Informations principales</h2>
+              <div className="mt-4 grid gap-5 lg:grid-cols-[190px_minmax(0,1fr)]">
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[11px] font-medium text-[#1E1E1E]">Extraction terminée</span>
-                    <span className="text-[10px] bg-[#E6F4EA] text-[#1E8E3E] px-1.5 py-0.5 rounded-full font-semibold">{extracted.confidence}%</span>
+                  <ProjectPhoto src={coverImage} />
+                  <button type="button" className="mt-3 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white text-[12px] font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+                    Voir toutes les photos
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    ['Client', client?.nom ?? 'Client non renseigné'],
+                    ['Adresse', chantier.adresse],
+                    ['Type de projet', client?.type === 'public' ? 'Bâtiment public' : client?.type === 'professionnel' ? 'Projet professionnel' : 'Maison individuelle'],
+                    ['Surface', '148 m²'],
+                    ['Responsable', chantier.chefChantier],
+                    ['Conducteur de travaux', 'Paul Martin'],
+                    ['Architecte', 'Atelier B'],
+                  ].map(([label, value]) => (
+                    <div key={label} className="grid grid-cols-[102px_minmax(0,1fr)] gap-3 text-[13px]">
+                      <span className="text-[#6B6B6B]">{label}</span>
+                      <span className="font-medium text-[#1E1E1E]">{value}</span>
+                    </div>
+                  ))}
+                  <div className="pt-1 text-[13px] leading-5 text-[#3C3C3C]">
+                    <span className="mb-1 block text-[#6B6B6B]">Description</span>
+                    {chantier.description}
                   </div>
-                  <div className="space-y-2 mb-3">
-                    {[
-                      { label: 'Fournisseur', key: 'fournisseur' as const },
-                      { label: 'N° facture', key: 'numeroFacture' as const },
-                    ].map(f => (
-                      <div key={f.key}>
-                        <label className="block text-[10px] text-[#6B6B6B] mb-0.5">{f.label}</label>
-                        <input
-                          className="w-full px-2 py-1.5 rounded-[8px] border border-[#F2E8DC] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#F06B21]"
-                          value={extracted[f.key]}
-                          onChange={e => setExtracted(x => ({ ...x, [f.key]: e.target.value }))}
-                        />
-                      </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {['ossature bois', 'maison individuelle', '2026'].map(tag => (
+                      <span key={tag} className="rounded-[6px] bg-[#F1E6D6] px-2.5 py-1 text-[11px] font-medium text-[#3C3C3C]">
+                        {tag}
+                      </span>
                     ))}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] text-[#6B6B6B] mb-0.5">Montant HT</label>
-                        <input
-                          type="number"
-                          className="w-full px-2 py-1.5 rounded-[8px] border border-[#F2E8DC] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#F06B21]"
-                          value={extracted.montantHT}
-                          onChange={e => setExtracted(x => ({ ...x, montantHT: parseFloat(e.target.value) || 0, montantTTC: (parseFloat(e.target.value) || 0) * (1 + x.tva / 100) }))}
-                        />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Synthèse financière</h2>
+                <button type="button" className="inline-flex items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 py-1.5 text-[12px] font-medium text-[#6B6B6B] hover:bg-[#FAF6F2]">
+                  Ce mois
+                  <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.75} />
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
+                <div className="relative flex justify-center">
+                  <PieChart width={210} height={210}>
+                    <Pie
+                      data={financialData}
+                      cx={105}
+                      cy={105}
+                      innerRadius={66}
+                      outerRadius={94}
+                      startAngle={90}
+                      endAngle={-270}
+                      dataKey="value"
+                      stroke="#FFFFFF"
+                      strokeWidth={3}
+                    >
+                      {financialData.map(item => (
+                        <Cell key={item.name} fill={item.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-[22px] font-semibold text-[#1E1E1E]">{formatEuros(chantier.depensesEngagees)}</span>
+                    <span className="text-[11px] text-[#6B6B6B]">Dépenses engagées</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 self-center">
+                  {financialData.slice(0, 6).map(item => (
+                    <div key={item.name} className="grid grid-cols-[minmax(0,1fr)_48px_78px] items-center gap-3 text-[12px]">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                        <span className="truncate text-[#3C3C3C]">{item.name}</span>
                       </div>
-                      <div>
-                        <label className="block text-[10px] text-[#6B6B6B] mb-0.5">TVA %</label>
-                        <input
-                          type="number"
-                          className="w-full px-2 py-1.5 rounded-[8px] border border-[#F2E8DC] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#F06B21]"
-                          value={extracted.tva}
-                          onChange={e => setExtracted(x => ({ ...x, tva: parseInt(e.target.value) || 0, montantTTC: x.montantHT * (1 + (parseInt(e.target.value) || 0) / 100) }))}
-                        />
-                      </div>
+                      <span className="text-right font-medium text-[#6B6B6B]">{item.pct}%</span>
+                      <span className="text-right font-medium text-[#3C3C3C]">{formatEuros(item.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <LinkButton>Voir le détail des dépenses</LinkButton>
+              </div>
+            </Card>
+          </div>
+
+          <div className="grid gap-5 2xl:grid-cols-[1fr_1.35fr_0.9fr]">
+            <Card className="p-5">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Avancement par lot</h2>
+              <div className="mt-5 space-y-4">
+                {lots.map(lot => (
+                  <div key={lot.label}>
+                    <div className="mb-2 flex items-center justify-between text-[13px]">
+                      <span className="text-[#3C3C3C]">{lot.label}</span>
+                      <span className="font-medium text-[#1E1E1E]">{lot.pct}%</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
+                      <div className="h-full rounded-full" style={{ width: `${lot.pct}%`, backgroundColor: lot.color }} />
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleValidate}
-                      className="flex-1 bg-[#F06B21] hover:bg-[#D95B17] text-white font-semibold py-2 rounded-[8px] text-[11px] transition-colors flex items-center justify-center gap-1"
-                    >
-                      <Check size={13} /> Valider
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      className="px-3 py-2 rounded-[8px] border border-[#F2E8DC] text-[#6B6B6B] hover:bg-[#FAF6F2] text-[11px] transition-colors"
-                    >
-                      <X size={13} />
-                    </button>
-                  </div>
+                ))}
+              </div>
+              <div className="mt-5">
+                <LinkButton>Voir le détail des lots</LinkButton>
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Dépenses vs prévisionnel</h2>
+                <div className="flex gap-4 text-[11px] text-[#6B6B6B]">
+                  <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 bg-[#F06B21]" /> Réelles</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 border-t border-dashed border-[#6B6B6B]" /> Prévisionnel</span>
                 </div>
-              )}
-              {uploadStep === 'done' && (
-                <div className="text-center py-4">
-                  <div className="w-8 h-8 bg-[#E6F4EA] rounded-full flex items-center justify-center mx-auto mb-2">
-                    <CheckCircle size={16} className="text-[#1E8E3E]" />
+              </div>
+              <div className="h-[210px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={budgetCurve} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} tickFormatter={value => `${Number(value) / 1000}k €`} />
+                    <Tooltip
+                      formatter={value => [`${formatEuros(Number(value ?? 0))}`, '']}
+                      contentStyle={{ borderRadius: 12, border: '1px solid #F2E8DC', fontSize: 12 }}
+                    />
+                    <Area type="monotone" dataKey="target" stroke="#6B6B6B" strokeDasharray="4 4" strokeWidth={1.5} fill="transparent" />
+                    <Area type="monotone" dataKey="real" stroke="#F06B21" strokeWidth={2} fill="#FDEBDD" fillOpacity={0.35} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <LinkButton>Voir l’analyse complète</LinkButton>
+            </Card>
+
+            <Card className="p-5">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Échéances clés</h2>
+              <div className="mt-4 space-y-4">
+                {deadlines.map(item => (
+                  <div key={`${item.day}-${item.title}`} className="grid grid-cols-[42px_minmax(0,1fr)_48px] items-center gap-3">
+                    <div className="rounded-[10px] bg-[#FDEBDD] px-2 py-2 text-center">
+                      <div className="text-[18px] font-bold leading-none text-[#1E1E1E]">{item.day}</div>
+                      <div className="mt-1 text-[9px] font-semibold text-[#F06B21]">{item.month}</div>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{item.title}</p>
+                      <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{item.sub}</p>
+                    </div>
+                    <span className="rounded-[6px] bg-[#FAF6F2] px-2 py-1 text-center text-[10px] font-medium text-[#6B6B6B]">À venir</span>
                   </div>
-                  <p className="text-[11px] font-semibold text-[#1E1E1E]">Facture validée !</p>
-                </div>
-              )}
+                ))}
+              </div>
+              <div className="mt-5">
+                <LinkButton>Voir le planning</LinkButton>
+              </div>
+            </Card>
+          </div>
+
+          <div className="grid gap-5 2xl:grid-cols-[1fr_1.15fr]">
+            <Card className="p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Activité récente</h2>
+                <LinkButton>Voir toute l’activité</LinkButton>
+              </div>
+              <div className="mt-5 space-y-4">
+                {activities.map(item => {
+                  const Icon = item.icon
+                  return (
+                    <div key={item.title} className="flex items-start gap-4">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]" style={{ backgroundColor: item.bg }}>
+                        <Icon className="h-4 w-4" style={{ color: item.color }} strokeWidth={1.75} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{item.title}</p>
+                        <p className="mt-1 truncate text-[12px] text-[#6B6B6B]">{item.sub}</p>
+                      </div>
+                      <span className="shrink-0 text-[11px] text-[#9CA3AF]">{item.time}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Derniers documents</h2>
+                <LinkButton>Voir tous les documents</LinkButton>
+              </div>
+              <div className="mt-5 space-y-4">
+                {documents.map(item => (
+                  <div key={item.name} className="grid grid-cols-[34px_minmax(0,1fr)_70px] items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FAF6F2]">
+                      <FileText className="h-4 w-4" style={{ color: item.color }} strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-medium text-[#1E1E1E]">{item.name}</p>
+                      <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{item.type}</p>
+                    </div>
+                    <span className="text-right text-[11px] text-[#9CA3AF]">{item.time}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Photos récentes</h2>
+              <LinkButton>Voir toutes les photos</LinkButton>
             </div>
-          )}
-        </div>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {galleryImages.slice(0, 4).map(image => (
+                <PhotoTile key={image} src={image} />
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Indicateurs clés</h2>
+              <LinkButton>Voir tous les indicateurs</LinkButton>
+            </div>
+            <div className="mt-5 grid gap-4 md:grid-cols-5">
+              {indicators.map(item => (
+                <div key={item.label} className="border-r border-[#F2E8DC] pr-4 last:border-r-0">
+                  <p className="text-[12px] text-[#6B6B6B]">{item.label}</p>
+                  <p className="mt-2 text-[22px] font-semibold leading-none text-[#1E1E1E]">{item.value}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[11px] text-[#6B6B6B]">{item.sub}</span>
+                    {item.chip && <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[10px] font-semibold text-[#1E8E3E]">{item.chip}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Timeline du chantier</h2>
+              <div className="flex items-center gap-4 text-[11px] text-[#6B6B6B]">
+                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#1E8E3E]" /> Terminé</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#F06B21]" /> En cours</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#9CA3AF]" /> À venir</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto pb-3">
+              <div className="grid min-w-[920px] grid-cols-10 items-start">
+                {timeline.map((item, index) => {
+                  const isDone = item.status === 'done'
+                  const isActive = item.status === 'active'
+                  return (
+                    <div key={item.label} className="relative flex flex-col items-center text-center">
+                      {index > 0 && <span className={`absolute left-0 top-[13px] h-0.5 w-1/2 ${isDone || isActive ? 'bg-[#1E8E3E]' : 'bg-[#EADBC8]'}`} />}
+                      {index < timeline.length - 1 && <span className={`absolute right-0 top-[13px] h-0.5 w-1/2 ${isDone ? 'bg-[#1E8E3E]' : 'bg-[#EADBC8]'}`} />}
+                      <div
+                        className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-white ${
+                          isDone ? 'bg-[#1E8E3E]' : isActive ? 'bg-[#F06B21]' : 'bg-[#C9C9C9]'
+                        }`}
+                      >
+                        {isDone ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : isActive ? <CircleDot className="h-3.5 w-3.5" strokeWidth={2.5} /> : <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                      </div>
+                      <p className="mt-3 max-w-[90px] text-[11px] font-medium leading-tight text-[#1E1E1E]">{item.label}</p>
+                      <p className="mt-1 text-[10px] text-[#6B6B6B]">{item.date}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <LinkButton>Voir toute la timeline</LinkButton>
+          </Card>
+        </main>
+
+        <aside className="space-y-5">
+          <Card className="p-5">
+            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Actions rapides</h2>
+            <div className="mt-4 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowUploadHint(value => !value)}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-[#D95B17]"
+              >
+                <Plus className="h-4 w-4" strokeWidth={2} />
+                Ajouter un document
+              </button>
+              {[
+                { icon: ReceiptText, label: 'Nouvelle facture fournisseur' },
+                { icon: ClipboardCheck, label: 'Nouveau compte-rendu' },
+                { icon: Euro, label: 'Créer un devis' },
+              ].map(item => {
+                const Icon = item.icon
+                return (
+                  <button key={item.label} type="button" className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+                    <Icon className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                    {item.label}
+                  </button>
+                )
+              })}
+              <button type="button" className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+                Plus d’actions
+                <MoreHorizontal className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              </button>
+            </div>
+            {showUploadHint && (
+              <div className="mt-4 rounded-[14px] border border-dashed border-[#EADBC8] bg-[#FAF6F2] p-4 text-center">
+                <Upload className="mx-auto h-5 w-5 text-[#F06B21]" strokeWidth={1.75} />
+                <p className="mt-2 text-[12px] font-medium text-[#1E1E1E]">Zone document prête</p>
+                <p className="mt-1 text-[11px] text-[#6B6B6B]">Le branchement Storage viendra avec le flux documentaire.</p>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-5">
+            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Équipe affectée</h2>
+            <div className="mt-4 space-y-4">
+              {team.map((item, index) => (
+                <div key={item.name} className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EADBC8] text-[12px] font-bold text-[#1E1E1E]">
+                    {index === 0 ? 'JD' : index === 1 ? 'PM' : index === 2 ? 'LB' : 'SL'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{item.name}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-[#6B6B6B]">{item.role}</p>
+                  </div>
+                  <span className={`rounded-[6px] px-2 py-1 text-[10px] font-semibold ${item.tagClass}`}>{item.tag}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4">
+              <LinkButton>Voir toute l’équipe</LinkButton>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Planning du chantier</h2>
+              <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#F2E8DC] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#6B6B6B]">
+                Semaine
+                <ChevronDown className="h-3 w-3" strokeWidth={1.75} />
+              </button>
+            </div>
+            <p className="mt-3 text-[12px] text-[#3C3C3C]">21 – 27 avril 2026</p>
+            <div className="mt-4 grid grid-cols-7 overflow-hidden rounded-[12px] border border-[#F2E8DC] text-[10px] text-[#6B6B6B]">
+              {['Lun 21', 'Mar 22', 'Mer 23', 'Jeu 24', 'Ven 25', 'Sam 26', 'Dim 27'].map(day => (
+                <div key={day} className="border-r border-[#F2E8DC] bg-[#FAF6F2] px-2 py-2 text-center last:border-r-0">
+                  {day}
+                </div>
+              ))}
+              <div className="col-span-3 border-t border-[#F2E8DC] bg-[#E6F4EA] px-2 py-2 text-[#1E8E3E]">
+                <p className="font-semibold">Gros œuvre</p>
+                <p>Maison Dupont</p>
+              </div>
+              <div className="col-span-4 border-t border-[#F2E8DC] bg-[#DCE9F2] px-2 py-2 text-[#3C3C3C]">
+                <p className="font-semibold">Charpente</p>
+                <p>Villa des Pins</p>
+              </div>
+              <div className="col-span-4 col-start-2 border-t border-[#F2E8DC] bg-[#FDE9DB] px-2 py-2 text-[#F06B21]">
+                <p className="font-semibold">Isolation</p>
+                <p>Maison Dupont</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <LinkButton>Voir le planning complet</LinkButton>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Alertes</h2>
+            <div className="mt-4 space-y-4">
+              {[
+                { icon: AlertTriangle, title: 'Dépassement de budget prévisionnel', sub: 'Le chantier dépasse le budget de 12%.', time: 'Il y a 2 h' },
+                { icon: ReceiptText, title: 'Facture non rattachée', sub: '2 factures en attente de rattachement.', time: 'Il y a 5 h' },
+                { icon: FileText, title: 'Document manquant', sub: 'Attestation d’assurance à fournir.', time: 'Il y a 1 j' },
+              ].map(item => {
+                const Icon = item.icon
+                return (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-semibold text-[#1E1E1E]">{item.title}</p>
+                      <p className="mt-1 text-[11px] leading-4 text-[#6B6B6B]">{item.sub}</p>
+                    </div>
+                    <span className="shrink-0 text-[10px] text-[#9CA3AF]">{item.time}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-4">
+              <LinkButton>Voir toutes les alertes</LinkButton>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Notes</h2>
+              <button type="button" className="flex h-8 w-8 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2] hover:text-[#1E1E1E]" aria-label="Modifier la note">
+                <Pencil className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+            </div>
+            <p className="mt-3 text-[13px] leading-5 text-[#3C3C3C]">Rappel : vérifier la livraison des fenêtres le 28/04.</p>
+            <p className="mt-3 text-[11px] text-[#9CA3AF]">Modifié par {chantier.chefChantier}, il y a 1 h</p>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#FDEBDD] text-[#F06B21]">
+                <Sparkles className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+              <div>
+                <h2 className="text-[14px] font-semibold text-[#1E1E1E]">Vue IA chantier</h2>
+                <p className="mt-1 text-[12px] leading-5 text-[#6B6B6B]">
+                  {chantierEmails.length} emails liés, {chantierFactures.length} factures suivies et marge à surveiller cette semaine.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              {[
+                { icon: Mail, value: chantierEmails.length, label: 'Emails' },
+                { icon: ReceiptText, value: chantierFactures.length, label: 'Factures' },
+                { icon: ShieldCheck, value: 0, label: 'Incidents' },
+              ].map(item => {
+                const Icon = item.icon
+                return (
+                  <div key={item.label} className="rounded-[12px] bg-[#FAF6F2] px-2 py-3">
+                    <Icon className="mx-auto h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                    <p className="mt-2 text-[16px] font-semibold text-[#1E1E1E]">{item.value}</p>
+                    <p className="text-[10px] text-[#6B6B6B]">{item.label}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        </aside>
       </div>
     </div>
+    </>
   )
 }

@@ -3,7 +3,8 @@ import {
   TrendingDown,
   HardHat,
   FileText,
-  Euro,
+  PieChart as PieChartIcon,
+  ReceiptText,
   AlertTriangle,
   ArrowRight,
   Mail,
@@ -82,7 +83,8 @@ function KpiCard({
   trendLabel,
   sub,
   icon: Icon,
-  iconBg,
+  iconBg = 'bg-[#FFF4EA]',
+  iconColor = 'text-[#F06B21]',
   trendUp,
 }: {
   label: string
@@ -92,14 +94,15 @@ function KpiCard({
   sub?: string
   icon: React.ElementType
   iconBg?: string
+  iconColor?: string
   trendUp?: boolean
 }) {
   return (
-    <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC] flex flex-col gap-3">
+    <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC] min-h-[132px] flex flex-col gap-3 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
       <div className="flex items-start justify-between">
-        <p className="text-[12px] font-medium text-[#6B6B6B] uppercase tracking-wide leading-none">{label}</p>
-        <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center ${iconBg ?? 'bg-[#FDEBDD]'}`}>
-          <Icon size={16} strokeWidth={1.75} className={iconBg ? 'text-white' : 'text-[#F06B21]'} />
+        <p className="text-[13px] font-medium text-[#3C3C3C] leading-none">{label}</p>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ring-1 ring-[#F06B21]/5 ${iconBg}`}>
+          <Icon size={18} strokeWidth={1.9} className={iconColor} />
         </div>
       </div>
       <div className="text-[26px] font-bold text-[#1E1E1E] leading-none tracking-tight">{value}</div>
@@ -203,7 +206,7 @@ export function DashboardPage() {
           trendLabel="vs mois dernier"
           trendUp={true}
           icon={TrendingUp}
-          iconBg="bg-[#FDEBDD]"
+          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
           label="Marge prévisionnelle"
@@ -211,8 +214,8 @@ export function DashboardPage() {
           trend={`${Math.round((marge / chiffreAffaires) * 100)}%`}
           trendLabel="vs mois dernier"
           trendUp={true}
-          icon={Euro}
-          iconBg="bg-[#FDEBDD]"
+          icon={PieChartIcon}
+          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
           label="Dépenses engagées"
@@ -220,22 +223,22 @@ export function DashboardPage() {
           trend="-8,3%"
           trendLabel="vs mois dernier"
           trendUp={false}
-          icon={TrendingDown}
-          iconBg="bg-[#FDEBDD]"
+          icon={ReceiptText}
+          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
           label="Chantiers en cours"
           value={chantiersActifs.length.toString()}
           sub={`+${chantiersActifs.length} ce mois-ci`}
           icon={HardHat}
-          iconBg="bg-[#FDEBDD]"
+          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
           label="Factures en attente"
           value={facturesEnAttente.length.toString()}
           sub={`${fmt(facturesEnAttente.reduce((s, f) => s + f.montantTTC, 0))} €`}
           icon={FileText}
-          iconBg="bg-[#FDEBDD]"
+          iconBg="bg-[#FFF4EA]"
         />
       </div>
 
@@ -271,8 +274,8 @@ export function DashboardPage() {
                 tickFormatter={v => `${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip
-                formatter={(v: number, name: string) => [
-                  `${fmt(v)} €`,
+                formatter={(v, name) => [
+                  `${fmt(Number(v ?? 0))} €`,
                   name === 'realise' ? 'Réalisé' : 'Prévisionnel',
                 ]}
                 contentStyle={{
@@ -387,9 +390,9 @@ export function DashboardPage() {
       {/* Row 3: Activité récente + Trésorerie + Chantiers en risque + Prochaines échéances */}
       <div className="grid grid-cols-4 gap-4">
         {/* Activité récente */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
+        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Activité récente</h2>
-          <div className="space-y-4">
+          <div className="flex-1 space-y-4">
             {factures.slice(0, 4).map((f, i) => {
               const chantier = chantiers.find(c => c.id === f.chantierId)
               const icons = [CheckCircle, Mail, FileText, ArrowRight]
@@ -412,14 +415,14 @@ export function DashboardPage() {
           </div>
           <button
             onClick={() => navigate('/factures')}
-            className="mt-4 flex items-center gap-1.5 text-[12px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
+            className="mt-auto flex items-center gap-1.5 pt-4 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
           >
             Voir toute l'activité <ArrowRight size={12} />
           </button>
         </div>
 
         {/* Trésorerie prévisionnelle */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
+        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Trésorerie prévisionnelle</h2>
           </div>
@@ -433,24 +436,26 @@ export function DashboardPage() {
               Réalisé
             </span>
           </div>
-          <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={tresoData}>
-              <XAxis dataKey="mois" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} tickFormatter={v => `${v / 1000}k`} />
-              <Tooltip
-                formatter={(v: number, name: string) => [`${fmt(v)} €`, name === 'prevision' ? 'Prévision' : 'Réalisé']}
-                contentStyle={{ borderRadius: '10px', border: '1px solid #F2E8DC', fontSize: '11px' }}
-              />
-              <Line type="monotone" dataKey="prevision" stroke="#F06B21" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3, fill: '#F06B21' }} />
-              <Line type="monotone" dataKey="realise" stroke="#1E1E1E" strokeWidth={2} dot={{ r: 3, fill: '#1E1E1E' }} connectNulls={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="min-h-0 flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={tresoData}>
+                <XAxis dataKey="mois" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} tickFormatter={v => `${v / 1000}k`} />
+                <Tooltip
+                  formatter={(v, name) => [`${fmt(Number(v ?? 0))} €`, name === 'prevision' ? 'Prévision' : 'Réalisé']}
+                  contentStyle={{ borderRadius: '10px', border: '1px solid #F2E8DC', fontSize: '11px' }}
+                />
+                <Line type="monotone" dataKey="prevision" stroke="#F06B21" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3, fill: '#F06B21' }} />
+                <Line type="monotone" dataKey="realise" stroke="#1E1E1E" strokeWidth={2} dot={{ r: 3, fill: '#1E1E1E' }} connectNulls={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Chantiers en risque */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
+        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Chantiers en risque</h2>
-          <div className="space-y-3">
+          <div className="flex-1 space-y-4">
             {chantiersEnRisque.map(c => {
               const client = clients.find(cl => cl.id === c.clientId)
               const depassement = Math.round(((c.depensesEngagees - c.budgetPrevisionnel) / c.budgetPrevisionnel) * 100)
@@ -459,18 +464,23 @@ export function DashboardPage() {
                 <button
                   key={c.id}
                   onClick={() => navigate(`/chantiers/${c.id}`)}
-                  className="w-full text-left"
+                  className="flex w-full items-start gap-3 rounded-[12px] text-left transition-colors hover:bg-[#FAF6F2]"
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[12px] font-semibold text-[#1E1E1E]">{c.nom}</span>
-                    <RiskBadge level={c.tendance === 'rouge' ? 'high' : 'medium'} />
+                  <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] ${c.tendance === 'rouge' ? 'bg-[#FEE2E2]' : 'bg-[#FEF3C7]'}`}>
+                    <AlertTriangle size={13} className={c.tendance === 'rouge' ? 'text-[#DC2626]' : 'text-[#B45309]'} />
                   </div>
-                  <p className="text-[11px] text-[#6B6B6B]">
-                    {c.tendance === 'rouge'
-                      ? `Dépassement prévisionnel : +${depassement}%`
-                      : margeText}
-                  </p>
-                  {client && <p className="text-[10px] text-[#9CA3AF]">— {client.nom}</p>}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="truncate text-[12px] font-semibold text-[#1E1E1E]">{c.nom}</span>
+                      <RiskBadge level={c.tendance === 'rouge' ? 'high' : 'medium'} />
+                    </div>
+                    <p className="truncate text-[11px] text-[#6B6B6B]">
+                      {c.tendance === 'rouge'
+                        ? `Dépassement prévisionnel : +${depassement}%`
+                        : margeText}
+                    </p>
+                    {client && <p className="truncate text-[10px] text-[#9CA3AF]">— {client.nom}</p>}
+                  </div>
                 </button>
               )
             })}
@@ -478,28 +488,33 @@ export function DashboardPage() {
               <button
                 key={c.id}
                 onClick={() => navigate(`/chantiers/${c.id}`)}
-                className="w-full text-left"
+                className="flex w-full items-start gap-3 rounded-[12px] text-left transition-colors hover:bg-[#FAF6F2]"
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[12px] font-semibold text-[#1E1E1E]">{c.nom}</span>
-                  <RiskBadge level="medium" />
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] bg-[#FEF3C7]">
+                  <AlertTriangle size={13} className="text-[#B45309]" />
                 </div>
-                <p className="text-[11px] text-[#6B6B6B]">Retard planning : 5 jours</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="truncate text-[12px] font-semibold text-[#1E1E1E]">{c.nom}</span>
+                    <RiskBadge level="medium" />
+                  </div>
+                  <p className="truncate text-[11px] text-[#6B6B6B]">Retard planning : 5 jours</p>
+                </div>
               </button>
             ))}
           </div>
           <button
             onClick={() => navigate('/chantiers')}
-            className="mt-4 flex items-center gap-1.5 text-[12px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
+            className="mt-auto flex items-center gap-1.5 pt-4 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
           >
             Voir tous les chantiers à risque <ArrowRight size={12} />
           </button>
         </div>
 
         {/* Prochaines échéances */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
+        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Prochaines échéances</h2>
-          <div className="space-y-3">
+          <div className="flex-1 space-y-3">
             {[
               { day: '22', month: 'avr', label: 'Réunion de chantier', sub: 'Maison Dupont', time: '09:00', Icon: Users },
               { day: '23', month: 'avr', label: 'Livraison matériaux', sub: 'Villa des Pins', time: '10:30', Icon: HardHat },
@@ -520,7 +535,7 @@ export function DashboardPage() {
           </div>
           <button
             onClick={() => navigate('/planning')}
-            className="mt-4 flex items-center gap-1.5 text-[12px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
+            className="mt-auto flex items-center gap-1.5 pt-4 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
           >
             Voir tout le planning <ArrowRight size={12} />
           </button>

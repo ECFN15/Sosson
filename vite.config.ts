@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: !isProd,
-      minify: 'esbuild',
+      minify: 'oxc',
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -26,9 +26,6 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-    },
-    esbuild: {
-      drop: isProd ? ['console', 'debugger'] : [],
     },
   }
 })

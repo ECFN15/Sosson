@@ -88,12 +88,12 @@ export function Sidebar() {
   return (
     <aside className="w-[232px] h-screen bg-[#1E1E1E] text-white flex flex-col shrink-0">
       {/* Brand block */}
-      <div className="px-5 pt-6 pb-6">
+      <div className="px-5 pt-6 pb-8">
         <SossonBrand variant="light" className="w-full" />
       </div>
 
       {/* Nav principale */}
-      <nav className="flex-1 overflow-y-auto px-3 flex flex-col gap-0.5">
+      <nav className="flex-1 overflow-y-auto px-3 flex flex-col gap-0.5 pt-2">
         {navMain.map(item => (
           <NavItem key={item.to} {...item} />
         ))}

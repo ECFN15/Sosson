@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { HardHat, Euro, AlertTriangle, CheckCircle, Clock, ArrowRight } from 'lucide-react'
 import { useApp, clients } from '@/lib/store'
+import { getChantierCover } from '@/data/media'
 
 function StatutBadge({ statut }: { statut: string }) {
   if (statut === 'en_cours')
@@ -60,7 +61,10 @@ export function ChantiersPage() {
               onClick={() => navigate(`/chantiers/${c.id}`)}
               className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-left hover:border-orange-200 hover:shadow-md transition-all group"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4">
+                <div className="h-24 w-32 shrink-0 overflow-hidden rounded-[14px] border border-[#F2E8DC] bg-[#EADBC8]">
+                  <img src={getChantierCover(c.id)} alt={`Aperçu ${c.nom}`} className="h-full w-full object-cover" loading="lazy" />
+                </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">

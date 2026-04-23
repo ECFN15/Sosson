@@ -14,9 +14,13 @@ export function AppLayout() {
 
   return (
     <div className="flex h-screen bg-[#FAF6F2] text-[#1E1E1E]">
-      <Sidebar />
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
       <main className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <div className="hidden lg:block">
+          <Topbar />
+        </div>
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>

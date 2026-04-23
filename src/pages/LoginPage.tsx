@@ -4,6 +4,7 @@ import { Building2, ChevronDown } from 'lucide-react'
 import { login } from '@/lib/auth'
 import { useApp } from '@/lib/store'
 import { users, roleLabels } from '@/data/users'
+import { chantierImages } from '@/data/media'
 
 export function LoginPage() {
   const { setUser } = useApp()
@@ -38,7 +39,10 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+    <div
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#1E1E1E] p-4"
+      style={{ backgroundImage: `linear-gradient(rgba(30,30,30,0.62), rgba(30,30,30,0.74)), url(${chantierImages[5]})`, backgroundPosition: 'center', backgroundSize: 'cover' }}
+    >
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-500 rounded-2xl mb-4 shadow-lg">

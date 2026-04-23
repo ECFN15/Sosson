@@ -4,6 +4,7 @@ import { Plus, Building2, User, Landmark, ArrowRight, X, Check } from 'lucide-re
 import { clients as initialClients } from '@/data/clients'
 import type { Client } from '@/data/clients'
 import { useApp } from '@/lib/store'
+import { getChantierCover } from '@/data/media'
 
 const typeIcon = { particulier: User, professionnel: Building2, public: Landmark }
 const typeLabel = { particulier: 'Particulier', professionnel: 'Professionnel', public: 'Collectivité' }
@@ -69,8 +70,19 @@ export function ClientsPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                    <Icon size={20} className="text-slate-500" />
+                  <div className="relative h-14 w-20 overflow-hidden rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2]">
+                    {clientChantiers[0] ? (
+                      <img
+                        src={getChantierCover(clientChantiers[0].id)}
+                        alt={`Aperçu chantier ${client.nom}`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Icon size={20} className="text-slate-500" />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
