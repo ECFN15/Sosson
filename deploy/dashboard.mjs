@@ -33,6 +33,7 @@ import {
   deployHosting,
   deployFunctions,
   deployRules,
+  deployDataConnect,
   deployEverything,
 } from './runner.mjs';
 
@@ -312,10 +313,57 @@ async function runRulesDeploy() {
   console.log('');
 }
 
+async function runDataConnectDeploy() {
+  console.log('');
+
+  const { envName } = await inquirer.prompt([{
+    type: 'list',
+    name: 'envName',
+    message: 'Deployer SQL Connect sur quel environnement ?',
+    choices: [
+      {
+        name: `${chalk.cyan('SANDBOX')}      ${chalk.gray(ENVIRONMENTS.sandbox.projectId)}`,
+        value: 'sandbox',
+      },
+      {
+        name: `${chalk.red('PRODUCTION')}  ${chalk.gray(ENVIRONMENTS.production.projectId)}`,
+        value: 'production',
+      },
+    ],
+  }]);
+
+  const env = ENVIRONMENTS[envName];
+
+  if (envName === 'production') {
+    const { confirm } = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'confirm',
+      message: chalk.red(`Deployer SQL CONNECT en PRODUCTION (${env.projectId}) ?`),
+      default: false,
+    }]);
+    if (!confirm) { console.log(chalk.yellow('\n  Annule.\n')); return; }
+  }
+
+  step(`DEPLOY SQL CONNECT → ${env.label}`);
+
+  const spinner = ora(`  Bascule vers ${env.projectId}...`).start();
+  const sw = switchProject(envName);
+  if (!sw.ok) { spinner.fail(chalk.red(`  ✗  ${sw.error}`)); return; }
+  spinner.succeed(chalk.green(`  ✓  Projet → ${env.projectId}`));
+
+  console.log(chalk.gray(`\n  firebase deploy --only dataconnect --project ${env.projectId}\n`));
+
+  const result = await deployDataConnect(envName);
+  if (!result.ok) { fail(result.error); return; }
+
+  ok('SQL Connect deploye avec succes !');
+  console.log('');
+}
+
 
 // ─────────────────────────────────────────────────────────────
-// FLOW : TOUT deployer (build + hosting + functions + rules)
-// L'option ultra-safe : en 1 clic, site + backend + regles partent ensemble.
+// FLOW : TOUT deployer (build + hosting + functions + rules + SQL Connect)
+// L'option ultra-safe : en 1 clic, site + backend + regles + SQL Connect partent ensemble.
 // ─────────────────────────────────────────────────────────────
 async function runEverythingDeploy() {
   console.log('');
@@ -415,8 +463,8 @@ async function runEverythingDeploy() {
 
   // ── ETAPE 4 : DEPLOIEMENT COMPLET ─────────────────────────
   step(`ETAPE 4 — DEPLOIEMENT COMPLET → ${env.label}`);
-  console.log(chalk.gray(`  firebase deploy --only hosting,functions,firestore:rules,storage --project ${env.projectId}`));
-  console.log(chalk.gray('  (Site + Cloud Functions + Rules Firestore/Storage)'));
+  console.log(chalk.gray(`  firebase deploy --only hosting,functions,firestore:rules,storage,dataconnect --project ${env.projectId}`));
+  console.log(chalk.gray('  (Site + Cloud Functions + Rules Firestore/Storage + SQL Connect)'));
   console.log('');
 
   const deployResult = await deployEverything(envName);
@@ -527,7 +575,7 @@ async function main() {
       type: 'list',
       name: 'action',
       message: 'Que veux-tu faire ?',
-      pageSize: 12,  // Nb de lignes visibles dans le menu
+      pageSize: 13,  // Nb de lignes visibles dans le menu
       choices: [
         {
           name: `${chalk.cyan.bold('Deployer en SANDBOX')}      ${chalk.gray('build + hosting → ' + ENVIRONMENTS.sandbox.projectId)}`,
@@ -546,9 +594,13 @@ async function main() {
           name: `Rules uniquement        ${chalk.gray('(Firestore + Storage)')}`,
           value: 'rules',
         },
+        {
+          name: `SQL Connect uniquement  ${chalk.gray('(schema + connecteurs)')}`,
+          value: 'dataconnect',
+        },
         new inquirer.Separator(chalk.gray('  ─────────────────────────────────────────')),
         {
-          name: `${chalk.magenta.bold('TOUT deployer')}            ${chalk.gray('build + hosting + functions + rules')}`,
+          name: `${chalk.magenta.bold('TOUT deployer')}            ${chalk.gray('build + hosting + functions + rules + SQL Connect')}`,
           value: 'everything',
         },
         new inquirer.Separator(chalk.gray('  ─────────────────────────────────────────')),
@@ -574,6 +626,9 @@ async function main() {
         break;
       case 'rules':
         await runRulesDeploy();
+        break;
+      case 'dataconnect':
+        await runDataConnectDeploy();
         break;
       case 'everything':
         await runEverythingDeploy();

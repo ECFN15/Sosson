@@ -1,12 +1,11 @@
 specVersion: "v1"
 serviceId: "sosson-sandbox-service"
 location: "europe-west9"
-schemas:
-  - source: "./schema"
-    datasource:
-      postgresql:
-        # "fdcdb" est le nom par défaut créé par Firebase — à vérifier dans Cloud SQL une fois l'instance provisionnée
-        database: "fdcdb"
-        cloudSql:
-          instanceId: "sosson-sandbox-instance"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "sosson-sandbox-instance"
 connectorDirs: ["./sosson"]

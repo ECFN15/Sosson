@@ -23,7 +23,11 @@ query GetCurrentUser @auth(level: USER) {
 
 # ---------- Clients ----------------------------------------------------------
 
-query ListClients @auth(level: USER) {
+query ListClients
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared client access while fine-grained RBAC is still enforced in the application layer."
+  ) {
   clients(orderBy: { nom: ASC }) {
     id
     type
@@ -36,7 +40,11 @@ query ListClients @auth(level: USER) {
   }
 }
 
-query GetClient($id: UUID!) @auth(level: USER) {
+query GetClient($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared client access while fine-grained RBAC is still enforced in the application layer."
+  ) {
   client(id: $id) {
     id
     type
@@ -61,7 +69,11 @@ query GetClient($id: UUID!) @auth(level: USER) {
 
 # ---------- Chantiers --------------------------------------------------------
 
-query ListChantiers @auth(level: USER) {
+query ListChantiers
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared chantier access while fine-grained RBAC is still enforced in the application layer."
+  ) {
   chantiers(orderBy: { dateDebut: DESC }) {
     id
     nom
@@ -76,7 +88,11 @@ query ListChantiers @auth(level: USER) {
   }
 }
 
-query GetChantier($id: UUID!) @auth(level: USER) {
+query GetChantier($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared chantier access while fine-grained RBAC is still enforced in the application layer."
+  ) {
   chantier(id: $id) {
     id
     nom
@@ -116,7 +132,11 @@ query GetChantier($id: UUID!) @auth(level: USER) {
 
 # ---------- Factures ---------------------------------------------------------
 
-query ListFactures @auth(level: USER) {
+query ListFactures
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared invoice access while fine-grained RBAC is still enforced in the application layer."
+  ) {
   factures(orderBy: { date: DESC }) {
     id
     fournisseur
@@ -136,7 +156,11 @@ query ListFactures @auth(level: USER) {
   }
 }
 
-query ListFacturesByStatut($statut: String!) @auth(level: USER) {
+query ListFacturesByStatut($statut: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared invoice access while fine-grained RBAC is still enforced in the application layer."
+  ) {
   factures(where: { statut: { eq: $statut } }, orderBy: { date: DESC }) {
     id
     fournisseur

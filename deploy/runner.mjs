@@ -138,6 +138,16 @@ export async function deployRules(envName) {
   }
 }
 
+export async function deployDataConnect(envName) {
+  const env = ENVIRONMENTS[envName];
+  try {
+    await runLive('firebase', ['deploy', '--only', 'dataconnect', '--project', env.projectId]);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
 
 // ─────────────────────────────────────────────────────────────
 // Deployer TOUT en une seule commande (Hosting + Functions + Rules)
@@ -148,7 +158,7 @@ export async function deployEverything(envName) {
   try {
     await runLive('firebase', [
       'deploy',
-      '--only', 'hosting,functions,firestore:rules,storage',
+      '--only', 'hosting,functions,firestore:rules,storage,dataconnect',
       '--project', env.projectId,
     ]);
     return { ok: true };
