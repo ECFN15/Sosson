@@ -1,4 +1,4 @@
-# CLAUDE.md - Sosson
+# AGENTS.md - Sosson
 ## Reference operationnelle du projet
 
 > A lire en priorite avant toute intervention importante sur le repo.
@@ -222,7 +222,7 @@ Si le schema ou les operations changent, il faut regenerer proprement au lieu d'
 
 ```text
 Sosson/
-├── CLAUDE.md
+├── AGENTS.md
 ├── documentation.md
 ├── docs/
 ├── dataconnect/

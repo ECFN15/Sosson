@@ -9,6 +9,7 @@ import { ClientsPage } from '@/pages/ClientsPage'
 import { FacturesPage } from '@/pages/FacturesPage'
 import { EmailsPage } from '@/pages/EmailsPage'
 import { PlanningPage } from '@/pages/PlanningPage'
+import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 function App() {
   return (
@@ -21,9 +22,13 @@ function App() {
             <Route path="/chantiers" element={<ChantiersPage />} />
             <Route path="/chantiers/:id" element={<ChantierDetailPage />} />
             <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/documents" element={<PlaceholderPage title="Documents" />} />
             <Route path="/factures" element={<FacturesPage />} />
             <Route path="/emails" element={<EmailsPage />} />
             <Route path="/planning" element={<PlanningPage />} />
+            <Route path="/rapports" element={<PlaceholderPage title="Rapports" />} />
+            <Route path="/equipe" element={<PlaceholderPage title="Équipe" />} />
+            <Route path="/parametres" element={<PlaceholderPage title="Paramètres" />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

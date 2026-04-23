@@ -1,0 +1,94 @@
+/*
+ * Sosson — Design tokens (source canonique)
+ * Ref: .agents/skills/sosson-design-identity/references/design-tokens.md
+ *
+ * Règle d'or : aucune couleur Tailwind générique (blue-*, emerald-*, purple-*, etc.).
+ * Tout le design s'appuie exclusivement sur ces tokens.
+ */
+
+@theme {
+  /* -------------------------------------------------------------------------
+   * Couleurs — Fondations & surfaces
+   * ------------------------------------------------------------------------- */
+  --color-paper-50: #FAF6F2;        /* fond global app */
+  --color-paper-100: #F9F7F3;       /* hover row */
+  --color-surface: #FFFFFF;         /* cartes, modales, top bar */
+
+  /* Ink (texte & sidebar) */
+  --color-ink-900: #1E1E1E;         /* sidebar, texte fort, titres */
+  --color-ink-700: #3C3C3C;         /* paragraphe dense */
+  --color-ink-500: #6B6B6B;         /* labels, méta, placeholders */
+  --color-ink-300: #9CA3AF;         /* désactivé */
+  --color-ink-on-dark-100: #E5E5E5; /* texte sidebar */
+  --color-ink-on-dark-400: #8A8A8A; /* sous-label sidebar */
+  --color-dark-divider: #2A2A2A;    /* diviseur dans sidebar */
+
+  /* Orange — marque & action */
+  --color-orange-50: rgba(240, 107, 33, 0.10);
+  --color-orange-100: #FDEBDD;
+  --color-orange-400: #F89A62;
+  --color-orange-500: #F06B21;      /* PRIMARY — CTA, marque, actif */
+  --color-orange-600: #D95B17;      /* hover primary */
+
+  /* Accents naturels */
+  --color-wood-600: #A45A2C;
+  --color-sand-100: #F1E6D6;
+  --color-sand-200: #EADBC8;        /* border strong / tag neutre */
+  --color-sand-300: #C8B18C;        /* série charts secondaire */
+
+  /* Bordures */
+  --color-border: #F2E8DC;          /* Warm Border — unique bordure app claire */
+  --color-border-strong: #EADBC8;
+
+  /* Sémantique */
+  --color-success-bg: #E6F4EA;
+  --color-success-fg: #1E8E3E;
+  --color-warning-bg: #FEF3C7;
+  --color-warning-fg: #B45309;
+  --color-danger-bg: #FEE2E2;
+  --color-danger-fg: #DC2626;
+  --color-danger-border: #FCA5A5;
+
+  /* Planning — événements par équipe (pastel) */
+  --color-team-charpente-bg: #FDE9DB;
+  --color-team-charpente-edge: #F06B21;
+  --color-team-couverture-bg: #DCE9F2;
+  --color-team-couverture-edge: #6B91B5;
+  --color-team-menuiserie-bg: #FDEFC2;
+  --color-team-menuiserie-edge: #C9A227;
+  --color-team-grosoeuvre-bg: #E8DCC5;
+  --color-team-grosoeuvre-edge: #A45A2C;
+  --color-team-terrassement-bg: #EDE3D2;
+  --color-team-terrassement-edge: #8A7458;
+
+  /* -------------------------------------------------------------------------
+   * Typographie — Inter + Inter Tight (canonique app)
+   * ------------------------------------------------------------------------- */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
+
+  /* -------------------------------------------------------------------------
+   * Rayons
+   * ------------------------------------------------------------------------- */
+  --radius-sm: 6px;      /* tag métier rempli (Bois), petite pastille */
+  --radius-md: 10px;     /* input compact master-detail */
+  --radius-lg: 14px;     /* boutons, inputs, items master-detail */
+  --radius-xl: 20px;     /* cartes desktop (règle d'or), modales */
+  --radius-2xl: 24px;    /* sheet hors-ligne mobile */
+
+  /* -------------------------------------------------------------------------
+   * Ombres — quasi invisibles, relief par bordures
+   * ------------------------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-side-l: 2px 0 10px rgba(0, 0, 0, 0.02);
+  --shadow-side-r: -2px 0 10px rgba(0, 0, 0, 0.02);
+  --shadow-fab: 0 8px 24px rgba(240, 107, 33, 0.35);
+
+  /* -------------------------------------------------------------------------
+   * Grille & largeurs canoniques
+   * ------------------------------------------------------------------------- */
+  --spacing-sidebar: 232px;
+  --spacing-topbar: 64px;
+  --spacing-list-col: 340px;
+  --spacing-ai-panel: 340px;
+}

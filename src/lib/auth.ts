@@ -23,7 +23,7 @@ export async function login(email: string, password: string): Promise<User | nul
       }
       return null
     } catch {
-      return null
+      // Fallback local auth (mode démo) si Firebase échoue
     }
   }
   const user = users.find(u => u.email === email && u.password === password)

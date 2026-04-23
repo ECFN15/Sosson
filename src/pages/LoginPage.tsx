@@ -25,10 +25,15 @@ export function LoginPage() {
   }
 
   async function loginAs(userEmail: string) {
+    console.log('[Login] Tentative connexion rapide :', userEmail)
     const user = await login(userEmail, 'demo')
+    console.log('[Login] Résultat :', user)
     if (user) {
       setUser(user)
+      console.log('[Login] navigate → /dashboard')
       navigate('/dashboard')
+    } else {
+      setError('Échec de la connexion démo')
     }
   }
 
