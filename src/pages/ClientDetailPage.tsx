@@ -96,9 +96,9 @@ function ChantierScene3D({ chantier }: { chantier?: Chantier }) {
     const mount = host
 
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100)
-    camera.position.set(4.4, 3.1, 5.2)
-    camera.lookAt(0, 0.75, 0)
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100)
+    camera.position.set(5.2, 3.2, 6.3)
+    camera.lookAt(0.25, 1.05, 0)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -119,10 +119,10 @@ function ChantierScene3D({ chantier }: { chantier?: Chantier }) {
     scene.add(group)
 
     const timber = new THREE.MeshStandardMaterial({ color: '#B8753D', roughness: 0.58, metalness: 0.05 })
+    const timberDark = new THREE.MeshStandardMaterial({ color: '#8A552B', roughness: 0.62, metalness: 0.03 })
     const dark = new THREE.MeshStandardMaterial({ color: '#1E1E1E', roughness: 0.68 })
     const orange = new THREE.MeshStandardMaterial({ color: '#F06B21', roughness: 0.5 })
     const sand = new THREE.MeshStandardMaterial({ color: '#F1E6D6', roughness: 0.72 })
-    const glass = new THREE.MeshStandardMaterial({ color: '#FFF9F4', roughness: 0.42, transparent: true, opacity: 0.72 })
     const groundMaterial = new THREE.MeshStandardMaterial({ color: '#EADBC8', roughness: 0.9 })
 
     const ground = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 3.2, 0.12, 44), groundMaterial)
@@ -139,37 +139,79 @@ function ChantierScene3D({ chantier }: { chantier?: Chantier }) {
       return mesh
     }
 
-    box(3.4, 0.18, 2.15, 0, 0.02, 0, dark)
-    box(3.05, 0.08, 1.8, 0, 0.18, 0, sand)
+    function beamBetween(
+      start: [number, number, number],
+      end: [number, number, number],
+      thickness: number,
+      material: THREE.Material,
+      depth = thickness,
+    ) {
+      const startVector = new THREE.Vector3(...start)
+      const endVector = new THREE.Vector3(...end)
+      const direction = new THREE.Vector3().subVectors(endVector, startVector)
+      const length = direction.length()
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(thickness, length, depth), material)
+      mesh.position.copy(startVector).add(endVector).multiplyScalar(0.5)
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize())
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+      group.add(mesh)
+      return mesh
+    }
+
+    box(3.75, 0.16, 2.35, 0, 0.02, 0, dark)
+    box(3.35, 0.08, 1.95, 0, 0.18, 0, sand)
 
     const postPositions = [
-      [-1.45, 0.78, -0.82],
-      [1.45, 0.78, -0.82],
-      [-1.45, 0.78, 0.82],
-      [1.45, 0.78, 0.82],
-    ]
-    postPositions.forEach(([x, y, z]) => box(0.12, 1.22, 0.12, x, y, z, timber))
+      [-1.55, 0.82, -0.92],
+      [1.55, 0.82, -0.92],
+      [-1.55, 0.82, 0.92],
+      [1.55, 0.82, 0.92],
+      [-0.52, 0.82, -0.92],
+      [0.52, 0.82, -0.92],
+      [-0.52, 0.82, 0.92],
+      [0.52, 0.82, 0.92],
+    ] as const
+    postPositions.forEach(([x, y, z]) => box(0.13, 1.28, 0.13, x, y, z, timber))
 
-    box(3.1, 0.12, 0.12, 0, 1.38, -0.82, timber)
-    box(3.1, 0.12, 0.12, 0, 1.38, 0.82, timber)
-    box(0.12, 0.12, 1.76, -1.45, 1.38, 0, timber)
-    box(0.12, 0.12, 1.76, 1.45, 1.38, 0, timber)
+    const sideY = 1.46
+    beamBetween([-1.72, sideY, -0.98], [1.72, sideY, -0.98], 0.13, timberDark)
+    beamBetween([-1.72, sideY, 0.98], [1.72, sideY, 0.98], 0.13, timberDark)
+    beamBetween([-1.72, sideY, -0.98], [-1.72, sideY, 0.98], 0.13, timberDark)
+    beamBetween([1.72, sideY, -0.98], [1.72, sideY, 0.98], 0.13, timberDark)
 
-    box(0.07, 1.02, 1.1, -0.45, 0.76, -0.84, glass)
-    box(0.07, 0.88, 1.05, 0.72, 0.7, 0.84, glass)
-    box(0.75, 0.84, 0.09, 1.1, 0.67, -0.84, orange)
+    ;[-1.28, -0.86, -0.44, 0.44, 0.86, 1.28].forEach(x => {
+      beamBetween([x, 0.24, -0.96], [x, 1.42, -0.96], 0.07, timber)
+      beamBetween([x, 0.24, 0.96], [x, 1.42, 0.96], 0.07, timber)
+    })
 
-    const roofA = box(3.6, 0.1, 1.24, 0, 1.68, -0.46, dark)
-    roofA.rotation.x = Math.PI / 8
-    const roofB = box(3.6, 0.1, 1.24, 0, 1.68, 0.46, dark)
-    roofB.rotation.x = -Math.PI / 8
-    box(3.76, 0.08, 0.08, 0, 1.94, 0, orange)
+    beamBetween([-1.58, 0.34, -1.0], [-0.68, 1.34, -1.0], 0.08, timberDark)
+    beamBetween([1.58, 0.34, -1.0], [0.68, 1.34, -1.0], 0.08, timberDark)
+    beamBetween([-1.58, 0.34, 1.0], [-0.68, 1.34, 1.0], 0.08, timberDark)
+    beamBetween([1.58, 0.34, 1.0], [0.68, 1.34, 1.0], 0.08, timberDark)
 
-    box(0.09, 0.7, 1.82, -1.75, 0.42, 0, timber)
-    box(0.09, 0.7, 1.82, 1.75, 0.42, 0, timber)
+    const ridgeY = 2.18
+    beamBetween([-1.86, ridgeY, 0], [1.86, ridgeY, 0], 0.13, orange)
+    beamBetween([-1.86, 1.77, -0.54], [1.86, 1.77, -0.54], 0.1, timberDark)
+    beamBetween([-1.86, 1.77, 0.54], [1.86, 1.77, 0.54], 0.1, timberDark)
+
+    ;[-1.68, -1.12, -0.56, 0, 0.56, 1.12, 1.68].forEach(x => {
+      beamBetween([x, sideY, -1.1], [x, ridgeY, 0], 0.08, timber)
+      beamBetween([x, sideY, 1.1], [x, ridgeY, 0], 0.08, timber)
+    })
+
+    ;[-1.82, 1.82].forEach(x => {
+      beamBetween([x, sideY, -1.1], [x, ridgeY, 0], 0.1, timberDark)
+      beamBetween([x, sideY, 1.1], [x, ridgeY, 0], 0.1, timberDark)
+      beamBetween([x, sideY, 0], [x, ridgeY, 0], 0.08, timberDark)
+    })
 
     const chantierOffset = chantier?.id.endsWith('4') ? -0.5 : chantier?.id.endsWith('3') ? 0.42 : 0
     group.rotation.y = -0.45 + chantierOffset
+    group.position.x = 0.48
+    const baseGroupY = -0.22
+    group.position.y = baseGroupY
+    group.position.z = 0.08
 
     let frame = 0
     let targetRotation = group.rotation.y
@@ -215,7 +257,7 @@ function ChantierScene3D({ chantier }: { chantier?: Chantier }) {
       frame = requestAnimationFrame(animate)
       if (!dragging) targetRotation += 0.002
       group.rotation.y += (targetRotation - group.rotation.y) * 0.08
-      group.position.y = Math.sin(Date.now() * 0.0012) * 0.015
+      group.position.y = baseGroupY + Math.sin(Date.now() * 0.0012) * 0.015
       renderer.render(scene, camera)
     }
     animate()
@@ -234,7 +276,7 @@ function ChantierScene3D({ chantier }: { chantier?: Chantier }) {
           object.geometry.dispose()
         }
       })
-      ;[timber, dark, orange, sand, glass, groundMaterial].forEach(material => material.dispose())
+      ;[timber, timberDark, dark, orange, sand, groundMaterial].forEach(material => material.dispose())
     }
   }, [chantier])
 
@@ -353,13 +395,15 @@ export function ClientDetailPage() {
 
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <main className="min-w-0 space-y-5">
-          <section className="relative min-h-[390px] overflow-hidden rounded-[24px] bg-[#1E1E1E]">
+          <section className="relative min-h-[430px] overflow-hidden rounded-[24px] bg-[#1E1E1E] sm:min-h-[390px]">
             <ChantierScene3D chantier={selectedChantier} />
             <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-wrap items-start justify-between gap-4 p-5">
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F06B21]">Vue chantier 3D</p>
                 <h2 className="mt-2 text-[24px] font-semibold text-white">{selectedChantier?.nom ?? 'Aucun chantier'}</h2>
-                <p className="mt-1 max-w-xl text-sm text-white/70">{selectedChantier?.description ?? 'Aucun chantier rattaché à cette fiche client.'}</p>
+                <p className="mt-1 max-w-[460px] text-sm text-white/70">
+                  {selectedChantier ? 'Maquette chantier : charpente apparente, chevrons et contreventements visibles.' : 'Aucun chantier rattaché à cette fiche client.'}
+                </p>
               </div>
               {selectedChantier && (
                 <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${chantierStatus[selectedChantier.statut].className}`}>
