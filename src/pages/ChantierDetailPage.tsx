@@ -1101,10 +1101,17 @@ export function ChantierDetailPage() {
                 {timeline.map((item, index) => {
                   const isDone = item.status === 'done'
                   const isActive = item.status === 'active'
+                  const nextItem = timeline[index + 1]
+                  const segmentClass =
+                    nextItem && item.status === 'done' && nextItem.status === 'done'
+                      ? 'bg-[#1E8E3E]'
+                      : nextItem && (item.status === 'active' || nextItem.status === 'active')
+                        ? 'bg-[#F06B21]'
+                        : 'bg-[#EADBC8]'
+
                   return (
                     <div key={item.label} className="relative flex flex-col items-center text-center">
-                      {index > 0 && <span className={`absolute left-0 top-[13px] h-0.5 w-1/2 ${isDone || isActive ? 'bg-[#1E8E3E]' : 'bg-[#EADBC8]'}`} />}
-                      {index < timeline.length - 1 && <span className={`absolute right-0 top-[13px] h-0.5 w-1/2 ${isDone ? 'bg-[#1E8E3E]' : 'bg-[#EADBC8]'}`} />}
+                      {nextItem && <span className={`absolute left-1/2 top-[13px] z-0 h-0.5 w-full ${segmentClass}`} />}
                       <div
                         className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-white ${
                           isDone ? 'bg-[#1E8E3E]' : isActive ? 'bg-[#F06B21]' : 'bg-[#C9C9C9]'

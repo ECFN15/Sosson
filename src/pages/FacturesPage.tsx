@@ -13,11 +13,13 @@ import {
   SlidersHorizontal,
   Upload,
 } from 'lucide-react'
+import { useDropzone } from 'react-dropzone'
 import { useApp } from '@/lib/store'
 import { categorieLabels } from '@/data/factures'
 import type { CategorieDepense, Facture } from '@/data/factures'
 
 type FactureTab = 'toutes' | 'a_traiter' | 'validees' | 'en_attente' | 'rejetees'
+type ExtractionItem = { file: string; size: string; pct: number; color: string; isNew?: boolean }
 
 const tabs: Array<{ key: FactureTab; label: string }> = [
   { key: 'toutes', label: 'Toutes' },
@@ -39,7 +41,7 @@ const categoryStyles: Partial<Record<CategorieDepense | 'fournitures', string>> 
   fournitures: 'bg-[#FAF6F2] text-[#6B6B6B]',
 }
 
-const extractionQueue = [
+const extractionQueue: ExtractionItem[] = [
   { file: 'Facture_Bois_Materiaux.pdf', size: '2.4 Mo', pct: 85, color: '#F06B21' },
   { file: 'Quincaillerie_Pro.pdf', size: '1.8 Mo', pct: 60, color: '#F06B21' },
   { file: 'Locamat_Location.pdf', size: '3.1 Mo', pct: 40, color: '#6B91B5' },
@@ -100,6 +102,11 @@ function formatDate(value: string) {
 
 function formatEuros(value: number) {
   return `${value.toLocaleString('fr-FR')} €`
+}
+
+function formatFileSize(bytes: number) {
+  const megaBytes = bytes / 1024 / 1024
+  return `${megaBytes.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Mo`
 }
 
 function statusFor(statut: string) {
@@ -205,6 +212,39 @@ function ValidatedRow({ facture }: { facture: Facture }) {
 export function FacturesPage() {
   const { factures, chantiers, user } = useApp()
   const [activeTab, setActiveTab] = useState<FactureTab>('a_traiter')
+  const [uploadedItems, setUploadedItems] = useState<ExtractionItem[]>([])
+  const [dropFeedback, setDropFeedback] = useState('Prêt à recevoir une facture')
+
+  const onDrop = (acceptedFiles: File[]) => {
+    if (!acceptedFiles.length) {
+      setDropFeedback('Fichier non compatible ou trop volumineux')
+      return
+    }
+
+    const nextItems = acceptedFiles.map((file, index) => ({
+      file: file.name,
+      size: formatFileSize(file.size),
+      pct: 12 + index * 8,
+      color: '#F06B21',
+      isNew: true,
+    }))
+
+    setUploadedItems(current => [...nextItems, ...current])
+    setDropFeedback(`${acceptedFiles.length} facture${acceptedFiles.length > 1 ? 's' : ''} ajoutée${acceptedFiles.length > 1 ? 's' : ''} à l'extraction`)
+  }
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject, open } = useDropzone({
+    accept: {
+      'application/pdf': ['.pdf'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/heic': ['.heic'],
+    },
+    maxSize: 20 * 1024 * 1024,
+    multiple: true,
+    noClick: true,
+    onDrop,
+  })
 
   const scopedFactures = useMemo(() => {
     if (user?.role !== 'chef_chantier') return factures
@@ -227,6 +267,7 @@ export function FacturesPage() {
   }
 
   const totalValidated = validatedFactures.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const visibleExtractionQueue = [...uploadedItems, ...extractionQueue]
 
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
@@ -281,22 +322,46 @@ export function FacturesPage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <main className="min-w-0 space-y-5">
           <Card className="grid gap-5 border-dashed border-[#F06B21]/45 p-5 2xl:grid-cols-[minmax(260px,0.8fr)_minmax(380px,1fr)]">
-            <div className="flex min-h-[210px] flex-col items-center justify-center rounded-[16px] bg-white text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FAF6F2] text-[#1E1E1E]">
-                <Upload className="h-7 w-7" strokeWidth={1.75} />
+            <div
+              {...getRootProps()}
+              className={[
+                'group relative flex min-h-[210px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[16px] border border-dashed px-6 text-center outline-none transition-all duration-200',
+                isDragReject
+                  ? 'border-[#DC2626] bg-[#FEE2E2]'
+                  : isDragActive
+                    ? 'scale-[1.01] border-[#F06B21] bg-[#FDEBDD] shadow-[0_8px_24px_rgba(240,107,33,0.12)]'
+                    : 'border-[#F2E8DC] bg-white hover:border-[#F06B21]/70 hover:bg-[#FFF9F4]',
+              ].join(' ')}
+              role="button"
+              tabIndex={0}
+              onClick={open}
+            >
+              <input {...getInputProps()} />
+              <div className={`flex h-14 w-14 items-center justify-center rounded-full transition-all duration-200 ${isDragActive ? 'bg-[#F06B21] text-white' : 'bg-[#FAF6F2] text-[#1E1E1E] group-hover:bg-[#FDEBDD] group-hover:text-[#F06B21]'}`}>
+                <Upload className={`h-7 w-7 transition-transform duration-200 ${isDragActive ? '-translate-y-1' : 'group-hover:-translate-y-0.5'}`} strokeWidth={1.75} />
               </div>
-              <p className="mt-4 text-[15px] font-semibold text-[#1E1E1E]">Déposer vos factures ici</p>
+              <p className="mt-4 text-[15px] font-semibold text-[#1E1E1E]">
+                {isDragReject ? 'Format non pris en charge' : isDragActive ? "Relâchez pour lancer l'extraction" : 'Déposer vos factures ici'}
+              </p>
               <p className="mt-1 text-[13px] text-[#1E1E1E]">ou cliquez pour parcourir</p>
-              <p className="mt-5 text-[11px] text-[#6B6B6B]">PDF, JPG, PNG ou HEIC – Taille max 20 Mo</p>
+              <p className="mt-4 text-[11px] text-[#6B6B6B]">PDF, JPG, PNG ou HEIC – Taille max 20 Mo</p>
+              {(uploadedItems.length > 0 || isDragReject) && (
+                <p className={`mt-2 text-[11px] font-semibold ${isDragReject ? 'text-[#DC2626]' : 'text-[#F06B21]'}`}>
+                  {dropFeedback}
+                </p>
+              )}
             </div>
 
             <div className="rounded-[16px] border border-[#F2E8DC] bg-white p-5">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">3 fichiers en cours d’extraction</h2>
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">{visibleExtractionQueue.length} fichiers en cours d’extraction</h2>
               <div className="mt-5 space-y-4">
-                {extractionQueue.map(item => (
-                  <div key={item.file} className="grid grid-cols-[30px_minmax(0,1fr)_58px_112px_124px] items-center gap-3">
+                {visibleExtractionQueue.map((item, index) => (
+                  <div key={`${item.file}-${index}`} className="grid grid-cols-[30px_minmax(0,1fr)_58px_112px_124px] items-center gap-3">
                     <InvoiceIcon color={item.color} />
-                    <p className="truncate text-[13px] font-medium text-[#1E1E1E]">{item.file}</p>
+                    <p className="truncate text-[13px] font-medium text-[#1E1E1E]">
+                      {item.file}
+                      {item.isNew && <span className="ml-2 rounded-full bg-[#FDEBDD] px-2 py-0.5 text-[10px] font-semibold text-[#F06B21]">Nouveau</span>}
+                    </p>
                     <span className="text-[12px] text-[#6B6B6B]">{item.size}</span>
                     <span className="text-[12px] text-[#6B6B6B]">Extraction {item.pct}%</span>
                     <div className="h-1.5 overflow-hidden rounded-full bg-[#EADBC8]">
