@@ -6,6 +6,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { ChantiersPage } from '@/pages/ChantiersPage'
 import { ChantierDetailPage } from '@/pages/ChantierDetailPage'
 import { ClientsPage } from '@/pages/ClientsPage'
+import { ClientDetailPage } from '@/pages/ClientDetailPage'
 import { FacturesPage } from '@/pages/FacturesPage'
 import { EmailsPage } from '@/pages/EmailsPage'
 import { PlanningPage } from '@/pages/PlanningPage'
@@ -22,6 +23,7 @@ function App() {
             <Route path="/chantiers" element={<ChantiersPage />} />
             <Route path="/chantiers/:id" element={<ChantierDetailPage />} />
             <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/clients/:id" element={<ClientDetailPage />} />
             <Route path="/documents" element={<PlaceholderPage title="Documents" />} />
             <Route path="/factures" element={<FacturesPage />} />
             <Route path="/emails" element={<EmailsPage />} />

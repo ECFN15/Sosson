@@ -695,6 +695,7 @@ export function ChantierDetailPage() {
   const navigate = useNavigate()
   const { chantiers, factures, clients } = useApp()
   const [showUploadHint, setShowUploadHint] = useState(false)
+  const [activeDesktopTab, setActiveDesktopTab] = useState(tabs[0])
 
   const chantier = chantiers.find(item => item.id === id)
 
@@ -810,12 +811,13 @@ export function ChantierDetailPage() {
         </div>
 
         <div className="mt-6 flex gap-6 overflow-x-auto border-b border-[#F2E8DC]">
-          {tabs.map((tab, index) => (
+          {tabs.map(tab => (
             <button
               key={tab}
               type="button"
+              onClick={() => setActiveDesktopTab(tab)}
               className={`shrink-0 border-b-2 px-1 pb-3 text-sm font-medium transition-colors ${
-                index === 0 ? 'border-[#F06B21] text-[#F06B21]' : 'border-transparent text-[#3C3C3C] hover:text-[#1E1E1E]'
+                activeDesktopTab === tab ? 'border-[#F06B21] text-[#F06B21]' : 'border-transparent text-[#3C3C3C] hover:text-[#1E1E1E]'
               }`}
             >
               {tab}
@@ -826,6 +828,15 @@ export function ChantierDetailPage() {
 
       <div className="grid gap-5 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:px-8 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <main className="min-w-0 space-y-5">
+          {activeDesktopTab !== tabs[0] && (
+            <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <div>
+                <p className="text-[13px] font-semibold text-[#1E1E1E]">{activeDesktopTab}</p>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">Aperçu démo activé: les données détaillées restent disponibles dans les blocs ci-dessous.</p>
+              </div>
+              <span className="rounded-[6px] bg-[#FDEBDD] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">Onglet actif</span>
+            </Card>
+          )}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
             <KpiCard label="Avancement" value={`${progress}%`}>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">

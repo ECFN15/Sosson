@@ -193,13 +193,15 @@ function OutlineButton({ children, className = '' }: { children: React.ReactNode
   )
 }
 
-function EventBlock({ event, team, dayIndex }: { event: PlanningEvent; team: Team; dayIndex: number }) {
+function EventBlock({ event, team, dayIndex, selected, onSelect }: { event: PlanningEvent; team: Team; dayIndex: number; selected: boolean; onSelect: () => void }) {
   const isLate = event.state === 'late'
   const isGhost = event.state === 'ghost'
 
   return (
-    <div
-      className={`relative min-h-[70px] rounded-[10px] px-2.5 py-2 text-left transition hover:-translate-y-[1px] ${
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`relative min-h-[70px] w-full rounded-[10px] px-2.5 py-2 text-left transition hover:-translate-y-[1px] ${selected ? 'ring-2 ring-[#F06B21]/30' : ''} ${
         isGhost ? 'border-2 border-dashed bg-white' : 'border-l-[3px]'
       } ${isLate ? 'bg-[#FEE2E2] bg-[repeating-linear-gradient(135deg,rgba(220,38,38,0.10)_0,rgba(220,38,38,0.10)_4px,transparent_4px,transparent_9px)]' : ''}`}
       style={{
@@ -222,7 +224,7 @@ function EventBlock({ event, team, dayIndex }: { event: PlanningEvent; team: Tea
       </div>
       <p className={`mt-1 truncate text-[10px] ${isLate ? 'text-[#B45309]' : 'text-[#3C3C3C]'}`}>{event.task}</p>
       <p className="mt-1.5 text-[10px] text-[#1E1E1E]">{event.time}</p>
-    </div>
+    </button>
   )
 }
 
@@ -234,6 +236,7 @@ function priorityStyles(level: string) {
 
 export function PlanningPage() {
   const [view, setView] = useState<ViewMode>('semaine')
+  const [selectedEvent, setSelectedEvent] = useState('Maison Dupont - Charpente')
 
   return (
     <div className="min-h-full bg-[#FAF6F2] px-6 py-6">
@@ -292,6 +295,11 @@ export function PlanningPage() {
       <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="space-y-5">
           <Card className="p-5">
+            <div className="mb-4 rounded-[14px] border border-[#F2E8DC] bg-[#FFF9F4] p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#F06B21]">Créneau sélectionné</p>
+              <p className="mt-1 text-[13px] font-semibold text-[#1E1E1E]">{selectedEvent}</p>
+              <p className="mt-1 text-[11px] text-[#6B6B6B]">Cliquez un bloc planning pour changer la sélection.</p>
+            </div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-[#1E1E1E]">Avril 2026</h2>
               <div className="flex items-center gap-1 text-[#6B6B6B]">
@@ -410,7 +418,15 @@ export function PlanningPage() {
                             : 'bg-white'
                         }`}
                       >
-                        {event ? <EventBlock event={event} team={team} dayIndex={dayIndex} /> : null}
+                        {event ? (
+                          <EventBlock
+                            event={event}
+                            team={team}
+                            dayIndex={dayIndex}
+                            selected={selectedEvent === `${event.title} - ${event.task}`}
+                            onSelect={() => setSelectedEvent(`${event.title} - ${event.task}`)}
+                          />
+                        ) : null}
                       </div>
                     ))}
                   </div>

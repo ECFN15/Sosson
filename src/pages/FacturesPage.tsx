@@ -20,6 +20,7 @@ import type { CategorieDepense, Facture } from '@/data/factures'
 
 type FactureTab = 'toutes' | 'a_traiter' | 'validees' | 'en_attente' | 'rejetees'
 type ExtractionItem = { file: string; size: string; pct: number; color: string; isNew?: boolean }
+type AnalysisView = 'document' | 'champs' | 'lignes'
 
 const tabs: Array<{ key: FactureTab; label: string }> = [
   { key: 'toutes', label: 'Toutes' },
@@ -45,6 +46,40 @@ const extractionQueue: ExtractionItem[] = [
   { file: 'Facture_Bois_Materiaux.pdf', size: '2.4 Mo', pct: 85, color: '#F06B21' },
   { file: 'Quincaillerie_Pro.pdf', size: '1.8 Mo', pct: 60, color: '#F06B21' },
   { file: 'Locamat_Location.pdf', size: '3.1 Mo', pct: 40, color: '#6B91B5' },
+]
+
+const analysisFields = [
+  { label: 'Fournisseur', value: 'Bois & Matériaux', confidence: '98 %', source: 'En-tête' },
+  { label: 'N° facture', value: 'F2026-0148', confidence: '99 %', source: 'Bloc titre' },
+  { label: 'Date facture', value: '18/04/2026', confidence: '96 %', source: 'En-tête' },
+  { label: "Échéance", value: '18/05/2026', confidence: '91 %', source: 'Conditions' },
+  { label: 'Montant HT', value: '842,50 €', confidence: '97 %', source: 'Totaux' },
+  { label: 'TVA 20 %', value: '168,50 €', confidence: '95 %', source: 'Totaux' },
+  { label: 'Montant TTC', value: '1 011,00 €', confidence: '97 %', source: 'Totaux' },
+]
+
+const classifiedLines = [
+  {
+    label: 'Madrier sapin 45x145mm - L. 4m',
+    family: 'Bois de structure',
+    chantier: 'Maison Dupont',
+    amount: '277,50 €',
+    confidence: 96,
+  },
+  {
+    label: 'Panne OSB 18mm - L. 2,50m',
+    family: 'Panneaux / ossature',
+    chantier: 'Maison Dupont',
+    amount: '440,00 €',
+    confidence: 94,
+  },
+  {
+    label: 'Vis à bois 6x100mm - boîte de 200',
+    family: 'Quincaillerie',
+    chantier: 'Maison Dupont',
+    amount: '125,00 €',
+    confidence: 89,
+  },
 ]
 
 const extractedLines = [
@@ -156,6 +191,178 @@ function InvoicePreview() {
   )
 }
 
+function AnalysisDocumentPreview() {
+  return (
+    <div className="relative min-h-[286px] rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] p-4">
+      <div className="absolute right-4 top-4 rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-[#F06B21]">
+        Analyse terminée
+      </div>
+      <div className="mx-auto h-[252px] max-w-[196px] rounded-[10px] border border-[#EADBC8] bg-white p-4 shadow-[0_10px_28px_rgba(30,30,30,0.06)]">
+        <div className="h-4 w-24 rounded bg-[#1E1E1E]" />
+        <div className="mt-2 h-2 w-28 rounded bg-[#EADBC8]" />
+        <div className="mt-1 h-2 w-20 rounded bg-[#EADBC8]" />
+
+        <div className="relative mt-5 rounded-[8px] border border-[#F06B21] bg-[#FDEBDD]/50 p-2">
+          <span className="absolute -top-2 left-2 rounded-full bg-[#F06B21] px-2 py-0.5 text-[9px] font-semibold text-white">Fournisseur</span>
+          <div className="mt-2 h-2 w-28 rounded bg-[#1E1E1E]" />
+          <div className="mt-1 h-1.5 w-20 rounded bg-[#EADBC8]" />
+        </div>
+
+        <div className="relative mt-3 rounded-[8px] border border-[#EADBC8] bg-white p-2">
+          <span className="absolute -top-2 left-2 rounded-full bg-[#FAF6F2] px-2 py-0.5 text-[9px] font-semibold text-[#6B6B6B]">Lignes</span>
+          <div className="grid grid-cols-[1fr_38px] gap-2">
+            {[0, 1, 2].map(index => (
+              <div key={index} className="contents">
+                <div className="h-2 rounded bg-[#EADBC8]" />
+                <div className="h-2 rounded bg-[#F1E6D6]" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative mt-4 rounded-[8px] border border-[#F06B21] bg-[#FFF9F4] p-2">
+          <span className="absolute -top-2 left-2 rounded-full bg-[#F06B21] px-2 py-0.5 text-[9px] font-semibold text-white">Totaux</span>
+          <div className="ml-auto h-2 w-20 rounded bg-[#EADBC8]" />
+          <div className="ml-auto mt-1.5 h-2 w-24 rounded bg-[#1E1E1E]" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function InvoiceAnalysisDetail({
+  queue,
+  view,
+  onViewChange,
+}: {
+  queue: ExtractionItem[]
+  view: AnalysisView
+  onViewChange: (view: AnalysisView) => void
+}) {
+  const views: Array<{ key: AnalysisView; label: string }> = [
+    { key: 'document', label: 'Document' },
+    { key: 'champs', label: 'Champs extraits' },
+    { key: 'lignes', label: 'Lignes' },
+  ]
+
+  return (
+    <div className="rounded-[16px] border border-[#F2E8DC] bg-white p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#FDEBDD] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">
+            Script OCR + classification
+          </div>
+          <h2 className="mt-3 text-[16px] font-semibold text-[#1E1E1E]">Facture analysée : F2026-0148.pdf</h2>
+          <p className="mt-1 text-[12px] text-[#6B6B6B]">Le script repère les zones, extrait les champs puis propose le classement comptable.</p>
+        </div>
+        <span className="rounded-[8px] bg-[#E6F4EA] px-2.5 py-1 text-[11px] font-semibold text-[#1E8E3E]">Confiance 92 %</span>
+      </div>
+
+      <div className="mt-4 inline-flex rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] p-1">
+        {views.map(item => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => onViewChange(item.key)}
+            className={`h-8 rounded-[9px] px-3 text-[12px] font-semibold transition-colors ${view === item.key ? 'bg-white text-[#F06B21] shadow-[0_1px_2px_rgba(30,30,30,0.04)]' : 'text-[#6B6B6B] hover:text-[#1E1E1E]'}`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'document' && (
+        <div className="mt-5 grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)]">
+          <AnalysisDocumentPreview />
+          <div className="space-y-3">
+            {[
+              ['Document reconnu', 'Facture fournisseur PDF', 'Zone globale'],
+              ['Fournisseur', 'Bois & Matériaux', 'En-tête'],
+              ['Affectation chantier', 'Maison Dupont', 'Déduit du bon de livraison'],
+              ['Catégorie proposée', 'Bois & matériaux', 'Lignes majoritaires'],
+              ['Statut', 'À valider par Patrick', 'Contrôle humain'],
+            ].map(([label, value, source]) => (
+              <div key={label} className="rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] px-3 py-2.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-medium text-[#6B6B6B]">{label}</p>
+                    <p className="mt-1 text-[13px] font-semibold text-[#1E1E1E]">{value}</p>
+                  </div>
+                  <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-[#A45A2C]">{source}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {view === 'champs' && (
+        <div className="mt-5 overflow-hidden rounded-[12px] border border-[#F2E8DC]">
+          <table className="w-full min-w-[520px] text-left text-[12px]">
+            <thead className="bg-[#FAF6F2] text-[#6B6B6B]">
+              <tr>
+                <th className="px-3 py-2.5 font-medium">Champ extrait</th>
+                <th className="px-3 py-2.5 font-medium">Valeur</th>
+                <th className="px-3 py-2.5 font-medium">Source</th>
+                <th className="px-3 py-2.5 font-medium">Confiance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analysisFields.map(field => (
+                <tr key={field.label} className="border-t border-[#F2E8DC]">
+                  <td className="px-3 py-2.5 font-medium text-[#1E1E1E]">{field.label}</td>
+                  <td className="px-3 py-2.5 text-[#3C3C3C]">{field.value}</td>
+                  <td className="px-3 py-2.5 text-[#6B6B6B]">{field.source}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[10px] font-semibold text-[#1E8E3E]">{field.confidence}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {view === 'lignes' && (
+        <div className="mt-5 space-y-3">
+          {classifiedLines.map(line => (
+            <div key={line.label} className="rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[13px] font-semibold text-[#1E1E1E]">{line.label}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#A45A2C]">{line.family}</span>
+                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#3C3C3C]">{line.chantier}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] font-semibold text-[#1E1E1E]">{line.amount}</p>
+                  <p className="mt-1 text-[11px] text-[#6B6B6B]">Confiance {line.confidence} %</p>
+                </div>
+              </div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#EADBC8]">
+                <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${line.confidence}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-5 border-t border-[#F2E8DC] pt-4">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#6B6B6B]">
+          <span className="font-semibold text-[#1E1E1E]">{queue.length} fichiers en file</span>
+          {queue.slice(0, 3).map(item => (
+            <span key={item.file} className="inline-flex items-center gap-1 rounded-full bg-[#FAF6F2] px-2 py-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#F06B21]" />
+              {item.file} · {item.pct} %
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PendingRow({ row }: { row: (typeof demoPending)[number] }) {
   return (
     <tr className="border-b border-[#F2E8DC] last:border-b-0 hover:bg-[#F9F7F3]">
@@ -214,6 +421,8 @@ export function FacturesPage() {
   const [activeTab, setActiveTab] = useState<FactureTab>('a_traiter')
   const [uploadedItems, setUploadedItems] = useState<ExtractionItem[]>([])
   const [dropFeedback, setDropFeedback] = useState('Prêt à recevoir une facture')
+  const [actionFeedback, setActionFeedback] = useState('')
+  const [analysisView, setAnalysisView] = useState<AnalysisView>('document')
 
   const onDrop = (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) {
@@ -278,22 +487,29 @@ export function FacturesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]">
+          <button type="button" onClick={() => setActionFeedback('Période démo : avril 2026')} className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]">
             <CalendarDays className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
             Période
             <ChevronDown className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
           </button>
-          <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]">
+          <button type="button" onClick={() => setActionFeedback('Filtre actif : factures à traiter')} className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]">
             <Filter className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
             Filtres
             <ChevronDown className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
           </button>
-          <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-[#D95B17]">
+          <button type="button" onClick={open} className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-[#D95B17]">
             <Plus className="h-4 w-4" strokeWidth={2} />
             Nouvelle facture
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div className="mb-5 flex items-center justify-between rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-[13px] font-medium text-[#3C3C3C]">
+          <span>{actionFeedback}</span>
+          <button type="button" onClick={() => setActionFeedback('')} className="text-[#F06B21] hover:text-[#D95B17]">OK</button>
+        </div>
+      )}
 
       <div className="mb-5 overflow-x-auto">
         <div className="inline-flex min-w-max gap-2">
@@ -352,25 +568,7 @@ export function FacturesPage() {
               )}
             </div>
 
-            <div className="rounded-[16px] border border-[#F2E8DC] bg-white p-5">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">{visibleExtractionQueue.length} fichiers en cours d’extraction</h2>
-              <div className="mt-5 space-y-4">
-                {visibleExtractionQueue.map((item, index) => (
-                  <div key={`${item.file}-${index}`} className="grid grid-cols-[30px_minmax(0,1fr)_58px_112px_124px] items-center gap-3">
-                    <InvoiceIcon color={item.color} />
-                    <p className="truncate text-[13px] font-medium text-[#1E1E1E]">
-                      {item.file}
-                      {item.isNew && <span className="ml-2 rounded-full bg-[#FDEBDD] px-2 py-0.5 text-[10px] font-semibold text-[#F06B21]">Nouveau</span>}
-                    </p>
-                    <span className="text-[12px] text-[#6B6B6B]">{item.size}</span>
-                    <span className="text-[12px] text-[#6B6B6B]">Extraction {item.pct}%</span>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-[#EADBC8]">
-                      <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${item.pct}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <InvoiceAnalysisDetail queue={visibleExtractionQueue} view={analysisView} onViewChange={setAnalysisView} />
           </Card>
 
           <section>
@@ -554,13 +752,13 @@ export function FacturesPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3">
-              <button type="button" className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#F06B21] bg-white px-3 text-sm font-semibold text-[#F06B21] hover:bg-[#FDEBDD]">
+              <button type="button" onClick={() => setActionFeedback('Facture rejetée dans la file de démonstration')} className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#F06B21] bg-white px-3 text-sm font-semibold text-[#F06B21] hover:bg-[#FDEBDD]">
                 Rejeter
               </button>
-              <button type="button" className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]">
+              <button type="button" onClick={() => setActionFeedback('Facture mise en attente pour contrôle humain')} className="inline-flex h-10 items-center justify-center rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]">
                 Mettre en attente
               </button>
-              <button type="button" className="inline-flex h-10 items-center justify-center rounded-[10px] bg-[#F06B21] px-3 text-sm font-semibold text-white hover:bg-[#D95B17]">
+              <button type="button" onClick={() => setActionFeedback('Facture validée : écriture SQL Connect à brancher après la démo')} className="inline-flex h-10 items-center justify-center rounded-[10px] bg-[#F06B21] px-3 text-sm font-semibold text-white hover:bg-[#D95B17]">
                 Valider la facture
               </button>
             </div>

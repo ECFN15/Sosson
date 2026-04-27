@@ -222,6 +222,8 @@ export function EmailsPage() {
   const [activeTab, setActiveTab] = useState<EmailTab>('toutes')
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState(emails[0]?.id ?? '')
+  const [actionFeedback, setActionFeedback] = useState('')
+  const [selectedSuggestion, setSelectedSuggestion] = useState('Maison Dupont')
 
   const sortedEmails = useMemo(
     () => [...emails].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
@@ -283,6 +285,13 @@ export function EmailsPage() {
           </button>
         </div>
       </div>
+
+      {actionFeedback && (
+        <div className="mb-5 flex items-center justify-between rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-[13px] font-medium text-[#3C3C3C]">
+          <span>{actionFeedback}</span>
+          <button type="button" onClick={() => setActionFeedback('')} className="text-[#F06B21] hover:text-[#D95B17]">OK</button>
+        </div>
+      )}
 
       <div className="mb-5 overflow-x-auto">
         <div className="inline-flex min-w-max rounded-[10px] border border-[#F2E8DC] bg-white p-1">
@@ -361,19 +370,19 @@ export function EmailsPage() {
 
         <section className="flex min-h-[560px] flex-col overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex min-h-[58px] flex-wrap items-center gap-2 border-b border-[#F2E8DC] px-5 py-3">
-            <button className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
+            <button onClick={() => setActionFeedback('Réponse préparée avec le contexte chantier')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
               <Reply className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Répondre
             </button>
-            <button className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
+            <button onClick={() => setActionFeedback('Email prêt à être transféré à l’équipe chantier')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
               <Forward className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Transférer
             </button>
-            <button className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
+            <button onClick={() => setActionFeedback('Email marqué comme lu pour la démonstration')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
               <MailOpen className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Marquer comme lu
             </button>
-            <button className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
+            <button onClick={() => setActionFeedback('Email archivé dans le flux de démonstration')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
               <Archive className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Archiver
             </button>
@@ -514,6 +523,10 @@ export function EmailsPage() {
                 <button
                   key={item.label}
                   type="button"
+                  onClick={() => {
+                    setSelectedSuggestion(item.label)
+                    setActionFeedback(`${item.label} sélectionné comme chantier cible`)
+                  }}
                   className="mb-2 flex w-full items-center gap-3 rounded-[10px] border border-[#F2E8DC] bg-white p-2.5 text-left transition-colors last:mb-0 hover:bg-[#F9F7F3]"
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-[#FAF6F2] text-[#6B6B6B]">
@@ -524,7 +537,7 @@ export function EmailsPage() {
                     <p className="truncate text-[12px] text-[#6B6B6B]">{item.sub}</p>
                   </div>
                   <span className="rounded-[6px] bg-[#E6F4EA] px-2 py-0.5 text-[10px] font-semibold text-[#1E8E3E]">
-                    Match : {item.match}
+                    {selectedSuggestion === item.label ? 'Sélectionné' : `Match : ${item.match}`}
                   </span>
                 </button>
               ))}
@@ -558,6 +571,7 @@ export function EmailsPage() {
               <p className="mb-3 text-xs font-semibold text-[#1E1E1E]">Actions rapides</p>
               <button
                 type="button"
+                onClick={() => setActionFeedback(`Email lié à ${selectedSuggestion}`)}
                 className="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#D95B17]"
               >
                 <Link2 className="h-4 w-4" strokeWidth={1.75} />
