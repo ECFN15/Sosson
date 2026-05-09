@@ -10,6 +10,9 @@ import { ClientDetailPage } from '@/pages/ClientDetailPage'
 import { FacturesPage } from '@/pages/FacturesPage'
 import { EmailsPage } from '@/pages/EmailsPage'
 import { PlanningPage } from '@/pages/PlanningPage'
+import { PrevisionnelPage } from '@/pages/PrevisionnelPage'
+import { StatistiquesPage } from '@/pages/StatistiquesPage'
+import { SossonDocsPage } from '@/pages/SossonDocsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 function App() {
@@ -26,9 +29,12 @@ function App() {
             <Route path="/clients/:id" element={<ClientDetailPage />} />
             <Route path="/documents" element={<PlaceholderPage title="Documents" />} />
             <Route path="/factures" element={<FacturesPage />} />
+            <Route path="/previsionnel" element={<PrevisionnelPage />} />
+            <Route path="/statistiques" element={<StatistiquesPage />} />
             <Route path="/emails" element={<EmailsPage />} />
             <Route path="/planning" element={<PlanningPage />} />
             <Route path="/rapports" element={<PlaceholderPage title="Rapports" />} />
+            <Route path="/documentation" element={<SossonDocsPage />} />
             <Route path="/equipe" element={<PlaceholderPage title="Équipe" />} />
             <Route path="/parametres" element={<PlaceholderPage title="Paramètres" />} />
           </Route>

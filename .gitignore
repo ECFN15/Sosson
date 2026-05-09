@@ -31,3 +31,8 @@ dist-ssr
 .windsurf/
 skills-lock.json
 dataconnect/.dataconnect/
+
+# Local business/customer files and temporary screenshots
+dossierclient/
+excel/
+tmp-*.png

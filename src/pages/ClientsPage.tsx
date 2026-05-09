@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Building2, User, Landmark, ArrowRight, X, Check } from 'lucide-react'
+import { Plus, Building2, User, Landmark, ArrowRight, X, Check, Search, Database } from 'lucide-react'
 import type { Client } from '@/data/clients'
 import { useApp } from '@/lib/store'
 import { getChantierCover } from '@/data/media'
+import { previsionnelLines } from '@/data/previsionnel'
+import { euro } from '@/lib/previsionnelAnalytics'
 
 const typeIcon = { particulier: User, professionnel: Building2, public: Landmark }
 const typeLabel = { particulier: 'Particulier', professionnel: 'Professionnel', public: 'Collectivité' }
@@ -17,6 +19,7 @@ export function ClientsPage() {
   const { chantiers, user, clients, addClient } = useApp()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
+  const [portfolioQuery, setPortfolioQuery] = useState('')
   const [form, setForm] = useState({
     nom: '', type: 'particulier' as Client['type'],
     email: '', telephone: '', adresse: '', ville: '', codePostal: '',
@@ -24,6 +27,64 @@ export function ClientsPage() {
   const [saved, setSaved] = useState(false)
 
   const canCreate = user?.role === 'gerant' || user?.role === 'assistante'
+  const completeExcelPortfolio = Object.values(
+    previsionnelLines.reduce<Record<string, {
+      clientKey: string
+      name: string
+      aliases: Set<string>
+      lineTypes: Set<string>
+      exercises: Set<string>
+      totalPrevision: number
+      totalContrat: number
+      totalPlanned: number
+      totalRealized: number
+      chantierCount: number
+      sourceCount: number
+      lastExercise: string
+    }>>((acc, line) => {
+      const item = acc[line.clientKey] ?? {
+        clientKey: line.clientKey,
+        name: line.clientName,
+        aliases: new Set<string>(),
+        lineTypes: new Set<string>(),
+        exercises: new Set<string>(),
+        totalPrevision: 0,
+        totalContrat: 0,
+        totalPlanned: 0,
+        totalRealized: 0,
+        chantierCount: 0,
+        sourceCount: 0,
+        lastExercise: line.exercise,
+      }
+      item.aliases.add(line.rawName)
+      item.lineTypes.add(line.lineType)
+      item.exercises.add(line.exercise)
+      item.totalPrevision += line.caPrevision
+      item.totalContrat += line.caContrat
+      item.totalPlanned += line.plannedTotal
+      item.totalRealized += line.realizedTotal
+      item.sourceCount += 1
+      if (line.lineType === 'chantier') item.chantierCount += 1
+      if (line.exercise > item.lastExercise) item.lastExercise = line.exercise
+      acc[line.clientKey] = item
+      return acc
+    }, {}),
+  )
+    .map(item => ({
+      ...item,
+      aliases: Array.from(item.aliases).sort(),
+      lineTypes: Array.from(item.lineTypes).sort(),
+      exercises: Array.from(item.exercises).sort(),
+    }))
+    .sort((a, b) => (b.totalPrevision + b.totalPlanned + b.totalContrat) - (a.totalPrevision + a.totalPlanned + a.totalContrat))
+
+  const historicalClients = completeExcelPortfolio
+    .filter(client => {
+      const query = portfolioQuery.trim().toLowerCase()
+      if (!query) return true
+      return [client.name, ...client.aliases].some(value => value.toLowerCase().includes(query))
+    })
+    .slice(0, 80)
 
   function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -54,6 +115,26 @@ export function ClientsPage() {
             <Plus size={16} /> Nouveau client
           </button>
         )}
+      </div>
+
+      <div className="mb-6 grid gap-4 xl:grid-cols-3">
+        <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Base active</p>
+          <p className="mt-3 text-[26px] font-bold leading-none text-[#1E1E1E]">{clients.length}</p>
+          <p className="mt-2 text-[12px] text-[#6B6B6B]">Clients dans le store applicatif</p>
+        </div>
+        <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Base Excel</p>
+            <p className="mt-3 text-[26px] font-bold leading-none text-[#1E1E1E]">{completeExcelPortfolio.length}</p>
+          <p className="mt-2 text-[12px] text-[#6B6B6B]">Noms source rapprochés, toutes lignes Excel</p>
+        </div>
+        <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Historique</p>
+          <p className="mt-3 text-[26px] font-bold leading-none text-[#1E1E1E]">
+            {previsionnelLines.length.toLocaleString('fr-FR')}
+          </p>
+          <p className="mt-2 text-[12px] text-[#6B6B6B]">Lignes source prévisionnel importées</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -106,6 +187,63 @@ export function ClientsPage() {
             </div>
           )
         })}
+      </div>
+
+      <div className="mt-8 overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white">
+        <div className="flex flex-col gap-3 border-b border-[#F2E8DC] p-5 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-[#F06B21]" />
+              <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Base client historique Excel</h2>
+            </div>
+            <p className="mt-1 text-[12px] text-[#6B6B6B]">
+              Les noms de chantier du prévisionnel sont rapprochés en clients, avec alias et exercices conservés.
+            </p>
+          </div>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+            <input
+              value={portfolioQuery}
+              onChange={event => setPortfolioQuery(event.target.value)}
+              placeholder="Rechercher dans l'historique"
+              className="h-10 w-[280px] rounded-[14px] border border-[#F2E8DC] bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+            />
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] text-left text-[13px]">
+            <thead className="bg-[#FAF6F2] text-[11px] font-semibold uppercase tracking-[0.06em] text-[#6B6B6B]">
+              <tr>
+                <th className="px-5 py-3">Client rapproché</th>
+                <th className="px-5 py-3">Alias Excel</th>
+              <th className="px-5 py-3">Lignes / chantiers</th>
+              <th className="px-5 py-3">Types</th>
+                <th className="px-5 py-3">Exercices</th>
+                <th className="px-5 py-3">CA prévision</th>
+                <th className="px-5 py-3">Contrat</th>
+                <th className="px-5 py-3">Dernier exercice</th>
+              </tr>
+            </thead>
+            <tbody>
+              {historicalClients.map(client => (
+                <tr key={client.clientKey} className="border-t border-[#F2E8DC]">
+                  <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{client.name}</td>
+                  <td className="px-5 py-3 text-[#6B6B6B]">{client.aliases.slice(0, 3).join(' / ')}</td>
+                  <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{client.sourceCount} / {client.chantierCount}</td>
+                  <td className="px-5 py-3 text-[#3C3C3C]">{client.lineTypes.join(', ')}</td>
+                  <td className="px-5 py-3 text-[#3C3C3C]">{client.exercises.length}</td>
+                  <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{euro(client.totalPrevision || client.totalPlanned)}</td>
+                  <td className="px-5 py-3 text-[#3C3C3C]">{client.totalContrat ? euro(client.totalContrat) : '—'}</td>
+                  <td className="px-5 py-3">
+                    <span className="rounded-full bg-[#FDEBDD] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">
+                      {client.lastExercise}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (

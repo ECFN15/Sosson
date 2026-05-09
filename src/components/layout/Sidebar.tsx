@@ -7,6 +7,9 @@ import {
   Mail,
   Calendar,
   BarChart2,
+  TableProperties,
+  LineChart,
+  BookOpen,
   UsersRound,
   Settings,
   Folder,
@@ -31,12 +34,15 @@ const navMain = [
   { to: '/clients', icon: Users, label: 'Clients' },
   { to: '/documents', icon: Folder, label: 'Documents' },
   { to: '/factures', icon: FileText, label: 'Factures' },
+  { to: '/previsionnel', icon: TableProperties, label: 'Prévisionnel' },
+  { to: '/statistiques', icon: LineChart, label: 'Statistiques' },
   { to: '/emails', icon: Mail, label: 'Emails' },
   { to: '/planning', icon: Calendar, label: 'Planning' },
   { to: '/rapports', icon: BarChart2, label: 'Rapports' },
 ]
 
 const navSecondary = [
+  { to: '/documentation', icon: BookOpen, label: 'Documentation' },
   { to: '/equipe', icon: UsersRound, label: 'Équipe' },
   { to: '/parametres', icon: Settings, label: 'Paramètres' },
 ]
