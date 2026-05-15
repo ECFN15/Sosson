@@ -89,3 +89,140 @@ type Facture @table {
   description: String
   dateCreation: Timestamp! @default(expr: "request.time")
 }
+
+
+# Dossier documentaire utilisateur.
+# Les dossiers permettent un rangement manuel proche d'un explorateur de fichiers.
+type DocumentFolder @table {
+  nom: String! @col(dataType: "varchar(120)")
+  slug: String! @col(dataType: "varchar(140)")
+  parent: DocumentFolder
+  client: Client
+  chantier: Chantier
+  description: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Document attache a un client, un chantier ou une facture.
+# Le fichier binaire reste dans Firebase Storage ; SQL Connect conserve les
+# metadonnees, le statut de classement et les liens metier.
+type DocumentAttache @table {
+  folder: DocumentFolder
+  client: Client
+  chantier: Chantier
+  facture: Facture
+  nomFichier: String! @col(dataType: "varchar(255)")
+  storagePath: String! @col(dataType: "varchar(500)")
+  mimeType: String @col(dataType: "varchar(120)")
+  tailleBytes: Int
+  # Type : "facture" | "devis" | "plan" | "photo" | "attestation"
+  #      | "compte_rendu" | "email_piece_jointe" | "import" | "autre"
+  typeDocument: String! @col(dataType: "varchar(48)")
+  # Statut : "a_classer" | "lie" | "action_requise" | "archive"
+  statut: String! @col(dataType: "varchar(32)")
+  # Source : "upload" | "email" | "facture" | "import" | "systeme"
+  source: String! @col(dataType: "varchar(32)")
+  description: String
+  dateDocument: Date
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Import du classeur previsionnel source.
+# Un batch conserve la trace du fichier Excel et permet de regenerer/importer
+# les lignes sans perdre leur provenance.
+type PrevisionnelImportBatch @table {
+  workbook: String! @col(dataType: "varchar(200)")
+  sourcePath: String! @col(dataType: "varchar(255)")
+  workbookHash: String @col(dataType: "varchar(64)")
+  importedAt: Timestamp! @default(expr: "request.time")
+  notes: String
+}
+
+
+# Exercice du previsionnel, ex. "2025-26".
+type PrevisionnelExercise @table {
+  batch: PrevisionnelImportBatch!
+  sheet: String! @col(dataType: "varchar(32)")
+  exercise: String! @col(dataType: "varchar(16)")
+  startYear: Int!
+  endYear: Int!
+  lineCount: Int!
+  chantierCount: Int!
+  caPrevision: Float! @col(dataType: "numeric(14, 2)")
+  caContrat: Float! @col(dataType: "numeric(14, 2)")
+  plannedTotal: Float! @col(dataType: "numeric(14, 2)")
+  realizedTotal: Float! @col(dataType: "numeric(14, 2)")
+  invoicedTotal: Float! @col(dataType: "numeric(14, 2)")
+}
+
+
+# Alias Excel rapproche d'un client canonique.
+# Le meme client peut apparaitre sous plusieurs noms dans les onglets historiques.
+type ClientAlias @table {
+  client: Client!
+  alias: String! @col(dataType: "varchar(200)")
+  normalizedKey: String! @col(dataType: "varchar(200)")
+  source: String! @col(dataType: "varchar(32)")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Ligne source du classeur previsionnel.
+# L'identite metier ne repose jamais sur le nom seul : on conserve sheet + row.
+type PrevisionnelLine @table {
+  exercise: PrevisionnelExercise!
+  client: Client!
+  chantier: Chantier
+  sourceSheet: String! @col(dataType: "varchar(32)")
+  sourceRow: Int!
+  rawName: String! @col(dataType: "varchar(200)")
+  clientKey: String! @col(dataType: "varchar(200)")
+  clientName: String! @col(dataType: "varchar(200)")
+  category: String! @col(dataType: "varchar(32)")
+  lineType: String! @col(dataType: "varchar(32)")
+  caTce: Float! @col(dataType: "numeric(14, 2)")
+  caPrevision: Float! @col(dataType: "numeric(14, 2)")
+  caContrat: Float! @col(dataType: "numeric(14, 2)")
+  plannedTotal: Float! @col(dataType: "numeric(14, 2)")
+  realizedTotal: Float! @col(dataType: "numeric(14, 2)")
+  invoicedTotal: Float! @col(dataType: "numeric(14, 2)")
+  invoiceSentTotal: Float! @col(dataType: "numeric(14, 2)")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Montants mensuels d'une ligne previsionnelle.
+# `invoiceSent` vient des cellules jaunes : facture envoyee, pas paiement encaisse.
+type PrevisionnelMonthlyAmount @table {
+  line: PrevisionnelLine!
+  month: String! @col(dataType: "varchar(24)")
+  label: String! @col(dataType: "varchar(16)")
+  monthOrder: Int!
+  planned: Float! @col(dataType: "numeric(14, 2)")
+  realized: Float! @col(dataType: "numeric(14, 2)")
+  invoiceSent: Boolean!
+}
+
+
+# Ventilation par lot / corps d'etat issue du classeur.
+type PrevisionnelLotAmount @table {
+  line: PrevisionnelLine!
+  lotKey: String! @col(dataType: "varchar(64)")
+  label: String! @col(dataType: "varchar(120)")
+  amount: Float! @col(dataType: "numeric(14, 2)")
+}
+
+
+# Override exact d'une cellule du tableur web previsionnel.
+# Sert a conserver toute saisie utilisateur, y compris les cellules hors modele
+# analytique mensuel/lots, tout en gardant le template Excel comme reference.
+type PrevisionnelCellEdit @table {
+  id: String! @col(dataType: "varchar(80)")
+  sourceSheet: String! @col(dataType: "varchar(32)")
+  cellRef: String! @col(dataType: "varchar(16)")
+  valueText: String @col(dataType: "varchar(255)")
+  numericValue: Float @col(dataType: "numeric(14, 2)")
+  dateModification: Timestamp! @default(expr: "request.time")
+}

@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases007: clientAlias_upsertMany(data: [
+    {
+      id: "46402d67-2acc-58b9-9e9c-eae3e080dc2b",
+      clientId: "8122f8b8-3880-5c8e-ae3e-fc1b06e5e92c",
+      alias: "HUCHET",
+      normalizedKey: "huchet",
+      source: "excel"
+    },
+    {
+      id: "d40299e5-606a-545c-a370-2420b77e76f3",
+      clientId: "92d6f784-cd70-54e2-acf5-fbc823a4bda8",
+      alias: "HULIN",
+      normalizedKey: "hulin",
+      source: "excel"
+    },
+    {
+      id: "23c9847d-6abd-54ea-b42f-9553643d2e52",
+      clientId: "8ebf153e-24cf-5620-892c-b70fab565746",
+      alias: "HUREL LELIEVRE à Escoville",
+      normalizedKey: "hurel-lelievre-a-escoville",
+      source: "excel"
+    },
+    {
+      id: "7e5adad7-08d2-55b7-9495-ebbefaf1cf25",
+      clientId: "e5eac775-755b-5ca3-aa4c-590034a1292e",
+      alias: "ISABELLE",
+      normalizedKey: "isabelle",
+      source: "excel"
+    },
+    {
+      id: "87fcdc13-9bde-525e-8d72-e9adc698a3d4",
+      clientId: "b5ea33b8-0b42-5508-9b62-da6516a923b5",
+      alias: "isoplaf",
+      normalizedKey: "isoplaf",
+      source: "excel"
+    },
+    {
+      id: "e8c83a54-5e71-552d-8e1f-ba3b8b9c454d",
+      clientId: "63ca1338-f914-5c21-8d71-0b488899ae96",
+      alias: "isoplaf devaux charp",
+      normalizedKey: "isoplaf-devaux-charp",
+      source: "excel"
+    },
+    {
+      id: "111f95a4-f2d3-533d-a987-304db07b0453",
+      clientId: "68c8c60b-e9a0-58ef-b908-a26294ff0d5a",
+      alias: "JAGER",
+      normalizedKey: "jager",
+      source: "excel"
+    },
+    {
+      id: "ef629412-c4f2-57ef-b870-8f114773da19",
+      clientId: "d8f8d8fc-83eb-5889-8d14-79a462a547c8",
+      alias: "JALALI",
+      normalizedKey: "jalali",
+      source: "excel"
+    },
+    {
+      id: "3b951b49-69b4-5482-a0fe-ef766e4e9706",
+      clientId: "2e5c8257-a249-5e77-a219-521bbade0025",
+      alias: "james",
+      normalizedKey: "james",
+      source: "excel"
+    },
+    {
+      id: "eafb97cf-47ce-54e5-a4d1-dc5e9943858a",
+      clientId: "615b36fc-c736-5f7b-9bf8-c0476587aa69",
+      alias: "JAMIN",
+      normalizedKey: "jamin",
+      source: "excel"
+    },
+    {
+      id: "16d66d81-f6c6-5e82-9434-3b8723b419b1",
+      clientId: "4cbc2e94-4413-5ada-b9ce-321375dd4fa2",
+      alias: "JARDIN",
+      normalizedKey: "jardin",
+      source: "excel"
+    },
+    {
+      id: "fc4d617f-7655-5d11-a990-db7bb68c9d23",
+      clientId: "f68f9b24-4359-5c68-b2ff-d4c411c509c8",
+      alias: "JARDIN via C. CABARET",
+      normalizedKey: "jardin-via-c-cabaret",
+      source: "excel"
+    },
+    {
+      id: "315714c5-57c5-535d-8f7c-cbbeae5eb94e",
+      clientId: "2854ed43-e578-549e-98dc-febaba947e27",
+      alias: "jeanne françoise",
+      normalizedKey: "jeanne-francoise",
+      source: "excel"
+    },
+    {
+      id: "847c2da0-cdf2-51b4-a54a-405817860292",
+      clientId: "8764c36a-d9f1-52db-ae1e-3680fda290e9",
+      alias: "jegou",
+      normalizedKey: "jegou",
+      source: "excel"
+    },
+    {
+      id: "1553aaf1-4aea-5576-a09e-f31b4e6ca4ab",
+      clientId: "0676a909-5556-5bda-976d-6c3f5e59543e",
+      alias: "JÉROME FROGER",
+      normalizedKey: "jerome-froger",
+      source: "excel"
+    },
+    {
+      id: "55b82ff6-2469-5987-877e-5addde627894",
+      clientId: "30c9c63b-0bfd-5944-82ef-db57e5ec87c1",
+      alias: "JOLY",
+      normalizedKey: "joly",
+      source: "excel"
+    },
+    {
+      id: "79800449-885e-553d-9092-9630bcb5a335",
+      clientId: "b2638664-d2b3-551d-bd43-67384b4d5b7a",
+      alias: "JORIS GIRARD",
+      normalizedKey: "joris-girard",
+      source: "excel"
+    },
+    {
+      id: "2bc61e96-aba4-5963-a927-d063b4c33350",
+      clientId: "a8c02ab3-d662-5392-8c1e-7bc82b020c2f",
+      alias: "josse",
+      normalizedKey: "josse",
+      source: "excel"
+    },
+    {
+      id: "2005b0f9-d522-5adc-b7fd-cb8614b767ed",
+      clientId: "2c5f1163-d2da-5318-b814-03318eb41b2c",
+      alias: "jouannot",
+      normalizedKey: "jouannot",
+      source: "excel"
+    },
+    {
+      id: "d0270369-5e4d-5e0b-8973-e6abf96ad097",
+      clientId: "4e7765b8-0b85-5ba1-af16-23c764169338",
+      alias: "JOUAULT",
+      normalizedKey: "jouault",
+      source: "excel"
+    },
+    {
+      id: "70a5d181-8113-5f9e-8a4b-44936768f635",
+      clientId: "4fe7712a-ee62-58f0-87f1-1b9e21c5970f",
+      alias: "KGBR",
+      normalizedKey: "kgbr",
+      source: "excel"
+    },
+    {
+      id: "5e355a51-5cbd-5a95-a565-24d1270e8375",
+      clientId: "e37fea02-64f0-597b-a3ed-52fa8cfe42a4",
+      alias: "KITE SURF",
+      normalizedKey: "kite-surf",
+      source: "excel"
+    },
+    {
+      id: "b7310a1d-6fc7-5e4e-9ed2-d71587afab96",
+      clientId: "d7cc93c6-38bf-5ea2-80fe-fbcadf67a0fb",
+      alias: "KLEBANER",
+      normalizedKey: "klebaner",
+      source: "excel"
+    },
+    {
+      id: "b0d9babc-4cfb-5d72-a82a-f9ff05ab9dfa",
+      clientId: "c85b4884-b586-5109-ad57-d71d57b1ec87",
+      alias: "KUFEL",
+      normalizedKey: "kufel",
+      source: "excel"
+    },
+    {
+      id: "1deedda3-cdd2-5c9b-af33-03654ff2306e",
+      clientId: "0824a314-3602-5ffd-9241-0eb3c8a22b50",
+      alias: "L'audacieuse",
+      normalizedKey: "l-audacieuse",
+      source: "excel"
+    },
+    {
+      id: "2c2c96c8-b5e6-5320-a72d-fa80aa249910",
+      clientId: "91d60bb5-defe-52a6-8f0d-e66ef7abd69c",
+      alias: "LA TAVERNE",
+      normalizedKey: "la-taverne",
+      source: "excel"
+    },
+    {
+      id: "280d37b7-b98c-5922-b986-b577876b61b9",
+      clientId: "df8f4269-c639-5894-a00c-b178f821073c",
+      alias: "la taverne andre",
+      normalizedKey: "la-taverne-andre",
+      source: "excel"
+    },
+    {
+      id: "110ed449-f7fc-543d-8592-cd77b2af97ef",
+      clientId: "679900a2-17ce-5b7b-8794-e207797cfd75",
+      alias: "laigre bigot",
+      normalizedKey: "laigre-bigot",
+      source: "excel"
+    },
+    {
+      id: "9580f315-fc95-55a4-873a-dd43bc32a6f7",
+      clientId: "4cf828fd-51a0-5594-a4ff-7d7d2e9f4654",
+      alias: "LAINE JAMET",
+      normalizedKey: "laine-jamet",
+      source: "excel"
+    },
+    {
+      id: "8417eb1c-e0b8-5b0d-9abb-2446872c5542",
+      clientId: "4ffb3be0-b7b2-5a40-915e-8d52873c5809",
+      alias: "LALLOZ",
+      normalizedKey: "lalloz",
+      source: "excel"
+    },
+    {
+      id: "68222104-b755-56de-92f3-b77228a9ec86",
+      clientId: "b7bc139f-31ca-5fac-bf82-f09b700fb483",
+      alias: "landron",
+      normalizedKey: "landron",
+      source: "excel"
+    },
+    {
+      id: "c0e0cc1b-dda9-589d-ba3d-e37d0643aa6b",
+      clientId: "f0e10c7d-987d-53cc-a6ce-b11af154eedd",
+      alias: "LASTELLE",
+      normalizedKey: "lastelle",
+      source: "excel"
+    },
+    {
+      id: "7e42ca91-3ca4-5a4e-8315-eabb8fd4db8b",
+      clientId: "b5cd01d4-51d4-5a44-a701-483aaf13c15b",
+      alias: "LAURENT",
+      normalizedKey: "laurent",
+      source: "excel"
+    },
+    {
+      id: "1694130f-7107-5848-8de7-dbcbc6322605",
+      clientId: "7d66bd09-ed1d-5d26-bd81-fbdf64f036ca",
+      alias: "LAUVERGNE",
+      normalizedKey: "lauvergne",
+      source: "excel"
+    },
+    {
+      id: "e65653f3-0c76-525f-93ca-0074591c9b22",
+      clientId: "d00057b1-9da1-5d3e-b2b9-32cdfcf44d95",
+      alias: "LE CUZIAT",
+      normalizedKey: "le-cuziat",
+      source: "excel"
+    },
+    {
+      id: "786f2497-ddd1-5800-b265-7292013ace73",
+      clientId: "3875c899-4144-5b37-8c97-495b98653429",
+      alias: "le de",
+      normalizedKey: "le-de",
+      source: "excel"
+    },
+    {
+      id: "25644418-6379-52ec-b18a-9c922fb4df8c",
+      clientId: "91039e29-5160-5d2e-acd0-ebfbeffdb140",
+      alias: "LE LOUARN",
+      normalizedKey: "le-louarn",
+      source: "excel"
+    },
+    {
+      id: "68b490f9-d661-57c7-8704-c2a04a1df52b",
+      clientId: "7fd75901-b6af-5481-915b-55acdc82f146",
+      alias: "LE MASSON",
+      normalizedKey: "le-masson",
+      source: "excel"
+    },
+    {
+      id: "6f3f4e93-8f66-51da-be1c-3ce25fcd4151",
+      clientId: "2774850f-7245-520e-97fe-d26f02bdf8b3",
+      alias: "le mistral",
+      normalizedKey: "le-mistral",
+      source: "excel"
+    },
+    {
+      id: "e7d01183-9c41-5186-877e-e3effd655352",
+      clientId: "6f852fde-70c3-5db6-9f9d-c0acb9ac3803",
+      alias: "LE TANNEUR",
+      normalizedKey: "le-tanneur",
+      source: "excel"
+    },
+    {
+      id: "bfec84ca-57c3-51ff-b09d-6ba7a9855d18",
+      clientId: "3fcbd506-f7ee-5d54-92fb-64091cc97a8f",
+      alias: "leblond",
+      normalizedKey: "leblond",
+      source: "excel"
+    },
+    {
+      id: "aee4608a-7826-50c9-81f8-7a95715c29a2",
+      clientId: "976058bf-4e4f-5bb7-a0d7-6505d6e8b373",
+      alias: "LEBOUCHER",
+      normalizedKey: "leboucher",
+      source: "excel"
+    },
+    {
+      id: "4d06ecd2-cbe1-589f-9d67-7c951e591845",
+      clientId: "2b3f493d-dbdb-5259-b4c9-bd23486040c8",
+      alias: "LEBOUCHER ext",
+      normalizedKey: "leboucher-ext",
+      source: "excel"
+    },
+    {
+      id: "95425e71-216f-5319-a5e7-ff7fdb63ea09",
+      clientId: "581f81d8-428d-5a57-966e-079bebff1b9b",
+      alias: "LECLEIR",
+      normalizedKey: "lecleir",
+      source: "excel"
+    },
+    {
+      id: "a27f98cc-be99-573b-b493-aafb21e45c7f",
+      clientId: "dc534a77-aa69-59eb-85d0-03082fd25571",
+      alias: "leclerc charp",
+      normalizedKey: "leclerc-charp",
+      source: "excel"
+    },
+    {
+      id: "ac61be9f-0a88-56bc-ae65-49c0fa887d85",
+      clientId: "038b9de4-ecde-562a-8649-f1828f7910d1",
+      alias: "LECLERC DUMARAIS",
+      normalizedKey: "leclerc-dumarais",
+      source: "excel"
+    },
+    {
+      id: "b5b0eb0b-0ea6-5560-8b79-cd591e2f1d0a",
+      clientId: "8c680e3b-1217-59fb-8e66-bcf60003c604",
+      alias: "LECOEUR",
+      normalizedKey: "lecoeur",
+      source: "excel"
+    },
+    {
+      id: "2a86b210-f516-5c70-a92c-b1aa3dc1dc91",
+      clientId: "4682ebd1-a863-5f7b-aab5-0c791d3415fa",
+      alias: "lecomte",
+      normalizedKey: "lecomte",
+      source: "excel"
+    },
+    {
+      id: "574864b7-4ddd-51cd-ad2f-38904139757b",
+      clientId: "8a1a2367-d1a3-52aa-98b0-0c23d4fe1b9e",
+      alias: "LECONTE carport",
+      normalizedKey: "leconte-carport",
+      source: "excel"
+    },
+    {
+      id: "0e5847ca-238e-5dee-b49f-e01c3364e0cd",
+      clientId: "ddfd5c9b-7de8-5985-ae9a-e2ac89165a2b",
+      alias: "LECONTE STEPHANE",
+      normalizedKey: "leconte-stephane",
+      source: "excel"
+    }
+  ])
+}

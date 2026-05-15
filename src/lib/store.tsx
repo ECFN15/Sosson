@@ -2,18 +2,21 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { listChantiers, listClients, listFactures } from '@dataconnect/generated'
 import type { ListChantiersData, ListClientsData, ListFacturesData } from '@dataconnect/generated'
-import { factures as initialFactures } from '@/data/factures'
+import { factures as seedFactures } from '@/data/factures'
 import type { CategorieDepense, Facture, StatutFacture } from '@/data/factures'
-import { chantiers as initialChantiers } from '@/data/chantiers'
+import { chantiers as seedChantiers } from '@/data/chantiers'
 import type { Chantier, StatutChantier, TendanceChantier } from '@/data/chantiers'
-import { clients as initialClients } from '@/data/clients'
+import { clients as seedClients } from '@/data/clients'
 import type { Client } from '@/data/clients'
-import { emails } from '@/data/emails'
+import { emails as seedEmails } from '@/data/emails'
 import { getCurrentUser } from '@/lib/auth'
 import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { buildPrevisionnelChantiers, buildPrevisionnelClients } from '@/lib/previsionnelModel'
 import type { User } from '@/data/users'
+import { loadAccessMatrix, saveAccessMatrix } from '@/lib/accessControl'
+import type { AccessMatrix } from '@/lib/accessControl'
 
-type DataSource = 'seed' | 'dataconnect'
+type DataSource = 'seed' | 'excel' | 'dataconnect'
 
 interface AppState {
   user: User | null
@@ -22,9 +25,12 @@ interface AppState {
   factures: Facture[]
   dataSource: DataSource
   isDataConnectLoading: boolean
+  accessMatrix: AccessMatrix
   setUser: (u: User | null) => void
+  setAccessMatrix: (matrix: AccessMatrix) => void
   addClient: (client: Client) => void
   addFacture: (f: Facture) => void
+  updateFactureStatus: (id: string, statut: StatutFacture) => void
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -42,6 +48,14 @@ const factureCategories: CategorieDepense[] = [
   'electricite',
   'peinture',
 ]
+
+const excelClients = buildPrevisionnelClients()
+const excelChantiers = buildPrevisionnelChantiers()
+const initialClients = excelClients.length ? excelClients : seedClients
+const initialChantiers = excelChantiers.length ? excelChantiers : seedChantiers
+const initialDataSource: DataSource = excelClients.length && excelChantiers.length ? 'excel' : 'seed'
+const initialFactures = initialDataSource === 'excel' ? [] : seedFactures
+const emails = initialDataSource === 'excel' ? [] : seedEmails
 
 function asClientType(value: string): Client['type'] {
   return clientTypes.includes(value as Client['type']) ? (value as Client['type']) : 'particulier'
@@ -132,8 +146,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [clientsList, setClientsList] = useState<Client[]>(initialClients)
   const [chantiersList, setChantiersList] = useState<Chantier[]>(initialChantiers)
   const [facturesList, setFacturesList] = useState<Facture[]>(initialFactures)
-  const [dataSource, setDataSource] = useState<DataSource>('seed')
+  const [dataSource, setDataSource] = useState<DataSource>(initialDataSource)
   const [isDataConnectLoading, setIsDataConnectLoading] = useState(false)
+  const [accessMatrix, setAccessMatrixState] = useState<AccessMatrix>(() => loadAccessMatrix())
+
+  function setAccessMatrix(matrix: AccessMatrix) {
+    setAccessMatrixState(matrix)
+    saveAccessMatrix(matrix)
+  }
 
   useEffect(() => {
     if (!isDataConnectEnabled || !user) return
@@ -205,6 +225,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  function updateFactureStatus(id: string, statut: StatutFacture) {
+    setFacturesList(prev =>
+      prev.map(facture => (facture.id === id ? { ...facture, statut } : facture))
+    )
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -214,9 +240,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         factures: facturesList,
         dataSource,
         isDataConnectLoading,
+        accessMatrix,
         setUser,
+        setAccessMatrix,
         addClient,
         addFacture,
+        updateFactureStatus,
       }}
     >
       {children}

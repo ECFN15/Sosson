@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases002: clientAlias_upsertMany(data: [
+    {
+      id: "0a96ce4f-c62e-5899-b950-e5ce924ebf4d",
+      clientId: "ae255225-2ac0-5319-8f58-226d5a9b2f25",
+      alias: "BINET",
+      normalizedKey: "binet",
+      source: "excel"
+    },
+    {
+      id: "0a689eb2-f309-5c8b-9283-3113dfe1484e",
+      clientId: "637997e2-30e7-59cb-9624-8b99f48cd34a",
+      alias: "bisson",
+      normalizedKey: "bisson",
+      source: "excel"
+    },
+    {
+      id: "49c86088-fa8a-5423-840c-64af3fa61b3a",
+      clientId: "ff6edfb0-1aef-521d-95b1-cf0a56cccc4b",
+      alias: "BLOTTIERE LAMARRE",
+      normalizedKey: "blottiere-lamarre",
+      source: "excel"
+    },
+    {
+      id: "784fa038-bd80-5bde-b771-f46fc940c47f",
+      clientId: "41f179ab-e338-5bc5-877a-c1b83b5b03ac",
+      alias: "BOEUVE",
+      normalizedKey: "boeuve",
+      source: "excel"
+    },
+    {
+      id: "986e8fc9-d818-5dd4-99c5-b106c119b1a9",
+      clientId: "6ea37b28-db97-5cc3-853a-5604d9aad9cb",
+      alias: "BOMPTEMPS",
+      normalizedKey: "bomptemps",
+      source: "excel"
+    },
+    {
+      id: "ad831e31-7fa1-5dd8-b291-b6ba8a528afb",
+      clientId: "4e88069a-4d7f-55b9-b9d3-0146f7100983",
+      alias: "bondurand",
+      normalizedKey: "bondurand",
+      source: "excel"
+    },
+    {
+      id: "6090596b-2cae-588c-a8b9-0f71d6e74daa",
+      clientId: "147ef48e-0ea8-54e6-ad9a-c2aecbc42ac2",
+      alias: "BONNEAU",
+      normalizedKey: "bonneau",
+      source: "excel"
+    },
+    {
+      id: "256a339b-4508-522a-9c90-9857b2eee66c",
+      clientId: "8cd03b19-1258-510d-8280-d23d861ca178",
+      alias: "BOUET",
+      normalizedKey: "bouet",
+      source: "excel"
+    },
+    {
+      id: "f8f282bd-22e7-551c-815f-a1259ef9f7a4",
+      clientId: "4b4a9f76-6211-58a5-a3aa-982595b7cbd2",
+      alias: "BOUILLARD",
+      normalizedKey: "bouillard",
+      source: "excel"
+    },
+    {
+      id: "8bb88024-a6e6-59c2-b8a5-555f803edc9a",
+      clientId: "9f1357b8-242f-58c2-be62-919524250275",
+      alias: "BOUILLET",
+      normalizedKey: "bouillet",
+      source: "excel"
+    },
+    {
+      id: "3053bd8e-184e-59ff-b8e6-b2266f633474",
+      clientId: "22f3e9ed-0837-5c6f-98a6-1b4cffc9648b",
+      alias: "BOUJRAD",
+      normalizedKey: "boujrad",
+      source: "excel"
+    },
+    {
+      id: "c87d7447-29f0-5f38-8407-b944ab3fd52c",
+      clientId: "5c9e3bcb-415f-5f37-828d-73a45cfb50a9",
+      alias: "BOUQUIN",
+      normalizedKey: "bouquin",
+      source: "excel"
+    },
+    {
+      id: "4b9cc109-fd5e-5e21-87b0-5dcab8751407",
+      clientId: "34f2886d-9e7b-5d10-9539-57aae281d063",
+      alias: "BOURGET/POPOVIC",
+      normalizedKey: "bourget-popovic",
+      source: "excel"
+    },
+    {
+      id: "33413d68-3af1-5b7b-a2ad-6736fe33cf38",
+      clientId: "a01b4901-1d01-5890-ba60-0d9019c1f774",
+      alias: "BOUTY",
+      normalizedKey: "bouty",
+      source: "excel"
+    },
+    {
+      id: "17b1fa16-357c-50f1-9f69-5e97e7e9af39",
+      clientId: "370a7a3a-7c00-53b9-b725-2fdb59f83e4a",
+      alias: "bouyguesifs",
+      normalizedKey: "bouyguesifs",
+      source: "excel"
+    },
+    {
+      id: "49f56785-6bfb-5dc9-99cd-057d49f333d8",
+      clientId: "c15030ca-4c32-5a0a-9411-04bed1713678",
+      alias: "bresson",
+      normalizedKey: "bresson",
+      source: "excel"
+    },
+    {
+      id: "e17b3307-60ef-58f6-b995-0aa0fdc30699",
+      clientId: "829c0cfc-1f18-5026-a8ec-7542d6c30e02",
+      alias: "BRETAGNE",
+      normalizedKey: "bretagne",
+      source: "excel"
+    },
+    {
+      id: "d988f3e6-3b50-505c-8475-22104406f6b3",
+      clientId: "13edb9df-a731-5917-9790-1c32484a0cca",
+      alias: "BRETEAU",
+      normalizedKey: "breteau",
+      source: "excel"
+    },
+    {
+      id: "1e715169-1375-5f8c-8176-7ba544c1212e",
+      clientId: "e9965480-fff9-5819-a2d1-4ffeaffdc25e",
+      alias: "breteau   mob",
+      normalizedKey: "breteau-mob",
+      source: "excel"
+    },
+    {
+      id: "1047031e-6158-5898-b75e-d7699b9aafeb",
+      clientId: "13edb9df-a731-5917-9790-1c32484a0cca",
+      alias: "BRETEAU (crémone)",
+      normalizedKey: "breteau",
+      source: "excel"
+    },
+    {
+      id: "24e8efb4-f89c-51ab-bde3-afcf91d2c03e",
+      clientId: "db2f570d-1b47-5372-8233-1b0bc931b03d",
+      alias: "BRIAND",
+      normalizedKey: "briand",
+      source: "excel"
+    },
+    {
+      id: "c0ecdefa-9b32-5e1b-a007-baddf769ed08",
+      clientId: "f58370c1-c53e-5a8b-b911-ac1c7d1b317e",
+      alias: "BRIERE",
+      normalizedKey: "briere",
+      source: "excel"
+    },
+    {
+      id: "37abc94c-b8ce-53df-82f1-5f597262ec57",
+      clientId: "6429c414-3266-522f-a8c7-8349d443fb32",
+      alias: "BRODIN",
+      normalizedKey: "brodin",
+      source: "excel"
+    },
+    {
+      id: "1430d0ed-0a25-5e1b-a593-7c3de0dca608",
+      clientId: "e1b889cc-72cf-5d81-b21e-e413b579ae35",
+      alias: "BROSSARD",
+      normalizedKey: "brossard",
+      source: "excel"
+    },
+    {
+      id: "322c63f6-dfb8-58f9-a3b3-69d5e9192e30",
+      clientId: "6805e51a-f6e9-51e3-8533-e76e4e5618aa",
+      alias: "BROUARD",
+      normalizedKey: "brouard",
+      source: "excel"
+    },
+    {
+      id: "2724f0c6-5651-574b-b37d-7e1c0ce0314e",
+      clientId: "2dd1a886-0316-57a8-b6d5-e0a2b528deec",
+      alias: "BRUNEAU",
+      normalizedKey: "bruneau",
+      source: "excel"
+    },
+    {
+      id: "91a06426-9edb-575f-9054-4c239f503188",
+      clientId: "b5c3ca32-fcfe-5101-b315-382bbe22fd40",
+      alias: "BRUNSCHVICG",
+      normalizedKey: "brunschvicg",
+      source: "excel"
+    },
+    {
+      id: "0365da33-f417-5305-854b-a65d56a46075",
+      clientId: "412799db-be62-525c-bfe4-10a65f5f2853",
+      alias: "BSL 2 Mediatheque 2e partie",
+      normalizedKey: "bsl-2-mediatheque-2e-partie",
+      source: "excel"
+    },
+    {
+      id: "a71519d5-127b-54d2-8f4d-4f1c12658840",
+      clientId: "72229fbe-8745-59fe-a8e0-1927ccd8da85",
+      alias: "bugenne",
+      normalizedKey: "bugenne",
+      source: "excel"
+    },
+    {
+      id: "3080a11c-2a6b-5918-9aad-3f3e0c18a0fc",
+      clientId: "38264fb2-6003-5591-9a3f-56b7ddd27b8e",
+      alias: "BUNEL terrasse",
+      normalizedKey: "bunel-terrasse",
+      source: "excel"
+    },
+    {
+      id: "11f01137-a525-5f31-a095-11183c826274",
+      clientId: "1dc0d6d8-c2b3-572f-9b95-84c119bcde3b",
+      alias: "CABOURG",
+      normalizedKey: "cabourg",
+      source: "excel"
+    },
+    {
+      id: "a8bdea7e-523b-559b-b0e1-fe856735a9a8",
+      clientId: "bb0105fe-17de-5156-b4c3-ef4d2fba3317",
+      alias: "CADIEU NOURY",
+      normalizedKey: "cadieu-noury",
+      source: "excel"
+    },
+    {
+      id: "68332c26-4b9d-5821-9d73-723944b2b36c",
+      clientId: "280a0d4f-29d2-59b0-aced-b6900665b59a",
+      alias: "CAEN COUVERTURES",
+      normalizedKey: "caen-couvertures",
+      source: "excel"
+    },
+    {
+      id: "b372b692-8d97-507f-afc8-aa54be23f65e",
+      clientId: "f6f0b8ce-7eaf-5d70-9d1b-939b5ec1b7c1",
+      alias: "CAMBAY",
+      normalizedKey: "cambay",
+      source: "excel"
+    },
+    {
+      id: "36cb0308-735f-5577-ac0c-90eff481b3d9",
+      clientId: "9680236d-39ca-5b89-aaf8-fb2713f22a40",
+      alias: "CAMPAGNILE",
+      normalizedKey: "campagnile",
+      source: "excel"
+    },
+    {
+      id: "4b761a41-20c3-5a4a-a416-2e81f7e14730",
+      clientId: "da36c0f5-2c9b-57ca-add0-584473096459",
+      alias: "CAMPANILE",
+      normalizedKey: "campanile",
+      source: "excel"
+    },
+    {
+      id: "f39e47f9-d0ac-5c99-8966-8183596e2ddd",
+      clientId: "18193188-c883-5883-99a0-fe1850f43120",
+      alias: "camping",
+      normalizedKey: "camping",
+      source: "excel"
+    },
+    {
+      id: "a67a0c41-08ae-5e3c-8637-1615f424309d",
+      clientId: "fd56011a-de82-5641-8991-9efc77adafbf",
+      alias: "cardet",
+      normalizedKey: "cardet",
+      source: "excel"
+    },
+    {
+      id: "6ecefe0d-3731-5d26-9de2-79c3496509c1",
+      clientId: "490e9616-0c3a-56d8-aea3-a56b76f87280",
+      alias: "CARRE",
+      normalizedKey: "carre",
+      source: "excel"
+    },
+    {
+      id: "7118badc-710d-5fb3-ae86-281fc0f084ac",
+      clientId: "0c9c6215-6f05-51ac-a0f1-56228f03d305",
+      alias: "carre olivier",
+      normalizedKey: "carre-olivier",
+      source: "excel"
+    },
+    {
+      id: "7d1fc6fa-e088-509e-8f12-366cc3bd0f20",
+      clientId: "4f10e1f5-ecc8-5d01-acc2-a2c861a5cccf",
+      alias: "CAUCE via joris cenier",
+      normalizedKey: "cauce-via-joris-cenier",
+      source: "excel"
+    },
+    {
+      id: "6a5327fa-d75f-5c59-8b5b-128abc5f9582",
+      clientId: "0cdfc5d3-f270-5dbd-8375-1f40c4e61a62",
+      alias: "cauvin",
+      normalizedKey: "cauvin",
+      source: "excel"
+    },
+    {
+      id: "bd468c40-b7e8-543d-88af-5d568055362b",
+      clientId: "7d336cfd-7d32-5485-9c6a-9f85bf233c44",
+      alias: "ccs international",
+      normalizedKey: "ccs-international",
+      source: "excel"
+    },
+    {
+      id: "688dc9f9-29bc-5212-83fb-7b5b3d04cadc",
+      clientId: "3708e8e8-696f-5ead-8882-b67379ba25b1",
+      alias: "CFA Normandie",
+      normalizedKey: "cfa-normandie",
+      source: "excel"
+    },
+    {
+      id: "ce64e648-58c3-50bd-8720-71385919037b",
+      clientId: "6ec9b5ec-c204-5ee3-8beb-2a6c4aeb205e",
+      alias: "cfab cotonnière",
+      normalizedKey: "cfab-cotonniere",
+      source: "excel"
+    },
+    {
+      id: "4afadcc6-2a7c-5fb9-aba8-a8acf1a74d5f",
+      clientId: "455f3f18-d892-5c40-baf9-543830f46286",
+      alias: "chaignet -dubois",
+      normalizedKey: "chaignet-dubois",
+      source: "excel"
+    },
+    {
+      id: "489fe087-4817-5e3d-b697-b6381abbb79f",
+      clientId: "2c11829c-82b8-5b5a-95d3-21b5e1c02b0d",
+      alias: "CHAMPION",
+      normalizedKey: "champion",
+      source: "excel"
+    },
+    {
+      id: "dd92baee-f35c-5a4c-8d36-1857dc68465c",
+      clientId: "a37c0fbd-6853-5eea-a4b0-761bd435be08",
+      alias: "CHANU HD EQUINOXE 1",
+      normalizedKey: "chanu-hd-equinoxe",
+      source: "excel"
+    },
+    {
+      id: "0ff7b0bc-3a5a-5cbb-b6cf-deb32955388d",
+      clientId: "a37c0fbd-6853-5eea-a4b0-761bd435be08",
+      alias: "CHANU HD EQUINOXE 2",
+      normalizedKey: "chanu-hd-equinoxe",
+      source: "excel"
+    },
+    {
+      id: "c9b40587-ebb0-56b8-9ea4-be9286214516",
+      clientId: "23ac6960-921a-5152-a802-b247d8a4f7ae",
+      alias: "CHANU HD OXYGEN",
+      normalizedKey: "chanu-hd-oxygen",
+      source: "excel"
+    }
+  ])
+}

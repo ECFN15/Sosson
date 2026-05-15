@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients006: client_upsertMany(data: [
+    {
+      id: "80a7c273-a527-53ab-ae90-4d8aa3136d18",
+      type: "particulier",
+      nom: "Grard Orabona",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7e37aa26-817b-52c1-a60b-96f4b2a9838d",
+      type: "particulier",
+      nom: "Groussard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c9758ef7-f62f-53c1-b995-980581580de3",
+      type: "particulier",
+      nom: "Gruau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1418f0a0-f7a8-5c87-84a6-6d635ff36929",
+      type: "particulier",
+      nom: "Guay Lemazurier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8956670b-c475-5b62-9b7c-a4d1ce22f58a",
+      type: "particulier",
+      nom: "Gue",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1ff0e5ab-c97d-515a-a7c8-c9b3b087ac47",
+      type: "particulier",
+      nom: "Guedon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0bb3e3be-16ce-576a-abdd-586a41e7f13a",
+      type: "particulier",
+      nom: "Guesnon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "097e1570-bfbd-5901-b3f8-c64fed9e1e0c",
+      type: "particulier",
+      nom: "Guibert",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "cd07fcaa-c6d3-5579-b451-d2de2c7f7a9f",
+      type: "particulier",
+      nom: "Guibout",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3e48683a-b961-5871-9980-c2fb0bada970",
+      type: "particulier",
+      nom: "Guiboux",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "658a7294-0b6d-57e9-8371-b9aa67565443",
+      type: "particulier",
+      nom: "Guilbert thales",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a321f589-097f-5f94-b7cf-7a20df4a3003",
+      type: "particulier",
+      nom: "Guillemot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "123da965-2f04-5d2b-a95b-3aa7f3487672",
+      type: "particulier",
+      nom: "Guillot 1",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "647a5d0a-190b-5f8a-a773-3f8221958d10",
+      type: "particulier",
+      nom: "Guilloux",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c47259ea-13bf-52d9-b7d7-45cd5359b2d2",
+      type: "particulier",
+      nom: "Guilloux Materiaux",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "86fba5e6-69b7-57e4-930f-dd1dab5a3894",
+      type: "particulier",
+      nom: "Guimond",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
+      type: "particulier",
+      nom: "Hamel extension",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "59b95031-c8a3-5851-9b47-bad840ebd847",
+      type: "particulier",
+      nom: "Hamon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a9c7b9ca-9baa-5986-b687-c4e2c8d7f031",
+      type: "particulier",
+      nom: "HAMON Alexandre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "588d6fe4-737b-5867-9e83-d49187920c45",
+      type: "particulier",
+      nom: "Hardoin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8e393e6c-f309-5898-9eb1-b26feda6c040",
+      type: "particulier",
+      nom: "Hebert",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7d3a2a5e-0182-5e63-b83b-d4f0ffa32ddd",
+      type: "particulier",
+      nom: "Henry",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c5a0adfc-57cb-5ce8-b7e2-42e63770c77b",
+      type: "particulier",
+      nom: "Henry ifs",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8edec256-efd6-559c-b649-801a9c101b47",
+      type: "particulier",
+      nom: "Herblot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b473dae8-89f2-5866-a8c1-1971ca159997",
+      type: "particulier",
+      nom: "Hermilly Carreau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8beb1a95-4bef-59e0-9a6f-c740152f71c6",
+      type: "particulier",
+      nom: "Herve Simon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a74803bb-9182-549c-806b-60430eae218f",
+      type: "particulier",
+      nom: "Hervieu",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "27e1fa3a-eb59-58e0-9369-b94a7131d7bc",
+      type: "particulier",
+      nom: "Hervieu st sylvain",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "65573c0d-ad78-59f0-a2d2-0bd4bd0054e6",
+      type: "particulier",
+      nom: "Hervieux",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "af227993-37d5-5aec-8a55-fb1fb4d22256",
+      type: "particulier",
+      nom: "Hoflack",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b4593cf1-f8cf-5c42-be99-474367819db7",
+      type: "particulier",
+      nom: "Hoste",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f5ec153f-3053-53fb-99b7-f9cf300a188b",
+      type: "particulier",
+      nom: "Hotel Zenith",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ac6665dd-c1d2-5915-a74c-9bfc68653f19",
+      type: "particulier",
+      nom: "Huard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4e861075-e1d3-5a43-8658-6d5faa7a75cd",
+      type: "particulier",
+      nom: "Huber",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8122f8b8-3880-5c8e-ae3e-fc1b06e5e92c",
+      type: "particulier",
+      nom: "Huchet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "92d6f784-cd70-54e2-acf5-fbc823a4bda8",
+      type: "particulier",
+      nom: "Hulin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8ebf153e-24cf-5620-892c-b70fab565746",
+      type: "particulier",
+      nom: "HUREL LELIEVRE à Escoville",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e5eac775-755b-5ca3-aa4c-590034a1292e",
+      type: "particulier",
+      nom: "Isabelle",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b5ea33b8-0b42-5508-9b62-da6516a923b5",
+      type: "particulier",
+      nom: "Isoplaf",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "63ca1338-f914-5c21-8d71-0b488899ae96",
+      type: "particulier",
+      nom: "Isoplaf devaux charp",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "68c8c60b-e9a0-58ef-b908-a26294ff0d5a",
+      type: "particulier",
+      nom: "Jager",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d8f8d8fc-83eb-5889-8d14-79a462a547c8",
+      type: "particulier",
+      nom: "Jalali",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2e5c8257-a249-5e77-a219-521bbade0025",
+      type: "particulier",
+      nom: "James",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "615b36fc-c736-5f7b-9bf8-c0476587aa69",
+      type: "particulier",
+      nom: "Jamin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4cbc2e94-4413-5ada-b9ce-321375dd4fa2",
+      type: "particulier",
+      nom: "Jardin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f68f9b24-4359-5c68-b2ff-d4c411c509c8",
+      type: "particulier",
+      nom: "JARDIN via C. CABARET",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2854ed43-e578-549e-98dc-febaba947e27",
+      type: "particulier",
+      nom: "Jeanne françoise",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8764c36a-d9f1-52db-ae1e-3680fda290e9",
+      type: "particulier",
+      nom: "Jegou",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0676a909-5556-5bda-976d-6c3f5e59543e",
+      type: "particulier",
+      nom: "Jérome Froger",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "30c9c63b-0bfd-5944-82ef-db57e5ec87c1",
+      type: "particulier",
+      nom: "Joly",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

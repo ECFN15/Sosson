@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients009: client_upsertMany(data: [
+    {
+      id: "5400592d-02b4-51d7-90b7-18aa4f8bd8ca",
+      type: "particulier",
+      nom: "Mazonni",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a5b5d6e4-0dd2-550c-84ce-76d3f20bf0a1",
+      type: "particulier",
+      nom: "Mealet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9ce4ed50-1364-5868-ae96-05a75f6f8def",
+      type: "particulier",
+      nom: "Memet kilick",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "36cefc54-f49f-54c3-8346-9d585b4e7069",
+      type: "particulier",
+      nom: "Meuriot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6afb7c33-a1b8-58a7-a1cf-a8833936ac49",
+      type: "particulier",
+      nom: "Michel vinc mob",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "79f227d4-a258-51ef-9df0-ed32a63435ba",
+      type: "particulier",
+      nom: "Mickaelis",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "43548c46-2ae0-56cf-a854-8dddbf411a07",
+      type: "particulier",
+      nom: "Mme etienne martine",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d25c7766-bb0a-5890-a19a-8f785048c11c",
+      type: "particulier",
+      nom: "Mob auber",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f57f9921-af7e-5f6d-8a80-0ad21557f137",
+      type: "particulier",
+      nom: "Mob Girard Joris",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8266f5bf-cea3-5c3c-a431-4c761a226789",
+      type: "particulier",
+      nom: "Moblefevre manuel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "63b65a9d-97c0-5b09-b96f-60ddfa5b0691",
+      type: "particulier",
+      nom: "Monin M",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f6dc4c21-3f6e-5a06-8a26-1670aa63d97f",
+      type: "particulier",
+      nom: "Montfourny",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "793d0014-8541-518e-ad5f-4955d75e8f7b",
+      type: "professionnel",
+      nom: "Montfourny Sci M.A.F.X",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b50f8932-7be6-5a8b-827c-b90da396ee63",
+      type: "particulier",
+      nom: "Morel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4483f8fd-2f95-5cb1-9bc3-41407eb04270",
+      type: "particulier",
+      nom: "Morival",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "89a9dcab-b9b2-55e0-abab-cf17801f94c5",
+      type: "particulier",
+      nom: "MORLET blonville sur mer",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "97390eb4-448c-53dd-a8a8-e70906af733e",
+      type: "particulier",
+      nom: "Morotti",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7e4baf46-14c2-50fc-a9f1-c7d460cd4a5e",
+      type: "particulier",
+      nom: "Moulinet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "71c2e40a-04a2-5f13-b050-62bb30e29319",
+      type: "particulier",
+      nom: "Naceur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9d5ae71b-e091-5b76-8e6a-38f998353bf4",
+      type: "particulier",
+      nom: "Nogent",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "45405283-2b9d-5fa2-892a-ad50488a4a3c",
+      type: "particulier",
+      nom: "Olivier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9f95e08f-da95-51dd-ae09-f23844cdc7d3",
+      type: "particulier",
+      nom: "Oscar Organisation",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8587a504-3379-547a-b3a8-72b422819d1b",
+      type: "particulier",
+      nom: "Papillon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "27d890b9-ec3f-5714-bf0b-970bf9f6b48f",
+      type: "particulier",
+      nom: "Parisotto",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4fe10e46-7696-504a-acd8-60c61d4bf813",
+      type: "particulier",
+      nom: "Parkour",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2d1944c0-9871-503d-9266-04c1c3c4068b",
+      type: "particulier",
+      nom: "Parkours",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "15d51942-1bf6-5836-93a4-894f64874d3c",
+      type: "particulier",
+      nom: "Pasquet menuiseries",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3bf516fc-fc54-5ce8-82af-68befeaf4a98",
+      type: "particulier",
+      nom: "Patin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d8e3ec9c-3301-56ad-8322-ad6a2824fca8",
+      type: "particulier",
+      nom: "Patrignani",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5291a45f-d407-52b6-92da-3cb961726cd1",
+      type: "particulier",
+      nom: "Pelloin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5ed7f322-572b-5786-810a-45d06c43b691",
+      type: "particulier",
+      nom: "Peltier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d6bfab03-3932-5577-aa43-21b25ec39409",
+      type: "professionnel",
+      nom: "Peltier Sci Bosquet De La Guerriere",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e6f3299b-7f15-5489-8bc8-ea150bfb43da",
+      type: "particulier",
+      nom: "Pepin Jacques",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "662856dc-ef86-50c6-8920-700d2cd4268a",
+      type: "particulier",
+      nom: "Perin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6c00a436-2c8d-55c4-9775-427e54418d08",
+      type: "particulier",
+      nom: "Periot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a9b88c65-9ed3-5b6e-b623-11cabc67e23f",
+      type: "particulier",
+      nom: "Perree",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d817d0e7-6f7d-5ffe-a926-8adaf7882c4b",
+      type: "particulier",
+      nom: "Perret",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "04a74485-ad51-523c-9b87-fee4da9d07ce",
+      type: "particulier",
+      nom: "Pezant",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "fa3aca76-9f2d-5e1b-a21c-2059fdede970",
+      type: "particulier",
+      nom: "Pfeiffer",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "40cf37c4-f776-56f5-b367-5956e453f9c1",
+      type: "particulier",
+      nom: "Philippe",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "34419370-fc9a-58c5-9aa4-c19a1afa2410",
+      type: "particulier",
+      nom: "Phillippe nico",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "80a65f16-3647-5ea8-aa1b-c349c29d5c8c",
+      type: "particulier",
+      nom: "Pierre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c237267c-25f6-501b-8ec3-f61bee37e82d",
+      type: "particulier",
+      nom: "Pinçon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "373fe214-147f-5fbe-8dd2-1bcd063a6f7f",
+      type: "particulier",
+      nom: "Pochat",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "25da6189-c359-5e76-981d-a381b86f1573",
+      type: "particulier",
+      nom: "POREE Romane",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "22ca2005-4e10-58e5-86e6-8a4b68d1aa32",
+      type: "particulier",
+      nom: "Poret",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f95e3316-8e38-586b-ba2e-7e200c7f796a",
+      type: "particulier",
+      nom: "Poret caval",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9d706537-9649-5c42-adad-b152794369f4",
+      type: "particulier",
+      nom: "Potet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "50ffe008-3729-5864-a31a-570e676beec9",
+      type: "particulier",
+      nom: "Poulain",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "17c17945-0f54-5427-a2a0-922fed2cbfe7",
+      type: "particulier",
+      nom: "Prevel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

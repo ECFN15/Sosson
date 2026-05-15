@@ -24,6 +24,13 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*GetChantier*](#getchantier)
   - [*ListFactures*](#listfactures)
   - [*ListFacturesByStatut*](#listfacturesbystatut)
+  - [*ListDocumentFolders*](#listdocumentfolders)
+  - [*ListDocumentsAttaches*](#listdocumentsattaches)
+  - [*ListDocumentsByChantier*](#listdocumentsbychantier)
+  - [*ListPrevisionnelExercises*](#listprevisionnelexercises)
+  - [*ListPrevisionnelLinesByExercise*](#listprevisionnellinesbyexercise)
+  - [*SearchClientAliases*](#searchclientaliases)
+  - [*ListPrevisionnelCellEdits*](#listprevisionnelcelledits)
 - [**Mutations**](#mutations)
   - [*UpsertCurrentUser*](#upsertcurrentuser)
   - [*CreateClient*](#createclient)
@@ -32,6 +39,14 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*UpdateChantierStatut*](#updatechantierstatut)
   - [*CreateFacture*](#createfacture)
   - [*SetFactureStatut*](#setfacturestatut)
+  - [*CreateDocumentFolder*](#createdocumentfolder)
+  - [*CreateDocumentAttache*](#createdocumentattache)
+  - [*UpdateDocumentAttacheLinks*](#updatedocumentattachelinks)
+  - [*CreatePrevisionnelImportBatch*](#createprevisionnelimportbatch)
+  - [*UpdatePrevisionnelMonthlyAmount*](#updateprevisionnelmonthlyamount)
+  - [*UpdatePrevisionnelLineAmounts*](#updateprevisionnellineamounts)
+  - [*LinkPrevisionnelLineToChantier*](#linkprevisionnellinetochantier)
+  - [*UpsertPrevisionnelCellEdit*](#upsertprevisionnelcelledit)
 
 # TanStack Query Firebase & TanStack React Query
 This SDK provides [React](https://react.dev/) hooks generated specific to your application, for the operations found in the connector `sosson`. These hooks are generated using [TanStack Query Firebase](https://react-query-firebase.invertase.dev/) by our partners at Invertase, a library built on top of [TanStack React Query v5](https://tanstack.com/query/v5/docs/framework/react/overview).
@@ -338,7 +353,7 @@ import { useGetClient } from '@dataconnect/generated/react'
 export default function GetClientComponent() {
   // The `useGetClient` Query hook requires an argument of type `GetClientVariables`:
   const getClientVars: GetClientVariables = {
-    id: ..., 
+    id: ...,
   };
 
   // You don't have to do anything to "execute" the Query.
@@ -549,7 +564,7 @@ import { useGetChantier } from '@dataconnect/generated/react'
 export default function GetChantierComponent() {
   // The `useGetChantier` Query hook requires an argument of type `GetChantierVariables`:
   const getChantierVars: GetChantierVariables = {
-    id: ..., 
+    id: ...,
   };
 
   // You don't have to do anything to "execute" the Query.
@@ -731,7 +746,7 @@ import { useListFacturesByStatut } from '@dataconnect/generated/react'
 export default function ListFacturesByStatutComponent() {
   // The `useListFacturesByStatut` Query hook requires an argument of type `ListFacturesByStatutVariables`:
   const listFacturesByStatutVars: ListFacturesByStatutVariables = {
-    statut: ..., 
+    statut: ...,
   };
 
   // You don't have to do anything to "execute" the Query.
@@ -765,6 +780,737 @@ export default function ListFacturesByStatutComponent() {
   // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
   if (query.isSuccess) {
     console.log(query.data.factures);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListDocumentFolders
+You can execute the `ListDocumentFolders` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListDocumentFolders(dc: DataConnect, options?: useDataConnectQueryOptions<ListDocumentFoldersData>): UseDataConnectQueryResult<ListDocumentFoldersData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListDocumentFolders(options?: useDataConnectQueryOptions<ListDocumentFoldersData>): UseDataConnectQueryResult<ListDocumentFoldersData, undefined>;
+```
+
+### Variables
+The `ListDocumentFolders` Query has no variables.
+### Return Type
+Recall that calling the `ListDocumentFolders` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListDocumentFolders` Query is of type `ListDocumentFoldersData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListDocumentFoldersData {
+  documentFolders: ({
+    id: UUIDString;
+    nom: string;
+    slug: string;
+    description?: string | null;
+    dateCreation: TimestampString;
+    parent?: {
+      id: UUIDString;
+      nom: string;
+      slug: string;
+    } & DocumentFolder_Key;
+      client?: {
+        id: UUIDString;
+        nom: string;
+        type: string;
+      } & Client_Key;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+          client: {
+            id: UUIDString;
+            nom: string;
+            type: string;
+          } & Client_Key;
+        } & Chantier_Key;
+  } & DocumentFolder_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListDocumentFolders`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useListDocumentFolders } from '@dataconnect/generated/react'
+
+export default function ListDocumentFoldersComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListDocumentFolders();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListDocumentFolders(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDocumentFolders(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDocumentFolders(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.documentFolders);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListDocumentsAttaches
+You can execute the `ListDocumentsAttaches` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListDocumentsAttaches(dc: DataConnect, options?: useDataConnectQueryOptions<ListDocumentsAttachesData>): UseDataConnectQueryResult<ListDocumentsAttachesData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListDocumentsAttaches(options?: useDataConnectQueryOptions<ListDocumentsAttachesData>): UseDataConnectQueryResult<ListDocumentsAttachesData, undefined>;
+```
+
+### Variables
+The `ListDocumentsAttaches` Query has no variables.
+### Return Type
+Recall that calling the `ListDocumentsAttaches` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListDocumentsAttaches` Query is of type `ListDocumentsAttachesData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListDocumentsAttachesData {
+  documentAttaches: ({
+    id: UUIDString;
+    nomFichier: string;
+    storagePath: string;
+    mimeType?: string | null;
+    tailleBytes?: number | null;
+    typeDocument: string;
+    statut: string;
+    source: string;
+    description?: string | null;
+    dateDocument?: DateString | null;
+    dateCreation: TimestampString;
+    folder?: {
+      id: UUIDString;
+      nom: string;
+      slug: string;
+    } & DocumentFolder_Key;
+      client?: {
+        id: UUIDString;
+        nom: string;
+        type: string;
+      } & Client_Key;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+          client: {
+            id: UUIDString;
+            nom: string;
+            type: string;
+          } & Client_Key;
+        } & Chantier_Key;
+          facture?: {
+            id: UUIDString;
+            fournisseur: string;
+            numeroFacture: string;
+            montantTTC: number;
+            date: DateString;
+            statut: string;
+            chantier: {
+              id: UUIDString;
+              nom: string;
+              client: {
+                id: UUIDString;
+                nom: string;
+                type: string;
+              } & Client_Key;
+            } & Chantier_Key;
+          } & Facture_Key;
+  } & DocumentAttache_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListDocumentsAttaches`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useListDocumentsAttaches } from '@dataconnect/generated/react'
+
+export default function ListDocumentsAttachesComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListDocumentsAttaches();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListDocumentsAttaches(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDocumentsAttaches(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDocumentsAttaches(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.documentAttaches);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListDocumentsByChantier
+You can execute the `ListDocumentsByChantier` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListDocumentsByChantier(dc: DataConnect, vars: ListDocumentsByChantierVariables, options?: useDataConnectQueryOptions<ListDocumentsByChantierData>): UseDataConnectQueryResult<ListDocumentsByChantierData, ListDocumentsByChantierVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListDocumentsByChantier(vars: ListDocumentsByChantierVariables, options?: useDataConnectQueryOptions<ListDocumentsByChantierData>): UseDataConnectQueryResult<ListDocumentsByChantierData, ListDocumentsByChantierVariables>;
+```
+
+### Variables
+The `ListDocumentsByChantier` Query requires an argument of type `ListDocumentsByChantierVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListDocumentsByChantierVariables {
+  chantierId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `ListDocumentsByChantier` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListDocumentsByChantier` Query is of type `ListDocumentsByChantierData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListDocumentsByChantierData {
+  documentAttaches: ({
+    id: UUIDString;
+    nomFichier: string;
+    storagePath: string;
+    mimeType?: string | null;
+    tailleBytes?: number | null;
+    typeDocument: string;
+    statut: string;
+    source: string;
+    description?: string | null;
+    dateDocument?: DateString | null;
+    dateCreation: TimestampString;
+    folder?: {
+      id: UUIDString;
+      nom: string;
+      slug: string;
+    } & DocumentFolder_Key;
+      client?: {
+        id: UUIDString;
+        nom: string;
+        type: string;
+      } & Client_Key;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+          client: {
+            id: UUIDString;
+            nom: string;
+            type: string;
+          } & Client_Key;
+        } & Chantier_Key;
+          facture?: {
+            id: UUIDString;
+            fournisseur: string;
+            numeroFacture: string;
+            montantTTC: number;
+            date: DateString;
+            statut: string;
+          } & Facture_Key;
+  } & DocumentAttache_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListDocumentsByChantier`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListDocumentsByChantierVariables } from '@dataconnect/generated';
+import { useListDocumentsByChantier } from '@dataconnect/generated/react'
+
+export default function ListDocumentsByChantierComponent() {
+  // The `useListDocumentsByChantier` Query hook requires an argument of type `ListDocumentsByChantierVariables`:
+  const listDocumentsByChantierVars: ListDocumentsByChantierVariables = {
+    chantierId: ...,
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListDocumentsByChantier(listDocumentsByChantierVars);
+  // Variables can be defined inline as well.
+  const query = useListDocumentsByChantier({ chantierId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListDocumentsByChantier(dataConnect, listDocumentsByChantierVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDocumentsByChantier(listDocumentsByChantierVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDocumentsByChantier(dataConnect, listDocumentsByChantierVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.documentAttaches);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListPrevisionnelExercises
+You can execute the `ListPrevisionnelExercises` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListPrevisionnelExercises(dc: DataConnect, options?: useDataConnectQueryOptions<ListPrevisionnelExercisesData>): UseDataConnectQueryResult<ListPrevisionnelExercisesData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListPrevisionnelExercises(options?: useDataConnectQueryOptions<ListPrevisionnelExercisesData>): UseDataConnectQueryResult<ListPrevisionnelExercisesData, undefined>;
+```
+
+### Variables
+The `ListPrevisionnelExercises` Query has no variables.
+### Return Type
+Recall that calling the `ListPrevisionnelExercises` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListPrevisionnelExercises` Query is of type `ListPrevisionnelExercisesData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListPrevisionnelExercisesData {
+  previsionnelExercises: ({
+    id: UUIDString;
+    sheet: string;
+    exercise: string;
+    startYear: number;
+    endYear: number;
+    lineCount: number;
+    chantierCount: number;
+    caPrevision: number;
+    caContrat: number;
+    plannedTotal: number;
+    realizedTotal: number;
+    invoicedTotal: number;
+    batch: {
+      id: UUIDString;
+      workbook: string;
+      sourcePath: string;
+      workbookHash?: string | null;
+      importedAt: TimestampString;
+    } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelExercise_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListPrevisionnelExercises`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useListPrevisionnelExercises } from '@dataconnect/generated/react'
+
+export default function ListPrevisionnelExercisesComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListPrevisionnelExercises();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListPrevisionnelExercises(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelExercises(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelExercises(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.previsionnelExercises);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListPrevisionnelLinesByExercise
+You can execute the `ListPrevisionnelLinesByExercise` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListPrevisionnelLinesByExercise(dc: DataConnect, vars: ListPrevisionnelLinesByExerciseVariables, options?: useDataConnectQueryOptions<ListPrevisionnelLinesByExerciseData>): UseDataConnectQueryResult<ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListPrevisionnelLinesByExercise(vars: ListPrevisionnelLinesByExerciseVariables, options?: useDataConnectQueryOptions<ListPrevisionnelLinesByExerciseData>): UseDataConnectQueryResult<ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables>;
+```
+
+### Variables
+The `ListPrevisionnelLinesByExercise` Query requires an argument of type `ListPrevisionnelLinesByExerciseVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListPrevisionnelLinesByExerciseVariables {
+  exerciseId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `ListPrevisionnelLinesByExercise` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListPrevisionnelLinesByExercise` Query is of type `ListPrevisionnelLinesByExerciseData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListPrevisionnelLinesByExerciseData {
+  previsionnelLines: ({
+    id: UUIDString;
+    sourceSheet: string;
+    sourceRow: number;
+    rawName: string;
+    clientKey: string;
+    clientName: string;
+    category: string;
+    lineType: string;
+    caTce: number;
+    caPrevision: number;
+    caContrat: number;
+    plannedTotal: number;
+    realizedTotal: number;
+    invoicedTotal: number;
+    invoiceSentTotal: number;
+    client: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        dateDebut: DateString;
+        dateFinPrevue: DateString;
+        budgetPrevisionnel: number;
+      } & Chantier_Key;
+        monthly: ({
+          id: UUIDString;
+          month: string;
+          label: string;
+          monthOrder: number;
+          planned: number;
+          realized: number;
+          invoiceSent: boolean;
+        } & PrevisionnelMonthlyAmount_Key)[];
+          lots: ({
+            id: UUIDString;
+            lotKey: string;
+            label: string;
+            amount: number;
+          } & PrevisionnelLotAmount_Key)[];
+  } & PrevisionnelLine_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListPrevisionnelLinesByExercise`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListPrevisionnelLinesByExerciseVariables } from '@dataconnect/generated';
+import { useListPrevisionnelLinesByExercise } from '@dataconnect/generated/react'
+
+export default function ListPrevisionnelLinesByExerciseComponent() {
+  // The `useListPrevisionnelLinesByExercise` Query hook requires an argument of type `ListPrevisionnelLinesByExerciseVariables`:
+  const listPrevisionnelLinesByExerciseVars: ListPrevisionnelLinesByExerciseVariables = {
+    exerciseId: ...,
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListPrevisionnelLinesByExercise(listPrevisionnelLinesByExerciseVars);
+  // Variables can be defined inline as well.
+  const query = useListPrevisionnelLinesByExercise({ exerciseId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListPrevisionnelLinesByExercise(dataConnect, listPrevisionnelLinesByExerciseVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelLinesByExercise(listPrevisionnelLinesByExerciseVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelLinesByExercise(dataConnect, listPrevisionnelLinesByExerciseVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.previsionnelLines);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## SearchClientAliases
+You can execute the `SearchClientAliases` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useSearchClientAliases(dc: DataConnect, vars: SearchClientAliasesVariables, options?: useDataConnectQueryOptions<SearchClientAliasesData>): UseDataConnectQueryResult<SearchClientAliasesData, SearchClientAliasesVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useSearchClientAliases(vars: SearchClientAliasesVariables, options?: useDataConnectQueryOptions<SearchClientAliasesData>): UseDataConnectQueryResult<SearchClientAliasesData, SearchClientAliasesVariables>;
+```
+
+### Variables
+The `SearchClientAliases` Query requires an argument of type `SearchClientAliasesVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface SearchClientAliasesVariables {
+  normalizedKey: string;
+}
+```
+### Return Type
+Recall that calling the `SearchClientAliases` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `SearchClientAliases` Query is of type `SearchClientAliasesData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface SearchClientAliasesData {
+  clientAliases: ({
+    id: UUIDString;
+    alias: string;
+    normalizedKey: string;
+    source: string;
+    client: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+    } & Client_Key;
+  } & ClientAlias_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `SearchClientAliases`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, SearchClientAliasesVariables } from '@dataconnect/generated';
+import { useSearchClientAliases } from '@dataconnect/generated/react'
+
+export default function SearchClientAliasesComponent() {
+  // The `useSearchClientAliases` Query hook requires an argument of type `SearchClientAliasesVariables`:
+  const searchClientAliasesVars: SearchClientAliasesVariables = {
+    normalizedKey: ...,
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useSearchClientAliases(searchClientAliasesVars);
+  // Variables can be defined inline as well.
+  const query = useSearchClientAliases({ normalizedKey: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useSearchClientAliases(dataConnect, searchClientAliasesVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useSearchClientAliases(searchClientAliasesVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useSearchClientAliases(dataConnect, searchClientAliasesVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.clientAliases);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListPrevisionnelCellEdits
+You can execute the `ListPrevisionnelCellEdits` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListPrevisionnelCellEdits(dc: DataConnect, vars: ListPrevisionnelCellEditsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelCellEditsData>): UseDataConnectQueryResult<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListPrevisionnelCellEdits(vars: ListPrevisionnelCellEditsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelCellEditsData>): UseDataConnectQueryResult<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
+```
+
+### Variables
+The `ListPrevisionnelCellEdits` Query requires an argument of type `ListPrevisionnelCellEditsVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListPrevisionnelCellEditsVariables {
+  sourceSheet: string;
+}
+```
+### Return Type
+Recall that calling the `ListPrevisionnelCellEdits` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListPrevisionnelCellEdits` Query is of type `ListPrevisionnelCellEditsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListPrevisionnelCellEditsData {
+  previsionnelCellEdits: ({
+    id: string;
+    sourceSheet: string;
+    cellRef: string;
+    valueText?: string | null;
+    numericValue?: number | null;
+    dateModification: TimestampString;
+  } & PrevisionnelCellEdit_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListPrevisionnelCellEdits`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListPrevisionnelCellEditsVariables } from '@dataconnect/generated';
+import { useListPrevisionnelCellEdits } from '@dataconnect/generated/react'
+
+export default function ListPrevisionnelCellEditsComponent() {
+  // The `useListPrevisionnelCellEdits` Query hook requires an argument of type `ListPrevisionnelCellEditsVariables`:
+  const listPrevisionnelCellEditsVars: ListPrevisionnelCellEditsVariables = {
+    sourceSheet: ...,
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListPrevisionnelCellEdits(listPrevisionnelCellEditsVars);
+  // Variables can be defined inline as well.
+  const query = useListPrevisionnelCellEdits({ sourceSheet: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListPrevisionnelCellEdits(dataConnect, listPrevisionnelCellEditsVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelCellEdits(listPrevisionnelCellEditsVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelCellEdits(dataConnect, listPrevisionnelCellEditsVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.previsionnelCellEdits);
   }
   return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -864,10 +1610,10 @@ export default function UpsertCurrentUserComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useUpsertCurrentUser` Mutation requires an argument of type `UpsertCurrentUserVariables`:
   const upsertCurrentUserVars: UpsertCurrentUserVariables = {
-    email: ..., 
-    nom: ..., 
-    prenom: ..., 
-    role: ..., 
+    email: ...,
+    nom: ...,
+    prenom: ...,
+    role: ...,
     avatar: ..., // optional
   };
   mutation.mutate(upsertCurrentUserVars);
@@ -968,8 +1714,8 @@ export default function CreateClientComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useCreateClient` Mutation requires an argument of type `CreateClientVariables`:
   const createClientVars: CreateClientVariables = {
-    type: ..., 
-    nom: ..., 
+    type: ...,
+    nom: ...,
     email: ..., // optional
     telephone: ..., // optional
     adresse: ..., // optional
@@ -1075,7 +1821,7 @@ export default function UpdateClientComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useUpdateClient` Mutation requires an argument of type `UpdateClientVariables`:
   const updateClientVars: UpdateClientVariables = {
-    id: ..., 
+    id: ...,
     type: ..., // optional
     nom: ..., // optional
     email: ..., // optional
@@ -1184,13 +1930,13 @@ export default function CreateChantierComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useCreateChantier` Mutation requires an argument of type `CreateChantierVariables`:
   const createChantierVars: CreateChantierVariables = {
-    clientId: ..., 
+    clientId: ...,
     chefChantierId: ..., // optional
-    nom: ..., 
-    statut: ..., 
-    dateDebut: ..., 
-    dateFinPrevue: ..., 
-    budgetPrevisionnel: ..., 
+    nom: ...,
+    statut: ...,
+    dateDebut: ...,
+    dateFinPrevue: ...,
+    budgetPrevisionnel: ...,
     description: ..., // optional
     adresse: ..., // optional
   };
@@ -1288,8 +2034,8 @@ export default function UpdateChantierStatutComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useUpdateChantierStatut` Mutation requires an argument of type `UpdateChantierStatutVariables`:
   const updateChantierStatutVars: UpdateChantierStatutVariables = {
-    id: ..., 
-    statut: ..., 
+    id: ...,
+    statut: ...,
     dateFin: ..., // optional
   };
   mutation.mutate(updateChantierStatutVars);
@@ -1393,15 +2139,15 @@ export default function CreateFactureComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useCreateFacture` Mutation requires an argument of type `CreateFactureVariables`:
   const createFactureVars: CreateFactureVariables = {
-    chantierId: ..., 
-    fournisseur: ..., 
-    numeroFacture: ..., 
-    montantHT: ..., 
-    tva: ..., 
-    montantTTC: ..., 
-    date: ..., 
-    categorie: ..., 
-    statut: ..., 
+    chantierId: ...,
+    fournisseur: ...,
+    numeroFacture: ...,
+    montantHT: ...,
+    tva: ...,
+    montantTTC: ...,
+    date: ...,
+    categorie: ...,
+    statut: ...,
     description: ..., // optional
   };
   mutation.mutate(createFactureVars);
@@ -1497,8 +2243,8 @@ export default function SetFactureStatutComponent() {
   // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
   // The `useSetFactureStatut` Mutation requires an argument of type `SetFactureStatutVariables`:
   const setFactureStatutVars: SetFactureStatutVariables = {
-    id: ..., 
-    statut: ..., 
+    id: ...,
+    statut: ...,
   };
   mutation.mutate(setFactureStatutVars);
   // Variables can be defined inline as well.
@@ -1522,6 +2268,844 @@ export default function SetFactureStatutComponent() {
   // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
   if (mutation.isSuccess) {
     console.log(mutation.data.facture_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateDocumentFolder
+You can execute the `CreateDocumentFolder` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateDocumentFolder(options?: useDataConnectMutationOptions<CreateDocumentFolderData, FirebaseError, CreateDocumentFolderVariables>): UseDataConnectMutationResult<CreateDocumentFolderData, CreateDocumentFolderVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateDocumentFolder(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDocumentFolderData, FirebaseError, CreateDocumentFolderVariables>): UseDataConnectMutationResult<CreateDocumentFolderData, CreateDocumentFolderVariables>;
+```
+
+### Variables
+The `CreateDocumentFolder` Mutation requires an argument of type `CreateDocumentFolderVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateDocumentFolderVariables {
+  nom: string;
+  slug: string;
+  parentId?: UUIDString | null;
+  clientId?: UUIDString | null;
+  chantierId?: UUIDString | null;
+  description?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateDocumentFolder` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateDocumentFolder` Mutation is of type `CreateDocumentFolderData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateDocumentFolderData {
+  documentFolder_insert: DocumentFolder_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateDocumentFolder`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateDocumentFolderVariables } from '@dataconnect/generated';
+import { useCreateDocumentFolder } from '@dataconnect/generated/react'
+
+export default function CreateDocumentFolderComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateDocumentFolder();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateDocumentFolder(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateDocumentFolder(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateDocumentFolder(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateDocumentFolder` Mutation requires an argument of type `CreateDocumentFolderVariables`:
+  const createDocumentFolderVars: CreateDocumentFolderVariables = {
+    nom: ...,
+    slug: ...,
+    parentId: ..., // optional
+    clientId: ..., // optional
+    chantierId: ..., // optional
+    description: ..., // optional
+  };
+  mutation.mutate(createDocumentFolderVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ nom: ..., slug: ..., parentId: ..., clientId: ..., chantierId: ..., description: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createDocumentFolderVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.documentFolder_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateDocumentAttache
+You can execute the `CreateDocumentAttache` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateDocumentAttache(options?: useDataConnectMutationOptions<CreateDocumentAttacheData, FirebaseError, CreateDocumentAttacheVariables>): UseDataConnectMutationResult<CreateDocumentAttacheData, CreateDocumentAttacheVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateDocumentAttache(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDocumentAttacheData, FirebaseError, CreateDocumentAttacheVariables>): UseDataConnectMutationResult<CreateDocumentAttacheData, CreateDocumentAttacheVariables>;
+```
+
+### Variables
+The `CreateDocumentAttache` Mutation requires an argument of type `CreateDocumentAttacheVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateDocumentAttacheVariables {
+  folderId?: UUIDString | null;
+  clientId?: UUIDString | null;
+  chantierId?: UUIDString | null;
+  factureId?: UUIDString | null;
+  nomFichier: string;
+  storagePath: string;
+  mimeType?: string | null;
+  tailleBytes?: number | null;
+  typeDocument: string;
+  statut: string;
+  source: string;
+  description?: string | null;
+  dateDocument?: DateString | null;
+}
+```
+### Return Type
+Recall that calling the `CreateDocumentAttache` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateDocumentAttache` Mutation is of type `CreateDocumentAttacheData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateDocumentAttacheData {
+  documentAttache_insert: DocumentAttache_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateDocumentAttache`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateDocumentAttacheVariables } from '@dataconnect/generated';
+import { useCreateDocumentAttache } from '@dataconnect/generated/react'
+
+export default function CreateDocumentAttacheComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateDocumentAttache();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateDocumentAttache(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateDocumentAttache(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateDocumentAttache(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateDocumentAttache` Mutation requires an argument of type `CreateDocumentAttacheVariables`:
+  const createDocumentAttacheVars: CreateDocumentAttacheVariables = {
+    folderId: ..., // optional
+    clientId: ..., // optional
+    chantierId: ..., // optional
+    factureId: ..., // optional
+    nomFichier: ...,
+    storagePath: ...,
+    mimeType: ..., // optional
+    tailleBytes: ..., // optional
+    typeDocument: ...,
+    statut: ...,
+    source: ...,
+    description: ..., // optional
+    dateDocument: ..., // optional
+  };
+  mutation.mutate(createDocumentAttacheVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ folderId: ..., clientId: ..., chantierId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createDocumentAttacheVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.documentAttache_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateDocumentAttacheLinks
+You can execute the `UpdateDocumentAttacheLinks` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateDocumentAttacheLinks(options?: useDataConnectMutationOptions<UpdateDocumentAttacheLinksData, FirebaseError, UpdateDocumentAttacheLinksVariables>): UseDataConnectMutationResult<UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateDocumentAttacheLinks(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateDocumentAttacheLinksData, FirebaseError, UpdateDocumentAttacheLinksVariables>): UseDataConnectMutationResult<UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables>;
+```
+
+### Variables
+The `UpdateDocumentAttacheLinks` Mutation requires an argument of type `UpdateDocumentAttacheLinksVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateDocumentAttacheLinksVariables {
+  id: UUIDString;
+  folderId?: UUIDString | null;
+  clientId?: UUIDString | null;
+  chantierId?: UUIDString | null;
+  factureId?: UUIDString | null;
+  statut?: string | null;
+  typeDocument?: string | null;
+}
+```
+### Return Type
+Recall that calling the `UpdateDocumentAttacheLinks` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateDocumentAttacheLinks` Mutation is of type `UpdateDocumentAttacheLinksData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateDocumentAttacheLinksData {
+  documentAttache_update?: DocumentAttache_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateDocumentAttacheLinks`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateDocumentAttacheLinksVariables } from '@dataconnect/generated';
+import { useUpdateDocumentAttacheLinks } from '@dataconnect/generated/react'
+
+export default function UpdateDocumentAttacheLinksComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateDocumentAttacheLinks();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateDocumentAttacheLinks(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateDocumentAttacheLinks(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateDocumentAttacheLinks(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateDocumentAttacheLinks` Mutation requires an argument of type `UpdateDocumentAttacheLinksVariables`:
+  const updateDocumentAttacheLinksVars: UpdateDocumentAttacheLinksVariables = {
+    id: ...,
+    folderId: ..., // optional
+    clientId: ..., // optional
+    chantierId: ..., // optional
+    factureId: ..., // optional
+    statut: ..., // optional
+    typeDocument: ..., // optional
+  };
+  mutation.mutate(updateDocumentAttacheLinksVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., folderId: ..., clientId: ..., chantierId: ..., factureId: ..., statut: ..., typeDocument: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateDocumentAttacheLinksVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.documentAttache_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreatePrevisionnelImportBatch
+You can execute the `CreatePrevisionnelImportBatch` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreatePrevisionnelImportBatch(options?: useDataConnectMutationOptions<CreatePrevisionnelImportBatchData, FirebaseError, CreatePrevisionnelImportBatchVariables>): UseDataConnectMutationResult<CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreatePrevisionnelImportBatch(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePrevisionnelImportBatchData, FirebaseError, CreatePrevisionnelImportBatchVariables>): UseDataConnectMutationResult<CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables>;
+```
+
+### Variables
+The `CreatePrevisionnelImportBatch` Mutation requires an argument of type `CreatePrevisionnelImportBatchVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreatePrevisionnelImportBatchVariables {
+  workbook: string;
+  sourcePath: string;
+  workbookHash?: string | null;
+  notes?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreatePrevisionnelImportBatch` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreatePrevisionnelImportBatch` Mutation is of type `CreatePrevisionnelImportBatchData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreatePrevisionnelImportBatchData {
+  previsionnelImportBatch_insert: PrevisionnelImportBatch_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreatePrevisionnelImportBatch`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreatePrevisionnelImportBatchVariables } from '@dataconnect/generated';
+import { useCreatePrevisionnelImportBatch } from '@dataconnect/generated/react'
+
+export default function CreatePrevisionnelImportBatchComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreatePrevisionnelImportBatch();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreatePrevisionnelImportBatch(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreatePrevisionnelImportBatch(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreatePrevisionnelImportBatch(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreatePrevisionnelImportBatch` Mutation requires an argument of type `CreatePrevisionnelImportBatchVariables`:
+  const createPrevisionnelImportBatchVars: CreatePrevisionnelImportBatchVariables = {
+    workbook: ...,
+    sourcePath: ...,
+    workbookHash: ..., // optional
+    notes: ..., // optional
+  };
+  mutation.mutate(createPrevisionnelImportBatchVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ workbook: ..., sourcePath: ..., workbookHash: ..., notes: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createPrevisionnelImportBatchVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.previsionnelImportBatch_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdatePrevisionnelMonthlyAmount
+You can execute the `UpdatePrevisionnelMonthlyAmount` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdatePrevisionnelMonthlyAmount(options?: useDataConnectMutationOptions<UpdatePrevisionnelMonthlyAmountData, FirebaseError, UpdatePrevisionnelMonthlyAmountVariables>): UseDataConnectMutationResult<UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdatePrevisionnelMonthlyAmount(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePrevisionnelMonthlyAmountData, FirebaseError, UpdatePrevisionnelMonthlyAmountVariables>): UseDataConnectMutationResult<UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables>;
+```
+
+### Variables
+The `UpdatePrevisionnelMonthlyAmount` Mutation requires an argument of type `UpdatePrevisionnelMonthlyAmountVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdatePrevisionnelMonthlyAmountVariables {
+  id: UUIDString;
+  planned?: number | null;
+  realized?: number | null;
+  invoiceSent?: boolean | null;
+}
+```
+### Return Type
+Recall that calling the `UpdatePrevisionnelMonthlyAmount` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdatePrevisionnelMonthlyAmount` Mutation is of type `UpdatePrevisionnelMonthlyAmountData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdatePrevisionnelMonthlyAmountData {
+  previsionnelMonthlyAmount_update?: PrevisionnelMonthlyAmount_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdatePrevisionnelMonthlyAmount`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdatePrevisionnelMonthlyAmountVariables } from '@dataconnect/generated';
+import { useUpdatePrevisionnelMonthlyAmount } from '@dataconnect/generated/react'
+
+export default function UpdatePrevisionnelMonthlyAmountComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdatePrevisionnelMonthlyAmount();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdatePrevisionnelMonthlyAmount(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdatePrevisionnelMonthlyAmount(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdatePrevisionnelMonthlyAmount(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdatePrevisionnelMonthlyAmount` Mutation requires an argument of type `UpdatePrevisionnelMonthlyAmountVariables`:
+  const updatePrevisionnelMonthlyAmountVars: UpdatePrevisionnelMonthlyAmountVariables = {
+    id: ...,
+    planned: ..., // optional
+    realized: ..., // optional
+    invoiceSent: ..., // optional
+  };
+  mutation.mutate(updatePrevisionnelMonthlyAmountVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., planned: ..., realized: ..., invoiceSent: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updatePrevisionnelMonthlyAmountVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.previsionnelMonthlyAmount_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdatePrevisionnelLineAmounts
+You can execute the `UpdatePrevisionnelLineAmounts` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdatePrevisionnelLineAmounts(options?: useDataConnectMutationOptions<UpdatePrevisionnelLineAmountsData, FirebaseError, UpdatePrevisionnelLineAmountsVariables>): UseDataConnectMutationResult<UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdatePrevisionnelLineAmounts(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePrevisionnelLineAmountsData, FirebaseError, UpdatePrevisionnelLineAmountsVariables>): UseDataConnectMutationResult<UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables>;
+```
+
+### Variables
+The `UpdatePrevisionnelLineAmounts` Mutation requires an argument of type `UpdatePrevisionnelLineAmountsVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdatePrevisionnelLineAmountsVariables {
+  id: UUIDString;
+  rawName?: string | null;
+  clientName?: string | null;
+  caTce?: number | null;
+  caPrevision?: number | null;
+  caContrat?: number | null;
+  plannedTotal?: number | null;
+  realizedTotal?: number | null;
+  invoicedTotal?: number | null;
+  invoiceSentTotal?: number | null;
+}
+```
+### Return Type
+Recall that calling the `UpdatePrevisionnelLineAmounts` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdatePrevisionnelLineAmounts` Mutation is of type `UpdatePrevisionnelLineAmountsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdatePrevisionnelLineAmountsData {
+  previsionnelLine_update?: PrevisionnelLine_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdatePrevisionnelLineAmounts`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdatePrevisionnelLineAmountsVariables } from '@dataconnect/generated';
+import { useUpdatePrevisionnelLineAmounts } from '@dataconnect/generated/react'
+
+export default function UpdatePrevisionnelLineAmountsComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdatePrevisionnelLineAmounts();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdatePrevisionnelLineAmounts(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdatePrevisionnelLineAmounts(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdatePrevisionnelLineAmounts(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdatePrevisionnelLineAmounts` Mutation requires an argument of type `UpdatePrevisionnelLineAmountsVariables`:
+  const updatePrevisionnelLineAmountsVars: UpdatePrevisionnelLineAmountsVariables = {
+    id: ...,
+    rawName: ..., // optional
+    clientName: ..., // optional
+    caTce: ..., // optional
+    caPrevision: ..., // optional
+    caContrat: ..., // optional
+    plannedTotal: ..., // optional
+    realizedTotal: ..., // optional
+    invoicedTotal: ..., // optional
+    invoiceSentTotal: ..., // optional
+  };
+  mutation.mutate(updatePrevisionnelLineAmountsVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., rawName: ..., clientName: ..., caTce: ..., caPrevision: ..., caContrat: ..., plannedTotal: ..., realizedTotal: ..., invoicedTotal: ..., invoiceSentTotal: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updatePrevisionnelLineAmountsVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.previsionnelLine_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## LinkPrevisionnelLineToChantier
+You can execute the `LinkPrevisionnelLineToChantier` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useLinkPrevisionnelLineToChantier(options?: useDataConnectMutationOptions<LinkPrevisionnelLineToChantierData, FirebaseError, LinkPrevisionnelLineToChantierVariables>): UseDataConnectMutationResult<LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useLinkPrevisionnelLineToChantier(dc: DataConnect, options?: useDataConnectMutationOptions<LinkPrevisionnelLineToChantierData, FirebaseError, LinkPrevisionnelLineToChantierVariables>): UseDataConnectMutationResult<LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables>;
+```
+
+### Variables
+The `LinkPrevisionnelLineToChantier` Mutation requires an argument of type `LinkPrevisionnelLineToChantierVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface LinkPrevisionnelLineToChantierVariables {
+  id: UUIDString;
+  chantierId?: UUIDString | null;
+}
+```
+### Return Type
+Recall that calling the `LinkPrevisionnelLineToChantier` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `LinkPrevisionnelLineToChantier` Mutation is of type `LinkPrevisionnelLineToChantierData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface LinkPrevisionnelLineToChantierData {
+  previsionnelLine_update?: PrevisionnelLine_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `LinkPrevisionnelLineToChantier`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, LinkPrevisionnelLineToChantierVariables } from '@dataconnect/generated';
+import { useLinkPrevisionnelLineToChantier } from '@dataconnect/generated/react'
+
+export default function LinkPrevisionnelLineToChantierComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useLinkPrevisionnelLineToChantier();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useLinkPrevisionnelLineToChantier(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useLinkPrevisionnelLineToChantier(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useLinkPrevisionnelLineToChantier(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useLinkPrevisionnelLineToChantier` Mutation requires an argument of type `LinkPrevisionnelLineToChantierVariables`:
+  const linkPrevisionnelLineToChantierVars: LinkPrevisionnelLineToChantierVariables = {
+    id: ...,
+    chantierId: ..., // optional
+  };
+  mutation.mutate(linkPrevisionnelLineToChantierVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., chantierId: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(linkPrevisionnelLineToChantierVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.previsionnelLine_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpsertPrevisionnelCellEdit
+You can execute the `UpsertPrevisionnelCellEdit` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpsertPrevisionnelCellEdit(options?: useDataConnectMutationOptions<UpsertPrevisionnelCellEditData, FirebaseError, UpsertPrevisionnelCellEditVariables>): UseDataConnectMutationResult<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpsertPrevisionnelCellEdit(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertPrevisionnelCellEditData, FirebaseError, UpsertPrevisionnelCellEditVariables>): UseDataConnectMutationResult<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
+```
+
+### Variables
+The `UpsertPrevisionnelCellEdit` Mutation requires an argument of type `UpsertPrevisionnelCellEditVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpsertPrevisionnelCellEditVariables {
+  id: string;
+  sourceSheet: string;
+  cellRef: string;
+  valueText?: string | null;
+  numericValue?: number | null;
+}
+```
+### Return Type
+Recall that calling the `UpsertPrevisionnelCellEdit` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpsertPrevisionnelCellEdit` Mutation is of type `UpsertPrevisionnelCellEditData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpsertPrevisionnelCellEditData {
+  previsionnelCellEdit_upsert: PrevisionnelCellEdit_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpsertPrevisionnelCellEdit`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpsertPrevisionnelCellEditVariables } from '@dataconnect/generated';
+import { useUpsertPrevisionnelCellEdit } from '@dataconnect/generated/react'
+
+export default function UpsertPrevisionnelCellEditComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpsertPrevisionnelCellEdit();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpsertPrevisionnelCellEdit(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpsertPrevisionnelCellEdit(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpsertPrevisionnelCellEdit(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpsertPrevisionnelCellEdit` Mutation requires an argument of type `UpsertPrevisionnelCellEditVariables`:
+  const upsertPrevisionnelCellEditVars: UpsertPrevisionnelCellEditVariables = {
+    id: ...,
+    sourceSheet: ...,
+    cellRef: ...,
+    valueText: ..., // optional
+    numericValue: ..., // optional
+  };
+  mutation.mutate(upsertPrevisionnelCellEditVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., sourceSheet: ..., cellRef: ..., valueText: ..., numericValue: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(upsertPrevisionnelCellEditVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.previsionnelCellEdit_upsert);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }

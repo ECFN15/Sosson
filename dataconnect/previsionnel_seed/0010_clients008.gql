@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients008: client_upsertMany(data: [
+    {
+      id: "ece839d4-f69d-5867-ac20-a2a35d41c6ac",
+      type: "particulier",
+      nom: "Leplus",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ca446c99-029c-5cbb-8e50-632b5dc09251",
+      type: "particulier",
+      nom: "Leprete",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "72687797-12a8-5d43-9810-b94e6a95f7cd",
+      type: "particulier",
+      nom: "Leprovot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "aabf3793-b510-5813-adaf-8d702ca3e9b5",
+      type: "particulier",
+      nom: "Lequitte",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e17e6892-832c-55cd-9b0d-204cd57bfc01",
+      type: "particulier",
+      nom: "Leroullier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3681dc15-9f5a-575e-b4e9-afdf897b3f4e",
+      type: "particulier",
+      nom: "Leroutier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "77216489-7b81-5578-98c2-63a12eda37f1",
+      type: "particulier",
+      nom: "Leroux",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "cb2905dd-adb1-5f50-a8e6-0817f32e4e71",
+      type: "particulier",
+      nom: "Leroyer",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "26adc391-ec3f-548d-b8b9-3ff5ea1e44e1",
+      type: "particulier",
+      nom: "Leroyer Pioline",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4e100c13-bcd7-5abf-aea1-7669ace1287f",
+      type: "particulier",
+      nom: "Letourneur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4948dd00-24f2-5d90-acaf-e4f231b3c7c5",
+      type: "particulier",
+      nom: "Leveque",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e0c34eb3-e05b-5c9a-bfbe-1e4a36487a47",
+      type: "professionnel",
+      nom: "Leveque Garage",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8f3a7947-5076-5a3a-87bc-68e75d308577",
+      type: "particulier",
+      nom: "Leyeuch",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9f24fcf4-0adf-5507-88d2-4dfc890fc9c8",
+      type: "particulier",
+      nom: "Liautaud",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9bd9f9e3-3f7c-55a8-8838-0a3e4ae22fac",
+      type: "particulier",
+      nom: "Loberger",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "65f3413e-f4d2-50ff-b452-b3e39597a137",
+      type: "particulier",
+      nom: "Lock Quest",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6d516d8c-9884-5233-9556-6d4f9d9f55ff",
+      type: "particulier",
+      nom: "Lockquest",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a882dbfa-0c4e-581e-b845-258be79d3015",
+      type: "particulier",
+      nom: "Lopez",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "88436532-ded3-5f85-a030-8357fa2356a8",
+      type: "particulier",
+      nom: "Lotton",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5a355c12-8fc2-5aaa-b25a-871e83513dcc",
+      type: "particulier",
+      nom: "Louiche",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2b1e6722-8a61-5001-a617-e9196f47a9d1",
+      type: "particulier",
+      nom: "Lozach Mary",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c54a3556-0c82-55ce-acaa-93ee108df6cc",
+      type: "particulier",
+      nom: "Lvm14",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "aec883c8-ed37-5a33-aaf4-06d720dd1749",
+      type: "public",
+      nom: "Lycée malherbe",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7a19e95c-1ecb-5491-bacb-cf1610ef1c63",
+      type: "particulier",
+      nom: "Magny renov",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "76b4b0d5-527c-54ba-a670-7dc25ae52883",
+      type: "particulier",
+      nom: "Mahe",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6463b527-a9e9-55f2-9c17-5bffb1e1493c",
+      type: "particulier",
+      nom: "Maillard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5ca97729-f3c3-5c00-bcb0-89f5c6d7536b",
+      type: "particulier",
+      nom: "Maincent",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e19161db-fad3-55e3-9ce3-9456c4ac4a72",
+      type: "public",
+      nom: "Mairie bretteville",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6590e25a-79e5-536f-9b1c-39c0fa233d2e",
+      type: "public",
+      nom: "Mairie Bretteville Laize Banc",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b7478a5b-0c18-5d9b-b2a7-0144e80f42f0",
+      type: "public",
+      nom: "Mairie de BSL",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a169bb47-3b58-5553-a6f3-6195e88985e2",
+      type: "public",
+      nom: "Mairie de combray",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f85f117a-d17d-57da-8752-89e8ed62383b",
+      type: "public",
+      nom: "Mairie de MOULT",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4506245d-64e0-5f52-b41b-59b1532353c8",
+      type: "public",
+      nom: "Mairie de perrière 2",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "fb9d0811-9f4e-5fcf-929f-90dc04fc2cfb",
+      type: "public",
+      nom: "Mairie Evrecy",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "012b9ff6-be15-594f-83f0-3f15753c5c52",
+      type: "particulier",
+      nom: "Maison Bois Metal",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8c5b15e1-3580-55c7-9312-c2d3390f80d3",
+      type: "particulier",
+      nom: "Malecot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "44265dca-dbc9-5fdc-98e5-f413f278dbcb",
+      type: "particulier",
+      nom: "Manche",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "69987e9d-2a8c-59be-8044-fd25c7e0b357",
+      type: "particulier",
+      nom: "Manoir Pommeraie",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "202cee28-c62a-5b2a-886f-82825cd3b24b",
+      type: "particulier",
+      nom: "Marabetti",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "77fd8ad4-4d80-5fa4-93a7-52d536f6194d",
+      type: "particulier",
+      nom: "Marchais",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "77bed385-9ad7-5cc8-9ec1-e991b420029f",
+      type: "particulier",
+      nom: "Marie",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5a00bc9a-f1d7-553e-aea4-7192f70b00c3",
+      type: "particulier",
+      nom: "MARIE Aurelien",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a704a702-4837-5d29-9f16-0923e7fd0575",
+      type: "particulier",
+      nom: "Marie nadine",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a88d88d7-edcb-5cae-9bde-ae114034b50f",
+      type: "particulier",
+      nom: "Marie stephanie",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3689469a-6699-54a7-b1ea-ddebc808362c",
+      type: "particulier",
+      nom: "Marie toit mondeville",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c955d83c-1b6c-5e97-8b83-17d3ad455c84",
+      type: "particulier",
+      nom: "Mariepierre(ancerne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e803033c-d85d-5cee-bde5-ca7903b50ec0",
+      type: "particulier",
+      nom: "Martin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c5fcf5d7-8c14-52b5-940a-7179eb069061",
+      type: "particulier",
+      nom: "Martins",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e363b353-a752-5bb4-9c17-6d7da2273706",
+      type: "particulier",
+      nom: "Mary etienne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4a2d59d4-6590-5ad0-999e-5fd6b92c8aed",
+      type: "particulier",
+      nom: "Maurice",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import * as THREE from 'three'
 import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
-  CheckCircle,
   Clock,
   Euro,
   ExternalLink,
@@ -17,11 +15,12 @@ import {
   ReceiptText,
   User,
 } from 'lucide-react'
-import { useApp } from '@/lib/store'
-import { getChantierCover } from '@/data/media'
-import { categorieLabels } from '@/data/factures'
-import type { Chantier, StatutChantier, TendanceChantier } from '@/data/chantiers'
 import type { Client } from '@/data/clients'
+import type { StatutChantier, TendanceChantier } from '@/data/chantiers'
+import type { PrevisionnelLine } from '@/data/previsionnel'
+import { operationalPrevisionnelLines } from '@/lib/previsionnelModel'
+import { categoryColors, categoryLabels, euro } from '@/lib/previsionnelAnalytics'
+import { useApp } from '@/lib/store'
 
 const typeLabel: Record<Client['type'], string> = {
   particulier: 'Particulier',
@@ -32,28 +31,36 @@ const typeLabel: Record<Client['type'], string> = {
 const typeStyle: Record<Client['type'], string> = {
   particulier: 'bg-[#FDEBDD] text-[#F06B21]',
   professionnel: 'bg-[#F1E6D6] text-[#A45A2C]',
-  public: 'bg-[#E6F4EA] text-[#1E8E3E]',
+  public: 'bg-[#DCE9F2] text-[#3C3C3C]',
 }
 
 const chantierStatus: Record<StatutChantier, { label: string; className: string }> = {
   en_cours: { label: 'En cours', className: 'bg-[#FDEBDD] text-[#F06B21]' },
   en_attente: { label: 'En attente', className: 'bg-[#FAF6F2] text-[#6B6B6B]' },
-  cloture: { label: 'Clôturé', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
+  cloture: { label: 'Clôturé', className: 'bg-[#F1E6D6] text-[#3C3C3C]' },
 }
 
 const tendencyStatus: Record<TendanceChantier, { label: string; className: string }> = {
-  vert: { label: 'Budget maîtrisé', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
+  vert: { label: 'Budget maîtrisé', className: 'bg-[#FAF6F2] text-[#3C3C3C]' },
   orange: { label: 'Surveillance', className: 'bg-[#FDEBDD] text-[#F06B21]' },
   rouge: { label: 'Risque marge', className: 'bg-[#FEE2E2] text-[#DC2626]' },
 }
 
 function formatDate(value?: string | null) {
   if (!value) return 'Non renseignée'
-  return new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Non renseignée'
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function formatEuros(value: number) {
-  return `${Math.round(value).toLocaleString('fr-FR')} €`
+function amountBase(line?: PrevisionnelLine | null, fallback = 0) {
+  if (!line) return fallback
+  return line.caPrevision || line.caContrat || line.plannedTotal || line.realizedTotal
+}
+
+function chantierLineId(chantierId?: string | null) {
+  if (!chantierId?.startsWith('prev-chantier-')) return null
+  return `prev-${chantierId.replace(/^prev-chantier-/, '')}`
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -87,264 +94,44 @@ function MetricCard({
   )
 }
 
-function ChantierScene3D({ chantier }: { chantier?: Chantier }) {
-  const hostRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const host = hostRef.current
-    if (!host) return
-    const mount = host
-
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100)
-    camera.position.set(5.2, 3.2, 6.3)
-    camera.lookAt(0.25, 1.05, 0)
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.shadowMap.enabled = true
-    renderer.domElement.style.height = '100%'
-    renderer.domElement.style.width = '100%'
-    renderer.domElement.style.touchAction = 'none'
-    mount.appendChild(renderer.domElement)
-
-    const ambient = new THREE.AmbientLight(0xffffff, 1.2)
-    const key = new THREE.DirectionalLight(0xffffff, 2.2)
-    key.position.set(4, 6, 3)
-    key.castShadow = true
-    scene.add(ambient, key)
-
-    const group = new THREE.Group()
-    scene.add(group)
-
-    const timber = new THREE.MeshStandardMaterial({ color: '#B8753D', roughness: 0.58, metalness: 0.05 })
-    const timberDark = new THREE.MeshStandardMaterial({ color: '#8A552B', roughness: 0.62, metalness: 0.03 })
-    const dark = new THREE.MeshStandardMaterial({ color: '#1E1E1E', roughness: 0.68 })
-    const orange = new THREE.MeshStandardMaterial({ color: '#F06B21', roughness: 0.5 })
-    const sand = new THREE.MeshStandardMaterial({ color: '#F1E6D6', roughness: 0.72 })
-    const groundMaterial = new THREE.MeshStandardMaterial({ color: '#EADBC8', roughness: 0.9 })
-
-    const ground = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 3.2, 0.12, 44), groundMaterial)
-    ground.position.y = -0.12
-    ground.receiveShadow = true
-    group.add(ground)
-
-    function box(width: number, height: number, depth: number, x: number, y: number, z: number, material: THREE.Material) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material)
-      mesh.position.set(x, y, z)
-      mesh.castShadow = true
-      mesh.receiveShadow = true
-      group.add(mesh)
-      return mesh
-    }
-
-    function beamBetween(
-      start: [number, number, number],
-      end: [number, number, number],
-      thickness: number,
-      material: THREE.Material,
-      depth = thickness,
-    ) {
-      const startVector = new THREE.Vector3(...start)
-      const endVector = new THREE.Vector3(...end)
-      const direction = new THREE.Vector3().subVectors(endVector, startVector)
-      const length = direction.length()
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(thickness, length, depth), material)
-      mesh.position.copy(startVector).add(endVector).multiplyScalar(0.5)
-      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize())
-      mesh.castShadow = true
-      mesh.receiveShadow = true
-      group.add(mesh)
-      return mesh
-    }
-
-    box(3.75, 0.16, 2.35, 0, 0.02, 0, dark)
-    box(3.35, 0.08, 1.95, 0, 0.18, 0, sand)
-
-    const postPositions = [
-      [-1.55, 0.82, -0.92],
-      [1.55, 0.82, -0.92],
-      [-1.55, 0.82, 0.92],
-      [1.55, 0.82, 0.92],
-      [-0.52, 0.82, -0.92],
-      [0.52, 0.82, -0.92],
-      [-0.52, 0.82, 0.92],
-      [0.52, 0.82, 0.92],
-    ] as const
-    postPositions.forEach(([x, y, z]) => box(0.13, 1.28, 0.13, x, y, z, timber))
-
-    const sideY = 1.46
-    beamBetween([-1.72, sideY, -0.98], [1.72, sideY, -0.98], 0.13, timberDark)
-    beamBetween([-1.72, sideY, 0.98], [1.72, sideY, 0.98], 0.13, timberDark)
-    beamBetween([-1.72, sideY, -0.98], [-1.72, sideY, 0.98], 0.13, timberDark)
-    beamBetween([1.72, sideY, -0.98], [1.72, sideY, 0.98], 0.13, timberDark)
-
-    ;[-1.28, -0.86, -0.44, 0.44, 0.86, 1.28].forEach(x => {
-      beamBetween([x, 0.24, -0.96], [x, 1.42, -0.96], 0.07, timber)
-      beamBetween([x, 0.24, 0.96], [x, 1.42, 0.96], 0.07, timber)
-    })
-
-    beamBetween([-1.58, 0.34, -1.0], [-0.68, 1.34, -1.0], 0.08, timberDark)
-    beamBetween([1.58, 0.34, -1.0], [0.68, 1.34, -1.0], 0.08, timberDark)
-    beamBetween([-1.58, 0.34, 1.0], [-0.68, 1.34, 1.0], 0.08, timberDark)
-    beamBetween([1.58, 0.34, 1.0], [0.68, 1.34, 1.0], 0.08, timberDark)
-
-    const ridgeY = 2.18
-    beamBetween([-1.86, ridgeY, 0], [1.86, ridgeY, 0], 0.13, orange)
-    beamBetween([-1.86, 1.77, -0.54], [1.86, 1.77, -0.54], 0.1, timberDark)
-    beamBetween([-1.86, 1.77, 0.54], [1.86, 1.77, 0.54], 0.1, timberDark)
-
-    ;[-1.68, -1.12, -0.56, 0, 0.56, 1.12, 1.68].forEach(x => {
-      beamBetween([x, sideY, -1.1], [x, ridgeY, 0], 0.08, timber)
-      beamBetween([x, sideY, 1.1], [x, ridgeY, 0], 0.08, timber)
-    })
-
-    ;[-1.82, 1.82].forEach(x => {
-      beamBetween([x, sideY, -1.1], [x, ridgeY, 0], 0.1, timberDark)
-      beamBetween([x, sideY, 1.1], [x, ridgeY, 0], 0.1, timberDark)
-      beamBetween([x, sideY, 0], [x, ridgeY, 0], 0.08, timberDark)
-    })
-
-    const chantierOffset = chantier?.id.endsWith('4') ? -0.5 : chantier?.id.endsWith('3') ? 0.42 : 0
-    group.rotation.y = -0.45 + chantierOffset
-    group.position.x = 0.48
-    const baseGroupY = -0.22
-    group.position.y = baseGroupY
-    group.position.z = 0.08
-
-    let frame = 0
-    let targetRotation = group.rotation.y
-    let dragging = false
-    let lastX = 0
-
-    function onPointerDown(event: PointerEvent) {
-      dragging = true
-      lastX = event.clientX
-      renderer.domElement.setPointerCapture(event.pointerId)
-    }
-
-    function onPointerMove(event: PointerEvent) {
-      if (!dragging) return
-      const delta = event.clientX - lastX
-      lastX = event.clientX
-      targetRotation += delta * 0.008
-    }
-
-    function onPointerUp(event: PointerEvent) {
-      dragging = false
-      renderer.domElement.releasePointerCapture(event.pointerId)
-    }
-
-    renderer.domElement.addEventListener('pointerdown', onPointerDown)
-    renderer.domElement.addEventListener('pointermove', onPointerMove)
-    renderer.domElement.addEventListener('pointerup', onPointerUp)
-    renderer.domElement.addEventListener('pointercancel', onPointerUp)
-
-    function resize() {
-      const width = Math.max(mount.clientWidth, 1)
-      const height = Math.max(mount.clientHeight, 1)
-      renderer.setSize(width, height, false)
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-    }
-
-    const resizeObserver = new ResizeObserver(resize)
-    resizeObserver.observe(mount)
-    resize()
-
-    function animate() {
-      frame = requestAnimationFrame(animate)
-      if (!dragging) targetRotation += 0.002
-      group.rotation.y += (targetRotation - group.rotation.y) * 0.08
-      group.position.y = baseGroupY + Math.sin(Date.now() * 0.0012) * 0.015
-      renderer.render(scene, camera)
-    }
-    animate()
-
-    return () => {
-      cancelAnimationFrame(frame)
-      resizeObserver.disconnect()
-      renderer.domElement.removeEventListener('pointerdown', onPointerDown)
-      renderer.domElement.removeEventListener('pointermove', onPointerMove)
-      renderer.domElement.removeEventListener('pointerup', onPointerUp)
-      renderer.domElement.removeEventListener('pointercancel', onPointerUp)
-      renderer.dispose()
-      mount.removeChild(renderer.domElement)
-      scene.traverse((object: THREE.Object3D) => {
-        if (object instanceof THREE.Mesh) {
-          object.geometry.dispose()
-        }
-      })
-      ;[timber, timberDark, dark, orange, sand, groundMaterial].forEach(material => material.dispose())
-    }
-  }, [chantier])
-
-  return <div ref={hostRef} className="absolute inset-0" aria-label="Vue 3D du chantier" />
-}
-
-function ChantierTimeline({ chantier }: { chantier?: Chantier }) {
-  if (!chantier) return null
-
-  const timeline = [
-    { label: 'Dossier signé', date: '10 déc. 2025', state: 'done' },
-    { label: 'Démarrage', date: formatDate(chantier.dateDebut), state: 'done' },
-    { label: 'Structure bois', date: 'En cours', state: chantier.statut === 'cloture' ? 'done' : 'active' },
-    { label: 'Second oeuvre', date: 'Mai 2026', state: chantier.statut === 'cloture' ? 'done' : 'todo' },
-    { label: 'Réception', date: formatDate(chantier.dateFin ?? chantier.dateFinPrevue), state: chantier.statut === 'cloture' ? 'done' : 'todo' },
-  ]
-
-  return (
-    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-5">
-      {timeline.map((item, index) => {
-        const isDone = item.state === 'done'
-        const isActive = item.state === 'active'
-        return (
-          <div key={item.label} className="relative">
-            {index < timeline.length - 1 && (
-              <div className={`absolute left-5 top-5 hidden h-px w-[calc(100%_-_10px)] sm:block ${isDone ? 'bg-[#F06B21]' : 'bg-[#EADBC8]'}`} />
-            )}
-            <div className="relative z-10 flex gap-3 sm:block">
-              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-[12px] font-bold ${isDone ? 'bg-[#F06B21] text-white' : isActive ? 'border-2 border-[#F06B21] bg-white text-[#F06B21]' : 'bg-[#EADBC8] text-[#6B6B6B]'}`}>
-                {isDone ? <CheckCircle className="h-4 w-4" strokeWidth={2} /> : index + 1}
-              </span>
-              <div className="sm:mt-3">
-                <p className="text-[12px] font-semibold text-[#1E1E1E]">{item.label}</p>
-                <p className="mt-1 text-[11px] text-[#6B6B6B]">{item.date}</p>
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
+function EmptyValue({ label }: { label: string }) {
+  return <span className="text-[#9CA3AF]">{label} non fourni par l'Excel</span>
 }
 
 export function ClientDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { clients, chantiers, factures } = useApp()
+  const { clients, chantiers } = useApp()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
+  const previsionnelByLineId = useMemo(
+    () => new Map(operationalPrevisionnelLines.map(line => [line.id, line])),
+    [],
+  )
   const client = clients.find(item => item.id === id)
   const clientChantiers = useMemo(
     () => chantiers.filter(chantier => chantier.clientId === id),
     [chantiers, id],
   )
+  const clientLines = useMemo(
+    () => clientChantiers
+      .map(chantier => previsionnelByLineId.get(chantierLineId(chantier.id) ?? ''))
+      .filter((line): line is PrevisionnelLine => Boolean(line)),
+    [clientChantiers, previsionnelByLineId],
+  )
 
   const selectedChantier = clientChantiers.find(chantier => chantier.id === selectedId) ?? clientChantiers[0]
-  const chantierFactures = factures.filter(facture => selectedChantier?.factureIds.includes(facture.id))
-  const clientFactures = factures.filter(facture => clientChantiers.some(chantier => chantier.factureIds.includes(facture.id)))
-  const validatedTotal = clientFactures.filter(facture => facture.statut === 'validee').reduce((sum, facture) => sum + facture.montantTTC, 0)
-  const pendingTotal = clientFactures.filter(facture => facture.statut === 'en_attente').reduce((sum, facture) => sum + facture.montantTTC, 0)
-  const budget = selectedChantier?.budgetPrevisionnel ?? 0
-  const spent = selectedChantier?.depensesEngagees ?? 0
-  const budgetProgress = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0
-  const acompte = Math.round(budget * 0.3)
-  const balance = Math.max(0, budget - validatedTotal)
-  const paymentStatus = pendingTotal > 0
-    ? { label: 'À contrôler', detail: `${formatEuros(pendingTotal)} en attente`, className: 'bg-[#FDEBDD] text-[#F06B21]' }
-    : { label: 'À jour', detail: 'Aucun règlement bloquant', className: 'bg-[#E6F4EA] text-[#1E8E3E]' }
+  const selectedLine = previsionnelByLineId.get(chantierLineId(selectedChantier?.id) ?? '')
+  const selectedBudget = amountBase(selectedLine, selectedChantier?.budgetPrevisionnel ?? 0)
+  const selectedRealized = selectedLine?.realizedTotal ?? selectedChantier?.depensesEngagees ?? 0
+  const budgetProgress = selectedBudget > 0 ? Math.min(100, Math.round((selectedRealized / selectedBudget) * 100)) : 0
+  const totalBudget = clientLines.reduce((sum, line) => sum + amountBase(line), 0)
+  const totalRealized = clientLines.reduce((sum, line) => sum + line.realizedTotal, 0)
+  const invoiceSentCells = clientLines.reduce(
+    (sum, line) => sum + line.monthly.filter(month => month.invoiceSent).length,
+    0,
+  )
+  const latestExercise = clientLines.map(line => line.exercise).sort().at(-1) ?? 'Non renseigné'
 
   if (!client) {
     return (
@@ -355,7 +142,7 @@ export function ClientDetailPage() {
         </button>
         <Card className="mt-6 p-8">
           <h1 className="text-xl font-semibold text-[#1E1E1E]">Client introuvable</h1>
-          <p className="mt-2 text-sm text-[#6B6B6B]">La fiche demandée n’existe pas dans les données de démonstration.</p>
+          <p className="mt-2 text-sm text-[#6B6B6B]">La fiche demandée n'existe pas dans les données chargées.</p>
         </Card>
       </div>
     )
@@ -372,86 +159,76 @@ export function ClientDetailPage() {
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-[30px] font-semibold leading-tight text-[#1E1E1E]">{client.nom}</h1>
             <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${typeStyle[client.type]}`}>{typeLabel[client.type]}</span>
-            <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${paymentStatus.className}`}>{paymentStatus.label}</span>
+            <span className="rounded-full bg-[#FAF6F2] px-2.5 py-1 text-[12px] font-semibold text-[#6B6B6B]">
+              {clientLines.length} ligne{clientLines.length > 1 ? 's' : ''} Excel
+            </span>
           </div>
           <p className="mt-2 max-w-2xl text-sm text-[#6B6B6B]">
-            Fiche client consolidée : coordonnées, règlement, chantiers liés et suivi opérationnel en une vue.
+            Fiche consolidée depuis le prévisionnel Excel : chantiers, exercices, catégories, montants et cellules mensuelles de factures envoyées.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <a href={`mailto:${client.email}`} className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-semibold text-[#1E1E1E] hover:bg-[#F9F7F3]">
-            <Mail className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-            Écrire
-          </a>
-          {selectedChantier && (
-            <Link to={`/chantiers/${selectedChantier.id}`} className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]">
-              Ouvrir chantier
-              <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
-            </Link>
-          )}
-        </div>
+        {selectedChantier && (
+          <Link to={`/chantiers/${selectedChantier.id}`} className="inline-flex h-10 w-fit items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]">
+            Ouvrir chantier
+            <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <main className="min-w-0 space-y-5">
-          <section className="relative min-h-[430px] overflow-hidden rounded-[24px] bg-[#1E1E1E] sm:min-h-[390px]">
-            <ChantierScene3D chantier={selectedChantier} />
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-wrap items-start justify-between gap-4 p-5">
+          <Card className="overflow-hidden">
+            <div className="flex flex-col gap-4 border-b border-[#F2E8DC] p-5 xl:flex-row xl:items-start xl:justify-between">
               <div>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F06B21]">Vue chantier 3D</p>
-                <h2 className="mt-2 text-[24px] font-semibold text-white">{selectedChantier?.nom ?? 'Aucun chantier'}</h2>
-                <p className="mt-1 max-w-[460px] text-sm text-white/70">
-                  {selectedChantier ? 'Maquette chantier : charpente apparente, chevrons et contreventements visibles.' : 'Aucun chantier rattaché à cette fiche client.'}
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F06B21]">Chantier sélectionné</p>
+                <h2 className="mt-2 text-[24px] font-semibold text-[#1E1E1E]">{selectedLine?.rawName ?? selectedChantier?.nom ?? 'Aucun chantier'}</h2>
+                <p className="mt-1 text-sm text-[#6B6B6B]">
+                  {selectedLine
+                    ? `Source ${selectedLine.sourceSheet}, ligne ${selectedLine.sourceRow}.`
+                    : 'Aucune ligne Excel rattachée à ce chantier.'}
                 </p>
               </div>
-              {selectedChantier && (
-                <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${chantierStatus[selectedChantier.statut].className}`}>
-                  {chantierStatus[selectedChantier.statut].label}
-                </span>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {selectedLine && (
+                  <span
+                    className="rounded-full border px-3 py-1 text-[12px] font-semibold"
+                    style={{ borderColor: categoryColors[selectedLine.category], color: categoryColors[selectedLine.category] }}
+                  >
+                    {categoryLabels[selectedLine.category]}
+                  </span>
+                )}
+                {selectedChantier && (
+                  <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${chantierStatus[selectedChantier.statut].className}`}>
+                    {chantierStatus[selectedChantier.statut].label}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="pointer-events-none absolute bottom-5 left-5 hidden rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-medium text-white/75 backdrop-blur sm:block">
-              Glisser pour tourner la maquette
+            <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
+              <MetricCard icon={CalendarDays} label="Exercice" value={selectedLine?.exercise ?? latestExercise} detail={`Début chantier : ${formatDate(selectedChantier?.dateDebut)}`} />
+              <MetricCard icon={Euro} label="Budget Excel" value={euro(selectedBudget)} detail={`${budgetProgress}% réalisé`} />
+              <MetricCard icon={ReceiptText} label="Réalisé Excel" value={euro(selectedRealized)} detail={`Facturé/envoyé : ${euro(selectedLine?.invoicedTotal ?? 0)}`} />
+              <MetricCard icon={Clock} label="Facture envoyée" value={`${selectedLine?.monthly.filter(month => month.invoiceSent).length ?? 0}`} detail="Cellules jaunes Excel, pas paiement encaissé" />
             </div>
-            <div className="absolute bottom-5 right-5 flex flex-wrap justify-end gap-2">
-              {clientChantiers.map(chantier => (
-                <button
-                  key={chantier.id}
-                  type="button"
-                  onClick={() => setSelectedId(chantier.id)}
-                  className={`pointer-events-auto rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${selectedChantier?.id === chantier.id ? 'bg-[#F06B21] text-white' : 'bg-white/12 text-white hover:bg-white/20'}`}
-                >
-                  {chantier.nom}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard icon={CalendarDays} label="Début chantier" value={formatDate(selectedChantier?.dateDebut)} detail={`Livraison prévue : ${formatDate(selectedChantier?.dateFinPrevue)}`} />
-            <MetricCard icon={Euro} label="Budget chantier" value={formatEuros(budget)} detail={`${budgetProgress}% engagé`} />
-            <MetricCard icon={ReceiptText} label="Règlement client" value={paymentStatus.label} detail={paymentStatus.detail} />
-            <MetricCard icon={Clock} label="Dernier échange" value="21 avr. 2026" detail="Relance menuiseries envoyée" />
-          </div>
+          </Card>
 
           {selectedChantier && (
             <Card className="p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <h2 className="text-[18px] font-semibold text-[#1E1E1E]">Suivi opérationnel</h2>
-                  <p className="mt-1 text-sm text-[#6B6B6B]">{selectedChantier.adresse}</p>
+                  <h2 className="text-[18px] font-semibold text-[#1E1E1E]">Suivi prévisionnel</h2>
+                  <p className="mt-1 text-sm text-[#6B6B6B]">{selectedChantier.description}</p>
                 </div>
                 <span className={`w-fit rounded-full px-3 py-1 text-[12px] font-semibold ${tendencyStatus[selectedChantier.tendance].className}`}>
                   {tendencyStatus[selectedChantier.tendance].label}
                 </span>
               </div>
-              <ChantierTimeline chantier={selectedChantier} />
               <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_280px]">
                 <div>
                   <div className="mb-2 flex items-center justify-between text-[12px] font-medium">
-                    <span className="text-[#6B6B6B]">Dépenses engagées</span>
-                    <span className="text-[#1E1E1E]">{formatEuros(spent)} / {formatEuros(budget)}</span>
+                    <span className="text-[#6B6B6B]">Réalisé Excel</span>
+                    <span className="text-[#1E1E1E]">{euro(selectedRealized)} / {euro(selectedBudget)}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-[#EADBC8]">
                     <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${budgetProgress}%` }} />
@@ -459,12 +236,12 @@ export function ClientDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-[12px]">
                   <div className="rounded-[14px] bg-[#FAF6F2] p-3">
-                    <p className="text-[#6B6B6B]">Chef chantier</p>
-                    <p className="mt-1 font-semibold text-[#1E1E1E]">{selectedChantier.chefChantier}</p>
+                    <p className="text-[#6B6B6B]">CA contrat</p>
+                    <p className="mt-1 font-semibold text-[#1E1E1E]">{euro(selectedLine?.caContrat ?? 0)}</p>
                   </div>
                   <div className="rounded-[14px] bg-[#FAF6F2] p-3">
-                    <p className="text-[#6B6B6B]">Factures</p>
-                    <p className="mt-1 font-semibold text-[#1E1E1E]">{chantierFactures.length} pièce(s)</p>
+                    <p className="text-[#6B6B6B]">CA prévision</p>
+                    <p className="mt-1 font-semibold text-[#1E1E1E]">{euro(selectedLine?.caPrevision ?? 0)}</p>
                   </div>
                 </div>
               </div>
@@ -472,89 +249,103 @@ export function ClientDetailPage() {
           )}
 
           <Card className="overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#F2E8DC] px-5 py-4">
-              <div>
-                <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Factures liées</h2>
-                <p className="mt-1 text-[12px] text-[#6B6B6B]">Dernières pièces rattachées au chantier sélectionné.</p>
-              </div>
-              <Link to="/factures" className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#F06B21]">
-                Voir factures
-                <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
-              </Link>
+            <div className="border-b border-[#F2E8DC] px-5 py-4">
+              <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Mensualisation Excel</h2>
+              <p className="mt-1 text-[12px] text-[#6B6B6B]">Les cellules jaunes indiquent une facture envoyée, pas forcément payée.</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-[13px]">
                 <thead className="bg-[#FAF6F2] text-[12px] font-medium text-[#6B6B6B]">
                   <tr>
-                    <th className="px-5 py-3">Fournisseur</th>
-                    <th className="px-5 py-3">N° facture</th>
-                    <th className="px-5 py-3">Catégorie</th>
-                    <th className="px-5 py-3">Date</th>
-                    <th className="px-5 py-3">Montant TTC</th>
-                    <th className="px-5 py-3">Statut</th>
+                    <th className="px-5 py-3">Mois</th>
+                    <th className="px-5 py-3 text-right">Prévu</th>
+                    <th className="px-5 py-3 text-right">Réalisé</th>
+                    <th className="px-5 py-3">Facture envoyée</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {chantierFactures.map(facture => (
-                    <tr key={facture.id} className="border-t border-[#F2E8DC]">
-                      <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{facture.fournisseur}</td>
-                      <td className="px-5 py-3 text-[#3C3C3C]">{facture.numeroFacture}</td>
-                      <td className="px-5 py-3 text-[#3C3C3C]">{categorieLabels[facture.categorie]}</td>
-                      <td className="px-5 py-3 text-[#3C3C3C]">{formatDate(facture.date)}</td>
-                      <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{formatEuros(facture.montantTTC)}</td>
+                  {(selectedLine?.monthly ?? []).map(month => (
+                    <tr key={`${month.order}-${month.month}`} className="border-t border-[#F2E8DC]">
+                      <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{month.label}</td>
+                      <td className="px-5 py-3 text-right text-[#3C3C3C]">{euro(month.planned)}</td>
+                      <td className="px-5 py-3 text-right font-semibold text-[#1E1E1E]">{euro(month.realized)}</td>
                       <td className="px-5 py-3">
-                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${facture.statut === 'validee' ? 'bg-[#E6F4EA] text-[#1E8E3E]' : 'bg-[#FDEBDD] text-[#F06B21]'}`}>
-                          {facture.statut === 'validee' ? 'Validée' : 'À contrôler'}
+                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${month.invoiceSent ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#FAF6F2] text-[#6B6B6B]'}`}>
+                          {month.invoiceSent ? 'Oui' : 'Non'}
                         </span>
                       </td>
                     </tr>
                   ))}
+                  {!selectedLine?.monthly.length && (
+                    <tr>
+                      <td colSpan={4} className="border-t border-[#F2E8DC] px-5 py-8 text-center text-sm text-[#6B6B6B]">
+                        Aucune mensualisation détaillée dans l'Excel pour ce chantier.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
+            </div>
+          </Card>
+
+          <Card className="overflow-hidden">
+            <div className="border-b border-[#F2E8DC] px-5 py-4">
+              <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Lots Excel</h2>
+              <p className="mt-1 text-[12px] text-[#6B6B6B]">Ventilation disponible dans la ligne source.</p>
+            </div>
+            <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-3">
+              {Object.entries(selectedLine?.lots ?? {}).map(([lot, value]) => (
+                <div key={lot} className="rounded-[14px] bg-[#FAF6F2] p-3">
+                  <p className="text-[12px] capitalize text-[#6B6B6B]">{lot.replace(/_/g, ' ')}</p>
+                  <p className="mt-1 font-semibold text-[#1E1E1E]">{euro(value)}</p>
+                </div>
+              ))}
+              {Object.keys(selectedLine?.lots ?? {}).length === 0 && (
+                <p className="text-sm text-[#6B6B6B]">Aucun lot détaillé dans l'Excel pour ce chantier.</p>
+              )}
             </div>
           </Card>
         </main>
 
         <aside className="space-y-5">
-          <Card className="overflow-hidden">
-            <img src={getChantierCover(selectedChantier?.id)} alt="Aperçu chantier" className="h-44 w-full object-cover" />
-            <div className="p-5">
-              <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Informations client</h2>
-              <div className="mt-4 space-y-3 text-[13px]">
-                <div className="flex gap-3">
-                  <User className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                  <div>
-                    <p className="font-semibold text-[#1E1E1E]">{client.nom}</p>
-                    <p className="text-[#6B6B6B]">Client depuis {formatDate(client.dateCreation)}</p>
-                  </div>
+          <Card className="p-5">
+            <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Informations client</h2>
+            <div className="mt-4 space-y-3 text-[13px]">
+              <div className="flex gap-3">
+                <User className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                <div>
+                  <p className="font-semibold text-[#1E1E1E]">{client.nom}</p>
+                  <p className="text-[#6B6B6B]">Première ligne : {formatDate(client.dateCreation)}</p>
                 </div>
-                <div className="flex gap-3">
-                  <Mail className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                  <a href={`mailto:${client.email}`} className="text-[#3C3C3C] hover:text-[#F06B21]">{client.email}</a>
-                </div>
-                <div className="flex gap-3">
-                  <Phone className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                  <a href={`tel:${client.telephone.replace(/\s/g, '')}`} className="text-[#3C3C3C] hover:text-[#F06B21]">{client.telephone}</a>
-                </div>
-                <div className="flex gap-3">
-                  <MapPin className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                  <p className="text-[#3C3C3C]">{client.adresse}, {client.codePostal} {client.ville}</p>
-                </div>
+              </div>
+              <div className="flex gap-3">
+                <Mail className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                {client.email ? <a href={`mailto:${client.email}`} className="text-[#3C3C3C] hover:text-[#F06B21]">{client.email}</a> : <EmptyValue label="Email" />}
+              </div>
+              <div className="flex gap-3">
+                <Phone className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                {client.telephone ? <a href={`tel:${client.telephone.replace(/\s/g, '')}`} className="text-[#3C3C3C] hover:text-[#F06B21]">{client.telephone}</a> : <EmptyValue label="Téléphone" />}
+              </div>
+              <div className="flex gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                {client.adresse || client.codePostal || client.ville
+                  ? <p className="text-[#3C3C3C]">{[client.adresse, client.codePostal, client.ville].filter(Boolean).join(' ')}</p>
+                  : <EmptyValue label="Adresse" />}
               </div>
             </div>
           </Card>
 
           <Card className="p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Règlement</h2>
-              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${paymentStatus.className}`}>{paymentStatus.label}</span>
+              <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Synthèse Excel</h2>
+              <span className="rounded-full bg-[#FAF6F2] px-2.5 py-1 text-[11px] font-semibold text-[#6B6B6B]">{latestExercise}</span>
             </div>
             <div className="mt-4 space-y-3">
               {[
-                ['Acompte prévu', formatEuros(acompte)],
-                ['Factures validées', formatEuros(validatedTotal)],
-                ['En attente contrôle', formatEuros(pendingTotal)],
-                ['Reste à facturer', formatEuros(balance)],
+                ['Chantiers', `${clientLines.length}`],
+                ['Budget total', euro(totalBudget)],
+                ['Réalisé total', euro(totalRealized)],
+                ['Cellules facture envoyée', `${invoiceSentCells}`],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between rounded-[12px] bg-[#FAF6F2] px-3 py-2.5 text-[13px]">
                   <span className="text-[#6B6B6B]">{label}</span>
@@ -567,35 +358,40 @@ export function ClientDetailPage() {
           <Card className="p-5">
             <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Chantiers du client</h2>
             <div className="mt-4 space-y-3">
-              {clientChantiers.map(chantier => (
-                <button
-                  key={chantier.id}
-                  type="button"
-                  onClick={() => setSelectedId(chantier.id)}
-                  className={`flex w-full items-start gap-3 rounded-[14px] border p-3 text-left transition-colors ${selectedChantier?.id === chantier.id ? 'border-[#F06B21] bg-[#FFF9F4]' : 'border-[#F2E8DC] bg-white hover:bg-[#FAF6F2]'}`}
-                >
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
-                    <Hammer className="h-4 w-4" strokeWidth={1.75} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{chantier.nom}</p>
-                    <p className="mt-1 text-[11px] text-[#6B6B6B]">Début {formatDate(chantier.dateDebut)}</p>
-                  </div>
-                  <ArrowRight className="mt-1 h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                </button>
-              ))}
+              {clientChantiers.map(chantier => {
+                const line = previsionnelByLineId.get(chantierLineId(chantier.id) ?? '')
+                return (
+                  <button
+                    key={chantier.id}
+                    type="button"
+                    onClick={() => setSelectedId(chantier.id)}
+                    className={`flex w-full items-start gap-3 rounded-[14px] border p-3 text-left transition-colors ${selectedChantier?.id === chantier.id ? 'border-[#F06B21] bg-[#FFF9F4]' : 'border-[#F2E8DC] bg-white hover:bg-[#FAF6F2]'}`}
+                  >
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
+                      <Hammer className="h-4 w-4" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{line?.rawName ?? chantier.nom}</p>
+                      <p className="mt-1 text-[11px] text-[#6B6B6B]">
+                        {line ? `${line.exercise} · ${categoryLabels[line.category]} · ligne ${line.sourceRow}` : `Début ${formatDate(chantier.dateDebut)}`}
+                      </p>
+                    </div>
+                    <ArrowRight className="mt-1 h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                  </button>
+                )
+              })}
             </div>
           </Card>
 
           <Card className="p-5">
-            <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Documents demo</h2>
-            <div className="mt-4 space-y-2">
-              {['Devis signé.pdf', 'Plan ossature v3.pdf', 'Compte-rendu chantier.pdf'].map(document => (
-                <div key={document} className="flex items-center gap-3 rounded-[12px] bg-[#FAF6F2] px-3 py-2.5 text-[13px] text-[#3C3C3C]">
-                  <FileText className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                  {document}
-                </div>
-              ))}
+            <div className="flex gap-3">
+              <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[#F06B21]" strokeWidth={1.75} />
+              <div>
+                <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Source de la fiche</h2>
+                <p className="mt-2 text-[13px] text-[#6B6B6B]">
+                  Cette fiche n'affiche pas de documents, emails, photos ou contacts inventés. Les champs absents dans l'Excel restent explicitement non renseignés.
+                </p>
+              </div>
             </div>
           </Card>
         </aside>

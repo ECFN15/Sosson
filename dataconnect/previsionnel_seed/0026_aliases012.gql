@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases012: clientAlias_upsertMany(data: [
+    {
+      id: "90ccbf0d-fddf-5968-9f25-1692151692dd",
+      clientId: "1f4debf8-dee7-51c9-b995-aebb0818253f",
+      alias: "SCHACHER",
+      normalizedKey: "schacher",
+      source: "excel"
+    },
+    {
+      id: "ee188856-a630-5635-8eec-0c938742cf16",
+      clientId: "d1be87b6-38f1-53a9-a8cd-1fa532ae55bb",
+      alias: "SCHIEL",
+      normalizedKey: "schiel",
+      source: "excel"
+    },
+    {
+      id: "9beb7d52-dd01-54d8-ac53-bdfc9b606563",
+      clientId: "a848e5c8-e83a-5913-afcf-83ca62c8170c",
+      alias: "SCI AMSD",
+      normalizedKey: "sci-amsd",
+      source: "excel"
+    },
+    {
+      id: "98490302-2c31-546e-89e9-702a7c067d8d",
+      clientId: "202cd42d-46d0-51aa-80af-47aa3dbe1ee7",
+      alias: "SCI COTARD",
+      normalizedKey: "sci-cotard",
+      source: "excel"
+    },
+    {
+      id: "69e4167c-958b-5afd-ad68-8d9350cffe34",
+      clientId: "1a7936d8-eadd-5a5b-9ce4-90b8d05cc899",
+      alias: "SCI DES MOTTETS",
+      normalizedKey: "sci-des-mottets",
+      source: "excel"
+    },
+    {
+      id: "d0bacbae-68f1-5317-ae33-3f0490810306",
+      clientId: "c7be6f26-b6d1-5657-a321-86468fc6ff3d",
+      alias: "SCI FELAH",
+      normalizedKey: "sci-felah",
+      source: "excel"
+    },
+    {
+      id: "55c6478f-3496-53d0-aec6-e8354be4a303",
+      clientId: "2e33ddf3-3ee9-57d8-89e2-eaf64878f28d",
+      alias: "sci fill st sylvain",
+      normalizedKey: "sci-fill-st-sylvain",
+      source: "excel"
+    },
+    {
+      id: "34201703-bed5-561d-b71d-f2162e64b0fb",
+      clientId: "aca8bc5e-37ac-5096-a66d-804aa77c058e",
+      alias: "SCI GALOU",
+      normalizedKey: "sci-galou",
+      source: "excel"
+    },
+    {
+      id: "8fa097ee-e6cf-5d21-89de-29e9831d3866",
+      clientId: "b234d215-fb30-5f41-9666-057ff8a767f3",
+      alias: "SCI IFL",
+      normalizedKey: "sci-ifl",
+      source: "excel"
+    },
+    {
+      id: "fb790b37-7564-5ac8-9b6a-d6a997a70390",
+      clientId: "44cb8c0b-f2d4-5ef8-abab-71e31d60d17c",
+      alias: "sci jls",
+      normalizedKey: "sci-jls",
+      source: "excel"
+    },
+    {
+      id: "7d1c3f83-55da-56ff-b7b8-b72772a6e38c",
+      clientId: "e588261d-0e3c-54d6-bd08-a06f2abb45bf",
+      alias: "SCI JPBLB",
+      normalizedKey: "sci-jpblb",
+      source: "excel"
+    },
+    {
+      id: "49873c2f-49e1-52a3-8f0c-b7b22a563c1d",
+      clientId: "7c72f06c-eb32-5883-a0fe-7a6b4d77066c",
+      alias: "SCI LA JALOUSIE",
+      normalizedKey: "sci-la-jalousie",
+      source: "excel"
+    },
+    {
+      id: "e2d18b3a-7c50-53c2-80a6-a0de43354792",
+      clientId: "233844d5-b016-52b8-9b80-20b920b0a10f",
+      alias: "SCI LA MOINERIE",
+      normalizedKey: "sci-la-moinerie",
+      source: "excel"
+    },
+    {
+      id: "01bb19d9-4d92-5868-b10f-136aab08ac24",
+      clientId: "dffe7436-d23a-5328-b64b-2c333b6d57f5",
+      alias: "SCI LABRADORITE",
+      normalizedKey: "sci-labradorite",
+      source: "excel"
+    },
+    {
+      id: "f590ed94-a3b8-5ee7-bf49-fba563cd9937",
+      clientId: "f6a0b81b-d831-5e63-90db-14987aecd6ad",
+      alias: "SCI MICSTEPH",
+      normalizedKey: "sci-micsteph",
+      source: "excel"
+    },
+    {
+      id: "77e77acc-5b67-5386-8b48-862ef3164804",
+      clientId: "eb3c8122-2fd0-5b57-9109-5b771ec92520",
+      alias: "SCI NOMELANI",
+      normalizedKey: "sci-nomelani",
+      source: "excel"
+    },
+    {
+      id: "20f41200-1074-53ad-a4a0-94a3fa787181",
+      clientId: "b5c41f3e-4a4a-5616-9ffd-a97181c19943",
+      alias: "SCI PALLIERE",
+      normalizedKey: "sci-palliere",
+      source: "excel"
+    },
+    {
+      id: "636069d2-883c-5b64-b0ae-22f56d672ee3",
+      clientId: "dfd0649a-b211-59ae-ae53-175015137c89",
+      alias: "SCI PJR",
+      normalizedKey: "sci-pjr",
+      source: "excel"
+    },
+    {
+      id: "a92ef414-f531-5d1a-9005-c8cdb60dad7c",
+      clientId: "10da6d7d-e908-51fb-9664-311c42dbf2bc",
+      alias: "SCI PRJ",
+      normalizedKey: "sci-prj",
+      source: "excel"
+    },
+    {
+      id: "fe4ec525-0c67-5416-96bb-d6d65b138c38",
+      clientId: "c1de986c-74af-5e22-ae03-60dc4daf8c4c",
+      alias: "SCI WATIER",
+      normalizedKey: "sci-watier",
+      source: "excel"
+    },
+    {
+      id: "b8de906d-9cef-556b-8cae-32b580483cd3",
+      clientId: "b39ad262-fe09-5549-96cf-822629991652",
+      alias: "scournec jean max",
+      normalizedKey: "scournec-jean-max",
+      source: "excel"
+    },
+    {
+      id: "533f7e14-71f0-5ea6-af26-ebec2d44e54d",
+      clientId: "2f6a57d8-7e88-5abd-95a6-22ede06ad4bf",
+      alias: "scp michel",
+      normalizedKey: "scp-michel",
+      source: "excel"
+    },
+    {
+      id: "37319543-bb05-5654-9e25-045895d1c713",
+      clientId: "194b3b7d-2511-5fcb-afbc-e2d07728018e",
+      alias: "SEC à Moulines (pour chantier poret)",
+      normalizedKey: "sec-a-moulines",
+      source: "excel"
+    },
+    {
+      id: "96e47b07-e4ec-5b65-a856-29c638f3ae5f",
+      clientId: "f4f38322-7ea4-506b-87d5-9af7be4f6442",
+      alias: "SEEGERS",
+      normalizedKey: "seegers",
+      source: "excel"
+    },
+    {
+      id: "c3551a39-cb21-59d7-a2d1-28413c26d501",
+      clientId: "32937092-a38d-5b8c-915e-d851548c7a7e",
+      alias: "SELARL PHARMACIE DU VAL DE SEULLES",
+      normalizedKey: "selarl-pharmacie-du-val-de-seulles",
+      source: "excel"
+    },
+    {
+      id: "60de9a18-cb9f-58c0-934d-30d1c8bc84ef",
+      clientId: "4f265ad2-b525-552b-ad66-927133a97c30",
+      alias: "selle iso ite",
+      normalizedKey: "selle-iso-ite",
+      source: "excel"
+    },
+    {
+      id: "25d89be5-8b40-51df-8cdf-81a17fc051ab",
+      clientId: "ca680d46-db96-513d-b883-20a0ac3507e6",
+      alias: "SHACHER",
+      normalizedKey: "shacher",
+      source: "excel"
+    },
+    {
+      id: "19611ca5-88fb-5bea-b2f3-13dda0c2c7b8",
+      clientId: "5188b7be-98a3-5e14-afd7-8249e8d28068",
+      alias: "SIGNORET",
+      normalizedKey: "signoret",
+      source: "excel"
+    },
+    {
+      id: "f3f9e52a-9386-52c6-a9f0-38feb8c8e6c6",
+      clientId: "1265ab84-a735-5ada-871b-21ff600fb178",
+      alias: "SIMONET",
+      normalizedKey: "simonet",
+      source: "excel"
+    },
+    {
+      id: "3bc7009b-cdbd-5c55-8e0e-a273fc8629ac",
+      clientId: "1265ab84-a735-5ada-871b-21ff600fb178",
+      alias: "SIMONET (garage)",
+      normalizedKey: "simonet",
+      source: "excel"
+    },
+    {
+      id: "fb45a4e6-0c02-5626-9248-94d4c780b8ec",
+      clientId: "93cc4a4e-dcb4-5788-9d06-4cd1c0afbc0a",
+      alias: "SINIGAGLIA",
+      normalizedKey: "sinigaglia",
+      source: "excel"
+    },
+    {
+      id: "ea431899-0970-5041-9b60-9d74b63cbe38",
+      clientId: "f0aa4612-b79b-5151-8a30-8a5625b53871",
+      alias: "skrzypeck",
+      normalizedKey: "skrzypeck",
+      source: "excel"
+    },
+    {
+      id: "128739d6-2d50-5240-a8b4-579b2693e1fb",
+      clientId: "b2371668-639e-5418-a786-2f69d63d967f",
+      alias: "SOCHON",
+      normalizedKey: "sochon",
+      source: "excel"
+    },
+    {
+      id: "19b4ef74-b21b-5a55-8447-229c05722094",
+      clientId: "a8201396-8e94-5d60-99a6-ac76e363e34c",
+      alias: "SOFINAB (crocus)",
+      normalizedKey: "sofinab",
+      source: "excel"
+    },
+    {
+      id: "28945d83-832e-5748-ad0a-68e25b812811",
+      clientId: "0c83622f-0f03-507d-b1cd-62da9b15f1bd",
+      alias: "SOURDIN",
+      normalizedKey: "sourdin",
+      source: "excel"
+    },
+    {
+      id: "584312f7-cdce-5187-8c55-46fa0fb188bc",
+      clientId: "14a4d407-a57b-5c0b-848c-b442692d9af6",
+      alias: "spie batignol",
+      normalizedKey: "spie-batignol",
+      source: "excel"
+    },
+    {
+      id: "a4190169-0a7f-5955-a46d-7a1455f0d7f6",
+      clientId: "f505f120-c09d-5d5a-9a7c-97a36ac13748",
+      alias: "stab",
+      normalizedKey: "stab",
+      source: "excel"
+    },
+    {
+      id: "e29190b6-96d5-5b61-b82f-d69d93ebe4c5",
+      clientId: "290b5b05-2e37-5ddc-902d-509250b0d0ed",
+      alias: "STENOU",
+      normalizedKey: "stenou",
+      source: "excel"
+    },
+    {
+      id: "b6bef266-026c-581b-abdb-864083897bfc",
+      clientId: "30b60963-9a04-5170-9736-7e33b1fe4c4c",
+      alias: "STENOU/BALOCHE",
+      normalizedKey: "stenou-baloche",
+      source: "excel"
+    },
+    {
+      id: "d11af417-11af-5a53-8ddd-099f0a73657d",
+      clientId: "a9683211-8ab3-5f54-ad8c-b916354af2ab",
+      alias: "suard",
+      normalizedKey: "suard",
+      source: "excel"
+    },
+    {
+      id: "d0b39c70-676b-5839-bbfc-f9cd32d41c1d",
+      clientId: "a9683211-8ab3-5f54-ad8c-b916354af2ab",
+      alias: "suard    32000",
+      normalizedKey: "suard",
+      source: "excel"
+    },
+    {
+      id: "801003e1-a2bf-5818-aa2e-45326cb48f97",
+      clientId: "cf7a39dc-a169-53b3-8c73-e6b3f600f1f0",
+      alias: "taillepied",
+      normalizedKey: "taillepied",
+      source: "excel"
+    },
+    {
+      id: "b6c3db32-cc0d-547d-a4e6-951398c1a726",
+      clientId: "e8760822-2896-506a-9518-a9d42326cdec",
+      alias: "TALMAR",
+      normalizedKey: "talmar",
+      source: "excel"
+    },
+    {
+      id: "bac1afd9-bdaf-58b9-b6ea-e74193cf1e89",
+      clientId: "cb423553-357a-5de9-bf1e-b663a9547a5b",
+      alias: "TANGUY",
+      normalizedKey: "tanguy",
+      source: "excel"
+    },
+    {
+      id: "52e563d5-848a-5341-bbf3-57db8d6953ea",
+      clientId: "dc1333ba-f82b-5519-968a-a9769e7be0c3",
+      alias: "TESSON",
+      normalizedKey: "tesson",
+      source: "excel"
+    },
+    {
+      id: "d7822a66-3e93-579f-ae5d-34fd9d3fd05e",
+      clientId: "11edf431-3369-5093-a6bb-fb99119cbd1e",
+      alias: "THEREZE",
+      normalizedKey: "thereze",
+      source: "excel"
+    },
+    {
+      id: "2f88129f-f0ba-553e-b1d7-5510c6b93a77",
+      clientId: "b31e6072-27e4-5c6e-8248-267d60fdda30",
+      alias: "THIRE",
+      normalizedKey: "thire",
+      source: "excel"
+    },
+    {
+      id: "c84dff1d-8e51-51d8-8cb3-b5b0e90eff38",
+      clientId: "2bbd101f-c21a-54f3-9aaf-b3efa649934e",
+      alias: "thomann",
+      normalizedKey: "thomann",
+      source: "excel"
+    },
+    {
+      id: "697c8e3c-0fdf-5bfc-a535-302288576426",
+      clientId: "d07fe66a-1902-5018-8ea4-bd1f83664fa1",
+      alias: "THOUVENIN",
+      normalizedKey: "thouvenin",
+      source: "excel"
+    },
+    {
+      id: "c4582f78-2a5d-5330-8df9-763845835494",
+      clientId: "c7d9e879-fa29-5093-837d-f940141d95d3",
+      alias: "TOUSSAINT à Olendon",
+      normalizedKey: "toussaint-a-olendon",
+      source: "excel"
+    }
+  ])
+}

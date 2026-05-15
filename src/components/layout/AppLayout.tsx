@@ -1,16 +1,21 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { useApp } from '@/lib/store'
+import { canAccessPath } from '@/lib/accessControl'
 
 /**
  * Shell canonique (design-tokens.md §8.1).
  * Sidebar anthracite fixe (gauche) + Topbar blanche (haut) + Outlet scrollable sur fond `paper-50`.
  */
 export function AppLayout() {
-  const { user } = useApp()
+  const { user, accessMatrix } = useApp()
+  const location = useLocation()
 
   if (!user) return <Navigate to="/login" replace />
+  if (!canAccessPath(user.role, location.pathname, accessMatrix)) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   return (
     <div className="flex h-screen bg-[#FAF6F2] text-[#1E1E1E]">

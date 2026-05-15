@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases006: clientAlias_upsertMany(data: [
+    {
+      id: "df01756f-0ebf-5b75-b0d5-b254e202fc0b",
+      clientId: "1aee52a8-1c42-558e-9e30-d006886ec3c7",
+      alias: "GIRRE",
+      normalizedKey: "girre",
+      source: "excel"
+    },
+    {
+      id: "38d9cad1-f941-5bb1-80bb-463b140c3405",
+      clientId: "9b7ee751-e846-5f2c-9f2c-63daab5e4011",
+      alias: "GLOWACKI",
+      normalizedKey: "glowacki",
+      source: "excel"
+    },
+    {
+      id: "3d66c9f2-fceb-5c6e-8f7b-5f53692f6653",
+      clientId: "17745acf-af83-52d9-919a-8c2fca805436",
+      alias: "GODIN",
+      normalizedKey: "godin",
+      source: "excel"
+    },
+    {
+      id: "85d2fe29-ecea-51e1-80e4-b0299a03705d",
+      clientId: "baf35fbc-71cf-5971-a797-a2c5c8b39f0a",
+      alias: "GONI-LACAZA",
+      normalizedKey: "goni-lacaza",
+      source: "excel"
+    },
+    {
+      id: "cc125ae0-f55a-559e-b9c5-8df2335765b5",
+      clientId: "2d8f792d-92d8-5d33-8e8e-0a4a4f22b396",
+      alias: "GOSSET",
+      normalizedKey: "gosset",
+      source: "excel"
+    },
+    {
+      id: "6f01d606-9387-55d7-8b42-8cd1e9580d35",
+      clientId: "6607d4d7-233a-5b52-bd5b-79db61560e72",
+      alias: "GOUESLARD",
+      normalizedKey: "goueslard",
+      source: "excel"
+    },
+    {
+      id: "b86112ab-f184-5182-8e66-c8bc0a75c55f",
+      clientId: "87315d76-3382-5e21-8451-17bb74ae0bef",
+      alias: "GOULAIN",
+      normalizedKey: "goulain",
+      source: "excel"
+    },
+    {
+      id: "96f7715b-1b42-5db2-a259-11ae37f4fd10",
+      clientId: "35ffbc8d-97b2-5397-91a4-418a09bd0f7d",
+      alias: "GOURDIER",
+      normalizedKey: "gourdier",
+      source: "excel"
+    },
+    {
+      id: "ed49e4ee-58cc-5dd5-92f1-7fd09279e681",
+      clientId: "f0bda559-0347-5329-8ad0-ff9290c99125",
+      alias: "GRANGE",
+      normalizedKey: "grange",
+      source: "excel"
+    },
+    {
+      id: "d5edda5a-271e-53ef-b27c-947ffac68966",
+      clientId: "7bfd49e0-55fa-5b45-b6bf-114f4d90f8c3",
+      alias: "GRARD",
+      normalizedKey: "grard",
+      source: "excel"
+    },
+    {
+      id: "4ded403e-4b55-5aff-b9be-b2c37a2d375d",
+      clientId: "80a7c273-a527-53ab-ae90-4d8aa3136d18",
+      alias: "GRARD ORABONA",
+      normalizedKey: "grard-orabona",
+      source: "excel"
+    },
+    {
+      id: "57a113ef-2f3c-5428-818f-58f8f19172b9",
+      clientId: "7e37aa26-817b-52c1-a60b-96f4b2a9838d",
+      alias: "GROUSSARD",
+      normalizedKey: "groussard",
+      source: "excel"
+    },
+    {
+      id: "d7220fc6-20bf-5827-8cde-3906e358f632",
+      clientId: "c9758ef7-f62f-53c1-b995-980581580de3",
+      alias: "GRUAU",
+      normalizedKey: "gruau",
+      source: "excel"
+    },
+    {
+      id: "2db02ab2-8ec0-5fe6-876d-7beb3f664d03",
+      clientId: "1418f0a0-f7a8-5c87-84a6-6d635ff36929",
+      alias: "GUAY LEMAZURIER",
+      normalizedKey: "guay-lemazurier",
+      source: "excel"
+    },
+    {
+      id: "f392ab6e-892a-59ae-b720-f62779c74773",
+      clientId: "8956670b-c475-5b62-9b7c-a4d1ce22f58a",
+      alias: "GUE",
+      normalizedKey: "gue",
+      source: "excel"
+    },
+    {
+      id: "d5bb938c-80d9-51bb-8b57-8393da470b49",
+      clientId: "8956670b-c475-5b62-9b7c-a4d1ce22f58a",
+      alias: "GUE (Travaux complémentaires)",
+      normalizedKey: "gue",
+      source: "excel"
+    },
+    {
+      id: "505cf2ca-36bd-562f-a4b1-9d67823798a4",
+      clientId: "1ff0e5ab-c97d-515a-a7c8-c9b3b087ac47",
+      alias: "GUEDON",
+      normalizedKey: "guedon",
+      source: "excel"
+    },
+    {
+      id: "98f5c5db-3d22-5661-9161-ed3e6579bac4",
+      clientId: "0bb3e3be-16ce-576a-abdd-586a41e7f13a",
+      alias: "GUESNON",
+      normalizedKey: "guesnon",
+      source: "excel"
+    },
+    {
+      id: "cfa9aea8-6aea-5ac6-b220-5ef01ae2dcd7",
+      clientId: "097e1570-bfbd-5901-b3f8-c64fed9e1e0c",
+      alias: "GUIBERT (Geslin)",
+      normalizedKey: "guibert",
+      source: "excel"
+    },
+    {
+      id: "86a8df3c-dd4c-5eb2-aa8a-eb02137a2e3e",
+      clientId: "cd07fcaa-c6d3-5579-b451-d2de2c7f7a9f",
+      alias: "GUIBOUT",
+      normalizedKey: "guibout",
+      source: "excel"
+    },
+    {
+      id: "51154950-5f21-52d3-8ec2-d9823ef881bb",
+      clientId: "3e48683a-b961-5871-9980-c2fb0bada970",
+      alias: "guiboux",
+      normalizedKey: "guiboux",
+      source: "excel"
+    },
+    {
+      id: "201b7e1e-e16c-54ff-bd0f-d634da09a5d1",
+      clientId: "658a7294-0b6d-57e9-8371-b9aa67565443",
+      alias: "guilbert thales",
+      normalizedKey: "guilbert-thales",
+      source: "excel"
+    },
+    {
+      id: "2316551a-0321-5c91-b378-cbd2adce3e9b",
+      clientId: "a321f589-097f-5f94-b7cf-7a20df4a3003",
+      alias: "GUILLEMOT",
+      normalizedKey: "guillemot",
+      source: "excel"
+    },
+    {
+      id: "51dca34d-355b-52ef-9530-c98c79029051",
+      clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
+      alias: "GUILLOT 1",
+      normalizedKey: "guillot",
+      source: "excel"
+    },
+    {
+      id: "d0932d66-b550-560c-9977-668d68651abb",
+      clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
+      alias: "GUILLOT 18",
+      normalizedKey: "guillot",
+      source: "excel"
+    },
+    {
+      id: "f1f3b839-779d-51d4-b1b5-d516d79c3727",
+      clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
+      alias: "GUILLOT 2",
+      normalizedKey: "guillot",
+      source: "excel"
+    },
+    {
+      id: "e0a8acd1-03d2-558b-9558-36517bd76d76",
+      clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
+      alias: "GUILLOT 3",
+      normalizedKey: "guillot",
+      source: "excel"
+    },
+    {
+      id: "edc65ecd-fedf-56e3-a92e-e2440ef88856",
+      clientId: "647a5d0a-190b-5f8a-a773-3f8221958d10",
+      alias: "guilloux",
+      normalizedKey: "guilloux",
+      source: "excel"
+    },
+    {
+      id: "ed49b8c4-ba83-527e-8603-9359cc3fbd3f",
+      clientId: "c47259ea-13bf-52d9-b7d7-45cd5359b2d2",
+      alias: "Guilloux Materiaux",
+      normalizedKey: "guilloux-materiaux",
+      source: "excel"
+    },
+    {
+      id: "bb3aa592-9225-5d62-b9ca-0c1e7f90d7c9",
+      clientId: "86fba5e6-69b7-57e4-930f-dd1dab5a3894",
+      alias: "GUIMOND",
+      normalizedKey: "guimond",
+      source: "excel"
+    },
+    {
+      id: "9ad63526-1647-5dd6-8cd0-1d5762e86b21",
+      clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
+      alias: "HAMEL",
+      normalizedKey: "hamel",
+      source: "excel"
+    },
+    {
+      id: "ffc31b39-5c6f-50e0-b34e-73ba3e2e813d",
+      clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
+      alias: "hamel extension",
+      normalizedKey: "hamel",
+      source: "excel"
+    },
+    {
+      id: "57a588a9-4f72-51b6-ba35-02c357da8a07",
+      clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
+      alias: "hamel reno",
+      normalizedKey: "hamel",
+      source: "excel"
+    },
+    {
+      id: "e8f94347-1214-5849-ae07-9ae5c03c9ee2",
+      clientId: "59b95031-c8a3-5851-9b47-bad840ebd847",
+      alias: "hamon",
+      normalizedKey: "hamon",
+      source: "excel"
+    },
+    {
+      id: "268b2875-ee88-5c8f-8d9e-d1cd83660c65",
+      clientId: "a9c7b9ca-9baa-5986-b687-c4e2c8d7f031",
+      alias: "HAMON Alexandre (Bardage)",
+      normalizedKey: "hamon-alexandre",
+      source: "excel"
+    },
+    {
+      id: "11647ea8-afa4-51fe-8cb3-e9e35454631d",
+      clientId: "588d6fe4-737b-5867-9e83-d49187920c45",
+      alias: "HARDOIN",
+      normalizedKey: "hardoin",
+      source: "excel"
+    },
+    {
+      id: "015b0f54-8ac5-5ff3-a39c-55537685366a",
+      clientId: "8e393e6c-f309-5898-9eb1-b26feda6c040",
+      alias: "Hebert",
+      normalizedKey: "hebert",
+      source: "excel"
+    },
+    {
+      id: "dd517726-6524-576b-8ff6-8a3587258820",
+      clientId: "7d3a2a5e-0182-5e63-b83b-d4f0ffa32ddd",
+      alias: "HENRY",
+      normalizedKey: "henry",
+      source: "excel"
+    },
+    {
+      id: "08575778-ee4e-5c38-9025-140feffd47a5",
+      clientId: "c5a0adfc-57cb-5ce8-b7e2-42e63770c77b",
+      alias: "henry ifs",
+      normalizedKey: "henry-ifs",
+      source: "excel"
+    },
+    {
+      id: "ba04b41c-53b9-5231-8d50-f9270042723c",
+      clientId: "8edec256-efd6-559c-b649-801a9c101b47",
+      alias: "HERBLOT",
+      normalizedKey: "herblot",
+      source: "excel"
+    },
+    {
+      id: "141bab45-8227-55b2-9caf-58050dc9b14a",
+      clientId: "b473dae8-89f2-5866-a8c1-1971ca159997",
+      alias: "HERMILLY CARREAU",
+      normalizedKey: "hermilly-carreau",
+      source: "excel"
+    },
+    {
+      id: "3fe56648-bf08-5ab0-95ac-5a04333bf858",
+      clientId: "8beb1a95-4bef-59e0-9a6f-c740152f71c6",
+      alias: "HERVE SIMON",
+      normalizedKey: "herve-simon",
+      source: "excel"
+    },
+    {
+      id: "9c1f3053-7758-5fdb-bab9-4725fdf9cdff",
+      clientId: "a74803bb-9182-549c-806b-60430eae218f",
+      alias: "hervieu",
+      normalizedKey: "hervieu",
+      source: "excel"
+    },
+    {
+      id: "1715386e-7d0a-55a6-b417-0dbd906b3ff3",
+      clientId: "27e1fa3a-eb59-58e0-9369-b94a7131d7bc",
+      alias: "hervieu st sylvain",
+      normalizedKey: "hervieu-st-sylvain",
+      source: "excel"
+    },
+    {
+      id: "a56f97f1-807c-5269-909d-591b89e1db80",
+      clientId: "65573c0d-ad78-59f0-a2d2-0bd4bd0054e6",
+      alias: "HERVIEUX",
+      normalizedKey: "hervieux",
+      source: "excel"
+    },
+    {
+      id: "3a098365-5850-514f-b870-8a722865bd5a",
+      clientId: "af227993-37d5-5aec-8a55-fb1fb4d22256",
+      alias: "HOFLACK",
+      normalizedKey: "hoflack",
+      source: "excel"
+    },
+    {
+      id: "b61f5cbd-d78e-533c-baad-e81fba8f7f52",
+      clientId: "b4593cf1-f8cf-5c42-be99-474367819db7",
+      alias: "hoste",
+      normalizedKey: "hoste",
+      source: "excel"
+    },
+    {
+      id: "339b53ed-6f06-56bc-9016-310b3c525d35",
+      clientId: "f5ec153f-3053-53fb-99b7-f9cf300a188b",
+      alias: "HOTEL ZENITH",
+      normalizedKey: "hotel-zenith",
+      source: "excel"
+    },
+    {
+      id: "955e8e8e-aa64-53dd-a92d-994df403b5d5",
+      clientId: "ac6665dd-c1d2-5915-a74c-9bfc68653f19",
+      alias: "HUARD",
+      normalizedKey: "huard",
+      source: "excel"
+    },
+    {
+      id: "5ba57b6c-5eb0-5efd-b670-2cc4f3afcae8",
+      clientId: "4e861075-e1d3-5a43-8658-6d5faa7a75cd",
+      alias: "HUBER",
+      normalizedKey: "huber",
+      source: "excel"
+    }
+  ])
+}

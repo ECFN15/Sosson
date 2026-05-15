@@ -1,0 +1,504 @@
+mutation @transaction {
+  monthly025: previsionnelMonthlyAmount_upsertMany(data: [
+    {
+      id: "4e2cf076-5783-5838-9ca2-1b946014ab48",
+      lineId: "4d679562-c241-58b1-81e9-42f49d2a0969",
+      month: "septembre",
+      label: "Sept.",
+      monthOrder: 12,
+      planned: 23631.81,
+      realized: 23631.81,
+      invoiceSent: true
+    },
+    {
+      id: "7a67b9ec-b5ff-51d2-ba12-01b55dbd9c41",
+      lineId: "d64b83af-1bac-55c5-84d4-a0116a27a393",
+      month: "septembre",
+      label: "Sept.",
+      monthOrder: 12,
+      planned: 11515.44,
+      realized: 11515.44,
+      invoiceSent: true
+    },
+    {
+      id: "a093a079-2ea2-5d18-97ad-9cbb30255f26",
+      lineId: "80ae7870-b573-5788-b25d-938838cb8525",
+      month: "avril",
+      label: "Avr.",
+      monthOrder: 7,
+      planned: 19671.84,
+      realized: 19671.84,
+      invoiceSent: true
+    },
+    {
+      id: "08427fa9-2929-5990-8361-4967c298a3b0",
+      lineId: "80ae7870-b573-5788-b25d-938838cb8525",
+      month: "juillet",
+      label: "Juil.",
+      monthOrder: 10,
+      planned: 17538.55,
+      realized: 17538.55,
+      invoiceSent: true
+    },
+    {
+      id: "ad637c24-41ca-5332-b3b0-a2ca17350316",
+      lineId: "9c835b2e-14a2-51ed-9097-461036043a86",
+      month: "mars",
+      label: "Mars",
+      monthOrder: 6,
+      planned: 15885.04,
+      realized: 15885.04,
+      invoiceSent: true
+    },
+    {
+      id: "e4d0c42b-4ade-565b-b5fa-545f26fbd581",
+      lineId: "9c835b2e-14a2-51ed-9097-461036043a86",
+      month: "mai",
+      label: "Mai",
+      monthOrder: 8,
+      planned: 11675.37,
+      realized: 11675.37,
+      invoiceSent: true
+    },
+    {
+      id: "bd0a8ca4-f9aa-5135-a834-0c01a9fdc32a",
+      lineId: "9c835b2e-14a2-51ed-9097-461036043a86",
+      month: "juin",
+      label: "Juin",
+      monthOrder: 9,
+      planned: 4820.95,
+      realized: 4820.95,
+      invoiceSent: true
+    },
+    {
+      id: "1a8c7033-2962-55ed-84d0-e68c31e41e7d",
+      lineId: "9c835b2e-14a2-51ed-9097-461036043a86",
+      month: "juillet",
+      label: "Juil.",
+      monthOrder: 10,
+      planned: 12706.26,
+      realized: 12706.26,
+      invoiceSent: true
+    },
+    {
+      id: "d826bd4b-420a-5812-b2de-5f4449a2980c",
+      lineId: "9c835b2e-14a2-51ed-9097-461036043a86",
+      month: "septembre",
+      label: "Sept.",
+      monthOrder: 12,
+      planned: 31889.42,
+      realized: 31889.42,
+      invoiceSent: true
+    },
+    {
+      id: "a843867e-a862-5ea9-8d48-460433b12387",
+      lineId: "57da3062-aa5d-59e6-b637-e1f8b621f081",
+      month: "fevrier",
+      label: "Fev.",
+      monthOrder: 5,
+      planned: 3811.58,
+      realized: 3811.58,
+      invoiceSent: true
+    },
+    {
+      id: "bcaa6468-39e4-57d2-93e2-e919130b64f4",
+      lineId: "0e56ac6c-e919-53fd-8b3b-61a08d42c068",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 17012,
+      realized: 17011.84,
+      invoiceSent: true
+    },
+    {
+      id: "444a177e-6540-5a0b-8114-b7c873d2b809",
+      lineId: "0e56ac6c-e919-53fd-8b3b-61a08d42c068",
+      month: "decembre",
+      label: "Dec.",
+      monthOrder: 3,
+      planned: 12802.39,
+      realized: 12802.39,
+      invoiceSent: true
+    },
+    {
+      id: "2e8e2f9d-d02a-5546-9cdd-8cfad8d2c085",
+      lineId: "0e56ac6c-e919-53fd-8b3b-61a08d42c068",
+      month: "septembre",
+      label: "Sept.",
+      monthOrder: 12,
+      planned: 7370.55,
+      realized: 7370.55,
+      invoiceSent: true
+    },
+    {
+      id: "d32ebe4b-b40a-5415-a2cb-a84ba6efa103",
+      lineId: "911dd33c-01c7-5c82-a968-cb7c3777f02a",
+      month: "octobre",
+      label: "Oct.",
+      monthOrder: 1,
+      planned: 6406.6,
+      realized: 6406.6,
+      invoiceSent: true
+    },
+    {
+      id: "3484206c-ac21-5db2-bb66-1c31ebe77f38",
+      lineId: "911dd33c-01c7-5c82-a968-cb7c3777f02a",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 5055,
+      realized: 5054.7,
+      invoiceSent: true
+    },
+    {
+      id: "2540c2bf-5106-5acb-abda-68cab2e2bb93",
+      lineId: "911dd33c-01c7-5c82-a968-cb7c3777f02a",
+      month: "janvier",
+      label: "Jan.",
+      monthOrder: 4,
+      planned: 0.4,
+      realized: 0,
+      invoiceSent: false
+    },
+    {
+      id: "fe775916-9a7d-574f-b4ea-8361791534e8",
+      lineId: "53b24ca0-420d-50ca-990f-9d861c8efed1",
+      month: "janvier",
+      label: "Jan.",
+      monthOrder: 4,
+      planned: 716.05,
+      realized: 716.05,
+      invoiceSent: true
+    },
+    {
+      id: "4f24e92e-6f4e-5922-96e4-e098fe6118e9",
+      lineId: "53b24ca0-420d-50ca-990f-9d861c8efed1",
+      month: "fevrier",
+      label: "Fev.",
+      monthOrder: 5,
+      planned: 140.95,
+      realized: 140.52,
+      invoiceSent: true
+    },
+    {
+      id: "5bb023d9-788a-5b08-99ee-d702ccb3fce8",
+      lineId: "0352b685-b3fb-5ec1-a8d1-57ab3041b869",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 15674,
+      realized: 15674,
+      invoiceSent: true
+    },
+    {
+      id: "b6a0e670-73fb-509f-876b-3a0b28a150e0",
+      lineId: "bca8f839-431a-5820-9aef-2c880cec276a",
+      month: "octobre",
+      label: "Oct.",
+      monthOrder: 1,
+      planned: 7252.87,
+      realized: 7252.87,
+      invoiceSent: true
+    },
+    {
+      id: "b12ddedb-e88b-5332-babc-098c9442e7bc",
+      lineId: "35ce0c27-526a-521a-99cf-2a862c94d9c4",
+      month: "janvier",
+      label: "Jan.",
+      monthOrder: 4,
+      planned: 22496.53,
+      realized: 22496.53,
+      invoiceSent: true
+    },
+    {
+      id: "c567e264-7cf9-5bcf-bd8c-98abce3e2c18",
+      lineId: "54a25b9a-e74f-576b-8aa8-3e285e7048d7",
+      month: "mai",
+      label: "Mai",
+      monthOrder: 8,
+      planned: 98.03,
+      realized: 98.03,
+      invoiceSent: true
+    },
+    {
+      id: "5c94bc5f-67b5-543a-92a9-fe4d0e2b36d5",
+      lineId: "1a3e8d29-c4b7-5219-9a9a-9665e9bce2ef",
+      month: "mai",
+      label: "Mai",
+      monthOrder: 8,
+      planned: 1997.04,
+      realized: 1997,
+      invoiceSent: true
+    },
+    {
+      id: "a9196854-0807-58a2-b482-8b2d6ecedaae",
+      lineId: "53d52a26-7b52-5984-8159-8a34da4df44b",
+      month: "mai",
+      label: "Mai",
+      monthOrder: 8,
+      planned: 699.14,
+      realized: 699.14,
+      invoiceSent: true
+    },
+    {
+      id: "a32dab5d-081a-5483-9dac-ca943c2c7a52",
+      lineId: "c47f67a3-464b-5aa4-8a84-3c0f21879219",
+      month: "septembre",
+      label: "Sept.",
+      monthOrder: 12,
+      planned: 13930.03,
+      realized: 13930.03,
+      invoiceSent: true
+    },
+    {
+      id: "e7c35144-5387-5c56-9aa3-ef779f12338e",
+      lineId: "5df77459-0234-5d07-867e-79458fd44970",
+      month: "avril",
+      label: "Avr.",
+      monthOrder: 7,
+      planned: 10604,
+      realized: 10604.15,
+      invoiceSent: true
+    },
+    {
+      id: "4666ee95-aac7-5e21-ab5a-37e3f693c7b7",
+      lineId: "6f51fcf9-5eb9-5f26-ad5b-73f9095f365a",
+      month: "avril",
+      label: "Avr.",
+      monthOrder: 7,
+      planned: 4121.43,
+      realized: 4121.43,
+      invoiceSent: true
+    },
+    {
+      id: "f39a2e20-a924-5bdb-90c4-c62d724fbcb5",
+      lineId: "6f51fcf9-5eb9-5f26-ad5b-73f9095f365a",
+      month: "mai",
+      label: "Mai",
+      monthOrder: 8,
+      planned: 3.57,
+      realized: 0,
+      invoiceSent: false
+    },
+    {
+      id: "c780e3f3-75ff-58ba-ab27-2761911ff3c4",
+      lineId: "70d6d02c-be61-56a3-8bd2-dec07d8a4e1a",
+      month: "mars",
+      label: "Mars",
+      monthOrder: 6,
+      planned: 33973.2,
+      realized: 33973.2,
+      invoiceSent: true
+    },
+    {
+      id: "ad775fc9-f01f-57e2-bf4c-5a12c7cf808b",
+      lineId: "07964b28-be13-50c0-91f6-0ad682ecbeef",
+      month: "octobre",
+      label: "Oct.",
+      monthOrder: 1,
+      planned: 2586.8,
+      realized: 2586.47,
+      invoiceSent: true
+    },
+    {
+      id: "0153b32a-c824-517f-b783-a1fdbc921389",
+      lineId: "07964b28-be13-50c0-91f6-0ad682ecbeef",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 0.2,
+      realized: 0,
+      invoiceSent: false
+    },
+    {
+      id: "73b10f64-19b1-580c-ae8d-7b96b1008349",
+      lineId: "b3db7059-db37-5c30-9835-aff770767596",
+      month: "octobre",
+      label: "Oct.",
+      monthOrder: 1,
+      planned: 5552.72,
+      realized: 5552.72,
+      invoiceSent: true
+    },
+    {
+      id: "8b7240ae-321a-5568-a709-68ef1c19b32e",
+      lineId: "43f4fd19-83ae-5d26-a1d1-c7e887be2651",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 5000,
+      realized: 5000,
+      invoiceSent: true
+    },
+    {
+      id: "a9220f3a-612c-53fc-9245-6154deccedaa",
+      lineId: "df6db28a-00cc-54bf-ace4-52d8b1d58c7b",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 4998,
+      realized: 4998,
+      invoiceSent: true
+    },
+    {
+      id: "50289f1e-c4d8-5274-9416-02db4cfbf927",
+      lineId: "df6db28a-00cc-54bf-ace4-52d8b1d58c7b",
+      month: "juillet",
+      label: "Juil.",
+      monthOrder: 10,
+      planned: 3483.58,
+      realized: 3483.58,
+      invoiceSent: true
+    },
+    {
+      id: "6d62015b-5eb3-53fa-a300-c7e40cf7b79c",
+      lineId: "df6db28a-00cc-54bf-ace4-52d8b1d58c7b",
+      month: "aout",
+      label: "Aout",
+      monthOrder: 11,
+      planned: -0.17,
+      realized: 0,
+      invoiceSent: false
+    },
+    {
+      id: "d51bb9b0-0b96-526e-add3-57f3fdd8a496",
+      lineId: "86320988-787c-56e6-9008-5e1ca9a505b6",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 2164.47,
+      realized: 2164,
+      invoiceSent: true
+    },
+    {
+      id: "0a086e31-fe5f-5f36-b956-efab4df443e1",
+      lineId: "f6cb585e-f4f9-535f-9aa1-84a0ee01a19d",
+      month: "octobre",
+      label: "Oct.",
+      monthOrder: 1,
+      planned: 32066.78,
+      realized: 32066.78,
+      invoiceSent: true
+    },
+    {
+      id: "b1d989bb-1cca-57ac-a562-6e54c1413205",
+      lineId: "f6cb585e-f4f9-535f-9aa1-84a0ee01a19d",
+      month: "mars",
+      label: "Mars",
+      monthOrder: 6,
+      planned: 18118,
+      realized: 18118,
+      invoiceSent: true
+    },
+    {
+      id: "acb733a0-9864-5b30-bf1b-10088818a4b2",
+      lineId: "f6cb585e-f4f9-535f-9aa1-84a0ee01a19d",
+      month: "avril",
+      label: "Avr.",
+      monthOrder: 7,
+      planned: 5836.78,
+      realized: 5837,
+      invoiceSent: true
+    },
+    {
+      id: "328eeb95-a5f4-504d-8501-f50631366aae",
+      lineId: "332fea05-98f8-5d71-ab77-7c58eb7b0c03",
+      month: "octobre",
+      label: "Oct.",
+      monthOrder: 1,
+      planned: 10110.41,
+      realized: 10110.41,
+      invoiceSent: true
+    },
+    {
+      id: "7b903b15-b517-5085-91e8-4dd61e400014",
+      lineId: "332fea05-98f8-5d71-ab77-7c58eb7b0c03",
+      month: "novembre",
+      label: "Nov.",
+      monthOrder: 2,
+      planned: 1561.94,
+      realized: 1561.94,
+      invoiceSent: true
+    },
+    {
+      id: "8490cdcc-1bf0-59ae-860b-0ce493314932",
+      lineId: "332fea05-98f8-5d71-ab77-7c58eb7b0c03",
+      month: "janvier",
+      label: "Jan.",
+      monthOrder: 4,
+      planned: 12503.87,
+      realized: 12503.87,
+      invoiceSent: true
+    },
+    {
+      id: "a454ca25-af5b-5921-9020-37e30aeae483",
+      lineId: "332fea05-98f8-5d71-ab77-7c58eb7b0c03",
+      month: "fevrier",
+      label: "Fev.",
+      monthOrder: 5,
+      planned: 0.49,
+      realized: 0,
+      invoiceSent: false
+    },
+    {
+      id: "3fe0e1bc-6b52-58f1-90fb-2c448f7a785d",
+      lineId: "91a36b20-3b3f-59ee-ba76-5a0b12114bae",
+      month: "decembre",
+      label: "Dec.",
+      monthOrder: 3,
+      planned: 4810,
+      realized: 4810,
+      invoiceSent: true
+    },
+    {
+      id: "2aaf7681-abd3-57ff-a53c-0d9c442f14ca",
+      lineId: "91a36b20-3b3f-59ee-ba76-5a0b12114bae",
+      month: "janvier",
+      label: "Jan.",
+      monthOrder: 4,
+      planned: 0.13,
+      realized: 0,
+      invoiceSent: false
+    },
+    {
+      id: "0f895f23-c489-59e8-b4c6-f86ec9164577",
+      lineId: "eb2bbab4-5c7d-5fa4-8f76-51e4b8d93002",
+      month: "juillet",
+      label: "Juil.",
+      monthOrder: 10,
+      planned: 10000,
+      realized: 10000,
+      invoiceSent: true
+    },
+    {
+      id: "b65f4fb7-15eb-5e6c-9de6-1002762bb5ed",
+      lineId: "bdeb5b71-5263-51c0-80d5-b48ec7822551",
+      month: "juillet",
+      label: "Juil.",
+      monthOrder: 10,
+      planned: 10283.02,
+      realized: 10283.02,
+      invoiceSent: true
+    },
+    {
+      id: "d705664b-026d-502c-a2e3-65f56dbd0910",
+      lineId: "bdeb5b71-5263-51c0-80d5-b48ec7822551",
+      month: "aout",
+      label: "Aout",
+      monthOrder: 11,
+      planned: 2731.41,
+      realized: 2731.41,
+      invoiceSent: true
+    },
+    {
+      id: "b238a4dc-8838-5fa1-998b-d065dab49dbd",
+      lineId: "bdeb5b71-5263-51c0-80d5-b48ec7822551",
+      month: "septembre",
+      label: "Sept.",
+      monthOrder: 12,
+      planned: 2935.99,
+      realized: 2936.01,
+      invoiceSent: true
+    }
+  ])
+}

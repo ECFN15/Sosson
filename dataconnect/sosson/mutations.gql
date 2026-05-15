@@ -166,3 +166,179 @@ mutation SetFactureStatut($id: UUID!, $statut: String!)
   ) {
   facture_update(id: $id, data: { statut: $statut })
 }
+
+
+# ---------- Documents --------------------------------------------------------
+
+mutation CreateDocumentFolder(
+  $nom: String!
+  $slug: String!
+  $parentId: UUID
+  $clientId: UUID
+  $chantierId: UUID
+  $description: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff create shared document folders from trusted UI flows."
+) {
+  documentFolder_insert(data: {
+    nom: $nom
+    slug: $slug
+    parentId: $parentId
+    clientId: $clientId
+    chantierId: $chantierId
+    description: $description
+  })
+}
+
+mutation CreateDocumentAttache(
+  $folderId: UUID
+  $clientId: UUID
+  $chantierId: UUID
+  $factureId: UUID
+  $nomFichier: String!
+  $storagePath: String!
+  $mimeType: String
+  $tailleBytes: Int
+  $typeDocument: String!
+  $statut: String!
+  $source: String!
+  $description: String
+  $dateDocument: Date
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff create document metadata from trusted UI flows while Storage contains the file bytes."
+) {
+  documentAttache_insert(data: {
+    folderId: $folderId
+    clientId: $clientId
+    chantierId: $chantierId
+    factureId: $factureId
+    nomFichier: $nomFichier
+    storagePath: $storagePath
+    mimeType: $mimeType
+    tailleBytes: $tailleBytes
+    typeDocument: $typeDocument
+    statut: $statut
+    source: $source
+    description: $description
+    dateDocument: $dateDocument
+  })
+}
+
+mutation UpdateDocumentAttacheLinks(
+  $id: UUID!
+  $folderId: UUID
+  $clientId: UUID
+  $chantierId: UUID
+  $factureId: UUID
+  $statut: String
+  $typeDocument: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff can classify and link document metadata."
+) {
+  documentAttache_update(id: $id, data: {
+    folderId: $folderId
+    clientId: $clientId
+    chantierId: $chantierId
+    factureId: $factureId
+    statut: $statut
+    typeDocument: $typeDocument
+  })
+}
+
+
+# ---------- Previsionnel -----------------------------------------------------
+
+mutation CreatePrevisionnelImportBatch(
+  $workbook: String!
+  $sourcePath: String!
+  $workbookHash: String
+  $notes: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can register controlled previsionnel imports from repository scripts."
+) {
+  previsionnelImportBatch_insert(data: {
+    workbook: $workbook
+    sourcePath: $sourcePath
+    workbookHash: $workbookHash
+    notes: $notes
+  })
+}
+
+mutation UpdatePrevisionnelMonthlyAmount(
+  $id: UUID!
+  $planned: Float
+  $realized: Float
+  $invoiceSent: Boolean
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can update the editable previsionnel grid while role hardening is added later."
+) {
+  previsionnelMonthlyAmount_update(id: $id, data: {
+    planned: $planned
+    realized: $realized
+    invoiceSent: $invoiceSent
+  })
+}
+
+mutation UpdatePrevisionnelLineAmounts(
+  $id: UUID!
+  $rawName: String
+  $clientName: String
+  $caTce: Float
+  $caPrevision: Float
+  $caContrat: Float
+  $plannedTotal: Float
+  $realizedTotal: Float
+  $invoicedTotal: Float
+  $invoiceSentTotal: Float
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can update structured previsionnel line amounts from the editable grid while role hardening is added later."
+) {
+  previsionnelLine_update(id: $id, data: {
+    rawName: $rawName
+    clientName: $clientName
+    caTce: $caTce
+    caPrevision: $caPrevision
+    caContrat: $caContrat
+    plannedTotal: $plannedTotal
+    realizedTotal: $realizedTotal
+    invoicedTotal: $invoicedTotal
+    invoiceSentTotal: $invoiceSentTotal
+  })
+}
+
+mutation LinkPrevisionnelLineToChantier(
+  $id: UUID!
+  $chantierId: UUID
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can manually confirm Excel line to chantier links."
+) {
+  previsionnelLine_update(id: $id, data: {
+    chantierId: $chantierId
+  })
+}
+
+mutation UpsertPrevisionnelCellEdit(
+  $id: String!
+  $sourceSheet: String!
+  $cellRef: String!
+  $valueText: String
+  $numericValue: Float
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can save exact previsionnel cell overrides."
+) {
+  previsionnelCellEdit_upsert(data: {
+    id: $id
+    sourceSheet: $sourceSheet
+    cellRef: $cellRef
+    valueText: $valueText
+    numericValue: $numericValue
+  })
+}

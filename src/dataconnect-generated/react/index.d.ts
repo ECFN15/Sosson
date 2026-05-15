@@ -1,4 +1,4 @@
-import { UpsertCurrentUserData, UpsertCurrentUserVariables, CreateClientData, CreateClientVariables, UpdateClientData, UpdateClientVariables, CreateChantierData, CreateChantierVariables, UpdateChantierStatutData, UpdateChantierStatutVariables, CreateFactureData, CreateFactureVariables, SetFactureStatutData, SetFactureStatutVariables, GetCurrentUserData, ListClientsData, GetClientData, GetClientVariables, ListChantiersData, GetChantierData, GetChantierVariables, ListFacturesData, ListFacturesByStatutData, ListFacturesByStatutVariables } from '../';
+import { UpsertCurrentUserData, UpsertCurrentUserVariables, CreateClientData, CreateClientVariables, UpdateClientData, UpdateClientVariables, CreateChantierData, CreateChantierVariables, UpdateChantierStatutData, UpdateChantierStatutVariables, CreateFactureData, CreateFactureVariables, SetFactureStatutData, SetFactureStatutVariables, CreateDocumentFolderData, CreateDocumentFolderVariables, CreateDocumentAttacheData, CreateDocumentAttacheVariables, UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables, CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables, UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables, UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables, LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables, UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables, GetCurrentUserData, ListClientsData, GetClientData, GetClientVariables, ListChantiersData, GetChantierData, GetChantierVariables, ListFacturesData, ListFacturesByStatutData, ListFacturesByStatutVariables, ListDocumentFoldersData, ListDocumentsAttachesData, ListDocumentsByChantierData, ListDocumentsByChantierVariables, ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables, SearchClientAliasesData, SearchClientAliasesVariables, ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables } from '../';
 import { UseDataConnectQueryResult, useDataConnectQueryOptions, UseDataConnectMutationResult, useDataConnectMutationOptions} from '@tanstack-query-firebase/react/data-connect';
 import { UseQueryResult, UseMutationResult} from '@tanstack/react-query';
 import { DataConnect } from 'firebase/data-connect';
@@ -26,6 +26,30 @@ export function useCreateFacture(dc: DataConnect, options?: useDataConnectMutati
 export function useSetFactureStatut(options?: useDataConnectMutationOptions<SetFactureStatutData, FirebaseError, SetFactureStatutVariables>): UseDataConnectMutationResult<SetFactureStatutData, SetFactureStatutVariables>;
 export function useSetFactureStatut(dc: DataConnect, options?: useDataConnectMutationOptions<SetFactureStatutData, FirebaseError, SetFactureStatutVariables>): UseDataConnectMutationResult<SetFactureStatutData, SetFactureStatutVariables>;
 
+export function useCreateDocumentFolder(options?: useDataConnectMutationOptions<CreateDocumentFolderData, FirebaseError, CreateDocumentFolderVariables>): UseDataConnectMutationResult<CreateDocumentFolderData, CreateDocumentFolderVariables>;
+export function useCreateDocumentFolder(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDocumentFolderData, FirebaseError, CreateDocumentFolderVariables>): UseDataConnectMutationResult<CreateDocumentFolderData, CreateDocumentFolderVariables>;
+
+export function useCreateDocumentAttache(options?: useDataConnectMutationOptions<CreateDocumentAttacheData, FirebaseError, CreateDocumentAttacheVariables>): UseDataConnectMutationResult<CreateDocumentAttacheData, CreateDocumentAttacheVariables>;
+export function useCreateDocumentAttache(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDocumentAttacheData, FirebaseError, CreateDocumentAttacheVariables>): UseDataConnectMutationResult<CreateDocumentAttacheData, CreateDocumentAttacheVariables>;
+
+export function useUpdateDocumentAttacheLinks(options?: useDataConnectMutationOptions<UpdateDocumentAttacheLinksData, FirebaseError, UpdateDocumentAttacheLinksVariables>): UseDataConnectMutationResult<UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables>;
+export function useUpdateDocumentAttacheLinks(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateDocumentAttacheLinksData, FirebaseError, UpdateDocumentAttacheLinksVariables>): UseDataConnectMutationResult<UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables>;
+
+export function useCreatePrevisionnelImportBatch(options?: useDataConnectMutationOptions<CreatePrevisionnelImportBatchData, FirebaseError, CreatePrevisionnelImportBatchVariables>): UseDataConnectMutationResult<CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables>;
+export function useCreatePrevisionnelImportBatch(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePrevisionnelImportBatchData, FirebaseError, CreatePrevisionnelImportBatchVariables>): UseDataConnectMutationResult<CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables>;
+
+export function useUpdatePrevisionnelMonthlyAmount(options?: useDataConnectMutationOptions<UpdatePrevisionnelMonthlyAmountData, FirebaseError, UpdatePrevisionnelMonthlyAmountVariables>): UseDataConnectMutationResult<UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables>;
+export function useUpdatePrevisionnelMonthlyAmount(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePrevisionnelMonthlyAmountData, FirebaseError, UpdatePrevisionnelMonthlyAmountVariables>): UseDataConnectMutationResult<UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables>;
+
+export function useUpdatePrevisionnelLineAmounts(options?: useDataConnectMutationOptions<UpdatePrevisionnelLineAmountsData, FirebaseError, UpdatePrevisionnelLineAmountsVariables>): UseDataConnectMutationResult<UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables>;
+export function useUpdatePrevisionnelLineAmounts(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePrevisionnelLineAmountsData, FirebaseError, UpdatePrevisionnelLineAmountsVariables>): UseDataConnectMutationResult<UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables>;
+
+export function useLinkPrevisionnelLineToChantier(options?: useDataConnectMutationOptions<LinkPrevisionnelLineToChantierData, FirebaseError, LinkPrevisionnelLineToChantierVariables>): UseDataConnectMutationResult<LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables>;
+export function useLinkPrevisionnelLineToChantier(dc: DataConnect, options?: useDataConnectMutationOptions<LinkPrevisionnelLineToChantierData, FirebaseError, LinkPrevisionnelLineToChantierVariables>): UseDataConnectMutationResult<LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables>;
+
+export function useUpsertPrevisionnelCellEdit(options?: useDataConnectMutationOptions<UpsertPrevisionnelCellEditData, FirebaseError, UpsertPrevisionnelCellEditVariables>): UseDataConnectMutationResult<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
+export function useUpsertPrevisionnelCellEdit(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertPrevisionnelCellEditData, FirebaseError, UpsertPrevisionnelCellEditVariables>): UseDataConnectMutationResult<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
+
 export function useGetCurrentUser(options?: useDataConnectQueryOptions<GetCurrentUserData>): UseDataConnectQueryResult<GetCurrentUserData, undefined>;
 export function useGetCurrentUser(dc: DataConnect, options?: useDataConnectQueryOptions<GetCurrentUserData>): UseDataConnectQueryResult<GetCurrentUserData, undefined>;
 
@@ -46,3 +70,24 @@ export function useListFactures(dc: DataConnect, options?: useDataConnectQueryOp
 
 export function useListFacturesByStatut(vars: ListFacturesByStatutVariables, options?: useDataConnectQueryOptions<ListFacturesByStatutData>): UseDataConnectQueryResult<ListFacturesByStatutData, ListFacturesByStatutVariables>;
 export function useListFacturesByStatut(dc: DataConnect, vars: ListFacturesByStatutVariables, options?: useDataConnectQueryOptions<ListFacturesByStatutData>): UseDataConnectQueryResult<ListFacturesByStatutData, ListFacturesByStatutVariables>;
+
+export function useListDocumentFolders(options?: useDataConnectQueryOptions<ListDocumentFoldersData>): UseDataConnectQueryResult<ListDocumentFoldersData, undefined>;
+export function useListDocumentFolders(dc: DataConnect, options?: useDataConnectQueryOptions<ListDocumentFoldersData>): UseDataConnectQueryResult<ListDocumentFoldersData, undefined>;
+
+export function useListDocumentsAttaches(options?: useDataConnectQueryOptions<ListDocumentsAttachesData>): UseDataConnectQueryResult<ListDocumentsAttachesData, undefined>;
+export function useListDocumentsAttaches(dc: DataConnect, options?: useDataConnectQueryOptions<ListDocumentsAttachesData>): UseDataConnectQueryResult<ListDocumentsAttachesData, undefined>;
+
+export function useListDocumentsByChantier(vars: ListDocumentsByChantierVariables, options?: useDataConnectQueryOptions<ListDocumentsByChantierData>): UseDataConnectQueryResult<ListDocumentsByChantierData, ListDocumentsByChantierVariables>;
+export function useListDocumentsByChantier(dc: DataConnect, vars: ListDocumentsByChantierVariables, options?: useDataConnectQueryOptions<ListDocumentsByChantierData>): UseDataConnectQueryResult<ListDocumentsByChantierData, ListDocumentsByChantierVariables>;
+
+export function useListPrevisionnelExercises(options?: useDataConnectQueryOptions<ListPrevisionnelExercisesData>): UseDataConnectQueryResult<ListPrevisionnelExercisesData, undefined>;
+export function useListPrevisionnelExercises(dc: DataConnect, options?: useDataConnectQueryOptions<ListPrevisionnelExercisesData>): UseDataConnectQueryResult<ListPrevisionnelExercisesData, undefined>;
+
+export function useListPrevisionnelLinesByExercise(vars: ListPrevisionnelLinesByExerciseVariables, options?: useDataConnectQueryOptions<ListPrevisionnelLinesByExerciseData>): UseDataConnectQueryResult<ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables>;
+export function useListPrevisionnelLinesByExercise(dc: DataConnect, vars: ListPrevisionnelLinesByExerciseVariables, options?: useDataConnectQueryOptions<ListPrevisionnelLinesByExerciseData>): UseDataConnectQueryResult<ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables>;
+
+export function useSearchClientAliases(vars: SearchClientAliasesVariables, options?: useDataConnectQueryOptions<SearchClientAliasesData>): UseDataConnectQueryResult<SearchClientAliasesData, SearchClientAliasesVariables>;
+export function useSearchClientAliases(dc: DataConnect, vars: SearchClientAliasesVariables, options?: useDataConnectQueryOptions<SearchClientAliasesData>): UseDataConnectQueryResult<SearchClientAliasesData, SearchClientAliasesVariables>;
+
+export function useListPrevisionnelCellEdits(vars: ListPrevisionnelCellEditsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelCellEditsData>): UseDataConnectQueryResult<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
+export function useListPrevisionnelCellEdits(dc: DataConnect, vars: ListPrevisionnelCellEditsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelCellEditsData>): UseDataConnectQueryResult<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;

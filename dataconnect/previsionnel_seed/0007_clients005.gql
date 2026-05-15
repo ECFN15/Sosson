@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients005: client_upsertMany(data: [
+    {
+      id: "d96b754f-80be-581e-bc66-85c7c303ccea",
+      type: "particulier",
+      nom: "Fauny",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "39638c0c-15a0-5bdf-854a-093582175244",
+      type: "particulier",
+      nom: "Ferard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b90c4718-3efb-5a67-a955-ebcc38dc9a44",
+      type: "particulier",
+      nom: "Ferraro",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "40e45dd7-df52-52e4-808b-a3137517ab35",
+      type: "particulier",
+      nom: "Ferraro Terrasse",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3fd89cf4-90a6-52ab-8723-287a82ad6c9e",
+      type: "particulier",
+      nom: "Ferre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ce655ab3-4864-5539-80f0-ec7b3436e5ee",
+      type: "particulier",
+      nom: "Feve damien",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "42c8176a-0d78-5971-be0b-4516751f4dca",
+      type: "particulier",
+      nom: "Fieffe",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "96c1302d-cd6e-5220-a342-5b531c8700ee",
+      type: "particulier",
+      nom: "Flaguais",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a6858f4e-a6d9-5b62-b765-a18d84ddfdbd",
+      type: "particulier",
+      nom: "Flipo portail",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "54cec068-a1a4-519b-8bf4-9a21f5069b5f",
+      type: "particulier",
+      nom: "Fossey",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d1b5b7e1-c713-556f-a7ca-ab0c3249e12d",
+      type: "particulier",
+      nom: "Foulon firma",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5f7f0c6b-2bb6-5550-8eeb-0cf2afd35535",
+      type: "particulier",
+      nom: "Foulquier leveziel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6d818252-52be-54c0-bc37-dda593b10301",
+      type: "particulier",
+      nom: "FOUQUES mam bassene",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ddb230b3-da94-52d8-ac72-b460a5557869",
+      type: "particulier",
+      nom: "Fourey",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5b46c239-8469-518f-ae4b-6f14b3b0ff84",
+      type: "particulier",
+      nom: "Francois",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9b80f4c7-31d9-58df-bd6d-5c00ec322831",
+      type: "particulier",
+      nom: "Freire bozec",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "696e7e64-f9c4-5b9b-99cf-fd4dc0cde1cb",
+      type: "particulier",
+      nom: "Freire daniel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6f579af6-3959-5d23-861d-d5da18294c0d",
+      type: "particulier",
+      nom: "Freire olivier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8c846b99-322c-51d4-816b-d46dac3b83f9",
+      type: "particulier",
+      nom: "Froger",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f476fa77-60da-5ebf-bfce-f7be309d7d86",
+      type: "particulier",
+      nom: "Gabard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "be6c935a-0223-5358-a96d-6ec71813023b",
+      type: "particulier",
+      nom: "Gabriel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "feabfc50-fca8-5cd7-8962-600c33e83e4d",
+      type: "particulier",
+      nom: "Ganivet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2da705c0-c580-5a6a-b0e3-ca5b62245fd5",
+      type: "particulier",
+      nom: "Gardie david",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c3137e26-a5eb-5ce8-b8fc-87bb65d6c90f",
+      type: "particulier",
+      nom: "Garnier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f55d2c78-2d47-51af-9d04-0f249633f471",
+      type: "particulier",
+      nom: "GASTON samuel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c4348648-06a5-5ad6-955b-f035fec4d6cf",
+      type: "particulier",
+      nom: "GATE Laura",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5ea660d8-1cb5-5f0b-b6b7-626f93ed32ef",
+      type: "particulier",
+      nom: "Gaudin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3a9f655f-fed3-5b96-98e3-2548e05d074d",
+      type: "particulier",
+      nom: "Gauguin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c099fdc8-1666-518f-990e-e08dc9c55925",
+      type: "particulier",
+      nom: "Gerbault - Ibanescu",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "184c1a9d-68c0-5124-b03b-ee0a06d4be0a",
+      type: "particulier",
+      nom: "Gergaud",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a65f7c59-5102-5c98-b420-75793e8aeeea",
+      type: "particulier",
+      nom: "Germain",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "da10e920-e1fe-5d46-ab6b-b9a068bc70ed",
+      type: "particulier",
+      nom: "Gernault - Ibanescu",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "25d5c13a-fcb3-53cf-8ec0-4d33edaa13aa",
+      type: "particulier",
+      nom: "Gervais",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f8b8960f-a4a1-58bf-93e9-26deaf9f5216",
+      type: "particulier",
+      nom: "Geslain",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "fa66c7a3-46ba-5afa-ad24-efc3901de275",
+      type: "particulier",
+      nom: "Geslin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ebfe7e0a-d277-567c-afa7-80b47c9246f7",
+      type: "particulier",
+      nom: "Geze",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "04cd0c16-f405-5948-91a7-d9f0b12dd025",
+      type: "particulier",
+      nom: "GEZE existant",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d405541e-fef3-526a-9960-bf30d2150442",
+      type: "particulier",
+      nom: "Giommi",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "39281c5c-38c1-5269-a893-d2f132925ff1",
+      type: "particulier",
+      nom: "Girard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "eab058a3-786f-520e-b5ee-62682df62ee9",
+      type: "particulier",
+      nom: "GIRARD double Flux fourniture",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1aee52a8-1c42-558e-9e30-d006886ec3c7",
+      type: "particulier",
+      nom: "Girre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9b7ee751-e846-5f2c-9f2c-63daab5e4011",
+      type: "particulier",
+      nom: "Glowacki",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "17745acf-af83-52d9-919a-8c2fca805436",
+      type: "particulier",
+      nom: "Godin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "baf35fbc-71cf-5971-a797-a2c5c8b39f0a",
+      type: "particulier",
+      nom: "Goni-Lacaza",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2d8f792d-92d8-5d33-8e8e-0a4a4f22b396",
+      type: "particulier",
+      nom: "Gosset",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6607d4d7-233a-5b52-bd5b-79db61560e72",
+      type: "particulier",
+      nom: "Goueslard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "87315d76-3382-5e21-8451-17bb74ae0bef",
+      type: "particulier",
+      nom: "Goulain",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "35ffbc8d-97b2-5397-91a4-418a09bd0f7d",
+      type: "particulier",
+      nom: "Gourdier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f0bda559-0347-5329-8ad0-ff9290c99125",
+      type: "particulier",
+      nom: "Grange",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7bfd49e0-55fa-5b45-b6bf-114f4d90f8c3",
+      type: "particulier",
+      nom: "Grard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

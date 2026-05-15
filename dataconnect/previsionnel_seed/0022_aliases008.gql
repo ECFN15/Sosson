@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases008: clientAlias_upsertMany(data: [
+    {
+      id: "6ec7c7bd-cdc3-58c0-8ce5-d3ec1cb3f256",
+      clientId: "e180fe28-8c74-5f51-975e-57e5f9edb9e3",
+      alias: "LEDORZE",
+      normalizedKey: "ledorze",
+      source: "excel"
+    },
+    {
+      id: "ee95acfd-b063-5b32-b5d3-ac35150acf05",
+      clientId: "53a63655-e179-53ce-92df-dd93cf52f666",
+      alias: "lefebvre letourneur",
+      normalizedKey: "lefebvre-letourneur",
+      source: "excel"
+    },
+    {
+      id: "5070423f-7f84-53d3-b805-f8ad95d1c765",
+      clientId: "11690c81-4d9e-5743-b2a2-1a1b0ce3afbb",
+      alias: "lefevre",
+      normalizedKey: "lefevre",
+      source: "excel"
+    },
+    {
+      id: "a5e6adbe-11cd-52e5-9fc2-33b18d55502a",
+      clientId: "5361eb1e-c81f-50b1-b490-ad7aa78a6535",
+      alias: "LEFRANCOIS (Evrecy)",
+      normalizedKey: "lefrancois",
+      source: "excel"
+    },
+    {
+      id: "c26ad14a-cc3a-5da6-9636-c8835447bd5f",
+      clientId: "807bf407-e743-5384-a11b-b5f5850c3179",
+      alias: "legarrec terrasse",
+      normalizedKey: "legarrec-terrasse",
+      source: "excel"
+    },
+    {
+      id: "00691c82-a38d-56e0-9faa-e25db1993bbe",
+      clientId: "02300094-16ab-54ed-b403-1430543ff4f5",
+      alias: "LEGEAI",
+      normalizedKey: "legeai",
+      source: "excel"
+    },
+    {
+      id: "2b2741fe-f7b1-503d-bf83-bc92f8467876",
+      clientId: "a2f470b3-45bd-59fc-8ec2-76dab4c44813",
+      alias: "LEGENDRE",
+      normalizedKey: "legendre",
+      source: "excel"
+    },
+    {
+      id: "a9a6d48f-830e-5fd3-b1ee-5a3aecf1d623",
+      clientId: "dfbc8d22-1b83-5302-9858-817733bea76b",
+      alias: "LEGRAS",
+      normalizedKey: "legras",
+      source: "excel"
+    },
+    {
+      id: "b634ffd8-0735-5992-84cf-1a012b03c827",
+      clientId: "418ed4af-d31f-558d-8449-ef75ddad21a2",
+      alias: "leloup",
+      normalizedKey: "leloup",
+      source: "excel"
+    },
+    {
+      id: "7c06c6be-1caa-5f5f-a578-fe57da7fb7c3",
+      clientId: "c94a038a-f6d7-53ab-b368-1cd16330fcf0",
+      alias: "LEMANISSIER",
+      normalizedKey: "lemanissier",
+      source: "excel"
+    },
+    {
+      id: "40d3e989-2097-5878-b17f-b3c239541782",
+      clientId: "b02e08bf-d5ff-51ed-85f8-a916684a18bd",
+      alias: "lemasle reno",
+      normalizedKey: "lemasle",
+      source: "excel"
+    },
+    {
+      id: "4a68afcd-410b-5bc3-95ef-138ec3493421",
+      clientId: "b8e35134-7604-5c37-97c6-0e2556ef54a0",
+      alias: "lemauf",
+      normalizedKey: "lemauf",
+      source: "excel"
+    },
+    {
+      id: "e0cea3b4-ca7f-5cad-991a-860a84158167",
+      clientId: "5e28e914-24f4-573d-9002-6c8036e77300",
+      alias: "LEMAZURIEZ",
+      normalizedKey: "lemazuriez",
+      source: "excel"
+    },
+    {
+      id: "44fcda63-8ca5-52d1-a260-e53b4b3de91c",
+      clientId: "10e5643d-3601-5f58-8e46-50aa4fd44c6d",
+      alias: "LEMOIGNE",
+      normalizedKey: "lemoigne",
+      source: "excel"
+    },
+    {
+      id: "6eae041a-e31f-5dc9-8b6e-aa45d304368b",
+      clientId: "4af50642-1dd8-5c16-984d-339203432fb9",
+      alias: "LEMOINE",
+      normalizedKey: "lemoine",
+      source: "excel"
+    },
+    {
+      id: "26c4f6cb-a6c3-53d7-9af2-b18620a4a640",
+      clientId: "0236e8f0-ba50-56c0-9b4d-c17d0f35c96b",
+      alias: "LEPLE",
+      normalizedKey: "leple",
+      source: "excel"
+    },
+    {
+      id: "6c1e2e95-6b01-56f1-9523-7776d1c78b2f",
+      clientId: "ece839d4-f69d-5867-ac20-a2a35d41c6ac",
+      alias: "LEPLUS",
+      normalizedKey: "leplus",
+      source: "excel"
+    },
+    {
+      id: "1ca2ef32-80b6-5216-9f7d-9c240ada5a49",
+      clientId: "ca446c99-029c-5cbb-8e50-632b5dc09251",
+      alias: "LEPRETE",
+      normalizedKey: "leprete",
+      source: "excel"
+    },
+    {
+      id: "bced076b-6e5d-574c-b0a1-1ac1fd591ade",
+      clientId: "72687797-12a8-5d43-9810-b94e6a95f7cd",
+      alias: "LEPROVOT",
+      normalizedKey: "leprovot",
+      source: "excel"
+    },
+    {
+      id: "910b84c6-8720-57c5-ae74-bd2962f9ea80",
+      clientId: "aabf3793-b510-5813-adaf-8d702ca3e9b5",
+      alias: "LEQUITTE",
+      normalizedKey: "lequitte",
+      source: "excel"
+    },
+    {
+      id: "0f75097d-8ced-59e7-9425-71962e83d0fb",
+      clientId: "e17e6892-832c-55cd-9b0d-204cd57bfc01",
+      alias: "LEROULLIER",
+      normalizedKey: "leroullier",
+      source: "excel"
+    },
+    {
+      id: "119b56c3-7a7b-5682-a95d-aceef285ad38",
+      clientId: "3681dc15-9f5a-575e-b4e9-afdf897b3f4e",
+      alias: "LEROUTIER",
+      normalizedKey: "leroutier",
+      source: "excel"
+    },
+    {
+      id: "aa30fa1d-4f40-52ee-b289-94de1a6ba64a",
+      clientId: "77216489-7b81-5578-98c2-63a12eda37f1",
+      alias: "LEROUX",
+      normalizedKey: "leroux",
+      source: "excel"
+    },
+    {
+      id: "6e0a48f4-b417-5fb4-ba2d-85b83521d3b2",
+      clientId: "cb2905dd-adb1-5f50-a8e6-0817f32e4e71",
+      alias: "LEROYER",
+      normalizedKey: "leroyer",
+      source: "excel"
+    },
+    {
+      id: "85664d59-799f-582d-bf04-7d2cbc544075",
+      clientId: "26adc391-ec3f-548d-b8b9-3ff5ea1e44e1",
+      alias: "LEROYER PIOLINE",
+      normalizedKey: "leroyer-pioline",
+      source: "excel"
+    },
+    {
+      id: "901b5e45-18a4-59de-87d8-ab2f6a9dbade",
+      clientId: "4e100c13-bcd7-5abf-aea1-7669ace1287f",
+      alias: "LETOURNEUR",
+      normalizedKey: "letourneur",
+      source: "excel"
+    },
+    {
+      id: "f4a8ddb4-9eee-59e6-9dde-af27da3e567a",
+      clientId: "4948dd00-24f2-5d90-acaf-e4f231b3c7c5",
+      alias: "LEVEQUE",
+      normalizedKey: "leveque",
+      source: "excel"
+    },
+    {
+      id: "6e01f9fe-a48b-5a59-b0cf-1223413dfd16",
+      clientId: "e0c34eb3-e05b-5c9a-bfbe-1e4a36487a47",
+      alias: "LEVEQUE GARAGE",
+      normalizedKey: "leveque-garage",
+      source: "excel"
+    },
+    {
+      id: "815f47f2-710b-540d-a41f-bfc788776041",
+      clientId: "8f3a7947-5076-5a3a-87bc-68e75d308577",
+      alias: "LEYEUCH",
+      normalizedKey: "leyeuch",
+      source: "excel"
+    },
+    {
+      id: "8edb63b3-ca7c-59a1-968e-e34cc17ebfd6",
+      clientId: "9f24fcf4-0adf-5507-88d2-4dfc890fc9c8",
+      alias: "LIAUTAUD",
+      normalizedKey: "liautaud",
+      source: "excel"
+    },
+    {
+      id: "8a049a6c-dac0-555b-98b3-66f9c09dc712",
+      clientId: "9bd9f9e3-3f7c-55a8-8838-0a3e4ae22fac",
+      alias: "LOBERGER",
+      normalizedKey: "loberger",
+      source: "excel"
+    },
+    {
+      id: "c9f7b89b-9506-5172-832e-1ca0b45cb136",
+      clientId: "65f3413e-f4d2-50ff-b452-b3e39597a137",
+      alias: "LOCK QUEST",
+      normalizedKey: "lock-quest",
+      source: "excel"
+    },
+    {
+      id: "fabc1c2a-b841-504a-b49c-9d3e2318d4a5",
+      clientId: "6d516d8c-9884-5233-9556-6d4f9d9f55ff",
+      alias: "LOCKQUEST",
+      normalizedKey: "lockquest",
+      source: "excel"
+    },
+    {
+      id: "7a2b1186-dd37-59e4-a0c5-b4f6511664a2",
+      clientId: "a882dbfa-0c4e-581e-b845-258be79d3015",
+      alias: "LOPEZ",
+      normalizedKey: "lopez",
+      source: "excel"
+    },
+    {
+      id: "df7edd4f-62f5-5d01-b667-3d65cb8e8258",
+      clientId: "88436532-ded3-5f85-a030-8357fa2356a8",
+      alias: "lotton",
+      normalizedKey: "lotton",
+      source: "excel"
+    },
+    {
+      id: "99e15998-2a56-51a8-b225-dcf8064dc6f7",
+      clientId: "5a355c12-8fc2-5aaa-b25a-871e83513dcc",
+      alias: "louiche",
+      normalizedKey: "louiche",
+      source: "excel"
+    },
+    {
+      id: "6cd7a8e2-4191-5978-b6e6-36e7b0161abf",
+      clientId: "2b1e6722-8a61-5001-a617-e9196f47a9d1",
+      alias: "LOZACH MARY",
+      normalizedKey: "lozach-mary",
+      source: "excel"
+    },
+    {
+      id: "4316962e-2bce-5fb9-b2e4-7eb6a32ab722",
+      clientId: "c54a3556-0c82-55ce-acaa-93ee108df6cc",
+      alias: "LVM14",
+      normalizedKey: "lvm14",
+      source: "excel"
+    },
+    {
+      id: "757bb6f5-c614-52e5-a44f-258d5437fd2f",
+      clientId: "aec883c8-ed37-5a33-aaf4-06d720dd1749",
+      alias: "lycée malherbe",
+      normalizedKey: "lycee-malherbe",
+      source: "excel"
+    },
+    {
+      id: "4dc72bdb-d805-5f03-a7b3-2d59fbd276f0",
+      clientId: "7a19e95c-1ecb-5491-bacb-cf1610ef1c63",
+      alias: "magny renov",
+      normalizedKey: "magny-renov",
+      source: "excel"
+    },
+    {
+      id: "e3376da1-cba1-59e5-bd18-bfbf472d7f48",
+      clientId: "76b4b0d5-527c-54ba-a670-7dc25ae52883",
+      alias: "MAHE",
+      normalizedKey: "mahe",
+      source: "excel"
+    },
+    {
+      id: "b09bdcd3-b27b-5fc3-9552-b6472e3c898a",
+      clientId: "6463b527-a9e9-55f2-9c17-5bffb1e1493c",
+      alias: "MAILLARD",
+      normalizedKey: "maillard",
+      source: "excel"
+    },
+    {
+      id: "cd312592-acef-5bf0-b4e0-4dfc8edb91e4",
+      clientId: "5ca97729-f3c3-5c00-bcb0-89f5c6d7536b",
+      alias: "MAINCENT",
+      normalizedKey: "maincent",
+      source: "excel"
+    },
+    {
+      id: "e1caa9db-f5d1-5059-b0e8-0883235d6f45",
+      clientId: "e19161db-fad3-55e3-9ce3-9456c4ac4a72",
+      alias: "mairie bretteville",
+      normalizedKey: "mairie-bretteville",
+      source: "excel"
+    },
+    {
+      id: "9d4ad24c-b7e6-5308-a112-82bdf8f1a42e",
+      clientId: "6590e25a-79e5-536f-9b1c-39c0fa233d2e",
+      alias: "MAIRIE BRETTEVILLE LAIZE BANC",
+      normalizedKey: "mairie-bretteville-laize-banc",
+      source: "excel"
+    },
+    {
+      id: "0e1fe962-d96e-5187-a2e5-eceb20df9c40",
+      clientId: "b7478a5b-0c18-5d9b-b2a7-0144e80f42f0",
+      alias: "mairie de BSL",
+      normalizedKey: "mairie-de-bsl",
+      source: "excel"
+    },
+    {
+      id: "c6ed1413-369c-55ab-9f89-9c36e52d0539",
+      clientId: "a169bb47-3b58-5553-a6f3-6195e88985e2",
+      alias: "MAIRIE de COMBRAY",
+      normalizedKey: "mairie-de-combray",
+      source: "excel"
+    },
+    {
+      id: "87eef89c-499a-53fc-a279-3fead181a4b9",
+      clientId: "f85f117a-d17d-57da-8752-89e8ed62383b",
+      alias: "Mairie de MOULT",
+      normalizedKey: "mairie-de-moult",
+      source: "excel"
+    },
+    {
+      id: "f9f2158b-0b36-54b5-b6ce-6ba5af78b174",
+      clientId: "4506245d-64e0-5f52-b41b-59b1532353c8",
+      alias: "mairie de perriere",
+      normalizedKey: "mairie-de-perriere",
+      source: "excel"
+    },
+    {
+      id: "c18ce9ce-96c0-5687-b2b7-d93ced462ea2",
+      clientId: "4506245d-64e0-5f52-b41b-59b1532353c8",
+      alias: "mairie de perrière 2",
+      normalizedKey: "mairie-de-perriere",
+      source: "excel"
+    }
+  ])
+}

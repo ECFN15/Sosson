@@ -19,35 +19,36 @@ import { logout } from '@/lib/auth'
 import { useApp } from '@/lib/store'
 import { roleLabels } from '@/data/users'
 import { SossonBrand } from '@/components/brand/SossonLogo'
+import { canAccessPage } from '@/lib/accessControl'
+import type { PagePermissionKey } from '@/lib/accessControl'
 
-/**
- * Sidebar desktop — spec canonique `design-tokens.md` §7.1.
- * - w-[232px] fixe, fond anthracite `#1E1E1E`.
- * - Item actif : fond enrichi `#2A1A0D` + liseré orange 3px à gauche.
- * - Brand block orange + wordmark "SOSSON / MAISON BOIS".
- * - Footer utilisateur (avatar + rôle + chevron).
- */
+type NavEntry = {
+  to: string
+  icon: React.ElementType
+  label: string
+  accessKey: PagePermissionKey
+}
 
-const navMain = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
-  { to: '/chantiers', icon: HardHat, label: 'Chantiers' },
-  { to: '/clients', icon: Users, label: 'Clients' },
-  { to: '/documents', icon: Folder, label: 'Documents' },
-  { to: '/factures', icon: FileText, label: 'Factures' },
-  { to: '/previsionnel', icon: TableProperties, label: 'Prévisionnel' },
-  { to: '/statistiques', icon: LineChart, label: 'Statistiques' },
-  { to: '/emails', icon: Mail, label: 'Emails' },
-  { to: '/planning', icon: Calendar, label: 'Planning' },
-  { to: '/rapports', icon: BarChart2, label: 'Rapports' },
+const navMain: NavEntry[] = [
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord', accessKey: 'dashboard' },
+  { to: '/chantiers', icon: HardHat, label: 'Chantiers', accessKey: 'chantiers' },
+  { to: '/clients', icon: Users, label: 'Clients', accessKey: 'clients' },
+  { to: '/documents', icon: Folder, label: 'Documents', accessKey: 'documents' },
+  { to: '/factures', icon: FileText, label: 'Factures', accessKey: 'factures' },
+  { to: '/previsionnel', icon: TableProperties, label: 'Previsionnel', accessKey: 'previsionnel' },
+  { to: '/statistiques', icon: LineChart, label: 'Statistiques', accessKey: 'statistiques' },
+  { to: '/emails', icon: Mail, label: 'Emails', accessKey: 'emails' },
+  { to: '/planning', icon: Calendar, label: 'Planning', accessKey: 'planning' },
+  { to: '/rapports', icon: BarChart2, label: 'Rapports', accessKey: 'rapports' },
 ]
 
-const navSecondary = [
-  { to: '/documentation', icon: BookOpen, label: 'Documentation' },
-  { to: '/equipe', icon: UsersRound, label: 'Équipe' },
-  { to: '/parametres', icon: Settings, label: 'Paramètres' },
+const navSecondary: NavEntry[] = [
+  { to: '/documentation', icon: BookOpen, label: 'Documentation', accessKey: 'documentation' },
+  { to: '/equipe', icon: UsersRound, label: 'Equipe', accessKey: 'equipe' },
+  { to: '/parametres', icon: Settings, label: 'Parametres', accessKey: 'parametres' },
 ]
 
-function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
+function NavItem({ to, icon: Icon, label }: NavEntry) {
   return (
     <NavLink
       to={to}
@@ -82,8 +83,10 @@ function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementTyp
 }
 
 export function Sidebar() {
-  const { user, setUser } = useApp()
+  const { user, setUser, accessMatrix } = useApp()
   const navigate = useNavigate()
+  const visibleMain = navMain.filter(item => canAccessPage(user?.role, item.accessKey, accessMatrix))
+  const visibleSecondary = navSecondary.filter(item => canAccessPage(user?.role, item.accessKey, accessMatrix))
 
   async function handleLogout() {
     await logout()
@@ -93,27 +96,22 @@ export function Sidebar() {
 
   return (
     <aside className="w-[232px] h-screen bg-[#1E1E1E] text-white flex flex-col shrink-0">
-      {/* Brand block */}
       <div className="px-5 pt-6 pb-8">
         <SossonBrand variant="light" className="w-full" />
       </div>
 
-      {/* Nav principale */}
       <nav className="flex-1 overflow-y-auto px-3 flex flex-col gap-0.5 pt-2">
-        {navMain.map(item => (
+        {visibleMain.map(item => (
           <NavItem key={item.to} {...item} />
         ))}
 
-        {/* Séparateur */}
         <div className="my-2 border-t border-[#2A2A2A]" />
 
-        {/* Nav secondaire */}
-        {navSecondary.map(item => (
+        {visibleSecondary.map(item => (
           <NavItem key={item.to} {...item} />
         ))}
       </nav>
 
-      {/* Footer utilisateur */}
       <div className="border-t border-[#2A2A2A] px-3 py-3">
         <button
           type="button"

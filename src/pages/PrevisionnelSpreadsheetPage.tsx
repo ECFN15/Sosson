@@ -1,0 +1,1044 @@
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { ArrowLeft, Cloud, Download, RotateCcw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  listPrevisionnelCellEdits,
+  listPrevisionnelExercises,
+  listPrevisionnelLinesByExercise,
+  updatePrevisionnelLineAmounts,
+  updatePrevisionnelMonthlyAmount,
+  upsertPrevisionnelCellEdit,
+} from '@dataconnect/generated'
+import { currentPrevisionnelSheet } from '@/data/previsionnelCurrentSheet'
+import { exportCurrentPrevisionnelWorkbookFromCells, type WorkbookCellUpdates } from '@/lib/previsionnelExport'
+import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import {
+  buildSpreadsheetView,
+  formatSpreadsheetValue,
+  isNumericColumn,
+  normalizeSpreadsheetInput,
+  parseSpreadsheetNumber,
+  type SpreadsheetCellUpdates,
+} from '@/lib/previsionnelSpreadsheet'
+import { useApp } from '@/lib/store'
+import type { CurrentSheetColumn, CurrentSheetRow } from '@/data/previsionnelCurrentSheet'
+
+const STORAGE_KEY = `sosson:previsionnel:${currentPrevisionnelSheet.sheet}:cell-updates`
+
+type SqlStatus = 'idle' | 'loading' | 'ready' | 'saving' | 'unavailable' | 'error'
+type SqlCellBinding = {
+  monthlyId: string
+  field: 'planned' | 'realized'
+}
+type SqlLineBinding = {
+  lineId: string
+}
+type CellPosition = {
+  rowIndex: number
+  colIndex: number
+}
+type CellInputRefFactory = (ref: string) => (node: HTMLInputElement | null) => void
+type CellChangeHandler = (ref: string, value: string, numeric: boolean) => void
+type CellFocusHandler = (ref: string) => void
+type CellKeyboardHandler = (event: KeyboardEvent<HTMLInputElement>, ref: string) => void
+type CellPasteHandler = (event: ClipboardEvent<HTMLInputElement>, ref: string) => void
+type DraftCell = {
+  ref: string
+  value: string
+  numeric: boolean
+}
+
+function cellEditId(sheet: string, ref: string) {
+  return `${sheet}:${ref}`
+}
+
+function asDisplay(value: string | number | null | undefined) {
+  if (value === null || value === undefined) return ''
+  return String(value)
+}
+
+function asNumber(value: string | number | null | undefined) {
+  return parseSpreadsheetNumber(value ?? null)
+}
+
+function rowInitialValue(row: CurrentSheetRow, col: string) {
+  return row.cells.find(cell => cell.col === col)?.value ?? null
+}
+
+function valueForCell(
+  ref: string,
+  fallback: string | number | null,
+  edited: WorkbookCellUpdates,
+  sqlValues: WorkbookCellUpdates,
+  spreadsheetValues: SpreadsheetCellUpdates,
+) {
+  if (Object.prototype.hasOwnProperty.call(edited, ref)) return edited[ref]
+  if (Object.prototype.hasOwnProperty.call(sqlValues, ref)) return sqlValues[ref]
+  if (Object.prototype.hasOwnProperty.call(spreadsheetValues, ref)) return spreadsheetValues[ref]
+  return fallback
+}
+
+function cellBg(row: CurrentSheetRow, fillId: number, editable: boolean) {
+  if (row.lineType === 'section') return '#DCE9F2'
+  if (row.lineType === 'total') return '#1E1E1E'
+  if (fillId === 10) return '#FFF9B1'
+  if (editable) return '#FFFFFF'
+  return '#FAF6F2'
+}
+
+function cellColor(row: CurrentSheetRow) {
+  if (row.lineType === 'total') return '#FFFFFF'
+  return '#1E1E1E'
+}
+
+function refCoordinates(ref: string | null) {
+  if (!ref) return null
+  const match = /^([A-Z]+)(\d+)$/.exec(ref)
+  if (!match) return null
+  return { col: match[1], rowNumber: Number(match[2]) }
+}
+
+function buildExportUpdates(edited: WorkbookCellUpdates, sqlValues: WorkbookCellUpdates) {
+  const updates: WorkbookCellUpdates = {}
+
+  currentPrevisionnelSheet.rows.forEach(row => {
+    row.cells.forEach(cell => {
+      if (!cell.editable) return
+      if (Object.prototype.hasOwnProperty.call(edited, cell.ref)) updates[cell.ref] = edited[cell.ref]
+      else if (Object.prototype.hasOwnProperty.call(sqlValues, cell.ref)) updates[cell.ref] = sqlValues[cell.ref]
+    })
+  })
+
+  return updates
+}
+
+interface SpreadsheetRowProps {
+  row: CurrentSheetRow
+  columnsByKey: Map<string, CurrentSheetColumn>
+  edited: WorkbookCellUpdates
+  sqlValues: WorkbookCellUpdates
+  spreadsheetValues: SpreadsheetCellUpdates
+  draftCellInRow: DraftCell | null
+  activeCellInRow: string | null
+  editingCellInRow: string | null
+  rowActive: boolean
+  getInputRef: CellInputRefFactory
+  onCellChange: CellChangeHandler
+  onCellFocus: CellFocusHandler
+  onCellDoubleClick: CellFocusHandler
+  onCellKeyDown: CellKeyboardHandler
+  onCellPaste: CellPasteHandler
+}
+
+const SpreadsheetRow = memo(function SpreadsheetRow({
+  row,
+  columnsByKey,
+  edited,
+  sqlValues,
+  spreadsheetValues,
+  draftCellInRow,
+  activeCellInRow,
+  editingCellInRow,
+  rowActive,
+  getInputRef,
+  onCellChange,
+  onCellFocus,
+  onCellDoubleClick,
+  onCellKeyDown,
+  onCellPaste,
+}: SpreadsheetRowProps) {
+  return (
+    <tr>
+      <td
+        className="sticky left-0 z-20 border-b border-r border-[#EADBC8] px-2 py-1 text-center text-[11px] font-semibold"
+        style={{
+          backgroundColor: rowActive
+            ? '#FFF4EA'
+            : row.lineType === 'section'
+              ? '#DCE9F2'
+              : row.lineType === 'total'
+                ? '#1E1E1E'
+                : '#FAF6F2',
+          color: rowActive ? '#1E1E1E' : cellColor(row),
+        }}
+      >
+        {row.rowNumber}
+      </td>
+      {row.cells.map(cell => {
+        const column = columnsByKey.get(cell.col)
+        const draftValue = draftCellInRow?.ref === cell.ref ? draftCellInRow.value : null
+        const committedValue = valueForCell(cell.ref, cell.value, edited, sqlValues, spreadsheetValues)
+        const value = draftValue ?? committedValue
+        const editable = cell.editable
+        const numeric = typeof rowInitialValue(row, cell.col) === 'number' || isNumericColumn(column)
+        const changed = draftValue !== null || Object.prototype.hasOwnProperty.call(edited, cell.ref)
+        const active = activeCellInRow === cell.ref
+        const editing = editingCellInRow === cell.ref
+        const stickyClass = cell.col === 'B' ? 'sticky left-[52px] z-10 shadow-[2px_0_0_#EADBC8]' : ''
+        const cellStateClass = active
+          ? 'z-20 outline outline-2 outline-[#F06B21] outline-offset-[-2px]'
+          : changed
+            ? 'outline outline-1 outline-[#F06B21] outline-offset-[-1px]'
+            : !editable
+              ? 'text-[#6B6B6B]'
+              : ''
+
+        return (
+          <td
+            key={cell.ref}
+            data-cell-ref={cell.ref}
+            className={`relative border-b border-r border-[#EADBC8] p-0 ${stickyClass} ${cellStateClass}`}
+            style={{
+              minWidth: column?.width ?? 92,
+              backgroundColor: changed ? '#FFF4EA' : cellBg(row, cell.fillId, editable),
+              color: cellColor(row),
+            }}
+            title={editable ? cell.ref : `${cell.ref} - lecture seule`}
+          >
+            {editable ? (
+              <input
+                ref={getInputRef(cell.ref)}
+                value={editing ? asDisplay(value) : formatSpreadsheetValue(value, numeric)}
+                inputMode={numeric ? 'decimal' : 'text'}
+                readOnly={!editing}
+                onChange={event => onCellChange(cell.ref, event.target.value, numeric)}
+                onFocus={() => onCellFocus(cell.ref)}
+                onDoubleClick={() => onCellDoubleClick(cell.ref)}
+                onKeyDown={event => onCellKeyDown(event, cell.ref)}
+                onPaste={event => onCellPaste(event, cell.ref)}
+                data-cell-ref={cell.ref}
+                className={`h-8 w-full min-w-0 border-0 bg-transparent px-2 text-[12px] font-medium text-[#1E1E1E] outline-none focus:bg-white ${
+                  changed ? 'font-semibold' : ''
+                }`}
+                aria-label={`${cell.ref} ${row.name}`}
+              />
+            ) : (
+              <span className="block h-8 select-none truncate px-2 py-2 text-[11px] font-medium opacity-80">
+                {formatSpreadsheetValue(value, numeric)}
+              </span>
+            )}
+            {active && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-[3px] z-30 rounded-[3px] border-2 border-[#F06B21]"
+                style={{ animation: 'sossonCellSelect 900ms ease-out infinite' }}
+              >
+                <span className="absolute -bottom-[5px] -right-[5px] h-[7px] w-[7px] rounded-[2px] border border-white bg-[#F06B21]" />
+              </span>
+            )}
+          </td>
+        )
+      })}
+    </tr>
+  )
+}, areSpreadsheetRowPropsEqual)
+
+function areSpreadsheetRowPropsEqual(previous: SpreadsheetRowProps, next: SpreadsheetRowProps) {
+  if (
+    previous.row.id !== next.row.id ||
+    previous.rowActive !== next.rowActive ||
+    previous.activeCellInRow !== next.activeCellInRow ||
+    previous.editingCellInRow !== next.editingCellInRow ||
+    previous.draftCellInRow?.ref !== next.draftCellInRow?.ref ||
+    previous.draftCellInRow?.value !== next.draftCellInRow?.value ||
+    previous.draftCellInRow?.numeric !== next.draftCellInRow?.numeric ||
+    previous.columnsByKey !== next.columnsByKey ||
+    previous.getInputRef !== next.getInputRef ||
+    previous.onCellChange !== next.onCellChange ||
+    previous.onCellFocus !== next.onCellFocus ||
+    previous.onCellDoubleClick !== next.onCellDoubleClick ||
+    previous.onCellKeyDown !== next.onCellKeyDown ||
+    previous.onCellPaste !== next.onCellPaste
+  ) {
+    return false
+  }
+
+  if (previous.row.cells.length !== next.row.cells.length) return false
+
+  for (let index = 0; index < next.row.cells.length; index += 1) {
+    const previousCell = previous.row.cells[index]
+    const nextCell = next.row.cells[index]
+    if (
+      previousCell.ref !== nextCell.ref ||
+      previousCell.col !== nextCell.col ||
+      previousCell.editable !== nextCell.editable ||
+      previousCell.fillId !== nextCell.fillId
+    ) {
+      return false
+    }
+
+    const previousChanged = Object.prototype.hasOwnProperty.call(previous.edited, nextCell.ref)
+    const nextChanged = Object.prototype.hasOwnProperty.call(next.edited, nextCell.ref)
+    if (previousChanged !== nextChanged) return false
+
+    const previousValue = valueForCell(
+      nextCell.ref,
+      previousCell.value,
+      previous.edited,
+      previous.sqlValues,
+      previous.spreadsheetValues,
+    )
+    const nextValue = valueForCell(nextCell.ref, nextCell.value, next.edited, next.sqlValues, next.spreadsheetValues)
+    if (!Object.is(previousValue, nextValue)) return false
+  }
+
+  return true
+}
+
+export function PrevisionnelSpreadsheetPage() {
+  const { user } = useApp()
+  const cellInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const cellInputRefCallbacks = useRef<Record<string, (node: HTMLInputElement | null) => void>>({})
+  const focusFrame = useRef<number | null>(null)
+  const handleSaveSqlRef = useRef<(() => Promise<void>) | null>(null)
+  const editedRef = useRef<WorkbookCellUpdates>({})
+  const draftCellRef = useRef<DraftCell | null>(null)
+  const editSessionRef = useRef<{ ref: string; hadEditedValue: boolean; value: string | number | null } | null>(null)
+  const [sqlStatus, setSqlStatus] = useState<SqlStatus>('idle')
+  const [, setSqlMessage] = useState('Mode local navigateur')
+  const [sqlValues, setSqlValues] = useState<WorkbookCellUpdates>({})
+  const [sqlBindings, setSqlBindings] = useState<Record<string, SqlCellBinding>>({})
+  const [sqlLineBindings, setSqlLineBindings] = useState<Record<number, SqlLineBinding>>({})
+  const [activeCell, setActiveCell] = useState<string | null>(null)
+  const [editingCell, setEditingCell] = useState<string | null>(null)
+  const [draftCell, setDraftCell] = useState<DraftCell | null>(null)
+  const [edited, setEdited] = useState<WorkbookCellUpdates>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as WorkbookCellUpdates
+    } catch {
+      return {}
+    }
+  })
+  useEffect(() => {
+    editedRef.current = edited
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(edited))
+  }, [edited])
+
+  useEffect(() => {
+    draftCellRef.current = draftCell
+  }, [draftCell])
+
+  useEffect(
+    () => () => {
+      if (focusFrame.current !== null) cancelAnimationFrame(focusFrame.current)
+    },
+    [],
+  )
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadSqlPrevisionnel() {
+      if (!isDataConnectEnabled || !user) {
+        if (!mounted) return
+        setSqlStatus('unavailable')
+        setSqlMessage('SQL Connect indisponible : sauvegarde navigateur uniquement')
+        return
+      }
+
+      setSqlStatus('loading')
+      setSqlMessage('Chargement SQL Connect...')
+      try {
+        const dc = getSossonDataConnect()
+        const exercisesResponse = await listPrevisionnelExercises(dc)
+        const exercise = exercisesResponse.data.previsionnelExercises.find(item => item.sheet === currentPrevisionnelSheet.sheet)
+
+        if (!exercise) {
+          if (!mounted) return
+          setSqlStatus('unavailable')
+          setSqlMessage(`Aucun exercice SQL pour ${currentPrevisionnelSheet.sheet}`)
+          return
+        }
+
+        const [linesResponse, cellEditsResponse] = await Promise.all([
+          listPrevisionnelLinesByExercise(dc, { exerciseId: exercise.id }),
+          listPrevisionnelCellEdits(dc, { sourceSheet: currentPrevisionnelSheet.sheet }),
+        ])
+        const nextValues: WorkbookCellUpdates = {}
+        const nextBindings: Record<string, SqlCellBinding> = {}
+        const nextLineBindings: Record<number, SqlLineBinding> = {}
+
+        linesResponse.data.previsionnelLines.forEach(line => {
+          nextLineBindings[line.sourceRow] = { lineId: line.id }
+          nextValues[`A${line.sourceRow}`] = line.caTce
+          nextValues[`B${line.sourceRow}`] = line.clientName || line.rawName
+          nextValues[`D${line.sourceRow}`] = line.caPrevision
+          nextValues[`E${line.sourceRow}`] = line.caContrat
+
+          line.monthly.forEach(month => {
+            const pair = currentPrevisionnelSheet.monthPairs[month.monthOrder - 1]
+            if (!pair) return
+
+            const plannedRef = `${pair.planned}${line.sourceRow}`
+            const realizedRef = `${pair.realized}${line.sourceRow}`
+            nextValues[plannedRef] = month.planned
+            nextValues[realizedRef] = month.realized
+            nextBindings[plannedRef] = { monthlyId: month.id, field: 'planned' }
+            nextBindings[realizedRef] = { monthlyId: month.id, field: 'realized' }
+          })
+        })
+
+        cellEditsResponse.data.previsionnelCellEdits.forEach(cell => {
+          nextValues[cell.cellRef] = cell.numericValue ?? cell.valueText ?? ''
+        })
+
+        if (!mounted) return
+        setSqlValues(nextValues)
+        setSqlBindings(nextBindings)
+        setSqlLineBindings(nextLineBindings)
+        setSqlStatus('ready')
+        setSqlMessage(`${linesResponse.data.previsionnelLines.length} lignes chargées depuis SQL Connect`)
+      } catch (error) {
+        if (!mounted) return
+        setSqlStatus('error')
+        setSqlMessage(`SQL Connect indisponible : ${error instanceof Error ? error.message : 'erreur inconnue'}`)
+      }
+    }
+
+    void loadSqlPrevisionnel()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
+
+  const spreadsheet = useMemo(
+    () => buildSpreadsheetView(currentPrevisionnelSheet, sqlValues as SpreadsheetCellUpdates, edited as SpreadsheetCellUpdates),
+    [edited, sqlValues],
+  )
+
+  const rows = spreadsheet.rows
+  const columnsByKey = useMemo(() => new Map(currentPrevisionnelSheet.columns.map(column => [column.key, column])), [])
+  const cellPositionByRef = useMemo(() => {
+    const positions = new Map<string, CellPosition>()
+
+    rows.forEach((row, rowIndex) => {
+      row.cells.forEach((cell, colIndex) => {
+        positions.set(cell.ref, { rowIndex, colIndex })
+      })
+    })
+
+    return positions
+  }, [rows])
+
+  const editedCount =
+    Object.keys(edited).length + (draftCell && !Object.prototype.hasOwnProperty.call(edited, draftCell.ref) ? 1 : 0)
+  const sqlCanSave = sqlStatus === 'ready'
+  const activePosition = activeCell ? (cellPositionByRef.get(activeCell) ?? null) : null
+  const activeCoordinates = activePosition ? refCoordinates(activeCell) : null
+  const activeRowNumber = activeCoordinates?.rowNumber ?? null
+  const draftRowNumber = refCoordinates(draftCell?.ref ?? null)?.rowNumber ?? null
+
+  const valueFor = useCallback(
+    (ref: string, fallback: string | number | null) => {
+      const draft = draftCellRef.current
+      if (draft?.ref === ref) return normalizeSpreadsheetInput(draft.value, draft.numeric)
+      return valueForCell(ref, fallback, edited, sqlValues, spreadsheet.values)
+    },
+    [edited, sqlValues, spreadsheet.values],
+  )
+
+  const ensureEditSession = useCallback((ref: string) => {
+    if (editSessionRef.current?.ref === ref) return
+
+    const currentEdited = editedRef.current
+    editSessionRef.current = {
+      ref,
+      hadEditedValue: Object.prototype.hasOwnProperty.call(currentEdited, ref),
+      value: currentEdited[ref] ?? null,
+    }
+  }, [])
+
+  const stopEditing = useCallback(() => {
+    editSessionRef.current = null
+    setEditingCell(null)
+  }, [])
+
+  const editedWithDraft = useCallback((base: WorkbookCellUpdates = editedRef.current) => {
+    const draft = draftCellRef.current
+    if (!draft) return base
+
+    return {
+      ...base,
+      [draft.ref]: normalizeSpreadsheetInput(draft.value, draft.numeric),
+    }
+  }, [])
+
+  const commitDraft = useCallback(() => {
+    const draft = draftCellRef.current
+    if (!draft) return
+
+    const value = normalizeSpreadsheetInput(draft.value, draft.numeric)
+    editedRef.current = {
+      ...editedRef.current,
+      [draft.ref]: value,
+    }
+    draftCellRef.current = null
+    setEdited(prev => ({
+      ...prev,
+      [draft.ref]: value,
+    }))
+    setDraftCell(null)
+  }, [])
+
+  const updateCell = useCallback((ref: string, value: string, numeric: boolean) => {
+    ensureEditSession(ref)
+    setEditingCell(ref)
+    const nextDraft = { ref, value, numeric }
+    draftCellRef.current = nextDraft
+    setDraftCell(nextDraft)
+  }, [ensureEditSession])
+
+  const clearCell = useCallback((ref: string, numeric = false) => {
+    ensureEditSession(ref)
+    const nextDraft = { ref, value: '', numeric }
+    draftCellRef.current = nextDraft
+    setDraftCell(nextDraft)
+  }, [ensureEditSession])
+
+  const cancelCellEdit = useCallback((ref: string) => {
+    const session = editSessionRef.current
+    if (!session || session.ref !== ref) {
+      draftCellRef.current = null
+      setDraftCell(null)
+      setEditingCell(null)
+      return
+    }
+
+    draftCellRef.current = null
+    setDraftCell(null)
+    stopEditing()
+  }, [stopEditing])
+
+  const copyCell = useCallback(async (ref: string) => {
+    const position = cellPositionByRef.get(ref)
+    if (!position) return
+    const cell = rows[position.rowIndex]?.cells[position.colIndex]
+    if (!cell) return
+    const value = asDisplay(valueFor(ref, cell.value))
+
+    try {
+      await navigator.clipboard.writeText(value)
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = value
+      textarea.style.position = 'fixed'
+      textarea.style.left = '-9999px'
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      document.execCommand('copy')
+      textarea.remove()
+    }
+
+    setSqlMessage(`${ref} copiee`)
+  }, [cellPositionByRef, rows, valueFor])
+
+  const getInputRef = useCallback((ref: string) => {
+    if (!cellInputRefCallbacks.current[ref]) {
+      cellInputRefCallbacks.current[ref] = node => {
+        cellInputRefs.current[ref] = node
+      }
+    }
+    return cellInputRefCallbacks.current[ref]
+  }, [])
+
+  const setFocusedCell = useCallback((ref: string) => {
+    const draft = draftCellRef.current
+    if (draft && draft.ref !== ref) commitDraft()
+    if (editingCell && editingCell !== ref) stopEditing()
+    setActiveCell(current => (current === ref ? current : ref))
+  }, [commitDraft, editingCell, stopEditing])
+
+  function rowNumberFromRef(ref: string) {
+    const match = /\d+/.exec(ref)
+    return match ? Number(match[0]) : null
+  }
+
+  function rowValue(row: CurrentSheetRow, col: string) {
+    const cell = row.cells.find(item => item.col === col)
+    return cell ? valueFor(cell.ref, cell.value) : null
+  }
+
+  function lineTotals(row: CurrentSheetRow) {
+    return currentPrevisionnelSheet.monthPairs.reduce(
+      (totals, pair) => ({
+        plannedTotal: totals.plannedTotal + asNumber(rowValue(row, pair.planned)),
+        realizedTotal: totals.realizedTotal + asNumber(rowValue(row, pair.realized)),
+      }),
+      { plannedTotal: 0, realizedTotal: 0 },
+    )
+  }
+
+  async function handleExport() {
+    await exportCurrentPrevisionnelWorkbookFromCells(buildExportUpdates(editedWithDraft(edited), sqlValues), currentPrevisionnelSheet.sheet)
+  }
+
+  async function handleSaveSql() {
+    const editedForSave = editedWithDraft(edited)
+
+    if (!sqlCanSave) {
+      setSqlMessage('SQL Connect non prêt : les modifications restent dans ce navigateur')
+      return
+    }
+
+    if (!Object.keys(editedForSave).length) {
+      setSqlMessage('Aucune cellule à sauvegarder')
+      return
+    }
+
+    const changedSqlRefs = Object.keys(editedForSave).filter(ref => sqlBindings[ref])
+    setSqlStatus('saving')
+    setSqlMessage('Sauvegarde SQL Connect en cours...')
+
+    try {
+      const dc = getSossonDataConnect()
+      const grouped = new Map<string, { planned?: number; realized?: number }>()
+
+      changedSqlRefs.forEach(ref => {
+        const binding = sqlBindings[ref]
+        const update = grouped.get(binding.monthlyId) ?? {}
+        update[binding.field] = asNumber(editedForSave[ref])
+        grouped.set(binding.monthlyId, update)
+      })
+
+      await Promise.all(
+        Array.from(grouped.entries()).map(([id, update]) =>
+          updatePrevisionnelMonthlyAmount(dc, {
+            id,
+            planned: update.planned,
+            realized: update.realized,
+          }),
+        ),
+      )
+
+      const changedRows = new Set(
+        Object.keys(editedForSave)
+          .map(rowNumberFromRef)
+          .filter((rowNumber): rowNumber is number => rowNumber !== null && Boolean(sqlLineBindings[rowNumber])),
+      )
+
+      await Promise.all(
+        Array.from(changedRows).map(rowNumber => {
+          const row = spreadsheet.rows.find(item => item.rowNumber === rowNumber)
+          const binding = sqlLineBindings[rowNumber]
+          if (!row || !binding) return Promise.resolve()
+          const totals = lineTotals(row)
+          const name = asDisplay(rowValue(row, 'B')).trim()
+
+          return updatePrevisionnelLineAmounts(dc, {
+            id: binding.lineId,
+            rawName: name || undefined,
+            clientName: name || undefined,
+            caTce: asNumber(rowValue(row, 'A')),
+            caPrevision: asNumber(rowValue(row, 'D')),
+            caContrat: asNumber(rowValue(row, 'E')),
+            plannedTotal: totals.plannedTotal,
+            realizedTotal: totals.realizedTotal,
+          })
+        }),
+      )
+
+      await Promise.all(
+        Object.entries(editedForSave).map(([ref, value]) => {
+          const numeric = typeof value === 'number' ? value : Number(String(value).replace(',', '.'))
+          const isNumeric = Number.isFinite(numeric) && String(value).trim() !== ''
+
+          return upsertPrevisionnelCellEdit(dc, {
+            id: cellEditId(currentPrevisionnelSheet.sheet, ref),
+            sourceSheet: currentPrevisionnelSheet.sheet,
+            cellRef: ref,
+            valueText: isNumeric ? null : String(value ?? ''),
+            numericValue: isNumeric ? numeric : null,
+          })
+        }),
+      )
+
+      setSqlValues(prev => {
+        const next = { ...prev }
+        Object.entries(editedForSave).forEach(([ref, value]) => {
+          next[ref] = value
+        })
+        return next
+      })
+      editedRef.current = {}
+      setEdited({})
+      draftCellRef.current = null
+      setDraftCell(null)
+      setSqlStatus('ready')
+      setSqlMessage(`${Object.keys(editedForSave).length} cellule(s) sauvegardée(s) dans SQL Connect`)
+    } catch (error) {
+      setSqlStatus('error')
+      setSqlMessage(`Échec sauvegarde SQL : ${error instanceof Error ? error.message : 'erreur inconnue'}`)
+    }
+  }
+
+  useEffect(() => {
+    handleSaveSqlRef.current = handleSaveSql
+  })
+
+  const cellPosition = useCallback((ref: string) => cellPositionByRef.get(ref) ?? null, [cellPositionByRef])
+
+  const focusCell = useCallback((ref: string, select: boolean | 'end' = false) => {
+    commitDraft()
+    setActiveCell(current => (current === ref ? current : ref))
+    stopEditing()
+    if (focusFrame.current !== null) cancelAnimationFrame(focusFrame.current)
+
+    focusFrame.current = requestAnimationFrame(() => {
+      const input = cellInputRefs.current[ref]
+      if (!input) return
+
+      if (document.activeElement !== input) input.focus({ preventScroll: true })
+      input.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      if (select === true) input.select()
+      if (select === 'end') {
+        const end = input.value.length
+        input.setSelectionRange(end, end)
+      }
+    })
+  }, [commitDraft, stopEditing])
+
+  const startEditingCell = useCallback((ref: string, select: boolean | 'end' = false) => {
+    setActiveCell(current => (current === ref ? current : ref))
+    setEditingCell(current => (current === ref ? current : ref))
+    if (focusFrame.current !== null) cancelAnimationFrame(focusFrame.current)
+
+    focusFrame.current = requestAnimationFrame(() => {
+      const input = cellInputRefs.current[ref]
+      if (!input) return
+
+      if (document.activeElement !== input) input.focus({ preventScroll: true })
+      input.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      if (select === true) input.select()
+      else if (select === 'end') {
+        const end = input.value.length
+        input.setSelectionRange(end, end)
+      }
+    })
+  }, [])
+
+  const editableRefAt = useCallback((rowIndex: number, colIndex: number, rowStep: number, colStep: number, wrapRows = false) => {
+    if (rowStep !== 0) {
+      for (let nextRow = rowIndex; nextRow >= 0 && nextRow < rows.length; nextRow += rowStep) {
+        const row = rows[nextRow]
+        const boundedCol = Math.max(0, Math.min(colIndex, (row?.cells.length ?? 1) - 1))
+        const cell = row?.cells[boundedCol]
+        if (cell?.editable) return cell.ref
+      }
+      return null
+    }
+
+    if (colStep !== 0) {
+      for (let nextRow = rowIndex; nextRow >= 0 && nextRow < rows.length; nextRow += colStep > 0 ? 1 : -1) {
+        const row = rows[nextRow]
+        if (!row) return null
+        const startCol = nextRow === rowIndex ? colIndex : colStep > 0 ? 0 : row.cells.length - 1
+
+        for (let nextCol = startCol; nextCol >= 0 && nextCol < row.cells.length; nextCol += colStep) {
+          const cell = row.cells[nextCol]
+          if (cell?.editable) return cell.ref
+        }
+
+        if (!wrapRows) return null
+      }
+    }
+
+    return null
+  }, [rows])
+
+  const edgeEditableRef = useCallback((rowIndex: number, colIndex: number, rowStep: number, colStep: number) => {
+    let last: string | null = null
+
+    if (rowStep !== 0) {
+      for (let nextRow = rowIndex; nextRow >= 0 && nextRow < rows.length; nextRow += rowStep) {
+        const row = rows[nextRow]
+        const boundedCol = Math.max(0, Math.min(colIndex, (row?.cells.length ?? 1) - 1))
+        const cell = row?.cells[boundedCol]
+        if (cell?.editable) last = cell.ref
+      }
+      return last
+    }
+
+    if (colStep !== 0) {
+      const row = rows[rowIndex]
+      if (!row) return null
+      for (let nextCol = colIndex; nextCol >= 0 && nextCol < row.cells.length; nextCol += colStep) {
+        const cell = row.cells[nextCol]
+        if (cell?.editable) last = cell.ref
+      }
+    }
+
+    return last
+  }, [rows])
+
+  const isDirectCellInput = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return false
+    if (event.nativeEvent.isComposing) return false
+    if (event.key.length !== 1) return false
+    return event.key === ' ' || event.key.trim().length === 1
+  }, [])
+
+  const handleCellKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>, ref: string) => {
+    const position = cellPosition(ref)
+    if (!position) return
+    const row = rows[position.rowIndex]
+    const cell = row?.cells[position.colIndex]
+    if (!cell?.editable) return
+    const column = columnsByKey.get(cell.col)
+    const numeric = typeof rowInitialValue(row, cell.col) === 'number' || isNumericColumn(column)
+
+    const keyMap: Record<string, [number, number]> = {
+      ArrowRight: [0, 1],
+      ArrowLeft: [0, -1],
+      ArrowDown: [1, 0],
+      ArrowUp: [-1, 0],
+    }
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault()
+      void handleSaveSqlRef.current?.()
+      return
+    }
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c') {
+      event.preventDefault()
+      void copyCell(ref)
+      return
+    }
+
+    if ((event.ctrlKey || event.metaKey) && keyMap[event.key]) {
+      event.preventDefault()
+      const [rowStep, colStep] = keyMap[event.key]
+      const target = edgeEditableRef(position.rowIndex + rowStep, position.colIndex + colStep, rowStep, colStep)
+      if (target) focusCell(target)
+      return
+    }
+
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      cancelCellEdit(ref)
+      focusCell(ref)
+      return
+    }
+
+    if ((event.key === 'Delete' || event.key === 'Backspace') && editingCell !== ref) {
+      event.preventDefault()
+      clearCell(ref, numeric)
+      return
+    }
+
+    if (event.key === 'F2') {
+      event.preventDefault()
+      startEditingCell(ref)
+      return
+    }
+
+    let delta = keyMap[event.key]
+    if (event.key === 'Enter') delta = event.shiftKey ? [-1, 0] : [1, 0]
+    if (event.key === 'Tab') delta = event.shiftKey ? [0, -1] : [0, 1]
+    if (!delta) {
+      if (editingCell !== ref && isDirectCellInput(event)) {
+        event.preventDefault()
+        const directValue = numeric ? event.key.replace(/\s/g, '') : event.key
+        updateCell(ref, directValue, numeric)
+        startEditingCell(ref, 'end')
+      }
+      return
+    }
+
+    event.preventDefault()
+    const target = editableRefAt(position.rowIndex + delta[0], position.colIndex + delta[1], delta[0], delta[1], event.key === 'Tab')
+    if (!target) return
+    focusCell(target)
+  }, [
+    cancelCellEdit,
+    cellPosition,
+    clearCell,
+    columnsByKey,
+    copyCell,
+    edgeEditableRef,
+    editableRefAt,
+    editingCell,
+    focusCell,
+    isDirectCellInput,
+    rows,
+    startEditingCell,
+    updateCell,
+  ])
+
+  const handleCellPaste = useCallback((event: ClipboardEvent<HTMLInputElement>, ref: string) => {
+    const text = event.clipboardData.getData('text')
+
+    const position = cellPosition(ref)
+    if (!position) return
+
+    if (!text.includes('\t') && !text.includes('\n')) {
+      if (editingCell === ref) return
+      const row = rows[position.rowIndex]
+      const cell = row?.cells[position.colIndex]
+      if (!cell?.editable) return
+      const column = columnsByKey.get(cell.col)
+      const numeric = typeof rowInitialValue(row, cell.col) === 'number' || isNumericColumn(column)
+
+      event.preventDefault()
+      updateCell(ref, text, numeric)
+      focusCell(ref)
+      setSqlMessage(`1 cellule collee`)
+      return
+    }
+
+    event.preventDefault()
+    const pastedRows = text.replace(/\r/g, '').split('\n').filter((line, index, lines) => line !== '' || index < lines.length - 1)
+    let skipped = 0
+    const next: WorkbookCellUpdates = {}
+
+    pastedRows.forEach((line, rowOffset) => {
+      line.split('\t').forEach((value, colOffset) => {
+        const targetRow = rows[position.rowIndex + rowOffset]
+        const targetCell = targetRow?.cells[position.colIndex + colOffset]
+        if (!targetCell?.editable) {
+          skipped += 1
+          return
+        }
+        const column = columnsByKey.get(targetCell.col)
+        next[targetCell.ref] = isNumericColumn(column) ? value.replace(/\s/g, '') : value
+      })
+    })
+
+    setEdited(prev => ({ ...editedWithDraft(prev), ...next }))
+    draftCellRef.current = null
+    setDraftCell(null)
+    setSqlMessage(
+      skipped
+        ? `${Object.keys(next).length} cellule(s) collée(s), ${skipped} cellule(s) non modifiable(s) ignorée(s)`
+        : `${Object.keys(next).length} cellule(s) collée(s)`,
+    )
+  }, [cellPosition, columnsByKey, editedWithDraft, editingCell, focusCell, rows, updateCell])
+
+  return (
+    <div className="flex h-[100dvh] w-screen min-w-0 flex-col overflow-hidden bg-white text-[#1E1E1E]">
+      <style>
+        {`@keyframes sossonCellSelect {
+          0%, 100% { box-shadow: 0 0 0 1px rgba(240,107,33,0.18), 0 0 0 0 rgba(240,107,33,0.24); }
+          50% { box-shadow: 0 0 0 1px rgba(240,107,33,0.3), 0 0 0 4px rgba(240,107,33,0.12); }
+        }`}
+      </style>
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#EADBC8] bg-white px-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+          <Link
+            to="/previsionnel"
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+          >
+            <ArrowLeft className="h-4 w-4 text-[#F06B21]" />
+            Retour
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEY)
+              editedRef.current = {}
+              setEdited({})
+              draftCellRef.current = null
+              setDraftCell(null)
+              setSqlMessage('Modifications locales réinitialisées ; les valeurs SQL conservées restent visibles')
+            }}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+          >
+            <RotateCcw className="h-4 w-4 text-[#F06B21]" />
+            Réinitialiser local
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleExport()}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#F06B21] px-3 text-[12px] font-semibold text-white hover:bg-[#D95B17]"
+          >
+            <Download className="h-4 w-4" />
+            Exporter le Excel
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleSaveSql()}
+            disabled={!sqlCanSave || editedCount === 0}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white hover:bg-[#3C3C3C] disabled:cursor-not-allowed disabled:bg-[#C8B18C]"
+          >
+            <Cloud className="h-4 w-4" />
+            Sauvegarder SQL
+          </button>
+        </div>
+      </div>
+
+      <section className="min-h-0 flex-1 overflow-hidden bg-white">
+        <div className="h-full overflow-auto overscroll-contain">
+          <table className="min-w-max border-separate border-spacing-0 text-left text-[12px]">
+            <thead className="sticky top-0 z-30">
+              <tr>
+                <th className="sticky left-0 z-40 min-w-[52px] border-b border-r border-[#EADBC8] bg-[#1E1E1E] px-2 py-2 text-center text-white">
+                  #
+                </th>
+                {currentPrevisionnelSheet.columns.map(column => (
+                  <th
+                    key={`group-${column.key}`}
+                    className={`border-b border-r border-[#EADBC8] px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-[0.05em] text-white ${
+                      column.key === 'B' ? 'sticky left-[52px] z-40 shadow-[2px_0_0_#EADBC8]' : ''
+                    }`}
+                    style={{ minWidth: column.width, backgroundColor: activeCoordinates?.col === column.key ? '#F06B21' : '#1E1E1E' }}
+                  >
+                    {column.group || column.key}
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                <th className="sticky left-0 z-40 min-w-[52px] border-b border-r border-[#EADBC8] bg-[#FDEBDD] px-2 py-2 text-center text-[#1E1E1E]">
+                  Ligne
+                </th>
+                {currentPrevisionnelSheet.columns.map(column => (
+                  <th
+                    key={column.key}
+                    className={`border-b border-r border-[#EADBC8] px-2 py-2 text-center text-[11px] font-semibold text-[#1E1E1E] ${
+                      column.key === 'B' ? 'sticky left-[52px] z-40 shadow-[2px_0_0_#EADBC8]' : ''
+                    }`}
+                    style={{ minWidth: column.width, backgroundColor: activeCoordinates?.col === column.key ? '#FFF4EA' : '#FDEBDD' }}
+                  >
+                    <div>{column.key}</div>
+                    <div className="mt-0.5 truncate text-[10px] font-medium text-[#6B6B6B]">{column.label}</div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(row => {
+                const rowActive = activeRowNumber === row.rowNumber
+
+                return (
+                  <SpreadsheetRow
+                    key={row.id}
+                    row={row}
+                    columnsByKey={columnsByKey}
+                    edited={edited}
+                    sqlValues={sqlValues}
+                    spreadsheetValues={spreadsheet.values}
+                    draftCellInRow={draftRowNumber === row.rowNumber ? draftCell : null}
+                    activeCellInRow={rowActive ? activeCell : null}
+                    editingCellInRow={rowActive ? editingCell : null}
+                    rowActive={rowActive}
+                    getInputRef={getInputRef}
+                    onCellChange={updateCell}
+                    onCellFocus={setFocusedCell}
+                    onCellDoubleClick={startEditingCell}
+                    onCellKeyDown={handleCellKeyDown}
+                    onCellPaste={handleCellPaste}
+                  />
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  )
+}
+

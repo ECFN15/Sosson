@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases011: clientAlias_upsertMany(data: [
+    {
+      id: "69cc98cd-a252-5ac4-9540-4877f197a7d5",
+      clientId: "9083b564-6f7c-5465-bcdd-e51f5c773f9f",
+      alias: "rf lachouque",
+      normalizedKey: "rf-lachouque",
+      source: "excel"
+    },
+    {
+      id: "b5f6382a-5948-5e08-b69e-20680b1b744e",
+      clientId: "221937f1-98df-5617-aa8a-bab9af59bc18",
+      alias: "RF LEMETTEIL",
+      normalizedKey: "rf-lemetteil",
+      source: "excel"
+    },
+    {
+      id: "3e35718b-d0ca-5ada-a463-3ab3a0176895",
+      clientId: "c6d0e0e5-c776-5b4f-9ba6-35ab13b25892",
+      alias: "RF LESENECHAL",
+      normalizedKey: "rf-lesenechal",
+      source: "excel"
+    },
+    {
+      id: "f781b8f3-26cf-56c5-b87b-f12a4f57ee80",
+      clientId: "30bcb9be-0495-5fc7-91ed-1cae6b6ab4c3",
+      alias: "RF LOHARD",
+      normalizedKey: "rf-lohard",
+      source: "excel"
+    },
+    {
+      id: "99418f95-7ee0-58f8-ba44-4729e35631d3",
+      clientId: "fd7ec355-1a0b-5a5a-999a-9e84e3992a4f",
+      alias: "RF MANGION",
+      normalizedKey: "rf-mangion",
+      source: "excel"
+    },
+    {
+      id: "884c6c7b-54a6-52b6-aebf-5078dd3c27fa",
+      clientId: "9ca58708-f7c2-5a0e-af6c-e1882dcb14ca",
+      alias: "RF MELENNE",
+      normalizedKey: "rf-melenne",
+      source: "excel"
+    },
+    {
+      id: "43fbecd4-208b-567d-8381-31e91c148f6e",
+      clientId: "41f5b7b7-901d-5d9b-9d22-c55a592d4f0d",
+      alias: "rf plancher",
+      normalizedKey: "rf-plancher",
+      source: "excel"
+    },
+    {
+      id: "804f9df4-7c1f-5b0e-be41-2fe019b0c43e",
+      clientId: "ccf547cc-e50d-52f9-abd3-1ed5fe8dbeda",
+      alias: "RF rault renouf",
+      normalizedKey: "rf-rault-renouf",
+      source: "excel"
+    },
+    {
+      id: "f9f5afce-466c-5538-a108-17e2c6e86390",
+      clientId: "caa17254-5332-59dc-9551-41d54f362bdd",
+      alias: "RF RICHARD",
+      normalizedKey: "rf-richard",
+      source: "excel"
+    },
+    {
+      id: "895dbb22-41cc-5074-a81e-284dfa0e49a8",
+      clientId: "6b765cdb-ffaf-533b-860c-ca0db40f8673",
+      alias: "RF ROUSSEL",
+      normalizedKey: "rf-roussel",
+      source: "excel"
+    },
+    {
+      id: "fde3fd57-f248-5e36-a3b1-0d36b365d61e",
+      clientId: "8b226ef3-a9d9-5baf-bd84-c491711070e4",
+      alias: "rf russ",
+      normalizedKey: "rf-russ",
+      source: "excel"
+    },
+    {
+      id: "2b64c2dd-0a02-5ae7-a743-936f3d795dd3",
+      clientId: "d84cabe1-6ab6-5b91-8ce1-a60e8ce3e7aa",
+      alias: "rf sabatier",
+      normalizedKey: "rf-sabatier",
+      source: "excel"
+    },
+    {
+      id: "8824ef6e-3740-5399-a454-73d3ca2dc4a3",
+      clientId: "249e4898-50aa-5f24-a3f9-6862e691550d",
+      alias: "RF SEYMOUR",
+      normalizedKey: "rf-seymour",
+      source: "excel"
+    },
+    {
+      id: "69d7271c-0ee5-5658-b677-bf60a58c2a29",
+      clientId: "906aae55-c071-550e-a2a8-1a5f2e9f3077",
+      alias: "rf SORTON",
+      normalizedKey: "rf-sorton",
+      source: "excel"
+    },
+    {
+      id: "bf357710-aae1-5392-b8f7-8d621aad9712",
+      clientId: "dc068f7a-2b37-559f-8701-699d8a04fafb",
+      alias: "rf tardif",
+      normalizedKey: "rf-tardif",
+      source: "excel"
+    },
+    {
+      id: "e8aa3114-f38e-5c76-b396-6a70aa7755eb",
+      clientId: "8f81b446-0090-59bc-8ea9-68d1c9fb8d7a",
+      alias: "RF VICQUELIN",
+      normalizedKey: "rf-vicquelin",
+      source: "excel"
+    },
+    {
+      id: "a5cf106e-36c3-518c-8279-2530d6035431",
+      clientId: "ed5b03f1-a0a9-5c9e-8d56-7656f1b13e4f",
+      alias: "ricateau",
+      normalizedKey: "ricateau",
+      source: "excel"
+    },
+    {
+      id: "e7bb4d33-9b60-5928-bd74-1ca37df7e298",
+      clientId: "8fb5e41c-b05d-5739-acf3-ac717276447b",
+      alias: "RICHARD SOPHIE",
+      normalizedKey: "richard-sophie",
+      source: "excel"
+    },
+    {
+      id: "7a5d7fb4-0de6-521a-a5f4-2f887d959249",
+      clientId: "199c564c-6c4b-53f8-9b05-08ecbf4796a5",
+      alias: "ROBIN",
+      normalizedKey: "robin",
+      source: "excel"
+    },
+    {
+      id: "2f4e88a2-1bd7-5303-ac5b-c772a90c5ebe",
+      clientId: "5c271ad4-3415-53dd-b629-539b2d4bec57",
+      alias: "rocton mob",
+      normalizedKey: "rocton-mob",
+      source: "excel"
+    },
+    {
+      id: "2c303e0e-128c-5466-a2fa-f07f4eba4490",
+      clientId: "cbe22469-53b6-5fef-bf23-bd02fafa48af",
+      alias: "ROHRBACH",
+      normalizedKey: "rohrbach",
+      source: "excel"
+    },
+    {
+      id: "e10f286c-ed71-5157-9b4a-e1e873187ea0",
+      clientId: "e928794b-9243-57aa-ae01-9c28eadbcf5c",
+      alias: "ROSELIER",
+      normalizedKey: "roselier",
+      source: "excel"
+    },
+    {
+      id: "b014d230-f10b-5d05-91b8-ecc67ba93f08",
+      clientId: "baecd01d-38f0-5d3e-a4c7-6409518e8564",
+      alias: "ROUILLARD",
+      normalizedKey: "rouillard",
+      source: "excel"
+    },
+    {
+      id: "a086c1f2-5b0d-56bb-91ac-12674ff1b84e",
+      clientId: "135f5fd5-78d7-5e52-ac7e-c0f050bb58c3",
+      alias: "ROUILLE",
+      normalizedKey: "rouille",
+      source: "excel"
+    },
+    {
+      id: "7e7081cf-a15a-5248-8d0b-a304752ccdc6",
+      clientId: "8dd7df50-bc81-542e-8dde-3da67e1f12f8",
+      alias: "ROULLIER",
+      normalizedKey: "roullier",
+      source: "excel"
+    },
+    {
+      id: "45765a36-54af-5231-89b9-e447ab41d35e",
+      clientId: "df8161e2-bf64-51dd-8077-4955216aadb6",
+      alias: "Rousseau",
+      normalizedKey: "rousseau",
+      source: "excel"
+    },
+    {
+      id: "89592d5a-8c6a-5251-909e-c004e8c1d17f",
+      clientId: "9f9915c9-d0f5-56f5-b88d-60093a800cb4",
+      alias: "ROUSSEL",
+      normalizedKey: "roussel",
+      source: "excel"
+    },
+    {
+      id: "70667aa8-5044-5e4a-88ac-bf251704a86d",
+      clientId: "9f9915c9-d0f5-56f5-b88d-60093a800cb4",
+      alias: "ROUSSEL (réglage menuiserie)",
+      normalizedKey: "roussel",
+      source: "excel"
+    },
+    {
+      id: "4e91420e-c4ec-506c-8e41-21eb0d38009c",
+      clientId: "fb326462-bd70-5f68-9d78-afc2c997218e",
+      alias: "saillard",
+      normalizedKey: "saillard",
+      source: "excel"
+    },
+    {
+      id: "54f625f6-7d89-5022-82ef-7864cbf1d215",
+      clientId: "1f1625eb-18e3-518d-a3b6-29709b7d7101",
+      alias: "SAISON",
+      normalizedKey: "saison",
+      source: "excel"
+    },
+    {
+      id: "7db8010e-3efc-55e9-9983-1d2102949777",
+      clientId: "7920e1da-b019-575f-8fae-ef8d7d61ea16",
+      alias: "SAITER",
+      normalizedKey: "saiter",
+      source: "excel"
+    },
+    {
+      id: "4f647b46-59e1-5a7a-9891-1c98a159fc97",
+      clientId: "a470802a-4281-5c13-9e28-9c1200f6006e",
+      alias: "SAMSON",
+      normalizedKey: "samson",
+      source: "excel"
+    },
+    {
+      id: "93aadd67-04e6-50af-a1bd-944f6ec362d9",
+      clientId: "c7644622-1f80-5d6f-a01b-c71633487b33",
+      alias: "SAMSON Agnes",
+      normalizedKey: "samson-agnes",
+      source: "excel"
+    },
+    {
+      id: "0962a20c-cbc2-53a2-a842-483bf551cb08",
+      clientId: "81cdc722-1726-5913-a773-2197fc42ec8e",
+      alias: "SARL ALP",
+      normalizedKey: "sarl-alp",
+      source: "excel"
+    },
+    {
+      id: "4ab05247-d025-5f9f-86ea-7d72f6689af8",
+      clientId: "97bdebb9-e591-559f-b6da-9e6f45e65291",
+      alias: "sarl ecs bretteville",
+      normalizedKey: "sarl-ecs-bretteville",
+      source: "excel"
+    },
+    {
+      id: "ceaeeea4-4bc8-52b2-8c3b-0cbba2f6290b",
+      clientId: "004c736f-4ecb-5cc2-8faa-ceb97b8cffa4",
+      alias: "SARL ESNAULT LES MARINAS",
+      normalizedKey: "sarl-esnault-les-marinas",
+      source: "excel"
+    },
+    {
+      id: "aaf3f22c-d287-552f-a82d-2ba005471084",
+      clientId: "0659edea-693d-5b30-a3f5-0d08aae13f43",
+      alias: "SARL ferme du parc",
+      normalizedKey: "sarl-ferme-du-parc",
+      source: "excel"
+    },
+    {
+      id: "aec79168-5b40-5499-990f-8f3605436dfa",
+      clientId: "b1843c66-02ca-5bf0-85d0-acc9cd9db651",
+      alias: "SARL LA FOURNEE",
+      normalizedKey: "sarl-la-fournee",
+      source: "excel"
+    },
+    {
+      id: "27464a36-6820-52e1-ada9-3e4af9f9ae6e",
+      clientId: "128e8cfb-ea4d-5187-9a6d-a66993d68aa4",
+      alias: "sarl sosson depot repar",
+      normalizedKey: "sarl-sosson-depot-repar",
+      source: "excel"
+    },
+    {
+      id: "d8ec7999-c562-5af2-870f-8774901ab71d",
+      clientId: "d702245f-2e5e-514d-8ce8-301e44f5165f",
+      alias: "sarl sosson sci galou",
+      normalizedKey: "sarl-sosson-sci-galou",
+      source: "excel"
+    },
+    {
+      id: "9d016abb-4487-5dfa-b9aa-213770df6011",
+      clientId: "13fd849e-899c-581d-8811-c02340d27c31",
+      alias: "SAS COLLEVILLE PRODUCTION",
+      normalizedKey: "sas-colleville-production",
+      source: "excel"
+    },
+    {
+      id: "dbc64703-dada-5bbd-b8eb-8d0d5c521b97",
+      clientId: "72d9b697-d026-5128-b1a9-a406e923fbce",
+      alias: "SAS LPCR",
+      normalizedKey: "sas-lpcr",
+      source: "excel"
+    },
+    {
+      id: "606044b7-ef96-58fb-90cc-268e4a3621e7",
+      clientId: "db2ce1d1-8b2f-5fdd-9e20-4388295072a2",
+      alias: "SAUSSAYE",
+      normalizedKey: "saussaye",
+      source: "excel"
+    },
+    {
+      id: "1beab61f-352b-5107-bccf-f61331c6fcbc",
+      clientId: "9200ccd5-aaba-519e-9796-6a26a0f39153",
+      alias: "SAUTOT",
+      normalizedKey: "sautot",
+      source: "excel"
+    },
+    {
+      id: "180763e7-ccef-5bf1-8d69-381692b76a07",
+      clientId: "c9144ef9-4a4d-5819-bd32-c3f43043a44f",
+      alias: "SAUTOT Box",
+      normalizedKey: "sautot-box",
+      source: "excel"
+    },
+    {
+      id: "41215956-55f4-5bb3-b6d9-d5c0a51adc36",
+      clientId: "eef1ee57-cd82-5f80-9739-b6b64163ff9d",
+      alias: "SAUTOT Terrasse",
+      normalizedKey: "sautot-terrasse",
+      source: "excel"
+    },
+    {
+      id: "fd0ff052-5c6a-5c60-b69b-689b814539a4",
+      clientId: "5d4845d0-cddb-5696-86d4-95d3ff9b902d",
+      alias: "SAVARY",
+      normalizedKey: "savary",
+      source: "excel"
+    },
+    {
+      id: "c5cd48ee-df9c-5722-9a90-3d1f2a324b05",
+      clientId: "5d4845d0-cddb-5696-86d4-95d3ff9b902d",
+      alias: "SAVARY 01",
+      normalizedKey: "savary",
+      source: "excel"
+    },
+    {
+      id: "f9d89816-6513-5382-9354-45fc859c363e",
+      clientId: "5d4845d0-cddb-5696-86d4-95d3ff9b902d",
+      alias: "SAVARY 2",
+      normalizedKey: "savary",
+      source: "excel"
+    },
+    {
+      id: "1fcc22f9-e115-5542-9ff4-6ee1d7055960",
+      clientId: "82cedece-029d-5d89-9f68-346d79c41171",
+      alias: "SBTP BIHEL",
+      normalizedKey: "sbtp-bihel",
+      source: "excel"
+    }
+  ])
+}

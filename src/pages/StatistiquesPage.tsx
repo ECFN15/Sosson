@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import {
   BarChart3,
   Calculator,
@@ -23,10 +24,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { listPrevisionnelExercises, listPrevisionnelLinesByExercise } from '@dataconnect/generated'
+import type { ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData } from '@dataconnect/generated'
 import {
   annualTrendData,
   bestAndWorstYears,
+  categoryLabels,
   categoryColors,
+  cleanPrevisionnelExercises,
   euro,
   growthData,
   latestCategoryData,
@@ -34,7 +39,9 @@ import {
   percent,
   topClientPortfolios,
 } from '@/lib/previsionnelAnalytics'
-import { previsionnelExercises, previsionnelLines } from '@/data/previsionnel'
+import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { useApp } from '@/lib/store'
+import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <section className={`rounded-[20px] border border-[#F2E8DC] bg-white ${className}`}>{children}</section>
@@ -67,20 +74,156 @@ function StatCard({
   )
 }
 
+type SqlExercise = ListPrevisionnelExercisesData['previsionnelExercises'][number]
+type SqlPrevisionnelLine = ListPrevisionnelLinesByExerciseData['previsionnelLines'][number]
+type TrendPoint = { exercise: string; prevision: number; contrat: number; realise: number; taux: number }
+type GrowthPoint = { exercise: string; value: number; growth: number }
+
+function amountBaseSql(exercise: SqlExercise) {
+  return exercise.caPrevision || exercise.plannedTotal || exercise.caContrat
+}
+
+function trendFromSql(exercises: SqlExercise[]): TrendPoint[] {
+  return exercises.map(exercise => {
+    const base = amountBaseSql(exercise)
+    return {
+      exercise: exercise.exercise,
+      prevision: Math.round(base),
+      contrat: Math.round(exercise.caContrat),
+      realise: Math.round(exercise.realizedTotal),
+      taux: base > 0 ? Math.round((exercise.realizedTotal / base) * 100) : 0,
+    }
+  })
+}
+
+function growthFromTrend(trend: TrendPoint[]): GrowthPoint[] {
+  return trend.map((item, index) => {
+    const previous = trend[index - 1]
+    const currentValue = item.realise || item.prevision || item.contrat
+    const previousValue = previous ? previous.realise || previous.prevision || previous.contrat : 0
+    const growth = previousValue > 0 ? ((currentValue - previousValue) / previousValue) * 100 : 0
+    return {
+      exercise: item.exercise,
+      value: Math.round(currentValue),
+      growth: Number(growth.toFixed(2)),
+    }
+  })
+}
+
+function yearsFromGrowth(growth: GrowthPoint[]) {
+  const comparable = growth.slice(1)
+  const bestGrowth = comparable.reduce((best, item) => (item.growth > best.growth ? item : best), comparable[0])
+  const worstGrowth = comparable.reduce((worst, item) => (item.growth < worst.growth ? item : worst), comparable[0])
+  const byValue = [...growth].sort((a, b) => a.value - b.value)
+
+  return {
+    bestGrowth,
+    worstGrowth,
+    lowestYear: byValue[0],
+    bestYear: byValue[byValue.length - 1],
+  }
+}
+
+function categoryDataFromSql(lines: SqlPrevisionnelLine[]) {
+  const grouped = new Map<string, { category: string; planned: number; realized: number; count: number }>()
+
+  lines.forEach(line => {
+    const item = grouped.get(line.category) ?? { category: line.category, planned: 0, realized: 0, count: 0 }
+    item.planned += line.plannedTotal || line.caPrevision || line.caContrat
+    item.realized += line.realizedTotal
+    item.count += 1
+    grouped.set(line.category, item)
+  })
+
+  return Array.from(grouped.values()).map(item => ({
+    name: categoryLabels[item.category as keyof typeof categoryLabels] ?? item.category,
+    category: item.category,
+    planned: Math.round(item.planned),
+    realized: Math.round(item.realized),
+    count: item.count,
+    color: categoryColors[item.category as keyof typeof categoryColors] ?? '#C8B18C',
+  }))
+}
+
+function lotDataFromSql(lines: SqlPrevisionnelLine[], limit = 9) {
+  const grouped = new Map<string, { key: string; name: string; value: number }>()
+
+  lines.forEach(line => {
+    line.lots.forEach(lot => {
+      const item = grouped.get(lot.lotKey) ?? { key: lot.lotKey, name: lot.label, value: 0 }
+      item.value += lot.amount
+      grouped.set(lot.lotKey, item)
+    })
+  })
+
+  return Array.from(grouped.values())
+    .map(item => ({ ...item, value: Math.round(item.value) }))
+    .filter(item => item.value !== 0)
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+    .slice(0, limit)
+}
+
 export function StatistiquesPage() {
-  const trend = annualTrendData()
-  const growth = growthData()
-  const years = bestAndWorstYears()
-  const latest = previsionnelExercises[previsionnelExercises.length - 1]
-  const previous = previsionnelExercises[previsionnelExercises.length - 2]
-  const latestValue = latest.realizedTotal || latest.caPrevision || latest.plannedTotal
-  const previousValue = previous.realizedTotal || previous.caPrevision || previous.plannedTotal
-  const latestGrowth = previousValue > 0 ? ((latestValue - previousValue) / previousValue) * 100 : 0
+  const { user } = useApp()
+  const [sqlStatus, setSqlStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback'>('idle')
+  const [sqlExercises, setSqlExercises] = useState<SqlExercise[]>([])
+  const [sqlLatestLines, setSqlLatestLines] = useState<SqlPrevisionnelLine[]>([])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadSqlStats() {
+      if (!isDataConnectEnabled || !user) {
+        if (!mounted) return
+        setSqlStatus('fallback')
+        return
+      }
+
+      setSqlStatus('loading')
+      try {
+        const dc = getSossonDataConnect()
+        const exercisesResponse = await listPrevisionnelExercises(dc)
+        const exercises = exercisesResponse.data.previsionnelExercises
+        const latest = exercises[exercises.length - 1]
+        const linesResponse = latest ? await listPrevisionnelLinesByExercise(dc, { exerciseId: latest.id }) : null
+
+        if (!mounted) return
+        setSqlExercises(exercises)
+        setSqlLatestLines(linesResponse?.data.previsionnelLines ?? [])
+        setSqlStatus(exercises.length ? 'ready' : 'fallback')
+      } catch {
+        if (!mounted) return
+        setSqlStatus('fallback')
+      }
+    }
+
+    void loadSqlStats()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
+
+  const usesSql = sqlStatus === 'ready' && sqlExercises.length > 0
+  const trend = useMemo(() => (usesSql ? trendFromSql(sqlExercises) : annualTrendData()), [sqlExercises, usesSql])
+  const growth = useMemo(() => (usesSql ? growthFromTrend(trend) : growthData()), [trend, usesSql])
+  const years = usesSql ? yearsFromGrowth(growth) : bestAndWorstYears()
+  const latest = cleanPrevisionnelExercises[cleanPrevisionnelExercises.length - 1]
+  const previous = cleanPrevisionnelExercises[cleanPrevisionnelExercises.length - 2]
+  const latestGrowth = growth[growth.length - 1]?.growth ?? 0
   const averageAnnual = trend.reduce((sum, item) => sum + item.realise, 0) / Math.max(trend.length, 1)
-  const sentInvoices = previsionnelLines.reduce((sum, line) => sum + line.invoicedTotal, 0)
-  const categories = latestCategoryData()
-  const lots = latestLotData(9)
+  const coverage = previsionnelDataCoverage()
+  const sentInvoices = usesSql
+    ? sqlExercises.reduce((sum, exercise) => sum + exercise.invoicedTotal, 0)
+    : operationalPrevisionnelLines.reduce((sum, line) => sum + line.invoicedTotal, 0)
+  const categories = usesSql ? categoryDataFromSql(sqlLatestLines) : latestCategoryData()
+  const lots = usesSql ? lotDataFromSql(sqlLatestLines, 9) : latestLotData(9)
   const clients = topClientPortfolios(10)
+  const sourceLabel = usesSql ? 'SQL Connect' : 'Données locales'
+  const exerciseCount = usesSql ? sqlExercises.length : coverage.exercises
+  const chantierCount = usesSql ? sqlExercises.reduce((sum, exercise) => sum + exercise.chantierCount, 0) : coverage.operationalLines
+  const latestLabel = usesSql ? sqlExercises[sqlExercises.length - 1]?.sheet : latest.sheet
+  const previousLabel = usesSql ? sqlExercises[sqlExercises.length - 2]?.sheet : previous.sheet
 
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
@@ -94,6 +237,9 @@ export function StatistiquesPage() {
             <span className="rounded-full bg-[#1E1E1E] px-3 py-1 text-[12px] font-semibold text-white">
               2013-14 → 2025-26
             </span>
+            <span className="rounded-full bg-[#FDEBDD] px-3 py-1 text-[12px] font-semibold text-[#F06B21]">
+              Source : {sourceLabel}
+            </span>
           </div>
           <h1 className="text-[30px] font-bold leading-tight text-[#1E1E1E]">Statistiques</h1>
           <p className="mt-2 max-w-3xl text-sm text-[#6B6B6B]">
@@ -105,7 +251,7 @@ export function StatistiquesPage() {
       <div className="grid gap-4 xl:grid-cols-4">
         <StatCard label="Meilleure année" value={years.bestYear.exercise} detail={euro(years.bestYear.value)} icon={TrendingUp} />
         <StatCard label="Année la plus faible" value={years.lowestYear.exercise} detail={euro(years.lowestYear.value)} icon={TrendingDown} />
-        <StatCard label="Croissance récente" value={percent(latestGrowth)} detail={`${latest.sheet} vs ${previous.sheet}`} icon={LineChartIcon} />
+        <StatCard label="Croissance récente" value={percent(latestGrowth)} detail={`${latestLabel} vs ${previousLabel}`} icon={LineChartIcon} />
         <StatCard label="Moyenne annuelle" value={euro(averageAnnual)} detail={`${trend.length} exercices consolidés`} icon={Database} />
       </div>
 
@@ -144,8 +290,8 @@ export function StatistiquesPage() {
             {[
               ['Meilleure croissance', years.bestGrowth.exercise, percent(years.bestGrowth.growth)],
               ['Plus fort recul', years.worstGrowth.exercise, percent(years.worstGrowth.growth)],
-              ['Factures envoyées', 'Cellules jaunes', euro(sentInvoices)],
-              ['Lignes historiques', 'Prévisionnel', previsionnelLines.length.toLocaleString('fr-FR')],
+              ['Factures envoyées', 'Cellules jaunes, non encaissées', euro(sentInvoices)],
+              ['Chantiers exploitables', `${exerciseCount} exercices`, chantierCount.toLocaleString('fr-FR')],
             ].map(([label, main, value]) => (
               <div key={label} className="rounded-[14px] bg-[#FAF6F2] p-3">
                 <p className="text-[12px] font-medium text-[#6B6B6B]">{label}</p>
@@ -198,7 +344,7 @@ export function StatistiquesPage() {
             <PieChart>
               <Pie data={categories} dataKey="planned" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={2}>
                 {categories.map(item => (
-                  <Cell key={item.category} fill={categoryColors[item.category]} />
+                  <Cell key={item.category} fill={item.color} />
                 ))}
               </Pie>
               <Tooltip formatter={value => euro(Number(value))} contentStyle={{ border: '1px solid #F2E8DC', borderRadius: 12, fontSize: 12 }} />

@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients007: client_upsertMany(data: [
+    {
+      id: "b2638664-d2b3-551d-bd43-67384b4d5b7a",
+      type: "particulier",
+      nom: "Joris Girard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a8c02ab3-d662-5392-8c1e-7bc82b020c2f",
+      type: "particulier",
+      nom: "Josse",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2c5f1163-d2da-5318-b814-03318eb41b2c",
+      type: "particulier",
+      nom: "Jouannot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4e7765b8-0b85-5ba1-af16-23c764169338",
+      type: "particulier",
+      nom: "Jouault",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4fe7712a-ee62-58f0-87f1-1b9e21c5970f",
+      type: "particulier",
+      nom: "Kgbr",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e37fea02-64f0-597b-a3ed-52fa8cfe42a4",
+      type: "particulier",
+      nom: "Kite Surf",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d7cc93c6-38bf-5ea2-80fe-fbcadf67a0fb",
+      type: "particulier",
+      nom: "Klebaner",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c85b4884-b586-5109-ad57-d71d57b1ec87",
+      type: "particulier",
+      nom: "Kufel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0824a314-3602-5ffd-9241-0eb3c8a22b50",
+      type: "particulier",
+      nom: "L'audacieuse",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "91d60bb5-defe-52a6-8f0d-e66ef7abd69c",
+      type: "particulier",
+      nom: "La Taverne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "df8f4269-c639-5894-a00c-b178f821073c",
+      type: "particulier",
+      nom: "La taverne andre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "679900a2-17ce-5b7b-8794-e207797cfd75",
+      type: "particulier",
+      nom: "Laigre bigot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4cf828fd-51a0-5594-a4ff-7d7d2e9f4654",
+      type: "particulier",
+      nom: "Laine Jamet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4ffb3be0-b7b2-5a40-915e-8d52873c5809",
+      type: "particulier",
+      nom: "Lalloz",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b7bc139f-31ca-5fac-bf82-f09b700fb483",
+      type: "particulier",
+      nom: "Landron",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f0e10c7d-987d-53cc-a6ce-b11af154eedd",
+      type: "particulier",
+      nom: "Lastelle",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b5cd01d4-51d4-5a44-a701-483aaf13c15b",
+      type: "particulier",
+      nom: "Laurent",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7d66bd09-ed1d-5d26-bd81-fbdf64f036ca",
+      type: "particulier",
+      nom: "Lauvergne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d00057b1-9da1-5d3e-b2b9-32cdfcf44d95",
+      type: "particulier",
+      nom: "Le Cuziat",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3875c899-4144-5b37-8c97-495b98653429",
+      type: "particulier",
+      nom: "Le de",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "91039e29-5160-5d2e-acd0-ebfbeffdb140",
+      type: "particulier",
+      nom: "Le Louarn",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7fd75901-b6af-5481-915b-55acdc82f146",
+      type: "particulier",
+      nom: "Le Masson",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2774850f-7245-520e-97fe-d26f02bdf8b3",
+      type: "particulier",
+      nom: "Le mistral",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6f852fde-70c3-5db6-9f9d-c0acb9ac3803",
+      type: "particulier",
+      nom: "Le Tanneur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3fcbd506-f7ee-5d54-92fb-64091cc97a8f",
+      type: "particulier",
+      nom: "Leblond",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "976058bf-4e4f-5bb7-a0d7-6505d6e8b373",
+      type: "particulier",
+      nom: "Leboucher",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2b3f493d-dbdb-5259-b4c9-bd23486040c8",
+      type: "particulier",
+      nom: "LEBOUCHER ext",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "581f81d8-428d-5a57-966e-079bebff1b9b",
+      type: "particulier",
+      nom: "Lecleir",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "dc534a77-aa69-59eb-85d0-03082fd25571",
+      type: "particulier",
+      nom: "Leclerc charp",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "038b9de4-ecde-562a-8649-f1828f7910d1",
+      type: "particulier",
+      nom: "Leclerc Dumarais",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8c680e3b-1217-59fb-8e66-bcf60003c604",
+      type: "particulier",
+      nom: "Lecoeur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4682ebd1-a863-5f7b-aab5-0c791d3415fa",
+      type: "particulier",
+      nom: "Lecomte",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8a1a2367-d1a3-52aa-98b0-0c23d4fe1b9e",
+      type: "particulier",
+      nom: "LECONTE carport",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ddfd5c9b-7de8-5985-ae9a-e2ac89165a2b",
+      type: "particulier",
+      nom: "Leconte Stephane",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e180fe28-8c74-5f51-975e-57e5f9edb9e3",
+      type: "particulier",
+      nom: "Ledorze",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "53a63655-e179-53ce-92df-dd93cf52f666",
+      type: "particulier",
+      nom: "Lefebvre letourneur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "11690c81-4d9e-5743-b2a2-1a1b0ce3afbb",
+      type: "particulier",
+      nom: "Lefevre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5361eb1e-c81f-50b1-b490-ad7aa78a6535",
+      type: "particulier",
+      nom: "Lefrancois",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "807bf407-e743-5384-a11b-b5f5850c3179",
+      type: "particulier",
+      nom: "Legarrec terrasse",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "02300094-16ab-54ed-b403-1430543ff4f5",
+      type: "particulier",
+      nom: "Legeai",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a2f470b3-45bd-59fc-8ec2-76dab4c44813",
+      type: "particulier",
+      nom: "Legendre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "dfbc8d22-1b83-5302-9858-817733bea76b",
+      type: "particulier",
+      nom: "Legras",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "418ed4af-d31f-558d-8449-ef75ddad21a2",
+      type: "particulier",
+      nom: "Leloup",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c94a038a-f6d7-53ab-b368-1cd16330fcf0",
+      type: "particulier",
+      nom: "Lemanissier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b02e08bf-d5ff-51ed-85f8-a916684a18bd",
+      type: "particulier",
+      nom: "Lemasle reno",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b8e35134-7604-5c37-97c6-0e2556ef54a0",
+      type: "particulier",
+      nom: "Lemauf",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5e28e914-24f4-573d-9002-6c8036e77300",
+      type: "particulier",
+      nom: "Lemazuriez",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "10e5643d-3601-5f58-8e46-50aa4fd44c6d",
+      type: "particulier",
+      nom: "Lemoigne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4af50642-1dd8-5c16-984d-339203432fb9",
+      type: "particulier",
+      nom: "Lemoine",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0236e8f0-ba50-56c0-9b4d-c17d0f35c96b",
+      type: "particulier",
+      nom: "Leple",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

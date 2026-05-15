@@ -12,7 +12,7 @@ For each operation, there is a wrapper hook that can be used to call the operati
 
 Here are all of the hooks that get generated:
 ```ts
-import { useUpsertCurrentUser, useCreateClient, useUpdateClient, useCreateChantier, useUpdateChantierStatut, useCreateFacture, useSetFactureStatut, useGetCurrentUser, useListClients, useGetClient } from '@dataconnect/generated/react';
+import { useUpsertCurrentUser, useCreateClient, useUpdateClient, useCreateChantier, useUpdateChantierStatut, useCreateFacture, useSetFactureStatut, useCreateDocumentFolder, useCreateDocumentAttache, useUpdateDocumentAttacheLinks } from '@dataconnect/generated/react';
 // The types of these hooks are available in react/index.d.ts
 
 const { data, isPending, isSuccess, isError, error } = useUpsertCurrentUser(upsertCurrentUserVars);
@@ -29,11 +29,11 @@ const { data, isPending, isSuccess, isError, error } = useCreateFacture(createFa
 
 const { data, isPending, isSuccess, isError, error } = useSetFactureStatut(setFactureStatutVars);
 
-const { data, isPending, isSuccess, isError, error } = useGetCurrentUser();
+const { data, isPending, isSuccess, isError, error } = useCreateDocumentFolder(createDocumentFolderVars);
 
-const { data, isPending, isSuccess, isError, error } = useListClients();
+const { data, isPending, isSuccess, isError, error } = useCreateDocumentAttache(createDocumentAttacheVars);
 
-const { data, isPending, isSuccess, isError, error } = useGetClient(getClientVars);
+const { data, isPending, isSuccess, isError, error } = useUpdateDocumentAttacheLinks(updateDocumentAttacheLinksVars);
 
 ```
 
@@ -72,7 +72,7 @@ If a user is not using a supported framework, they can use the generated SDK dir
 Here's an example of how to use it with the first 5 operations:
 
 ```js
-import { upsertCurrentUser, createClient, updateClient, createChantier, updateChantierStatut, createFacture, setFactureStatut, getCurrentUser, listClients, getClient } from '@dataconnect/generated';
+import { upsertCurrentUser, createClient, updateClient, createChantier, updateChantierStatut, createFacture, setFactureStatut, createDocumentFolder, createDocumentAttache, updateDocumentAttacheLinks } from '@dataconnect/generated';
 
 
 // Operation UpsertCurrentUser:  For variables, look at type UpsertCurrentUserVars in ../index.d.ts
@@ -96,14 +96,14 @@ const { data } = await CreateFacture(dataConnect, createFactureVars);
 // Operation SetFactureStatut:  For variables, look at type SetFactureStatutVars in ../index.d.ts
 const { data } = await SetFactureStatut(dataConnect, setFactureStatutVars);
 
-// Operation GetCurrentUser: 
-const { data } = await GetCurrentUser(dataConnect);
+// Operation CreateDocumentFolder:  For variables, look at type CreateDocumentFolderVars in ../index.d.ts
+const { data } = await CreateDocumentFolder(dataConnect, createDocumentFolderVars);
 
-// Operation ListClients: 
-const { data } = await ListClients(dataConnect);
+// Operation CreateDocumentAttache:  For variables, look at type CreateDocumentAttacheVars in ../index.d.ts
+const { data } = await CreateDocumentAttache(dataConnect, createDocumentAttacheVars);
 
-// Operation GetClient:  For variables, look at type GetClientVars in ../index.d.ts
-const { data } = await GetClient(dataConnect, getClientVars);
+// Operation UpdateDocumentAttacheLinks:  For variables, look at type UpdateDocumentAttacheLinksVars in ../index.d.ts
+const { data } = await UpdateDocumentAttacheLinks(dataConnect, updateDocumentAttacheLinksVars);
 
 
 ```

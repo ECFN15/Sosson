@@ -111,6 +111,118 @@ exports.setFactureStatut = function setFactureStatut(dcOrVars, vars) {
 }
 ;
 
+const createDocumentFolderRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateDocumentFolder', inputVars);
+}
+createDocumentFolderRef.operationName = 'CreateDocumentFolder';
+exports.createDocumentFolderRef = createDocumentFolderRef;
+
+exports.createDocumentFolder = function createDocumentFolder(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createDocumentFolderRef(dcInstance, inputVars));
+}
+;
+
+const createDocumentAttacheRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateDocumentAttache', inputVars);
+}
+createDocumentAttacheRef.operationName = 'CreateDocumentAttache';
+exports.createDocumentAttacheRef = createDocumentAttacheRef;
+
+exports.createDocumentAttache = function createDocumentAttache(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createDocumentAttacheRef(dcInstance, inputVars));
+}
+;
+
+const updateDocumentAttacheLinksRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateDocumentAttacheLinks', inputVars);
+}
+updateDocumentAttacheLinksRef.operationName = 'UpdateDocumentAttacheLinks';
+exports.updateDocumentAttacheLinksRef = updateDocumentAttacheLinksRef;
+
+exports.updateDocumentAttacheLinks = function updateDocumentAttacheLinks(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateDocumentAttacheLinksRef(dcInstance, inputVars));
+}
+;
+
+const createPrevisionnelImportBatchRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreatePrevisionnelImportBatch', inputVars);
+}
+createPrevisionnelImportBatchRef.operationName = 'CreatePrevisionnelImportBatch';
+exports.createPrevisionnelImportBatchRef = createPrevisionnelImportBatchRef;
+
+exports.createPrevisionnelImportBatch = function createPrevisionnelImportBatch(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createPrevisionnelImportBatchRef(dcInstance, inputVars));
+}
+;
+
+const updatePrevisionnelMonthlyAmountRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdatePrevisionnelMonthlyAmount', inputVars);
+}
+updatePrevisionnelMonthlyAmountRef.operationName = 'UpdatePrevisionnelMonthlyAmount';
+exports.updatePrevisionnelMonthlyAmountRef = updatePrevisionnelMonthlyAmountRef;
+
+exports.updatePrevisionnelMonthlyAmount = function updatePrevisionnelMonthlyAmount(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updatePrevisionnelMonthlyAmountRef(dcInstance, inputVars));
+}
+;
+
+const updatePrevisionnelLineAmountsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdatePrevisionnelLineAmounts', inputVars);
+}
+updatePrevisionnelLineAmountsRef.operationName = 'UpdatePrevisionnelLineAmounts';
+exports.updatePrevisionnelLineAmountsRef = updatePrevisionnelLineAmountsRef;
+
+exports.updatePrevisionnelLineAmounts = function updatePrevisionnelLineAmounts(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updatePrevisionnelLineAmountsRef(dcInstance, inputVars));
+}
+;
+
+const linkPrevisionnelLineToChantierRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'LinkPrevisionnelLineToChantier', inputVars);
+}
+linkPrevisionnelLineToChantierRef.operationName = 'LinkPrevisionnelLineToChantier';
+exports.linkPrevisionnelLineToChantierRef = linkPrevisionnelLineToChantierRef;
+
+exports.linkPrevisionnelLineToChantier = function linkPrevisionnelLineToChantier(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(linkPrevisionnelLineToChantierRef(dcInstance, inputVars));
+}
+;
+
+const upsertPrevisionnelCellEditRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpsertPrevisionnelCellEdit', inputVars);
+}
+upsertPrevisionnelCellEditRef.operationName = 'UpsertPrevisionnelCellEdit';
+exports.upsertPrevisionnelCellEditRef = upsertPrevisionnelCellEditRef;
+
+exports.upsertPrevisionnelCellEdit = function upsertPrevisionnelCellEdit(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(upsertPrevisionnelCellEditRef(dcInstance, inputVars));
+}
+;
+
 const getCurrentUserRef = (dc) => {
   const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();
@@ -120,7 +232,7 @@ getCurrentUserRef.operationName = 'GetCurrentUser';
 exports.getCurrentUserRef = getCurrentUserRef;
 
 exports.getCurrentUser = function getCurrentUser(dcOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
   return executeQuery(getCurrentUserRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
@@ -135,7 +247,7 @@ listClientsRef.operationName = 'ListClients';
 exports.listClientsRef = listClientsRef;
 
 exports.listClients = function listClients(dcOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
   return executeQuery(listClientsRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
@@ -150,7 +262,7 @@ getClientRef.operationName = 'GetClient';
 exports.getClientRef = getClientRef;
 
 exports.getClient = function getClient(dcOrVars, varsOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(getClientRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
@@ -165,7 +277,7 @@ listChantiersRef.operationName = 'ListChantiers';
 exports.listChantiersRef = listChantiersRef;
 
 exports.listChantiers = function listChantiers(dcOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
   return executeQuery(listChantiersRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
@@ -180,7 +292,7 @@ getChantierRef.operationName = 'GetChantier';
 exports.getChantierRef = getChantierRef;
 
 exports.getChantier = function getChantier(dcOrVars, varsOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(getChantierRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
@@ -195,7 +307,7 @@ listFacturesRef.operationName = 'ListFactures';
 exports.listFacturesRef = listFacturesRef;
 
 exports.listFactures = function listFactures(dcOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
   return executeQuery(listFacturesRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
@@ -210,8 +322,113 @@ listFacturesByStatutRef.operationName = 'ListFacturesByStatut';
 exports.listFacturesByStatutRef = listFacturesByStatutRef;
 
 exports.listFacturesByStatut = function listFacturesByStatut(dcOrVars, varsOrOptions, options) {
-  
+
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(listFacturesByStatutRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listDocumentFoldersRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListDocumentFolders');
+}
+listDocumentFoldersRef.operationName = 'ListDocumentFolders';
+exports.listDocumentFoldersRef = listDocumentFoldersRef;
+
+exports.listDocumentFolders = function listDocumentFolders(dcOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listDocumentFoldersRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listDocumentsAttachesRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListDocumentsAttaches');
+}
+listDocumentsAttachesRef.operationName = 'ListDocumentsAttaches';
+exports.listDocumentsAttachesRef = listDocumentsAttachesRef;
+
+exports.listDocumentsAttaches = function listDocumentsAttaches(dcOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listDocumentsAttachesRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listDocumentsByChantierRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListDocumentsByChantier', inputVars);
+}
+listDocumentsByChantierRef.operationName = 'ListDocumentsByChantier';
+exports.listDocumentsByChantierRef = listDocumentsByChantierRef;
+
+exports.listDocumentsByChantier = function listDocumentsByChantier(dcOrVars, varsOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listDocumentsByChantierRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listPrevisionnelExercisesRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListPrevisionnelExercises');
+}
+listPrevisionnelExercisesRef.operationName = 'ListPrevisionnelExercises';
+exports.listPrevisionnelExercisesRef = listPrevisionnelExercisesRef;
+
+exports.listPrevisionnelExercises = function listPrevisionnelExercises(dcOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listPrevisionnelExercisesRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listPrevisionnelLinesByExerciseRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListPrevisionnelLinesByExercise', inputVars);
+}
+listPrevisionnelLinesByExerciseRef.operationName = 'ListPrevisionnelLinesByExercise';
+exports.listPrevisionnelLinesByExerciseRef = listPrevisionnelLinesByExerciseRef;
+
+exports.listPrevisionnelLinesByExercise = function listPrevisionnelLinesByExercise(dcOrVars, varsOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listPrevisionnelLinesByExerciseRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const searchClientAliasesRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'SearchClientAliases', inputVars);
+}
+searchClientAliasesRef.operationName = 'SearchClientAliases';
+exports.searchClientAliasesRef = searchClientAliasesRef;
+
+exports.searchClientAliases = function searchClientAliases(dcOrVars, varsOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(searchClientAliasesRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listPrevisionnelCellEditsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListPrevisionnelCellEdits', inputVars);
+}
+listPrevisionnelCellEditsRef.operationName = 'ListPrevisionnelCellEdits';
+exports.listPrevisionnelCellEditsRef = listPrevisionnelCellEditsRef;
+
+exports.listPrevisionnelCellEdits = function listPrevisionnelCellEdits(dcOrVars, varsOrOptions, options) {
+
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listPrevisionnelCellEditsRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 ;

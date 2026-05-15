@@ -11,9 +11,14 @@
     "dashboard": "node deploy/dashboard.mjs",
     "dev:sql": "node scripts/dev-sql-local.mjs",
     "emulators:dataconnect": "npx -y firebase-tools@latest emulators:start --only dataconnect",
+    "seed:previsionnel:generate": "node scripts/generate-previsionnel-seed.mjs",
     "seed:dataconnect": "node scripts/seed-dataconnect-local.mjs",
+    "seed:previsionnel:dataconnect": "node scripts/seed-previsionnel-dataconnect-local.mjs",
     "verify:dataconnect": "node scripts/verify-dataconnect-local.mjs",
+    "verify:previsionnel:dataconnect": "node scripts/verify-previsionnel-dataconnect-local.mjs",
+    "verify:previsionnel:clients": "node scripts/verify-previsionnel-client-directory.mjs",
     "lint": "eslint .",
+    "test:previsionnel": "vitest run src/lib/previsionnelSpreadsheet.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -54,6 +59,7 @@
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^6.4.2"
+    "vite": "^6.4.2",
+    "vitest": "^4.1.6"
   }
 }

@@ -63,7 +63,7 @@ function removeCellText(cell: Element) {
 function setCellValue(sheetDoc: Document, ref: string, value: string | number | null) {
   const cells = Array.from(sheetDoc.getElementsByTagNameNS(SHEET_NS, 'c'))
   const cell = cells.find(item => item.getAttribute('r') === ref)
-  if (!cell) return
+  if (!cell) return false
 
   Array.from(cell.getElementsByTagNameNS(SHEET_NS, 'f')).forEach(formula => formula.remove())
   removeCellText(cell)
@@ -76,7 +76,7 @@ function setCellValue(sheetDoc: Document, ref: string, value: string | number | 
     textNode.textContent = value
     inlineString.appendChild(textNode)
     cell.appendChild(inlineString)
-    return
+    return true
   }
 
   let v = Array.from(cell.getElementsByTagNameNS(SHEET_NS, 'v'))[0]
@@ -87,34 +87,42 @@ function setCellValue(sheetDoc: Document, ref: string, value: string | number | 
   cell.removeAttribute('t')
   const numeric = typeof value === 'string' ? Number(value.replace(',', '.')) : value ?? 0
   v.textContent = numberValue(numeric)
+  return true
 }
 
-function freezeFormulasAsDisplayedValues(sheetDoc: Document) {
-  Array.from(sheetDoc.getElementsByTagNameNS(SHEET_NS, 'c')).forEach(cell => {
-    Array.from(cell.getElementsByTagNameNS(SHEET_NS, 'f')).forEach(formula => formula.remove())
-  })
+function applyCellUpdates(sheetDoc: Document, updates: WorkbookCellUpdates) {
+  const missing = Object.entries(updates)
+    .filter(([, value]) => value !== undefined)
+    .map(([ref, value]) => (setCellValue(sheetDoc, ref, value) ? null : ref))
+    .filter((ref): ref is string => Boolean(ref))
+
+  if (missing.length) {
+    throw new Error(`Cellules absentes du modèle Excel: ${missing.slice(0, 12).join(', ')}${missing.length > 12 ? '...' : ''}`)
+  }
 }
 
 function updateCurrentYearSheet(sheetDoc: Document, lines: PrevisionnelLine[]) {
+  const updates: WorkbookCellUpdates = {}
+
   lines.forEach(line => {
     const row = line.sourceRow
-    setCellValue(sheetDoc, `${currentYearColumns.caTce}${row}`, line.caTce)
-    setCellValue(sheetDoc, `${currentYearColumns.caPrevision}${row}`, line.caPrevision)
-    setCellValue(sheetDoc, `${currentYearColumns.caContrat}${row}`, line.caContrat)
+    updates[`${currentYearColumns.caTce}${row}`] = line.caTce
+    updates[`${currentYearColumns.caPrevision}${row}`] = line.caPrevision
+    updates[`${currentYearColumns.caContrat}${row}`] = line.caContrat
 
     line.monthly.forEach(month => {
       const pair = currentYearColumns.monthly[month.order - 1]
       if (!pair) return
-      setCellValue(sheetDoc, `${pair[0]}${row}`, month.planned)
-      setCellValue(sheetDoc, `${pair[1]}${row}`, month.realized)
+      updates[`${pair[0]}${row}`] = month.planned
+      updates[`${pair[1]}${row}`] = month.realized
     })
   })
+
+  applyCellUpdates(sheetDoc, updates)
 }
 
 function updateCurrentYearSheetFromCells(sheetDoc: Document, updates: WorkbookCellUpdates) {
-  Object.entries(updates).forEach(([ref, value]) => {
-    setCellValue(sheetDoc, ref, value)
-  })
+  applyCellUpdates(sheetDoc, updates)
 }
 
 function removeUnusedSheets(zip: JSZip, workbookDoc: Document, relsDoc: Document, contentTypesDoc: Document, keepRid: string) {
@@ -139,9 +147,11 @@ function removeUnusedSheets(zip: JSZip, workbookDoc: Document, relsDoc: Document
   })
 
   Array.from(workbookDoc.getElementsByTagNameNS(SHEET_NS, 'definedNames')).forEach(node => node.remove())
-  Array.from(workbookDoc.getElementsByTagNameNS(SHEET_NS, 'calcPr')).forEach(node => {
-    node.setAttribute('calcMode', 'manual')
-  })
+  const calcPr = Array.from(workbookDoc.getElementsByTagNameNS(SHEET_NS, 'calcPr'))[0] ?? workbookDoc.createElementNS(SHEET_NS, 'calcPr')
+  calcPr.setAttribute('calcMode', 'auto')
+  calcPr.setAttribute('fullCalcOnLoad', '1')
+  calcPr.setAttribute('forceFullCalc', '1')
+  if (!calcPr.parentNode) workbookDoc.documentElement.appendChild(calcPr)
 
   const overrides = Array.from(contentTypesDoc.getElementsByTagName('Override'))
   overrides.forEach(override => {
@@ -196,7 +206,6 @@ export async function exportCurrentPrevisionnelWorkbook(lines: PrevisionnelLine[
   const sheetPath = removeUnusedSheets(zip, workbookDoc, relsDoc, contentTypesDoc, keepRid)
   const sheetDoc = parseXml(await getTextFile(zip, sheetPath))
 
-  freezeFormulasAsDisplayedValues(sheetDoc)
   updateCurrentYearSheet(sheetDoc, lines.filter(line => line.sourceSheet === sheetName))
 
   zip.file(WORKBOOK_PATH, serializeXml(workbookDoc))
@@ -240,7 +249,6 @@ export async function exportCurrentPrevisionnelWorkbookFromCells(updates: Workbo
   const sheetPath = removeUnusedSheets(zip, workbookDoc, relsDoc, contentTypesDoc, keepRid)
   const sheetDoc = parseXml(await getTextFile(zip, sheetPath))
 
-  freezeFormulasAsDisplayedValues(sheetDoc)
   updateCurrentYearSheetFromCells(sheetDoc, updates)
 
   zip.file(WORKBOOK_PATH, serializeXml(workbookDoc))

@@ -176,6 +176,7 @@ le schema existe, mais le seed n'a pas encore ete charge.
 - `dataconnect/sosson/mutations.gql`
 - `dataconnect/sosson/connector.yaml`
 - `dataconnect/seed_data.gql`
+- `dataconnect/previsionnel_seed_data.gql`
 - `dataconnect/dataconnect.yaml`
 
 ### Signification
@@ -184,6 +185,7 @@ le schema existe, mais le seed n'a pas encore ete charge.
 - `queries.gql` = les lectures autorisees
 - `mutations.gql` = les ecritures autorisees
 - `seed_data.gql` = les donnees initiales de sandbox
+- `previsionnel_seed_data.gql` = seed genere depuis le fichier Excel previsionnel pour alimenter clients/chantiers historiques
 
 ### Schema metier courant
 
@@ -204,6 +206,34 @@ Le seed sandbox prevu contient :
 - 12 factures
 
 Le seed **ne cree pas les `User`** car `User.id` doit correspondre a un vrai `auth.uid` Firebase.
+
+Un seed previsionnel complementaire existe maintenant :
+- fichier : `dataconnect/previsionnel_seed_data.gql`
+- fichiers chunkes executables : `dataconnect/previsionnel_seed/*.gql`
+- generation : `npm run seed:previsionnel:generate`
+- injection locale : `npm run seed:previsionnel:dataconnect`
+- verification locale : `npm run verify:previsionnel:dataconnect`
+- contenu courant : 13 exercices, 586 clients, 616 alias, 898 chantiers, 898 lignes previsionnelles, 1577 montants mensuels et 887 montants par lot
+- les lignes de synthese Excel (`Cumul`, `Total`, etc.) sont exclues
+- le jaune Excel signifie facture envoyee (`invoiceSent`), pas facture payee / encaissee
+
+Le schema SQL Connect contient maintenant les tables previsionnelles :
+- `PrevisionnelImportBatch`
+- `PrevisionnelExercise`
+- `ClientAlias`
+- `PrevisionnelLine`
+- `PrevisionnelMonthlyAmount`
+- `PrevisionnelLotAmount`
+- `PrevisionnelCellEdit`
+
+La page `src/pages/PrevisionnelPage.tsx` charge maintenant les valeurs `2025-26` depuis SQL Connect quand disponible.
+Le bouton `Sauvegarder SQL` :
+- met a jour les montants mensuels dans `PrevisionnelMonthlyAmount`
+- enregistre toutes les cellules modifiees dans `PrevisionnelCellEdit` pour conserver l'export Excel exact
+- garde le fallback `localStorage` si SQL Connect n'est pas disponible
+
+La page `src/pages/StatistiquesPage.tsx` tente maintenant de lire les exercices et les lignes courantes depuis SQL Connect.
+Si SQL Connect ou l'auth ne repond pas, elle retombe sur les donnees TS nettoyees.
 
 ---
 
@@ -275,7 +305,8 @@ Le front couvre deja les ecrans principaux :
 ### Ce qui est encore provisoire
 
 - le store principal utilise encore `src/data/chantiers.ts` et `src/data/factures.ts`
-- `clients` et `emails` sont encore exposes depuis les seeds locaux
+- `clients` et `chantiers` utilisent maintenant les donnees Excel previsionnelles nettoyees en fallback local quand SQL Connect n'a pas encore fourni de donnees
+- `emails` reste expose depuis les seeds locaux
 - l'effet "ajout de facture" met a jour le state React local, pas encore SQL Connect
 
 ### Auth actuelle

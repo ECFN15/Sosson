@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients010: client_upsertMany(data: [
+    {
+      id: "0ba0b86c-da09-5901-bc7f-a741b8b21ffa",
+      type: "particulier",
+      nom: "Prevost",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "bfa19310-8236-52c0-acd4-7c8d2da40fe1",
+      type: "particulier",
+      nom: "Prigent",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "337bea63-9f45-5e6b-a26e-443d275d0a80",
+      type: "particulier",
+      nom: "Quemener",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a99625da-2d93-50f8-bd2c-6cf22f988d5a",
+      type: "particulier",
+      nom: "Queron",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f6166530-44e6-5e37-bde5-e711702d248b",
+      type: "particulier",
+      nom: "Queron Quellier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2e7bdc80-ef0f-56bf-8a77-eff64d2b3622",
+      type: "particulier",
+      nom: "Raoult",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f7f7d35c-b0e7-5e32-a2f0-be432895270b",
+      type: "particulier",
+      nom: "Ravenel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "178a8051-9086-55f0-be75-e1e86a637e1d",
+      type: "particulier",
+      nom: "REANULT 2B peinture",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b704ceb5-eb51-5616-9275-9657abca6122",
+      type: "particulier",
+      nom: "Regnauld",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a5fa8e75-8e55-5207-8129-45545a46ca5a",
+      type: "particulier",
+      nom: "Regnault",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8ad958ab-e84e-53b1-9fd4-452671f41b5a",
+      type: "particulier",
+      nom: "Renaude",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d1c38c07-bd90-5c35-965e-c5732309baa3",
+      type: "particulier",
+      nom: "Renouard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "54720947-d13d-5e2e-8ae0-1f0bbe8676a8",
+      type: "particulier",
+      nom: "Res fam rabout",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "815a44cd-dcf4-55d9-a7b2-ef25ecf5a93a",
+      type: "particulier",
+      nom: "Res,La Roche A Bunel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6fcbad3a-0316-5e31-a7a3-49cc15098c74",
+      type: "particulier",
+      nom: "Rf ablin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8922a72b-704c-56eb-99e4-74aa9b417788",
+      type: "particulier",
+      nom: "Rf Cornille",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3cd6451a-54e0-5b02-a5c3-37dcfac6f137",
+      type: "particulier",
+      nom: "Rf croteau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "65b78976-ed9f-5963-a4a1-b81709a68fa8",
+      type: "particulier",
+      nom: "Rf Flipo",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "394798b1-f2e2-551e-94aa-8970fa5e2866",
+      type: "particulier",
+      nom: "Rf girard-marais",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "56d3ae32-42dd-576a-b33d-2f4121d3082c",
+      type: "particulier",
+      nom: "Rf goubin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b7806316-a24a-5497-8b85-d1d9ffdb937c",
+      type: "particulier",
+      nom: "Rf guillot",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0638add7-8137-52f5-8ecc-c85c4a51c6e1",
+      type: "particulier",
+      nom: "Rf Hgp",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2b2e62ea-9ba9-5a7e-a892-2123805ccded",
+      type: "particulier",
+      nom: "Rf Jacquelin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "82b010fc-e8ef-5eba-9413-dab21bb3549b",
+      type: "particulier",
+      nom: "Rf Jardin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9083b564-6f7c-5465-bcdd-e51f5c773f9f",
+      type: "particulier",
+      nom: "Rf lachouque",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "221937f1-98df-5617-aa8a-bab9af59bc18",
+      type: "particulier",
+      nom: "Rf Lemetteil",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c6d0e0e5-c776-5b4f-9ba6-35ab13b25892",
+      type: "particulier",
+      nom: "Rf Lesenechal",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d65f08f4-e594-5d72-8fda-120ed530e5ce",
+      type: "particulier",
+      nom: "Rf letourneur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "30bcb9be-0495-5fc7-91ed-1cae6b6ab4c3",
+      type: "particulier",
+      nom: "Rf Lohard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "fd7ec355-1a0b-5a5a-999a-9e84e3992a4f",
+      type: "particulier",
+      nom: "Rf Mangion",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9ca58708-f7c2-5a0e-af6c-e1882dcb14ca",
+      type: "particulier",
+      nom: "Rf Melenne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "41f5b7b7-901d-5d9b-9d22-c55a592d4f0d",
+      type: "particulier",
+      nom: "Rf plancher",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ccf547cc-e50d-52f9-abd3-1ed5fe8dbeda",
+      type: "particulier",
+      nom: "RF rault renouf",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "caa17254-5332-59dc-9551-41d54f362bdd",
+      type: "particulier",
+      nom: "Rf Richard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6b765cdb-ffaf-533b-860c-ca0db40f8673",
+      type: "particulier",
+      nom: "Rf Roussel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8b226ef3-a9d9-5baf-bd84-c491711070e4",
+      type: "particulier",
+      nom: "Rf russ",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d84cabe1-6ab6-5b91-8ce1-a60e8ce3e7aa",
+      type: "particulier",
+      nom: "Rf sabatier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "249e4898-50aa-5f24-a3f9-6862e691550d",
+      type: "particulier",
+      nom: "Rf Seymour",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "906aae55-c071-550e-a2a8-1a5f2e9f3077",
+      type: "particulier",
+      nom: "Rf SORTON",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "dc068f7a-2b37-559f-8701-699d8a04fafb",
+      type: "particulier",
+      nom: "Rf tardif",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8f81b446-0090-59bc-8ea9-68d1c9fb8d7a",
+      type: "particulier",
+      nom: "Rf Vicquelin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ed5b03f1-a0a9-5c9e-8d56-7656f1b13e4f",
+      type: "particulier",
+      nom: "Ricateau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8fb5e41c-b05d-5739-acf3-ac717276447b",
+      type: "particulier",
+      nom: "Richard Sophie",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "199c564c-6c4b-53f8-9b05-08ecbf4796a5",
+      type: "particulier",
+      nom: "Robin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5c271ad4-3415-53dd-b629-539b2d4bec57",
+      type: "particulier",
+      nom: "Rocton mob",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "cbe22469-53b6-5fef-bf23-bd02fafa48af",
+      type: "particulier",
+      nom: "Rohrbach",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e928794b-9243-57aa-ae01-9c28eadbcf5c",
+      type: "particulier",
+      nom: "Roselier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "baecd01d-38f0-5d3e-a4c7-6409518e8564",
+      type: "particulier",
+      nom: "Rouillard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "135f5fd5-78d7-5e52-ac7e-c0f050bb58c3",
+      type: "particulier",
+      nom: "Rouille",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8dd7df50-bc81-542e-8dde-3da67e1f12f8",
+      type: "particulier",
+      nom: "Roullier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

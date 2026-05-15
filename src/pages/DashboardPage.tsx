@@ -72,6 +72,9 @@ const docTraitesData = [
   { x: 6, val: 126 },
 ]
 
+const scrollableDashboardListClass =
+  'min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 -mr-1 [scrollbar-width:thin] [scrollbar-color:#EADBC8_transparent]'
+
 function fmt(n: number) {
   return n.toLocaleString('fr-FR')
 }
@@ -175,6 +178,9 @@ export function DashboardPage() {
   }))
 
   const chantiersEnRisque = chantiers.filter(c => c.tendance === 'rouge' || c.tendance === 'orange')
+  const chantiersRetardPlanning = chantiers.filter(c => c.tendance === 'vert' && c.statut === 'en_cours').slice(0, 1)
+  const chantiersRisqueCount = chantiersEnRisque.length + chantiersRetardPlanning.length
+  const alertesImportantesCount = chantiersEnRisque.length + (facturesEnAttente.length > 0 ? 1 : 0)
 
   const topCategories = donutData.slice(0, 3)
 
@@ -341,9 +347,14 @@ export function DashboardPage() {
         </div>
 
         {/* Alertes importantes */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC] flex flex-col">
-          <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-3">Alertes importantes</h2>
-          <div className="flex-1 space-y-3">
+        <div className="flex h-[288px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Alertes importantes</h2>
+            <span className="rounded-full bg-[#FAF6F2] px-2 py-0.5 text-[10px] font-semibold text-[#6B6B6B]">
+              {alertesImportantesCount}
+            </span>
+          </div>
+          <div className={scrollableDashboardListClass}>
             {chantiersEnRisque.map(c => {
               const depassement = Math.round(((c.depensesEngagees - c.budgetPrevisionnel) / c.budgetPrevisionnel) * 100)
               return (
@@ -355,7 +366,7 @@ export function DashboardPage() {
                   <div className={`w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5 ${c.tendance === 'rouge' ? 'bg-[#FEE2E2]' : 'bg-[#FEF3C7]'}`}>
                     <AlertTriangle size={13} className={c.tendance === 'rouge' ? 'text-[#DC2626]' : 'text-[#B45309]'} />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[12px] font-semibold text-[#1E1E1E] truncate">
                       {c.tendance === 'rouge' ? 'Dépassement budget' : 'Budget à surveiller'}
                     </p>
@@ -367,20 +378,22 @@ export function DashboardPage() {
                 </button>
               )
             })}
-            <div className="flex items-start gap-3 p-2 -mx-2">
-              <div className="w-7 h-7 rounded-[8px] bg-[#FEF3C7] flex items-center justify-center shrink-0 mt-0.5">
-                <FileText size={13} className="text-[#B45309]" />
+            {facturesEnAttente.length > 0 && (
+              <div className="flex items-start gap-3 p-2 -mx-2">
+                <div className="w-7 h-7 rounded-[8px] bg-[#FEF3C7] flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText size={13} className="text-[#B45309]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-semibold text-[#1E1E1E]">Facture non rattachée</p>
+                  <p className="text-[11px] text-[#6B6B6B]">{facturesEnAttente.length} facture{facturesEnAttente.length > 1 ? 's' : ''} fournisseur en attente</p>
+                </div>
+                <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-auto">il y a 5h</span>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-semibold text-[#1E1E1E]">Facture non rattachée</p>
-                <p className="text-[11px] text-[#6B6B6B]">{facturesEnAttente.length} facture{facturesEnAttente.length > 1 ? 's' : ''} fournisseur en attente</p>
-              </div>
-              <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-auto">il y a 5h</span>
-            </div>
+            )}
           </div>
           <button
             onClick={() => navigate('/chantiers')}
-            className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
+            className="mt-3 flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
           >
             Voir toutes les alertes <ArrowRight size={12} />
           </button>
@@ -390,7 +403,7 @@ export function DashboardPage() {
       {/* Row 3: Activité récente + Trésorerie + Chantiers en risque + Prochaines échéances */}
       <div className="grid grid-cols-4 gap-4">
         {/* Activité récente */}
-        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Activité récente</h2>
           <div className="flex-1 space-y-4">
             {factures.slice(0, 4).map((f, i) => {
@@ -422,7 +435,7 @@ export function DashboardPage() {
         </div>
 
         {/* Trésorerie prévisionnelle */}
-        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Trésorerie prévisionnelle</h2>
           </div>
@@ -453,9 +466,14 @@ export function DashboardPage() {
         </div>
 
         {/* Chantiers en risque */}
-        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
-          <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Chantiers en risque</h2>
-          <div className="flex-1 space-y-4">
+        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Chantiers en risque</h2>
+            <span className="rounded-full bg-[#FAF6F2] px-2 py-0.5 text-[10px] font-semibold text-[#6B6B6B]">
+              {chantiersRisqueCount}
+            </span>
+          </div>
+          <div className={scrollableDashboardListClass}>
             {chantiersEnRisque.map(c => {
               const client = clients.find(cl => cl.id === c.clientId)
               const depassement = Math.round(((c.depensesEngagees - c.budgetPrevisionnel) / c.budgetPrevisionnel) * 100)
@@ -484,7 +502,7 @@ export function DashboardPage() {
                 </button>
               )
             })}
-            {chantiers.filter(c => c.tendance === 'vert' && c.statut === 'en_cours').slice(0, 1).map(c => (
+            {chantiersRetardPlanning.map(c => (
               <button
                 key={c.id}
                 onClick={() => navigate(`/chantiers/${c.id}`)}
@@ -505,14 +523,14 @@ export function DashboardPage() {
           </div>
           <button
             onClick={() => navigate('/chantiers')}
-            className="mt-auto flex items-center gap-1.5 pt-4 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
+            className="mt-3 flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
           >
             Voir tous les chantiers à risque <ArrowRight size={12} />
           </button>
         </div>
 
         {/* Prochaines échéances */}
-        <div className="flex min-h-[276px] flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Prochaines échéances</h2>
           <div className="flex-1 space-y-3">
             {[

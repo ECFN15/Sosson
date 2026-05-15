@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases003: clientAlias_upsertMany(data: [
+    {
+      id: "5481a4c5-1468-5e58-89eb-335b6945d3ca",
+      clientId: "87157e3d-3464-5a7a-bce3-32839d487777",
+      alias: "CHANU HD OXYGEN Cplt",
+      normalizedKey: "chanu-hd-oxygen-cplt",
+      source: "excel"
+    },
+    {
+      id: "9624079c-68f1-5bf2-92fc-99c69c57dd31",
+      clientId: "1e7caba9-1b98-52ed-8da8-19238aacb517",
+      alias: "CHAO",
+      normalizedKey: "chao",
+      source: "excel"
+    },
+    {
+      id: "224bc904-6c6c-5eb5-8181-d3438381685b",
+      clientId: "4c95b45b-c861-59db-9bc0-183800c1023c",
+      alias: "CHAPRON",
+      normalizedKey: "chapron",
+      source: "excel"
+    },
+    {
+      id: "feb9a8ab-754a-5525-be34-dd370f9718d8",
+      clientId: "ba373957-de6a-5424-9cdf-557a00d0c7d0",
+      alias: "CHARLET",
+      normalizedKey: "charlet",
+      source: "excel"
+    },
+    {
+      id: "f818d6eb-88f7-5115-b173-b68cfc2cbb53",
+      clientId: "a3e96c65-9ea1-57cf-81fc-9cffa6ec3a47",
+      alias: "CHATEL LAURENT Alexandra",
+      normalizedKey: "chatel-laurent-alexandra",
+      source: "excel"
+    },
+    {
+      id: "811baa2c-44a0-5399-867f-be4597dfe52b",
+      clientId: "598238f3-e7b8-56aa-a43b-0b7b50b4ebd3",
+      alias: "CHATELET",
+      normalizedKey: "chatelet",
+      source: "excel"
+    },
+    {
+      id: "2aad7954-ce8f-5e8e-a008-9df1304be8d0",
+      clientId: "f0c1a030-e3ee-5d64-9ffc-53a083430611",
+      alias: "CHATELIN",
+      normalizedKey: "chatelin",
+      source: "excel"
+    },
+    {
+      id: "73866a9d-53fc-56ac-b404-769df92e78e0",
+      clientId: "596fa2e5-5785-5c7c-b61f-9cb5542004e4",
+      alias: "CHATRE",
+      normalizedKey: "chatre",
+      source: "excel"
+    },
+    {
+      id: "04fb1aac-c277-508d-8d34-b92ebe7143bd",
+      clientId: "dcbb1bce-d6d7-539c-b6c5-2936b5a3d01e",
+      alias: "CHAUVEAU",
+      normalizedKey: "chauveau",
+      source: "excel"
+    },
+    {
+      id: "68037315-120e-5080-9f76-3b32d95aebeb",
+      clientId: "47b14f0e-8eaa-55c3-9e70-ea0591a008c4",
+      alias: "CHAUVEL",
+      normalizedKey: "chauvel",
+      source: "excel"
+    },
+    {
+      id: "08447f3f-a322-53f3-93cd-de3218858dd2",
+      clientId: "f20808f8-0a90-5b00-866f-511a3c5f001b",
+      alias: "CHAVENTRE",
+      normalizedKey: "chaventre",
+      source: "excel"
+    },
+    {
+      id: "dfb950d3-d0c4-5284-bbcf-d50985f82127",
+      clientId: "3b1b2a67-6f64-5914-9c4a-d7db814cc477",
+      alias: "chebout mousset",
+      normalizedKey: "chebout-mousset",
+      source: "excel"
+    },
+    {
+      id: "611a58f7-01a8-5d08-9458-1152e1dabe95",
+      clientId: "5e3d7ff2-9769-51aa-80f8-27223a1d2855",
+      alias: "Chérance",
+      normalizedKey: "cherance",
+      source: "excel"
+    },
+    {
+      id: "07d38ab0-cc15-56aa-8fde-97f311e88658",
+      clientId: "fb1c35d0-b0d5-5eef-9469-b04014fc7a48",
+      alias: "CHESNEL",
+      normalizedKey: "chesnel",
+      source: "excel"
+    },
+    {
+      id: "ebb934f0-2700-5445-84d4-5a37ab8c4b93",
+      clientId: "6e8984cc-a979-5e57-8f4a-54bbf7d87819",
+      alias: "CLAIRAY",
+      normalizedKey: "clairay",
+      source: "excel"
+    },
+    {
+      id: "5b0e1a0e-e704-52bb-ba1c-becbeece6f47",
+      clientId: "90317170-bc7f-54f2-b585-68e02446d940",
+      alias: "CLAPAREDE",
+      normalizedKey: "claparede",
+      source: "excel"
+    },
+    {
+      id: "1f376afa-eb78-5c69-ac42-9f0ab78fc1be",
+      clientId: "55d7c01e-9fcf-50c6-aa41-8a6bc553ca8b",
+      alias: "CLEMENT",
+      normalizedKey: "clement",
+      source: "excel"
+    },
+    {
+      id: "24023fea-dbe5-54a0-b80e-8dacea364e82",
+      clientId: "8cb258cc-165a-5957-96a2-3a45698322f9",
+      alias: "CLET CARON",
+      normalizedKey: "clet-caron",
+      source: "excel"
+    },
+    {
+      id: "1ccda024-3542-555e-806b-da30db7854fc",
+      clientId: "27825179-16b6-5d45-854f-d03a7e174701",
+      alias: "cointo",
+      normalizedKey: "cointo",
+      source: "excel"
+    },
+    {
+      id: "7c02f514-d154-5d2c-9a37-85b7976f6951",
+      clientId: "27825179-16b6-5d45-854f-d03a7e174701",
+      alias: "cointo charpente",
+      normalizedKey: "cointo",
+      source: "excel"
+    },
+    {
+      id: "3e2fc280-20ae-5310-ab65-b3e928072203",
+      clientId: "90a663da-6d23-54ac-abdc-07fd76de61fe",
+      alias: "COISSAC",
+      normalizedKey: "coissac",
+      source: "excel"
+    },
+    {
+      id: "636f3a46-c566-5e1a-b048-10e7e7b72982",
+      clientId: "36103707-1e82-5e44-88d3-1bb97e331971",
+      alias: "college sacre cœur",
+      normalizedKey: "college-sacre-c-ur",
+      source: "excel"
+    },
+    {
+      id: "44e8bed3-8425-5457-beb3-accf732323b5",
+      clientId: "b99ef3a0-82fd-5a7e-b607-b277b82e5917",
+      alias: "COLORE CAEN",
+      normalizedKey: "colore-caen",
+      source: "excel"
+    },
+    {
+      id: "ab1de3fe-08c2-5cf5-a3a2-81b87337b399",
+      clientId: "b310ce2a-1c3a-5507-bec5-21e84aa62ee6",
+      alias: "comm pasquet",
+      normalizedKey: "comm-pasquet",
+      source: "excel"
+    },
+    {
+      id: "633833bf-93fd-59e5-9f6f-59cb67359f55",
+      clientId: "8cead5de-dd96-5840-88dc-18adedefb288",
+      alias: "corbion",
+      normalizedKey: "corbion",
+      source: "excel"
+    },
+    {
+      id: "af0d11d9-574d-5b57-971a-c20be1900192",
+      clientId: "05a283ec-f2e6-5270-999b-c37bc73527ac",
+      alias: "cordon charp",
+      normalizedKey: "cordon-charp",
+      source: "excel"
+    },
+    {
+      id: "3d1a6ae4-1500-598c-99c5-1dd015250a16",
+      clientId: "7b441928-cdee-55e8-9388-e9067c1aee73",
+      alias: "CORTEQUISSE ext",
+      normalizedKey: "cortequisse-ext",
+      source: "excel"
+    },
+    {
+      id: "9a441946-8d81-5507-bcaf-6b6540899fa1",
+      clientId: "d8621a57-e8d3-51c6-9718-b59ef6d8e7aa",
+      alias: "COTENTIN",
+      normalizedKey: "cotentin",
+      source: "excel"
+    },
+    {
+      id: "2dce1f9b-043c-5683-b630-6bcae110ffc4",
+      clientId: "d856ae28-2ce9-5c47-9fdf-a701c39698d2",
+      alias: "courbassier",
+      normalizedKey: "courbassier",
+      source: "excel"
+    },
+    {
+      id: "95bca6eb-4b76-5b0b-92d7-1377b7ffdd69",
+      clientId: "e5f3ff89-366e-581a-baad-8ea53c1a8838",
+      alias: "COUTANCE Colas",
+      normalizedKey: "coutance-colas",
+      source: "excel"
+    },
+    {
+      id: "6bed0cca-4371-5c51-842b-cb0ec76adc7b",
+      clientId: "558515b3-f228-5575-bc17-bbd52c4eb888",
+      alias: "COYER",
+      normalizedKey: "coyer",
+      source: "excel"
+    },
+    {
+      id: "545fd1e1-3b5c-57a1-aef9-c0cd639ccaab",
+      clientId: "aac56d8f-57b5-5d28-a5fb-4662e5b1be76",
+      alias: "CROCHARD",
+      normalizedKey: "crochard",
+      source: "excel"
+    },
+    {
+      id: "d9a2c390-def6-56a0-b19f-8574d3cca2ca",
+      clientId: "12cba3ab-6dfb-5b83-a052-6ad2fc1a29dd",
+      alias: "CROIZE Céline",
+      normalizedKey: "croize-celine",
+      source: "excel"
+    },
+    {
+      id: "69a4eac3-8e82-5b0a-9d27-7a2692f93ad2",
+      clientId: "edb56f1d-ee43-5480-b558-7dc65b43cc97",
+      alias: "crosfit",
+      normalizedKey: "crosfit",
+      source: "excel"
+    },
+    {
+      id: "38ba18f0-cc32-5ae9-9afe-d01e2dde18cb",
+      clientId: "cad9a4d2-f5f3-542a-b9db-0e57c48cd95d",
+      alias: "CROSVILLE",
+      normalizedKey: "crosville",
+      source: "excel"
+    },
+    {
+      id: "9bedc8a5-0ac5-5d05-9bd6-8eea056e1327",
+      clientId: "1e73a246-2bed-56db-add3-4407b1dc8955",
+      alias: "CRUCHON  LEGUEVASQUES",
+      normalizedKey: "cruchon-leguevasques",
+      source: "excel"
+    },
+    {
+      id: "ce2b381d-57c0-594b-91a2-2c64b8b8d096",
+      clientId: "78785387-2436-59d8-b8f5-1095d76e57c1",
+      alias: "CUVIGNY",
+      normalizedKey: "cuvigny",
+      source: "excel"
+    },
+    {
+      id: "3b0db7b9-62c9-5139-a3ce-eaf2a681bf7d",
+      clientId: "2f9aa770-54a7-5f83-a4fd-e4ede02b6482",
+      alias: "DAGORN",
+      normalizedKey: "dagorn",
+      source: "excel"
+    },
+    {
+      id: "f55bf1f4-170c-5613-bb2d-41c330d08467",
+      clientId: "be147371-aa6f-58e2-9f9d-89a4d29344c0",
+      alias: "daigremont",
+      normalizedKey: "daigremont",
+      source: "excel"
+    },
+    {
+      id: "64117dad-7a0c-586e-9dc6-51d205cd4613",
+      clientId: "9def8216-ceda-5492-9dd3-8891d3a0f574",
+      alias: "DARCILLON",
+      normalizedKey: "darcillon",
+      source: "excel"
+    },
+    {
+      id: "90d4c88b-25ad-559c-b881-458ad366d149",
+      clientId: "2d3b1401-239a-5a48-994b-045cff26a352",
+      alias: "DARDE",
+      normalizedKey: "darde",
+      source: "excel"
+    },
+    {
+      id: "d1a266f6-d56a-5ea9-9ec3-4b9b8490bc5b",
+      clientId: "1659b3c7-3587-5099-b130-bf918932bdf2",
+      alias: "DARNEY BATISTA",
+      normalizedKey: "darney-batista",
+      source: "excel"
+    },
+    {
+      id: "a749f32d-836c-57b2-bf5d-8e5ea9e2ed79",
+      clientId: "03c0084b-ef1f-5b61-85e4-4fe40f0a985c",
+      alias: "DAUMESNIL",
+      normalizedKey: "daumesnil",
+      source: "excel"
+    },
+    {
+      id: "7c75f7b1-17c5-5bd8-b63e-e4db900338ef",
+      clientId: "759e240a-79ef-52c2-82ed-bb8fa4abbccd",
+      alias: "dauvergne",
+      normalizedKey: "dauvergne",
+      source: "excel"
+    },
+    {
+      id: "73cedb90-556d-5f12-896f-b6afa60eb434",
+      clientId: "47a9a245-904d-50ee-9cfd-7423a2c5c37f",
+      alias: "DE JEAN",
+      normalizedKey: "de-jean",
+      source: "excel"
+    },
+    {
+      id: "b903014d-6411-5aa6-a280-79aa3934601d",
+      clientId: "b9a95caa-9ede-5d1d-96e7-8a556cd266e8",
+      alias: "DE SOUSA",
+      normalizedKey: "de-sousa",
+      source: "excel"
+    },
+    {
+      id: "d21febab-3cf1-584a-9a3a-786a4b768bf9",
+      clientId: "8522c663-845a-5a42-8620-47ac1ded1a6f",
+      alias: "De Souza",
+      normalizedKey: "de-souza",
+      source: "excel"
+    },
+    {
+      id: "f2c2da3b-c8a0-5da2-8d61-53f948b5e322",
+      clientId: "68a485cd-9a6b-53dd-af3d-484cbc62774a",
+      alias: "dechauffour",
+      normalizedKey: "dechauffour",
+      source: "excel"
+    },
+    {
+      id: "b10b3a89-e69f-510c-9caa-de5a72abd3cd",
+      clientId: "8d33de21-fda7-59e1-86ed-0f91679b0dce",
+      alias: "DECLERCK NORGOLL",
+      normalizedKey: "declerck-norgoll",
+      source: "excel"
+    },
+    {
+      id: "bd7e70a0-a068-5ab6-89f6-51e84bce5cc6",
+      clientId: "b838236e-23bd-54b2-bcef-ae52d5bc591f",
+      alias: "DÉFIBAT",
+      normalizedKey: "defibat",
+      source: "excel"
+    }
+  ])
+}

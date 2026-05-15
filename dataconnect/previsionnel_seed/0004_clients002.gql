@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients002: client_upsertMany(data: [
+    {
+      id: "41f179ab-e338-5bc5-877a-c1b83b5b03ac",
+      type: "particulier",
+      nom: "Boeuve",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6ea37b28-db97-5cc3-853a-5604d9aad9cb",
+      type: "particulier",
+      nom: "Bomptemps",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4e88069a-4d7f-55b9-b9d3-0146f7100983",
+      type: "particulier",
+      nom: "Bondurand",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "147ef48e-0ea8-54e6-ad9a-c2aecbc42ac2",
+      type: "particulier",
+      nom: "Bonneau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8cd03b19-1258-510d-8280-d23d861ca178",
+      type: "particulier",
+      nom: "Bouet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4b4a9f76-6211-58a5-a3aa-982595b7cbd2",
+      type: "particulier",
+      nom: "Bouillard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9f1357b8-242f-58c2-be62-919524250275",
+      type: "particulier",
+      nom: "Bouillet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "22f3e9ed-0837-5c6f-98a6-1b4cffc9648b",
+      type: "particulier",
+      nom: "Boujrad",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5c9e3bcb-415f-5f37-828d-73a45cfb50a9",
+      type: "particulier",
+      nom: "Bouquin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "34f2886d-9e7b-5d10-9539-57aae281d063",
+      type: "particulier",
+      nom: "Bourget/Popovic",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a01b4901-1d01-5890-ba60-0d9019c1f774",
+      type: "particulier",
+      nom: "Bouty",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "370a7a3a-7c00-53b9-b725-2fdb59f83e4a",
+      type: "particulier",
+      nom: "Bouyguesifs",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "c15030ca-4c32-5a0a-9411-04bed1713678",
+      type: "particulier",
+      nom: "Bresson",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "829c0cfc-1f18-5026-a8ec-7542d6c30e02",
+      type: "particulier",
+      nom: "Bretagne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "13edb9df-a731-5917-9790-1c32484a0cca",
+      type: "particulier",
+      nom: "Breteau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e9965480-fff9-5819-a2d1-4ffeaffdc25e",
+      type: "particulier",
+      nom: "Breteau mob",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "db2f570d-1b47-5372-8233-1b0bc931b03d",
+      type: "particulier",
+      nom: "Briand",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f58370c1-c53e-5a8b-b911-ac1c7d1b317e",
+      type: "particulier",
+      nom: "Briere",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6429c414-3266-522f-a8c7-8349d443fb32",
+      type: "particulier",
+      nom: "Brodin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e1b889cc-72cf-5d81-b21e-e413b579ae35",
+      type: "particulier",
+      nom: "Brossard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6805e51a-f6e9-51e3-8533-e76e4e5618aa",
+      type: "particulier",
+      nom: "Brouard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2dd1a886-0316-57a8-b6d5-e0a2b528deec",
+      type: "particulier",
+      nom: "Bruneau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b5c3ca32-fcfe-5101-b315-382bbe22fd40",
+      type: "particulier",
+      nom: "Brunschvicg",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "412799db-be62-525c-bfe4-10a65f5f2853",
+      type: "particulier",
+      nom: "BSL 2 Mediatheque 2e partie",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "72229fbe-8745-59fe-a8e0-1927ccd8da85",
+      type: "particulier",
+      nom: "Bugenne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "38264fb2-6003-5591-9a3f-56b7ddd27b8e",
+      type: "particulier",
+      nom: "BUNEL terrasse",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1dc0d6d8-c2b3-572f-9b95-84c119bcde3b",
+      type: "particulier",
+      nom: "Cabourg",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "bb0105fe-17de-5156-b4c3-ef4d2fba3317",
+      type: "particulier",
+      nom: "Cadieu Noury",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "280a0d4f-29d2-59b0-aced-b6900665b59a",
+      type: "particulier",
+      nom: "Caen Couvertures",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f6f0b8ce-7eaf-5d70-9d1b-939b5ec1b7c1",
+      type: "particulier",
+      nom: "Cambay",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9680236d-39ca-5b89-aaf8-fb2713f22a40",
+      type: "particulier",
+      nom: "Campagnile",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "da36c0f5-2c9b-57ca-add0-584473096459",
+      type: "particulier",
+      nom: "Campanile",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "18193188-c883-5883-99a0-fe1850f43120",
+      type: "particulier",
+      nom: "Camping",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "fd56011a-de82-5641-8991-9efc77adafbf",
+      type: "particulier",
+      nom: "Cardet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "490e9616-0c3a-56d8-aea3-a56b76f87280",
+      type: "particulier",
+      nom: "Carre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0c9c6215-6f05-51ac-a0f1-56228f03d305",
+      type: "particulier",
+      nom: "Carre olivier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4f10e1f5-ecc8-5d01-acc2-a2c861a5cccf",
+      type: "particulier",
+      nom: "CAUCE via joris cenier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "0cdfc5d3-f270-5dbd-8375-1f40c4e61a62",
+      type: "particulier",
+      nom: "Cauvin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7d336cfd-7d32-5485-9c6a-9f85bf233c44",
+      type: "particulier",
+      nom: "Ccs international",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3708e8e8-696f-5ead-8882-b67379ba25b1",
+      type: "particulier",
+      nom: "CFA Normandie",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6ec9b5ec-c204-5ee3-8beb-2a6c4aeb205e",
+      type: "particulier",
+      nom: "Cfab cotonnière",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "455f3f18-d892-5c40-baf9-543830f46286",
+      type: "particulier",
+      nom: "Chaignet -dubois",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2c11829c-82b8-5b5a-95d3-21b5e1c02b0d",
+      type: "particulier",
+      nom: "Champion",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a37c0fbd-6853-5eea-a4b0-761bd435be08",
+      type: "particulier",
+      nom: "Chanu Hd Equinoxe 2",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "23ac6960-921a-5152-a802-b247d8a4f7ae",
+      type: "particulier",
+      nom: "Chanu Hd Oxygen",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "87157e3d-3464-5a7a-bce3-32839d487777",
+      type: "particulier",
+      nom: "CHANU HD OXYGEN Cplt",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1e7caba9-1b98-52ed-8da8-19238aacb517",
+      type: "particulier",
+      nom: "Chao",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "4c95b45b-c861-59db-9bc0-183800c1023c",
+      type: "particulier",
+      nom: "Chapron",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "ba373957-de6a-5424-9cdf-557a00d0c7d0",
+      type: "particulier",
+      nom: "Charlet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a3e96c65-9ea1-57cf-81fc-9cffa6ec3a47",
+      type: "particulier",
+      nom: "CHATEL LAURENT Alexandra",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}

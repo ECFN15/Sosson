@@ -1,0 +1,116 @@
+mutation @transaction {
+  aliases013: clientAlias_upsertMany(data: [
+    {
+      id: "1973ebdc-d201-5560-8feb-ba56d9452b47",
+      clientId: "a455fabe-5dd0-59cd-91d4-6187c0b3b7ea",
+      alias: "toutain",
+      normalizedKey: "toutain",
+      source: "excel"
+    },
+    {
+      id: "98448706-c7d6-5cb4-bc42-348c332e419a",
+      clientId: "d6d2d11f-63a4-554e-b8e3-816551c4a0ee",
+      alias: "URBAIN",
+      normalizedKey: "urbain",
+      source: "excel"
+    },
+    {
+      id: "34fabc9a-3114-5c71-98fa-386d1d99db79",
+      clientId: "0c403277-08d7-5d6f-93de-733f35431cd4",
+      alias: "urban",
+      normalizedKey: "urban",
+      source: "excel"
+    },
+    {
+      id: "59f4dc79-bc9a-5dcd-a200-3a36ddae9bb3",
+      clientId: "95f9dea7-2d3f-52af-a045-52fa559ca234",
+      alias: "VALDENAIRE",
+      normalizedKey: "valdenaire",
+      source: "excel"
+    },
+    {
+      id: "c8d203f2-b6f3-53b6-9360-31e67354e003",
+      clientId: "d1ae3495-d48e-51a4-ba78-fafec9ea06a2",
+      alias: "VALSEMEY",
+      normalizedKey: "valsemey",
+      source: "excel"
+    },
+    {
+      id: "b7b32bf1-48fd-524a-9544-a6226ed2068f",
+      clientId: "a97b5561-46c3-5960-9d47-34928abeaf84",
+      alias: "vandermersch",
+      normalizedKey: "vandermersch",
+      source: "excel"
+    },
+    {
+      id: "151441b4-d139-5a13-bc6a-e5fdf5d987ea",
+      clientId: "41351551-17f6-53ce-884d-7cfa323c8460",
+      alias: "VAUCHER",
+      normalizedKey: "vaucher",
+      source: "excel"
+    },
+    {
+      id: "028c6234-ed2f-54f5-9d96-dbd3160ddd2e",
+      clientId: "1d410b91-eb54-55a4-b8a8-b0928ffb5f2b",
+      alias: "Vente matériel Emerick",
+      normalizedKey: "vente-materiel-emerick",
+      source: "excel"
+    },
+    {
+      id: "53420056-9a34-5383-a67b-7979e840b375",
+      clientId: "0271f657-a4c2-5d9f-9983-5be50f8d0832",
+      alias: "VERGRIETE",
+      normalizedKey: "vergriete",
+      source: "excel"
+    },
+    {
+      id: "0559bd55-5786-5b7b-bdd0-e13141ad08bf",
+      clientId: "f18691a7-6ca9-5f9e-a639-47d3cf549656",
+      alias: "viglieri",
+      normalizedKey: "viglieri",
+      source: "excel"
+    },
+    {
+      id: "b2211c8c-8e6e-5550-98cb-d36961bcab62",
+      clientId: "563badef-c3ea-5449-82ed-e597576a5c39",
+      alias: "viquesnel",
+      normalizedKey: "viquesnel",
+      source: "excel"
+    },
+    {
+      id: "f3730aed-6ac4-504c-ba71-04fc1c3a77e4",
+      clientId: "41868a36-e129-5652-9038-3a761329b567",
+      alias: "viquesnel mob",
+      normalizedKey: "viquesnel-mob",
+      source: "excel"
+    },
+    {
+      id: "916e7e49-b6fc-527f-90fe-eb7a2c4fb83d",
+      clientId: "a55d275e-d567-5b24-b713-f78f21544a34",
+      alias: "VIRAY (ami larcher)",
+      normalizedKey: "viray",
+      source: "excel"
+    },
+    {
+      id: "87b821e4-cfce-503b-a867-978b7e99dc36",
+      clientId: "cb0e4e53-deb2-5f82-af84-24cecdc2dec5",
+      alias: "VITAL SPORT IFS",
+      normalizedKey: "vital-sport-ifs",
+      source: "excel"
+    },
+    {
+      id: "2a2994ce-849e-5c6c-b403-6f2183110cfc",
+      clientId: "0c184b00-276e-5412-830f-d074e09ef653",
+      alias: "VIVIER",
+      normalizedKey: "vivier",
+      source: "excel"
+    },
+    {
+      id: "e8f0f65f-cc01-5f43-adbf-f72981ab482e",
+      clientId: "666e814d-5d2c-5363-98e2-64fed35851a9",
+      alias: "ZAGHBOUNI",
+      normalizedKey: "zaghbouni",
+      source: "excel"
+    }
+  ])
+}

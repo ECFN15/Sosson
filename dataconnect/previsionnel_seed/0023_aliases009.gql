@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases009: clientAlias_upsertMany(data: [
+    {
+      id: "14870489-22c0-5d37-aba8-3a20f210c0b9",
+      clientId: "fb9d0811-9f4e-5fcf-929f-90dc04fc2cfb",
+      alias: "MAIRIE EVRECY",
+      normalizedKey: "mairie-evrecy",
+      source: "excel"
+    },
+    {
+      id: "09eb1915-916f-5536-8410-3c8a86f89843",
+      clientId: "012b9ff6-be15-594f-83f0-3f15753c5c52",
+      alias: "MAISON BOIS METAL",
+      normalizedKey: "bois-metal",
+      source: "excel"
+    },
+    {
+      id: "9b477e3b-29d2-55e4-9591-13f970d85c46",
+      clientId: "8c5b15e1-3580-55c7-9312-c2d3390f80d3",
+      alias: "MALECOT",
+      normalizedKey: "malecot",
+      source: "excel"
+    },
+    {
+      id: "68cae839-7066-5bcc-900b-5ba58db1555a",
+      clientId: "44265dca-dbc9-5fdc-98e5-f413f278dbcb",
+      alias: "MANCHE",
+      normalizedKey: "manche",
+      source: "excel"
+    },
+    {
+      id: "0559f81a-4483-55cb-9124-a017aa87f21a",
+      clientId: "69987e9d-2a8c-59be-8044-fd25c7e0b357",
+      alias: "MANOIR POMMERAIE",
+      normalizedKey: "manoir-pommeraie",
+      source: "excel"
+    },
+    {
+      id: "157e6aee-17a2-5413-ac0e-f95c1aefbb8d",
+      clientId: "202cee28-c62a-5b2a-886f-82825cd3b24b",
+      alias: "MARABETTI",
+      normalizedKey: "marabetti",
+      source: "excel"
+    },
+    {
+      id: "3bcc58c5-26bc-5317-b933-9ce0236ec421",
+      clientId: "77fd8ad4-4d80-5fa4-93a7-52d536f6194d",
+      alias: "MARCHAIS",
+      normalizedKey: "marchais",
+      source: "excel"
+    },
+    {
+      id: "0079b35e-316a-522c-8f06-b278199fb689",
+      clientId: "77bed385-9ad7-5cc8-9ec1-e991b420029f",
+      alias: "MARIE",
+      normalizedKey: "marie",
+      source: "excel"
+    },
+    {
+      id: "c464f222-84c1-5231-9a81-688c31b83621",
+      clientId: "77bed385-9ad7-5cc8-9ec1-e991b420029f",
+      alias: "MARIE (Sannerville)",
+      normalizedKey: "marie",
+      source: "excel"
+    },
+    {
+      id: "56dffb74-3112-5bbe-8af0-7ad562bfbffe",
+      clientId: "77bed385-9ad7-5cc8-9ec1-e991b420029f",
+      alias: "MARIE (Terrasse)",
+      normalizedKey: "marie",
+      source: "excel"
+    },
+    {
+      id: "922e7360-63fd-505f-96ff-f172e2f62df3",
+      clientId: "5a00bc9a-f1d7-553e-aea4-7192f70b00c3",
+      alias: "MARIE Aurelien",
+      normalizedKey: "marie-aurelien",
+      source: "excel"
+    },
+    {
+      id: "13015512-1d1f-51e7-8460-6bd5afa34cc6",
+      clientId: "a704a702-4837-5d29-9f16-0923e7fd0575",
+      alias: "marie nadine",
+      normalizedKey: "marie-nadine",
+      source: "excel"
+    },
+    {
+      id: "d507bfbf-481a-5466-92e3-96f0d45c396a",
+      clientId: "a88d88d7-edcb-5cae-9bde-ae114034b50f",
+      alias: "marie stephanie",
+      normalizedKey: "marie-stephanie",
+      source: "excel"
+    },
+    {
+      id: "a0d8a569-8837-5d41-8b6f-bcb61232786e",
+      clientId: "3689469a-6699-54a7-b1ea-ddebc808362c",
+      alias: "marie toit mondeville",
+      normalizedKey: "marie-toit-mondeville",
+      source: "excel"
+    },
+    {
+      id: "a2480739-7b12-532b-821d-69a912256b94",
+      clientId: "c955d83c-1b6c-5e97-8b83-17d3ad455c84",
+      alias: "mariepierre(ancerne",
+      normalizedKey: "mariepierre-ancerne",
+      source: "excel"
+    },
+    {
+      id: "25de2729-3c0f-556f-a36f-df128c05195e",
+      clientId: "e803033c-d85d-5cee-bde5-ca7903b50ec0",
+      alias: "martin",
+      normalizedKey: "martin",
+      source: "excel"
+    },
+    {
+      id: "1377909e-41fe-5983-99a9-12202a8d5e8d",
+      clientId: "e803033c-d85d-5cee-bde5-ca7903b50ec0",
+      alias: "MARTIN (Bourguebus)",
+      normalizedKey: "martin",
+      source: "excel"
+    },
+    {
+      id: "49ff4ef2-23af-5bd6-9d59-46e4aac21f3b",
+      clientId: "c5fcf5d7-8c14-52b5-940a-7179eb069061",
+      alias: "MARTINS",
+      normalizedKey: "martins",
+      source: "excel"
+    },
+    {
+      id: "a7b729e4-b896-5246-b611-f14603a4a9a7",
+      clientId: "e363b353-a752-5bb4-9c17-6d7da2273706",
+      alias: "mary etienne",
+      normalizedKey: "mary-etienne",
+      source: "excel"
+    },
+    {
+      id: "40f69424-3832-56cf-abeb-a6fe825670a8",
+      clientId: "4a2d59d4-6590-5ad0-999e-5fd6b92c8aed",
+      alias: "maurice",
+      normalizedKey: "maurice",
+      source: "excel"
+    },
+    {
+      id: "aa8517ff-a849-556e-83c4-50558d800fd2",
+      clientId: "5400592d-02b4-51d7-90b7-18aa4f8bd8ca",
+      alias: "mazonni",
+      normalizedKey: "mazonni",
+      source: "excel"
+    },
+    {
+      id: "6f4d3d28-31e4-59ba-8e12-679d5ac9d1a7",
+      clientId: "a5b5d6e4-0dd2-550c-84ce-76d3f20bf0a1",
+      alias: "mealet",
+      normalizedKey: "mealet",
+      source: "excel"
+    },
+    {
+      id: "72693c48-fe8a-5617-8ede-1ab6e22b74b3",
+      clientId: "9ce4ed50-1364-5868-ae96-05a75f6f8def",
+      alias: "memet kilick",
+      normalizedKey: "memet-kilick",
+      source: "excel"
+    },
+    {
+      id: "64439736-fb75-5356-88ed-2e14aac52d10",
+      clientId: "36cefc54-f49f-54c3-8346-9d585b4e7069",
+      alias: "MEURIOT (LGO BE HOME)",
+      normalizedKey: "meuriot",
+      source: "excel"
+    },
+    {
+      id: "f71b3a77-2f96-576b-91f5-fd4d29a2dbd0",
+      clientId: "6afb7c33-a1b8-58a7-a1cf-a8833936ac49",
+      alias: "michel vinc mob",
+      normalizedKey: "michel-vinc-mob",
+      source: "excel"
+    },
+    {
+      id: "beb87e38-157a-5f99-aed9-1e48cc2ba85e",
+      clientId: "79f227d4-a258-51ef-9df0-ed32a63435ba",
+      alias: "mickaelis",
+      normalizedKey: "mickaelis",
+      source: "excel"
+    },
+    {
+      id: "266a5e05-bb42-5fd0-b70e-5f935cc3231d",
+      clientId: "43548c46-2ae0-56cf-a854-8dddbf411a07",
+      alias: "mme etienne martine",
+      normalizedKey: "mme-etienne-martine",
+      source: "excel"
+    },
+    {
+      id: "256f38f1-f971-5562-86da-cd9ba82bcd6f",
+      clientId: "d25c7766-bb0a-5890-a19a-8f785048c11c",
+      alias: "mob auber",
+      normalizedKey: "mob-auber",
+      source: "excel"
+    },
+    {
+      id: "95b6d5bd-7974-58d4-9b2b-b9ebe7f92535",
+      clientId: "f57f9921-af7e-5f6d-8a80-0ad21557f137",
+      alias: "MOB GIRARD JORIS",
+      normalizedKey: "mob-girard-joris",
+      source: "excel"
+    },
+    {
+      id: "5bae109d-629d-5d09-bce8-9f44fe2a7e21",
+      clientId: "8266f5bf-cea3-5c3c-a431-4c761a226789",
+      alias: "moblefevre manuel",
+      normalizedKey: "moblefevre-manuel",
+      source: "excel"
+    },
+    {
+      id: "289d9bac-e874-5fe7-af31-c42c5656821e",
+      clientId: "63b65a9d-97c0-5b09-b96f-60ddfa5b0691",
+      alias: "MONIN M",
+      normalizedKey: "monin-m",
+      source: "excel"
+    },
+    {
+      id: "18e082f5-5d1d-5894-b2fc-3945180b486b",
+      clientId: "f6dc4c21-3f6e-5a06-8a26-1670aa63d97f",
+      alias: "MONTFOURNY",
+      normalizedKey: "montfourny",
+      source: "excel"
+    },
+    {
+      id: "ce31fd25-e244-556e-b5fb-85fad3e28e48",
+      clientId: "793d0014-8541-518e-ad5f-4955d75e8f7b",
+      alias: "MONTFOURNY SCI M.A.F.X",
+      normalizedKey: "montfourny-sci-m-a-f-x",
+      source: "excel"
+    },
+    {
+      id: "b5bf0f93-5942-50ed-a244-b33b28d0697f",
+      clientId: "b50f8932-7be6-5a8b-827c-b90da396ee63",
+      alias: "MOREL",
+      normalizedKey: "morel",
+      source: "excel"
+    },
+    {
+      id: "68a04872-c672-5c9d-be89-59fed2103882",
+      clientId: "4483f8fd-2f95-5cb1-9bc3-41407eb04270",
+      alias: "MORIVAL",
+      normalizedKey: "morival",
+      source: "excel"
+    },
+    {
+      id: "c257d9c6-6dd9-58b1-97b1-3554d4e91709",
+      clientId: "4483f8fd-2f95-5cb1-9bc3-41407eb04270",
+      alias: "MORIVAL (abris cloture)",
+      normalizedKey: "morival",
+      source: "excel"
+    },
+    {
+      id: "313690c5-9568-5cc9-aa6e-a8a7da016f07",
+      clientId: "89a9dcab-b9b2-55e0-abab-cf17801f94c5",
+      alias: "MORLET blonville sur mer",
+      normalizedKey: "morlet-blonville-sur-mer",
+      source: "excel"
+    },
+    {
+      id: "7afed368-2411-5be8-9712-b174d32334f1",
+      clientId: "97390eb4-448c-53dd-a8a8-e70906af733e",
+      alias: "MOROTTI",
+      normalizedKey: "morotti",
+      source: "excel"
+    },
+    {
+      id: "92e9bfe7-0258-51d9-91ec-fee6df51906f",
+      clientId: "7e4baf46-14c2-50fc-a9f1-c7d460cd4a5e",
+      alias: "MOULINET",
+      normalizedKey: "moulinet",
+      source: "excel"
+    },
+    {
+      id: "d6558dff-7a9a-5abd-b296-ecb40e20f8fe",
+      clientId: "71c2e40a-04a2-5f13-b050-62bb30e29319",
+      alias: "naceur",
+      normalizedKey: "naceur",
+      source: "excel"
+    },
+    {
+      id: "a7cb6c17-fe53-5585-a1aa-f2c2203daca2",
+      clientId: "9d5ae71b-e091-5b76-8e6a-38f998353bf4",
+      alias: "NOGENT",
+      normalizedKey: "nogent",
+      source: "excel"
+    },
+    {
+      id: "6bf6e59b-73f9-5286-9ab3-a77e66e140a9",
+      clientId: "45405283-2b9d-5fa2-892a-ad50488a4a3c",
+      alias: "OLIVIER",
+      normalizedKey: "olivier",
+      source: "excel"
+    },
+    {
+      id: "31e0986c-baf9-5063-a82f-5a4cbb56f5d6",
+      clientId: "45405283-2b9d-5fa2-892a-ad50488a4a3c",
+      alias: "OLIVIER (devis fenetre)",
+      normalizedKey: "olivier",
+      source: "excel"
+    },
+    {
+      id: "1eeb946c-5781-566f-958e-57ea2d78ac55",
+      clientId: "45405283-2b9d-5fa2-892a-ad50488a4a3c",
+      alias: "OLIVIER (plan de travail)",
+      normalizedKey: "olivier",
+      source: "excel"
+    },
+    {
+      id: "ec1756aa-46be-5005-9ada-4a8c5680c157",
+      clientId: "45405283-2b9d-5fa2-892a-ad50488a4a3c",
+      alias: "OLIVIER (rénovation complete)",
+      normalizedKey: "olivier",
+      source: "excel"
+    },
+    {
+      id: "b5e8fef2-aad9-5fd4-af87-32409139a22b",
+      clientId: "9f95e08f-da95-51dd-ae09-f23844cdc7d3",
+      alias: "OSCAR ORGANISATION (Toussaint)",
+      normalizedKey: "oscar-organisation",
+      source: "excel"
+    },
+    {
+      id: "31edf74c-3fe7-53f4-a541-e1682683268b",
+      clientId: "8587a504-3379-547a-b3a8-72b422819d1b",
+      alias: "PAPILLON",
+      normalizedKey: "papillon",
+      source: "excel"
+    },
+    {
+      id: "363a0bb6-eba7-53ea-b021-d460ed609d93",
+      clientId: "27d890b9-ec3f-5714-bf0b-970bf9f6b48f",
+      alias: "PARISOTTO",
+      normalizedKey: "parisotto",
+      source: "excel"
+    },
+    {
+      id: "0ea4d8b1-e02b-5321-8b06-69b0a43c9b50",
+      clientId: "4fe10e46-7696-504a-acd8-60c61d4bf813",
+      alias: "PARKOUR",
+      normalizedKey: "parkour",
+      source: "excel"
+    },
+    {
+      id: "0a1480de-5f67-577e-965f-b07e62a7e2ae",
+      clientId: "2d1944c0-9871-503d-9266-04c1c3c4068b",
+      alias: "PARKOURS",
+      normalizedKey: "parkours",
+      source: "excel"
+    }
+  ])
+}

@@ -28,7 +28,7 @@ query ListClients
     level: USER
     insecureReason: "Internal back-office app for a single company; authenticated staff need shared client access while fine-grained RBAC is still enforced in the application layer."
   ) {
-  clients(orderBy: { nom: ASC }) {
+  clients(orderBy: { nom: ASC }, limit: 1000) {
     id
     type
     nom
@@ -74,7 +74,7 @@ query ListChantiers
     level: USER
     insecureReason: "Internal back-office app for a single company; authenticated staff need shared chantier access while fine-grained RBAC is still enforced in the application layer."
   ) {
-  chantiers(orderBy: { dateDebut: DESC }) {
+  chantiers(orderBy: { dateDebut: DESC }, limit: 1200) {
     id
     nom
     statut
@@ -137,7 +137,7 @@ query ListFactures
     level: USER
     insecureReason: "Internal back-office app for a single company; authenticated staff need shared invoice access while fine-grained RBAC is still enforced in the application layer."
   ) {
-  factures(orderBy: { date: DESC }) {
+  factures(orderBy: { date: DESC }, limit: 1000) {
     id
     fournisseur
     numeroFacture
@@ -170,5 +170,191 @@ query ListFacturesByStatut($statut: String!)
     categorie
     statut
     chantier { id nom }
+  }
+}
+
+
+# ---------- Documents --------------------------------------------------------
+
+query ListDocumentFolders
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared document folder access."
+  ) {
+  documentFolders(orderBy: { nom: ASC }, limit: 500) {
+    id
+    nom
+    slug
+    description
+    dateCreation
+    parent { id nom slug }
+    client { id nom type }
+    chantier { id nom statut client { id nom type } }
+  }
+}
+
+query ListDocumentsAttaches
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared document metadata access while file-level hardening is handled in Storage rules."
+  ) {
+  documentAttaches(orderBy: { dateCreation: DESC }, limit: 1000) {
+    id
+    nomFichier
+    storagePath
+    mimeType
+    tailleBytes
+    typeDocument
+    statut
+    source
+    description
+    dateDocument
+    dateCreation
+    folder { id nom slug }
+    client { id nom type }
+    chantier {
+      id
+      nom
+      statut
+      client { id nom type }
+    }
+    facture {
+      id
+      fournisseur
+      numeroFacture
+      montantTTC
+      date
+      statut
+      chantier {
+        id
+        nom
+        client { id nom type }
+      }
+    }
+  }
+}
+
+query ListDocumentsByChantier($chantierId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared chantier document metadata access."
+  ) {
+  documentAttaches(where: { chantierId: { eq: $chantierId } }, orderBy: { dateCreation: DESC }, limit: 300) {
+    id
+    nomFichier
+    storagePath
+    mimeType
+    tailleBytes
+    typeDocument
+    statut
+    source
+    description
+    dateDocument
+    dateCreation
+    folder { id nom slug }
+    client { id nom type }
+    chantier { id nom statut client { id nom type } }
+    facture { id fournisseur numeroFacture montantTTC date statut }
+  }
+}
+
+
+# ---------- Previsionnel -----------------------------------------------------
+
+query ListPrevisionnelExercises
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read consolidated previsionnel analytics."
+  ) {
+  previsionnelExercises(orderBy: { exercise: ASC }) {
+    id
+    sheet
+    exercise
+    startYear
+    endYear
+    lineCount
+    chantierCount
+    caPrevision
+    caContrat
+    plannedTotal
+    realizedTotal
+    invoicedTotal
+    batch {
+      id
+      workbook
+      sourcePath
+      workbookHash
+      importedAt
+    }
+  }
+}
+
+query ListPrevisionnelLinesByExercise($exerciseId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect imported previsionnel lines."
+  ) {
+  previsionnelLines(where: { exerciseId: { eq: $exerciseId } }, orderBy: { sourceRow: ASC }, limit: 300) {
+    id
+    sourceSheet
+    sourceRow
+    rawName
+    clientKey
+    clientName
+    category
+    lineType
+    caTce
+    caPrevision
+    caContrat
+    plannedTotal
+    realizedTotal
+    invoicedTotal
+    invoiceSentTotal
+    client { id nom type }
+    chantier { id nom statut dateDebut dateFinPrevue budgetPrevisionnel }
+    monthly: previsionnelMonthlyAmounts_on_line(orderBy: { monthOrder: ASC }) {
+      id
+      month
+      label
+      monthOrder
+      planned
+      realized
+      invoiceSent
+    }
+    lots: previsionnelLotAmounts_on_line(orderBy: { lotKey: ASC }) {
+      id
+      lotKey
+      label
+      amount
+    }
+  }
+}
+
+query SearchClientAliases($normalizedKey: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect Excel aliases linked to clients."
+  ) {
+  clientAliases(where: { normalizedKey: { eq: $normalizedKey } }, orderBy: { alias: ASC }) {
+    id
+    alias
+    normalizedKey
+    source
+    client { id nom type }
+  }
+}
+
+query ListPrevisionnelCellEdits($sourceSheet: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can load saved previsionnel cell overrides for the current sheet."
+  ) {
+  previsionnelCellEdits(where: { sourceSheet: { eq: $sourceSheet } }, orderBy: { cellRef: ASC }, limit: 10000) {
+    id
+    sourceSheet
+    cellRef
+    valueText
+    numericValue
+    dateModification
   }
 }

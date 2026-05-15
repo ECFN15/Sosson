@@ -110,6 +110,36 @@ La verification attend :
 
 Si ces chiffres sortent, la base locale contient bien le jeu de donnees attendu.
 
+### Generer et injecter le previsionnel Excel
+
+```bash
+npm run seed:previsionnel:generate
+npm run seed:previsionnel:dataconnect
+npm run verify:previsionnel:dataconnect
+```
+
+Le seed previsionnel est volontairement decoupe dans `dataconnect/previsionnel_seed/*.gql`.
+Le fichier global `dataconnect/previsionnel_seed_data.gql` reste lisible, mais il est trop gros
+pour etre execute en une seule operation GraphQL.
+
+La verification attend actuellement :
+
+```json
+{
+  "exercises": 13,
+  "chantiers": 898,
+  "latestExerciseChantiers": 101
+}
+```
+
+Les cellules jaunes du classeur sont importees comme `invoiceSent`: facture envoyee, pas paiement encaisse.
+
+La page `PrevisionnelPage` peut aussi sauvegarder les edits dans SQL Connect :
+
+- les cellules mensuelles alimentent `PrevisionnelMonthlyAmount` ;
+- toutes les cellules modifiees sont conservees dans `PrevisionnelCellEdit` afin que l'export Excel puisse reprendre exactement les valeurs saisies sur le site ;
+- si l'emulateur ou SQL Connect est indisponible, le fallback navigateur `localStorage` reste actif.
+
 ### Faire un build sandbox
 
 ```bash

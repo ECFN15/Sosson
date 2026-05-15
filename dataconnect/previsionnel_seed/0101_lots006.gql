@@ -1,0 +1,354 @@
+mutation @transaction {
+  lots006: previsionnelLotAmount_upsertMany(data: [
+    {
+      id: "159b7d61-0840-5ef2-b65e-e1432e84ad70",
+      lineId: "44e836b6-0f2d-5540-9c46-065433799ad3",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 1428.19
+    },
+    {
+      id: "7935a55c-5af3-5a73-8d6c-0645945d541e",
+      lineId: "44e836b6-0f2d-5540-9c46-065433799ad3",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 3077.16
+    },
+    {
+      id: "8684495e-223e-5ebe-af63-cc6ee4fc9436",
+      lineId: "1d06faf9-0322-5043-b5c7-2e82a386fd25",
+      lotKey: "ossature",
+      label: "Ossature",
+      amount: 836.59
+    },
+    {
+      id: "d086e489-4288-5362-a337-c3197ed81f28",
+      lineId: "1d06faf9-0322-5043-b5c7-2e82a386fd25",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 1366.98
+    },
+    {
+      id: "5b17bc0f-0473-5a71-87f7-3c0011a92f3d",
+      lineId: "1d06faf9-0322-5043-b5c7-2e82a386fd25",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 4729.52
+    },
+    {
+      id: "00c493ba-cc75-5249-a691-a212ea8ac7ee",
+      lineId: "1d06faf9-0322-5043-b5c7-2e82a386fd25",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 4499.4
+    },
+    {
+      id: "38b32933-95d6-538b-840e-bfaf34d1cc35",
+      lineId: "1d06faf9-0322-5043-b5c7-2e82a386fd25",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 3632.92
+    },
+    {
+      id: "3a86b231-dff5-5106-aa0a-1d62d4f86a74",
+      lineId: "1d06faf9-0322-5043-b5c7-2e82a386fd25",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 8670.84
+    },
+    {
+      id: "d3a712a3-ba92-54de-a3f3-f89525203e23",
+      lineId: "44122ef2-76bf-59d0-9e37-ee514c5b7b2e",
+      lotKey: "ossature",
+      label: "Ossature",
+      amount: 168
+    },
+    {
+      id: "a5ed5b5c-16ae-5adc-8b3a-2dc4fce77049",
+      lineId: "44122ef2-76bf-59d0-9e37-ee514c5b7b2e",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 1533.07
+    },
+    {
+      id: "23a44feb-b1fa-56de-aa50-04ff096de085",
+      lineId: "44122ef2-76bf-59d0-9e37-ee514c5b7b2e",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 20303.58
+    },
+    {
+      id: "a5091eef-0326-5191-82f3-2fd91401d1f8",
+      lineId: "44122ef2-76bf-59d0-9e37-ee514c5b7b2e",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 17347.99
+    },
+    {
+      id: "f492f328-148b-58bb-bc93-b08b1687c14d",
+      lineId: "44122ef2-76bf-59d0-9e37-ee514c5b7b2e",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 4192.35
+    },
+    {
+      id: "e1431cee-4140-5bcd-8762-8781e6f3e9f0",
+      lineId: "a5ab56a5-55b1-58e9-91ae-e4966f66c9cf",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 862.43
+    },
+    {
+      id: "a6ac448b-fd4b-5a4e-93b5-701802e9781a",
+      lineId: "a5ab56a5-55b1-58e9-91ae-e4966f66c9cf",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 5099.61
+    },
+    {
+      id: "98e1f1ce-9a30-50a3-9821-9e1c7f834a2c",
+      lineId: "bc9cc581-6d46-5e51-b71b-d237f83b12f2",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 10642.22
+    },
+    {
+      id: "89df0c0d-6414-55bc-9e60-0a2e242be368",
+      lineId: "bc9cc581-6d46-5e51-b71b-d237f83b12f2",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 3638.77
+    },
+    {
+      id: "8176e984-0418-57bf-a92a-fa8512b1bab3",
+      lineId: "bc9cc581-6d46-5e51-b71b-d237f83b12f2",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 2992.43
+    },
+    {
+      id: "8acdedc0-0710-5964-a095-47b1a658e980",
+      lineId: "bc9cc581-6d46-5e51-b71b-d237f83b12f2",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 3674.25
+    },
+    {
+      id: "fd02c6e2-f1bc-51f1-9832-ee23b5526d1d",
+      lineId: "74245981-6d30-50b6-a18e-c86d189b074a",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 15300.92
+    },
+    {
+      id: "e02d9b86-10aa-5cf8-bec9-2460bdc86b22",
+      lineId: "74245981-6d30-50b6-a18e-c86d189b074a",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 3996.28
+    },
+    {
+      id: "0449f412-777f-59f8-9bea-e9f904da8078",
+      lineId: "74245981-6d30-50b6-a18e-c86d189b074a",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 21986.85
+    },
+    {
+      id: "90852696-0d0d-54c6-b45f-526954b3f27c",
+      lineId: "32ec8c50-4af2-5bea-8ac0-ed5eb0db1e1e",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 7252.87
+    },
+    {
+      id: "86c4f0e9-e9d1-5834-8c21-c560f699a2bc",
+      lineId: "886d8593-2b48-5b94-8210-53c37f5a5346",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 3111
+    },
+    {
+      id: "d2785898-a9fe-51d8-9d8a-65a9409e7873",
+      lineId: "b3886b31-4280-5742-9707-4a5633fac010",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 10948
+    },
+    {
+      id: "acaf38ce-453e-5449-a221-6dca6c66b724",
+      lineId: "de0fee92-35d7-5b46-95cf-18cc487d4a17",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 24354
+    },
+    {
+      id: "a53ae1e9-3df7-529e-8d36-a7b5f31d7107",
+      lineId: "63e5612c-b382-526a-a754-736988bf69d3",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 4494
+    },
+    {
+      id: "c33584e9-1c69-5aa8-8ed5-ea5c197eeeb4",
+      lineId: "63e5612c-b382-526a-a754-736988bf69d3",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 25070
+    },
+    {
+      id: "71bc9145-6690-56ff-b8d3-8aa77a7fcaf8",
+      lineId: "63e5612c-b382-526a-a754-736988bf69d3",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 5818
+    },
+    {
+      id: "aaaa635c-4514-5400-b93c-1bb8c8b330b0",
+      lineId: "553a25f0-b7cb-52bf-afee-8cf6b472adbf",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 909
+    },
+    {
+      id: "0daa85af-3861-50c5-a9a7-1d08897e27d6",
+      lineId: "afa8eb1c-bdb7-5ed3-a676-813da8c595ff",
+      lotKey: "ossature",
+      label: "Ossature",
+      amount: 9467
+    },
+    {
+      id: "a3f7bfb0-e236-5527-84bc-e34e2f3880a2",
+      lineId: "afa8eb1c-bdb7-5ed3-a676-813da8c595ff",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 5575
+    },
+    {
+      id: "4617d12e-c1f4-5adf-82b5-1ded5cbd9143",
+      lineId: "afa8eb1c-bdb7-5ed3-a676-813da8c595ff",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 9903
+    },
+    {
+      id: "13c9533e-c7db-550f-ab77-e1f6c0cd8c26",
+      lineId: "afa8eb1c-bdb7-5ed3-a676-813da8c595ff",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 4915
+    },
+    {
+      id: "802e54f6-0b19-5673-a049-b29ebeb39c5d",
+      lineId: "afa8eb1c-bdb7-5ed3-a676-813da8c595ff",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 5807
+    },
+    {
+      id: "68bd7980-46f5-5a60-afc0-79f97c48bbe1",
+      lineId: "afa8eb1c-bdb7-5ed3-a676-813da8c595ff",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 14398
+    },
+    {
+      id: "226e0592-d0f7-57e7-a8a1-6001a7dd8d8d",
+      lineId: "71ba39ed-aa5d-522b-8ed8-cf0733bd2417",
+      lotKey: "ossature",
+      label: "Ossature",
+      amount: 7667
+    },
+    {
+      id: "4545fabd-f05b-5c5c-a4fc-10c5195f5229",
+      lineId: "71ba39ed-aa5d-522b-8ed8-cf0733bd2417",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 4643
+    },
+    {
+      id: "def512bf-52db-5d8e-9b3b-3783dd672c2f",
+      lineId: "71ba39ed-aa5d-522b-8ed8-cf0733bd2417",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 9085
+    },
+    {
+      id: "e9e655b8-80f7-5f66-a909-0599f90a6982",
+      lineId: "71ba39ed-aa5d-522b-8ed8-cf0733bd2417",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 11967
+    },
+    {
+      id: "e6c5e3a5-85b9-5ef0-ba71-23d33b5c6f7a",
+      lineId: "71ba39ed-aa5d-522b-8ed8-cf0733bd2417",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 3324
+    },
+    {
+      id: "00c6c3b1-de4a-5cd9-9d3b-3a958ed0840e",
+      lineId: "71ba39ed-aa5d-522b-8ed8-cf0733bd2417",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 5574
+    },
+    {
+      id: "c186a4c3-51ab-5224-aa33-dbb6fceaff81",
+      lineId: "1883d2ce-39a8-5ba3-8691-abda311c92e2",
+      lotKey: "ossature",
+      label: "Ossature",
+      amount: 8738.26
+    },
+    {
+      id: "19d9fb67-85f0-5b34-a4b7-fc52e39169c0",
+      lineId: "1883d2ce-39a8-5ba3-8691-abda311c92e2",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 5649.72
+    },
+    {
+      id: "37716203-6b6f-5a88-a271-8e45c3b40a54",
+      lineId: "1883d2ce-39a8-5ba3-8691-abda311c92e2",
+      lotKey: "menuiserie",
+      label: "Menuiserie",
+      amount: 10859.36
+    },
+    {
+      id: "19aaf466-bb80-5e36-b5ac-3c3e7f12fae2",
+      lineId: "1883d2ce-39a8-5ba3-8691-abda311c92e2",
+      lotKey: "bardage",
+      label: "Bardage",
+      amount: 1667.48
+    },
+    {
+      id: "afe36069-c036-52a9-8f2b-2573406d7d0e",
+      lineId: "1883d2ce-39a8-5ba3-8691-abda311c92e2",
+      lotKey: "isolation",
+      label: "Isolation",
+      amount: 3178.61
+    },
+    {
+      id: "c14a74a9-6cac-5b2c-936e-a8e623a29a65",
+      lineId: "1883d2ce-39a8-5ba3-8691-abda311c92e2",
+      lotKey: "platrerie",
+      label: "Platrerie",
+      amount: 7312.4
+    },
+    {
+      id: "3773124f-2377-56a3-a6ce-dbe45fa4462c",
+      lineId: "35d8de72-1064-59ca-9b17-41a7b1cb36e7",
+      lotKey: "ossature",
+      label: "Ossature",
+      amount: 3822
+    },
+    {
+      id: "d2faa805-ad63-5684-a021-13f9188780e1",
+      lineId: "35d8de72-1064-59ca-9b17-41a7b1cb36e7",
+      lotKey: "charpente",
+      label: "Charpente",
+      amount: 3747
+    }
+  ])
+}

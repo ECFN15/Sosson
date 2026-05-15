@@ -1,0 +1,354 @@
+mutation @transaction {
+  aliases004: clientAlias_upsertMany(data: [
+    {
+      id: "195c0d15-b4e1-5b77-82c2-e9c9a6fd55fb",
+      clientId: "672b04b8-4d2d-526a-bfaa-328d055635b9",
+      alias: "DEFLIN",
+      normalizedKey: "deflin",
+      source: "excel"
+    },
+    {
+      id: "b29602f3-0d1b-5649-9eee-1099b2418c73",
+      clientId: "3adf8744-8ad7-56b4-b791-4f041947b3bf",
+      alias: "DEFRETIN Q",
+      normalizedKey: "defretin-q",
+      source: "excel"
+    },
+    {
+      id: "aeaf21d6-4ae2-5504-b352-98f7992b407f",
+      clientId: "a74bfc72-3a20-5641-800b-4ee5032fc112",
+      alias: "deigneuret parquet",
+      normalizedKey: "deigneuret-parquet",
+      source: "excel"
+    },
+    {
+      id: "4988415f-e3c8-55d4-b2e9-1e4912ac1c06",
+      clientId: "843da626-a0ce-50eb-b153-627f49643e1e",
+      alias: "delacotte",
+      normalizedKey: "delacotte",
+      source: "excel"
+    },
+    {
+      id: "4829a8b5-d981-56f3-88cd-64f4dd96a795",
+      clientId: "d0ae8ab7-4f27-5168-82fb-70f819df8dc2",
+      alias: "DELACOUR",
+      normalizedKey: "delacour",
+      source: "excel"
+    },
+    {
+      id: "af28aa24-e70b-52c3-967a-99d8ca1b6424",
+      clientId: "71293e97-873f-532c-91b2-b9b1daed0d47",
+      alias: "delahayes",
+      normalizedKey: "delahayes",
+      source: "excel"
+    },
+    {
+      id: "b7a748e9-1672-59a3-aad5-bbfeedf21a96",
+      clientId: "de095f46-6e3c-5e8d-9a1f-023e6cc7075d",
+      alias: "DELAMARE",
+      normalizedKey: "delamare",
+      source: "excel"
+    },
+    {
+      id: "84c51fc7-0c03-5094-bf51-9f4c81653f32",
+      clientId: "d800d795-e348-57d9-a184-54f77db2406d",
+      alias: "DELASALLE",
+      normalizedKey: "delasalle",
+      source: "excel"
+    },
+    {
+      id: "97a70968-bc1e-50ea-9b08-722b767f4401",
+      clientId: "c3fa4f44-8dbe-5ebc-acc9-28cea1fe3c2a",
+      alias: "DELENTE",
+      normalizedKey: "delente",
+      source: "excel"
+    },
+    {
+      id: "8e82885a-79e6-5548-9e16-0faf00f88873",
+      clientId: "8172091c-eba8-54da-a1ce-931cc792a482",
+      alias: "DELENTECOMMELCHAL",
+      normalizedKey: "delentecommelchal",
+      source: "excel"
+    },
+    {
+      id: "11125652-f9ea-532c-9b16-6702ecc4bfdd",
+      clientId: "f28f3fef-d8e1-5f5a-8757-bdc0ee0e6a43",
+      alias: "DELORME",
+      normalizedKey: "delorme",
+      source: "excel"
+    },
+    {
+      id: "d48000e1-701f-5679-bd51-edff4be45a82",
+      clientId: "7a79085d-3d23-5d67-83ab-0f1a9990700c",
+      alias: "DENIS Archiviolette",
+      normalizedKey: "denis-archiviolette",
+      source: "excel"
+    },
+    {
+      id: "4c9e0876-4264-5664-9679-25c6c1c7af84",
+      clientId: "696d8026-91d1-5e44-a57d-2701eed9429f",
+      alias: "DENOS KOPP",
+      normalizedKey: "denos-kopp",
+      source: "excel"
+    },
+    {
+      id: "87450c4a-dfe0-5910-ba0b-a9a28e03d944",
+      clientId: "c2aead3d-8156-5367-9bbe-2aaf0872e6e9",
+      alias: "DENOS KOPP Varaville",
+      normalizedKey: "denos-kopp-varaville",
+      source: "excel"
+    },
+    {
+      id: "aacb1b74-1bf4-5715-9767-b57c02e6ab5d",
+      clientId: "2865daf2-1885-5396-bcb4-01b9fef5295d",
+      alias: "DEPREZ",
+      normalizedKey: "deprez",
+      source: "excel"
+    },
+    {
+      id: "eeecbf3e-5891-5940-9705-ed0d43171599",
+      clientId: "1c2cb019-48f6-514e-b20d-de354f6a5334",
+      alias: "DESFEUX",
+      normalizedKey: "desfeux",
+      source: "excel"
+    },
+    {
+      id: "d8f15a47-52ca-5ce5-b952-8a0907cd788e",
+      clientId: "1c2cb019-48f6-514e-b20d-de354f6a5334",
+      alias: "desfeux reno",
+      normalizedKey: "desfeux",
+      source: "excel"
+    },
+    {
+      id: "0211303a-e9c2-591d-b72b-688304c117fb",
+      clientId: "ba21b0a9-8170-5cd6-978b-5b51c57db705",
+      alias: "DESFONTAINE",
+      normalizedKey: "desfontaine",
+      source: "excel"
+    },
+    {
+      id: "face9721-0511-543a-9a94-a17010023ee4",
+      clientId: "3ac06c50-5b0d-59a6-aa1e-4f08b27a2bbe",
+      alias: "DESLOGES (RF)",
+      normalizedKey: "desloges",
+      source: "excel"
+    },
+    {
+      id: "366fb85c-59f2-5514-88a7-7a953415b2d7",
+      clientId: "234a101d-2cef-5f48-9f61-2413c75bf4fb",
+      alias: "desnos",
+      normalizedKey: "desnos",
+      source: "excel"
+    },
+    {
+      id: "f55ffd64-163b-5210-b3a3-2aed6f360363",
+      clientId: "f020c703-292a-5b30-975e-a464a6c90def",
+      alias: "DEVEZAUX",
+      normalizedKey: "devezaux",
+      source: "excel"
+    },
+    {
+      id: "ada344a7-49b6-5427-bdf3-c0ff27a0c376",
+      clientId: "aa55d2ab-5294-583b-97d8-aae793b250b3",
+      alias: "DLH",
+      normalizedKey: "dlh",
+      source: "excel"
+    },
+    {
+      id: "502ff8cb-619a-5c84-9d42-1fec19eed36c",
+      clientId: "a7e06ec7-718a-5643-aa71-32421e4b5842",
+      alias: "DMUB SARLJULMAS",
+      normalizedKey: "dmub-sarljulmas",
+      source: "excel"
+    },
+    {
+      id: "97490978-0d7c-5e4b-a021-e6aad4063080",
+      clientId: "df845d9f-71d7-58d0-a7b3-14f57a46204a",
+      alias: "DROCOURT (légume)",
+      normalizedKey: "drocourt",
+      source: "excel"
+    },
+    {
+      id: "25ebf3c7-daad-588d-bc1e-60142bfa07af",
+      clientId: "419b282b-c271-5ac2-8266-475a2eb78bfc",
+      alias: "DROCOURT Marina",
+      normalizedKey: "drocourt-marina",
+      source: "excel"
+    },
+    {
+      id: "5cb54254-87af-59e8-9d33-40c1b6856316",
+      clientId: "ad6a2a15-afdc-52e7-9a38-e9b0ff40f1db",
+      alias: "DUBOIS CHAIGNET",
+      normalizedKey: "dubois-chaignet",
+      source: "excel"
+    },
+    {
+      id: "97c0ea63-e86d-56ff-9a22-6b314cedb83d",
+      clientId: "ffd8132f-8921-5863-866a-fe20f25b87d7",
+      alias: "dubosq",
+      normalizedKey: "dubosq",
+      source: "excel"
+    },
+    {
+      id: "79536850-4cd2-57bf-ae8d-91af0ea1ee53",
+      clientId: "559103be-420c-5e27-af70-397e3e06e10a",
+      alias: "DUBREUL",
+      normalizedKey: "dubreul",
+      source: "excel"
+    },
+    {
+      id: "597f54b0-885d-5f20-86d6-e532bb90de7f",
+      clientId: "3e2f4959-612f-549e-909c-72d85381f0ad",
+      alias: "DUCHENNE",
+      normalizedKey: "duchenne",
+      source: "excel"
+    },
+    {
+      id: "9b3a3031-da81-50f8-a46e-7671ea70e463",
+      clientId: "999ac1e5-d9f3-5319-a127-a8768733669f",
+      alias: "DUCHESNE",
+      normalizedKey: "duchesne",
+      source: "excel"
+    },
+    {
+      id: "49097317-00bf-5558-9d56-ee9e2e2b1f14",
+      clientId: "b50a77e0-d46f-52e4-b233-fe4650d406da",
+      alias: "DUFOUR",
+      normalizedKey: "dufour",
+      source: "excel"
+    },
+    {
+      id: "ada247df-f1a0-51af-acab-d79b3e994446",
+      clientId: "c9a7c679-f79c-55c8-baf6-92f3f9f40e79",
+      alias: "DUFOUR G",
+      normalizedKey: "dufour-g",
+      source: "excel"
+    },
+    {
+      id: "07a2f0e5-41e2-5769-aa7b-e96434d31048",
+      clientId: "bb0123ad-0a33-51bc-a0f8-1b568f488144",
+      alias: "DUFOUR Gaetan",
+      normalizedKey: "dufour-gaetan",
+      source: "excel"
+    },
+    {
+      id: "05ba61e4-5c26-50b8-926f-5342822c4a12",
+      clientId: "86fca1cd-ed3a-5e24-baee-0dae918f5555",
+      alias: "DUFOUR Maxime",
+      normalizedKey: "dufour-maxime",
+      source: "excel"
+    },
+    {
+      id: "0fc5a05a-e7d3-5803-ad72-2769af52e894",
+      clientId: "e1bf1ca3-6db0-53bc-bb09-e161ada1e525",
+      alias: "DUMAS",
+      normalizedKey: "dumas",
+      source: "excel"
+    },
+    {
+      id: "1c088fd3-a05f-5b80-94a6-b90a1748c4e7",
+      clientId: "2381f335-89c0-5690-bf71-8146e976c6b6",
+      alias: "DUMAT 2",
+      normalizedKey: "dumat",
+      source: "excel"
+    },
+    {
+      id: "68f87463-a4d2-512e-b54e-49659be5a338",
+      clientId: "f205a359-f6a3-5239-8793-107b1f17bece",
+      alias: "DUMAT MATTA",
+      normalizedKey: "dumat-matta",
+      source: "excel"
+    },
+    {
+      id: "02e6081b-ed8a-551f-8aba-e1fffaf49e80",
+      clientId: "7d671083-efe2-5c6f-9ee9-654df49abe97",
+      alias: "dumont cocain",
+      normalizedKey: "dumont-cocain",
+      source: "excel"
+    },
+    {
+      id: "81880a45-9af4-52e6-87d6-58705eb4da24",
+      clientId: "a10a279b-05b7-5d49-8845-f71100e8aa5f",
+      alias: "dumont lelong",
+      normalizedKey: "dumont-lelong",
+      source: "excel"
+    },
+    {
+      id: "106993eb-0a8b-556c-b992-e4e51ca0b7fb",
+      clientId: "4ea28230-791d-5705-9f40-c0d13c719fdf",
+      alias: "DUPONT",
+      normalizedKey: "dupont",
+      source: "excel"
+    },
+    {
+      id: "bf9055c2-bf93-5ae3-9b92-693a6b0a6c2b",
+      clientId: "0b969251-2aa0-5b12-81be-9b6a2928e5de",
+      alias: "DUPONT CHALESLE",
+      normalizedKey: "dupont-chalesle",
+      source: "excel"
+    },
+    {
+      id: "206fe632-02b5-5b99-b34f-b8c9d1fc0d90",
+      clientId: "8e480e86-d9eb-59e3-88fb-3d167241483d",
+      alias: "DUPONT CHALESLE iso ext",
+      normalizedKey: "dupont-chalesle-iso-ext",
+      source: "excel"
+    },
+    {
+      id: "ba99454d-e7aa-548d-be85-ea388191ee8e",
+      clientId: "3306ecf2-347b-5a84-b861-c58072698717",
+      alias: "duquenoy",
+      normalizedKey: "duquenoy",
+      source: "excel"
+    },
+    {
+      id: "7b389f87-9c94-5603-b5d2-e1f9d86af19a",
+      clientId: "18f01e4a-f64d-5718-976b-6b98e18eaa79",
+      alias: "DUTRIPON R",
+      normalizedKey: "dutripon-r",
+      source: "excel"
+    },
+    {
+      id: "fd3bc83c-b280-5f05-a808-14ffed8fa2ae",
+      clientId: "27aeb192-980b-5eb1-b1c4-b065fcce2be1",
+      alias: "DUVAL à moult",
+      normalizedKey: "duval-a-moult",
+      source: "excel"
+    },
+    {
+      id: "c9cd1881-ca4d-5a47-bc13-6524207aff65",
+      clientId: "b9645639-f7d0-5900-9bc2-34d9f56a899f",
+      alias: "EARL FERME DU PARC",
+      normalizedKey: "earl-ferme-du-parc",
+      source: "excel"
+    },
+    {
+      id: "087ff84e-1524-570a-8abe-ea79b9238e1b",
+      clientId: "507f8132-d111-5d0d-8b81-41fbdcccc459",
+      alias: "Ecole Merville",
+      normalizedKey: "ecole-merville",
+      source: "excel"
+    },
+    {
+      id: "62d37a18-9895-55fd-a160-a9db260e0984",
+      clientId: "96a6df6e-48a9-5031-aa74-917c9c51297c",
+      alias: "ECURIE BASSENEVILLE",
+      normalizedKey: "ecurie-basseneville",
+      source: "excel"
+    },
+    {
+      id: "74b306d0-b08d-55f6-b4fc-4f8f7ddea286",
+      clientId: "d6a48b98-d6ec-563f-a990-4f72ae1d7c29",
+      alias: "ENP fourniture Laine 80mm",
+      normalizedKey: "enp-laine-80mm",
+      source: "excel"
+    },
+    {
+      id: "42ad3ae9-776b-5704-bf9f-b5959417519c",
+      clientId: "19dd85bb-675b-537c-80a9-9c6126308711",
+      alias: "eoles aventures",
+      normalizedKey: "eoles-aventures",
+      source: "excel"
+    }
+  ])
+}

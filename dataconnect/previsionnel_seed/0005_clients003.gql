@@ -1,0 +1,504 @@
+mutation @transaction {
+  clients003: client_upsertMany(data: [
+    {
+      id: "598238f3-e7b8-56aa-a43b-0b7b50b4ebd3",
+      type: "particulier",
+      nom: "Chatelet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f0c1a030-e3ee-5d64-9ffc-53a083430611",
+      type: "particulier",
+      nom: "Chatelin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "596fa2e5-5785-5c7c-b61f-9cb5542004e4",
+      type: "particulier",
+      nom: "Chatre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "dcbb1bce-d6d7-539c-b6c5-2936b5a3d01e",
+      type: "particulier",
+      nom: "Chauveau",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "47b14f0e-8eaa-55c3-9e70-ea0591a008c4",
+      type: "particulier",
+      nom: "Chauvel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "f20808f8-0a90-5b00-866f-511a3c5f001b",
+      type: "particulier",
+      nom: "Chaventre",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3b1b2a67-6f64-5914-9c4a-d7db814cc477",
+      type: "particulier",
+      nom: "Chebout mousset",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "5e3d7ff2-9769-51aa-80f8-27223a1d2855",
+      type: "particulier",
+      nom: "Chérance",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "fb1c35d0-b0d5-5eef-9469-b04014fc7a48",
+      type: "particulier",
+      nom: "Chesnel",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "6e8984cc-a979-5e57-8f4a-54bbf7d87819",
+      type: "particulier",
+      nom: "Clairay",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "90317170-bc7f-54f2-b585-68e02446d940",
+      type: "particulier",
+      nom: "Claparede",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "55d7c01e-9fcf-50c6-aa41-8a6bc553ca8b",
+      type: "particulier",
+      nom: "Clement",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8cb258cc-165a-5957-96a2-3a45698322f9",
+      type: "particulier",
+      nom: "Clet Caron",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "27825179-16b6-5d45-854f-d03a7e174701",
+      type: "particulier",
+      nom: "Cointo charpente",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "90a663da-6d23-54ac-abdc-07fd76de61fe",
+      type: "particulier",
+      nom: "Coissac",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "36103707-1e82-5e44-88d3-1bb97e331971",
+      type: "public",
+      nom: "College sacre cœur",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b99ef3a0-82fd-5a7e-b607-b277b82e5917",
+      type: "particulier",
+      nom: "Colore Caen",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b310ce2a-1c3a-5507-bec5-21e84aa62ee6",
+      type: "particulier",
+      nom: "Comm pasquet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8cead5de-dd96-5840-88dc-18adedefb288",
+      type: "particulier",
+      nom: "Corbion",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "05a283ec-f2e6-5270-999b-c37bc73527ac",
+      type: "particulier",
+      nom: "Cordon charp",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "7b441928-cdee-55e8-9388-e9067c1aee73",
+      type: "particulier",
+      nom: "CORTEQUISSE ext",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d8621a57-e8d3-51c6-9718-b59ef6d8e7aa",
+      type: "particulier",
+      nom: "Cotentin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d856ae28-2ce9-5c47-9fdf-a701c39698d2",
+      type: "particulier",
+      nom: "Courbassier",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "e5f3ff89-366e-581a-baad-8ea53c1a8838",
+      type: "particulier",
+      nom: "COUTANCE Colas",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "558515b3-f228-5575-bc17-bbd52c4eb888",
+      type: "particulier",
+      nom: "Coyer",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "aac56d8f-57b5-5d28-a5fb-4662e5b1be76",
+      type: "particulier",
+      nom: "Crochard",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "12cba3ab-6dfb-5b83-a052-6ad2fc1a29dd",
+      type: "particulier",
+      nom: "CROIZE Céline",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "edb56f1d-ee43-5480-b558-7dc65b43cc97",
+      type: "particulier",
+      nom: "Crosfit",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "cad9a4d2-f5f3-542a-b9db-0e57c48cd95d",
+      type: "particulier",
+      nom: "Crosville",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1e73a246-2bed-56db-add3-4407b1dc8955",
+      type: "particulier",
+      nom: "Cruchon Leguevasques",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "78785387-2436-59d8-b8f5-1095d76e57c1",
+      type: "particulier",
+      nom: "Cuvigny",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2f9aa770-54a7-5f83-a4fd-e4ede02b6482",
+      type: "particulier",
+      nom: "Dagorn",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "be147371-aa6f-58e2-9f9d-89a4d29344c0",
+      type: "particulier",
+      nom: "Daigremont",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "9def8216-ceda-5492-9dd3-8891d3a0f574",
+      type: "particulier",
+      nom: "Darcillon",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "2d3b1401-239a-5a48-994b-045cff26a352",
+      type: "particulier",
+      nom: "Darde",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "1659b3c7-3587-5099-b130-bf918932bdf2",
+      type: "particulier",
+      nom: "Darney Batista",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "03c0084b-ef1f-5b61-85e4-4fe40f0a985c",
+      type: "particulier",
+      nom: "Daumesnil",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "759e240a-79ef-52c2-82ed-bb8fa4abbccd",
+      type: "particulier",
+      nom: "Dauvergne",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "47a9a245-904d-50ee-9cfd-7423a2c5c37f",
+      type: "particulier",
+      nom: "De Jean",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b9a95caa-9ede-5d1d-96e7-8a556cd266e8",
+      type: "particulier",
+      nom: "De Sousa",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8522c663-845a-5a42-8620-47ac1ded1a6f",
+      type: "particulier",
+      nom: "De Souza",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "68a485cd-9a6b-53dd-af3d-484cbc62774a",
+      type: "particulier",
+      nom: "Dechauffour",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "8d33de21-fda7-59e1-86ed-0f91679b0dce",
+      type: "particulier",
+      nom: "Declerck Norgoll",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "b838236e-23bd-54b2-bcef-ae52d5bc591f",
+      type: "particulier",
+      nom: "Defibat",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "672b04b8-4d2d-526a-bfaa-328d055635b9",
+      type: "particulier",
+      nom: "Deflin",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "3adf8744-8ad7-56b4-b791-4f041947b3bf",
+      type: "particulier",
+      nom: "Defretin Q",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "a74bfc72-3a20-5641-800b-4ee5032fc112",
+      type: "particulier",
+      nom: "Deigneuret parquet",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "843da626-a0ce-50eb-b153-627f49643e1e",
+      type: "particulier",
+      nom: "Delacotte",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "d0ae8ab7-4f27-5168-82fb-70f819df8dc2",
+      type: "particulier",
+      nom: "Delacour",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    },
+    {
+      id: "71293e97-873f-532c-91b2-b9b1daed0d47",
+      type: "particulier",
+      nom: "Delahayes",
+      email: null,
+      telephone: null,
+      adresse: null,
+      ville: null,
+      codePostal: null
+    }
+  ])
+}
