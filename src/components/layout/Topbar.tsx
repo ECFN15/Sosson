@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Bell, CalendarDays, FileText, HardHat, Mail, Plus, ReceiptText, Search, Users } from 'lucide-react'
 import { useApp } from '@/lib/store'
 import { emails } from '@/data/emails'
+import { getModuleMeta } from '@/lib/moduleMeta'
 
 type SearchResult = {
   label: string
@@ -13,11 +14,14 @@ type SearchResult = {
 
 export function Topbar() {
   const navigate = useNavigate()
-  const { chantiers, clients, factures } = useApp()
+  const location = useLocation()
+  const { chantiers, clients, factures, dataSource, isDataConnectLoading } = useApp()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const moduleMeta = getModuleMeta(location.pathname)
+  const ModuleIcon = moduleMeta.Icon
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -81,12 +85,25 @@ export function Topbar() {
   }
 
   return (
-    <header className="h-16 shrink-0 border-b border-[#F2E8DC] bg-white px-6">
+    <header className="h-[76px] shrink-0 border-b border-[#F2E8DC] bg-white px-6">
       <div className="flex h-full items-center justify-between gap-6">
-        <div className="w-[140px]" aria-hidden="true" />
+        <div className="flex w-[270px] items-center gap-3" aria-label="Module courant">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] text-[#F06B21]">
+            <ModuleIcon className="h-5 w-5" strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-[#F06B21]">
+              {moduleMeta.eyebrow}
+            </p>
+            <p className="truncate text-[15px] font-semibold leading-tight text-[#1E1E1E]">
+              {moduleMeta.label}
+            </p>
+            <p className="truncate text-[11px] text-[#6B6B6B]">{moduleMeta.description}</p>
+          </div>
+        </div>
 
         <div className="flex flex-1 justify-center">
-          <div className="relative w-[460px] max-w-full">
+          <div className="relative w-[520px] max-w-full">
             <Search
               className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B6B6B]"
               strokeWidth={1.75}
@@ -102,9 +119,12 @@ export function Topbar() {
               }}
               onFocus={() => setIsSearchOpen(true)}
               placeholder="Rechercher (Cmd + K)"
-              className="w-full rounded-full border border-[#F2E8DC] bg-[#FAF6F2] py-2 pl-10 pr-4 text-sm text-[#1E1E1E] transition placeholder:text-[#9CA3AF] focus:border-[#F06B21] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+              className="h-11 w-full rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] py-2 pl-10 pr-[118px] text-sm text-[#1E1E1E] transition placeholder:text-[#9CA3AF] focus:border-[#F06B21] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
               aria-label="Recherche globale"
             />
+            <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-[8px] border border-[#EADBC8] bg-white px-2 py-1 text-[10px] font-semibold text-[#6B6B6B] xl:inline-flex">
+              Ctrl K
+            </span>
 
             {isSearchOpen && (
               <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-[18px] border border-[#F2E8DC] bg-white p-2 shadow-[0_18px_44px_rgba(30,30,30,0.12)]">
@@ -143,11 +163,17 @@ export function Topbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden h-9 items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] px-3 xl:flex" aria-label="Etat des donnees">
+            <span className="h-2 w-2 rounded-full bg-[#F06B21]" />
+            <span className="truncate text-[12px] font-semibold text-[#3C3C3C]">
+              {isDataConnectLoading ? 'Synchronisation...' : dataSource === 'dataconnect' ? 'SQL Connect actif' : 'Source locale'}
+            </span>
+          </div>
           <button
             type="button"
             aria-label="Notifications"
             onClick={() => goTo('/emails')}
-            className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#6B6B6B] transition-colors hover:bg-[#FAF6F2] hover:text-[#1E1E1E]"
+              className="relative flex h-9 w-9 items-center justify-center rounded-[12px] text-[#6B6B6B] transition-colors hover:bg-[#FAF6F2] hover:text-[#1E1E1E]"
           >
             <Bell className="h-5 w-5" strokeWidth={1.75} />
             <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#F06B21] px-1 text-[9px] font-bold text-white">

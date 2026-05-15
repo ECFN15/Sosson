@@ -67,7 +67,7 @@ function formatDate(value: string) {
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-[20px] border border-[#F2E8DC] bg-white ${className}`}>{children}</section>
+  return <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset] ${className}`}>{children}</section>
 }
 
 function StatusBadge({ statut }: { statut: StatutFacture }) {
@@ -309,10 +309,20 @@ export function FacturesPage() {
 
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
-      <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="mb-6 overflow-hidden rounded-[24px] border border-[#2A2A2A] bg-[#1E1E1E] px-5 py-5 text-white shadow-[0_18px_44px_rgba(30,30,30,0.16)] xl:px-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h1 className="text-[28px] font-semibold leading-tight text-[#1E1E1E]">Factures fournisseurs</h1>
-          <p className="mt-2 text-sm text-[#3C3C3C]">Saisie, rattachement chantier et validation des depenses fournisseurs.</p>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#3C3C3C] bg-[#2A1A0D] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#F06B21]">
+              <ReceiptText className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Controle financier
+            </span>
+            <span className="inline-flex rounded-full border border-[#3C3C3C] bg-[#242424] px-3 py-1 text-[11px] font-semibold text-[#C9C9C9]">
+              {canWriteSql ? 'Ecriture SQL Connect' : 'Ecriture locale'}
+            </span>
+          </div>
+          <h1 className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-white">Factures fournisseurs</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#C9C9C9]">Saisie, rattachement chantier et validation des depenses fournisseurs avec un flux de controle lisible montant par montant.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#3C3C3C]">
@@ -324,6 +334,7 @@ export function FacturesPage() {
               Ecriture locale
             </span>
           )}
+        </div>
         </div>
       </div>
 
@@ -399,7 +410,7 @@ export function FacturesPage() {
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] border-collapse">
-                <thead className="bg-white text-left text-[12px] font-medium text-[#6B6B6B]">
+                <thead className="bg-[#FAF6F2] text-left text-[12px] font-medium text-[#6B6B6B]">
                   <tr className="border-b border-[#F2E8DC]">
                     <th className="px-4 py-3">Fournisseur</th>
                     <th className="px-4 py-3">Numero</th>
@@ -418,7 +429,7 @@ export function FacturesPage() {
                       <tr
                         key={facture.id}
                         onClick={() => setSelectedId(facture.id)}
-                        className={`cursor-pointer border-b border-[#F2E8DC] last:border-b-0 ${selected ? 'bg-[#FDEBDD]/45' : 'hover:bg-[#F9F7F3]'}`}
+                        className={`cursor-pointer border-b border-[#F2E8DC] transition-colors last:border-b-0 ${selected ? 'bg-[#FDEBDD]/45 shadow-[inset_3px_0_0_#F06B21]' : 'hover:bg-[#F9F7F3]'}`}
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
@@ -441,7 +452,25 @@ export function FacturesPage() {
               </table>
             </div>
             {visibleFactures.length === 0 && (
-              <div className="px-6 py-12 text-center text-sm text-[#6B6B6B]">Aucune facture ne correspond a ces criteres.</div>
+              <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div className="grid h-16 w-16 place-items-center rounded-[18px] border border-[#EADBC8] bg-white text-[#F06B21] shadow-[0_10px_28px_rgba(30,30,30,0.08)]">
+                  <ReceiptText className="h-8 w-8" strokeWidth={1.75} />
+                </div>
+                <p className="mt-4 text-sm font-semibold text-[#1E1E1E]">Aucune facture dans cette vue</p>
+                <p className="mt-2 max-w-md text-sm leading-6 text-[#6B6B6B]">
+                  Changez d'onglet, effacez la recherche ou ajoutez une nouvelle facture fournisseur depuis le panneau de controle.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('')
+                    handleTabChange('toutes')
+                  }}
+                  className="mt-5 inline-flex h-10 items-center gap-2 rounded-[12px] border border-[#EADBC8] bg-white px-4 text-sm font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+                >
+                  Voir toutes les factures
+                </button>
+              </div>
             )}
           </Card>
         </main>

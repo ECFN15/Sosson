@@ -174,7 +174,7 @@ function readLocalFolders() {
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-[20px] border border-[#F2E8DC] bg-white ${className}`}>{children}</section>
+  return <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset] ${className}`}>{children}</section>
 }
 
 export function DocumentsPage() {
@@ -478,15 +478,26 @@ export function DocumentsPage() {
 
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
-      <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="mb-6 overflow-hidden rounded-[24px] border border-[#EADBC8] bg-white px-5 py-5 shadow-[0_18px_44px_rgba(30,30,30,0.06)] xl:px-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h1 className="text-[28px] font-semibold leading-tight text-[#1E1E1E]">Gestionnaire de documents</h1>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#EADBC8] bg-[#FAF6F2] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3C3C3C]">
+              <FolderOpen className="h-3.5 w-3.5 text-[#F06B21]" strokeWidth={1.75} />
+              GED chantier
+            </span>
+            <span className="inline-flex rounded-full border border-[#EADBC8] bg-white px-3 py-1 text-[11px] font-semibold text-[#6B6B6B]">
+              {dataSource === 'dataconnect' ? 'SQL Connect actif' : 'Source locale'}
+            </span>
+          </div>
+          <h1 className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-[#1E1E1E]">Gestionnaire de documents</h1>
           <p className="mt-2 text-sm text-[#3C3C3C]">Dossiers, import et recherche sur les fichiers réellement ajoutés.</p>
         </div>
         <button type="button" onClick={open} className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]">
           <Upload className="h-4 w-4" strokeWidth={1.75} />
           Importer
         </button>
+        </div>
       </div>
 
       {feedback && (
@@ -642,11 +653,17 @@ export function DocumentsPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                  <FolderOpen className="h-10 w-10 text-[#F06B21]" strokeWidth={1.75} />
+                  <div className="grid h-16 w-16 place-items-center rounded-[18px] border border-[#EADBC8] bg-white text-[#F06B21] shadow-[0_10px_28px_rgba(30,30,30,0.08)]">
+                    <FolderOpen className="h-8 w-8" strokeWidth={1.75} />
+                  </div>
                   <p className="mt-4 text-sm font-semibold text-[#1E1E1E]">Dossier vide</p>
                   <p className="mt-2 max-w-md text-sm leading-6 text-[#6B6B6B]">
                     Déposez des fichiers ici. Aucun chantier Excel n’est affiché comme document tant qu’un fichier n’a pas été importé.
                   </p>
+                  <button type="button" onClick={open} className="mt-5 inline-flex h-10 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-4 text-sm font-semibold text-white hover:bg-[#2A2A2A]">
+                    <Upload className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                    Importer un document
+                  </button>
                 </div>
               )}
             </div>
@@ -662,7 +679,9 @@ export function DocumentsPage() {
               }`}
             >
               <input {...getInputProps()} />
-              <Upload className="mx-auto h-8 w-8 text-[#F06B21]" strokeWidth={1.75} />
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-[16px] border border-[#EADBC8] bg-white text-[#F06B21]">
+                <Upload className="h-6 w-6" strokeWidth={1.75} />
+              </span>
               <button type="button" onClick={open} className="mt-4 text-[14px] font-semibold text-[#1E1E1E]">
                 Glisser-déposer ou parcourir
               </button>

@@ -1027,7 +1027,7 @@ export function PrevisionnelSpreadsheetPage() {
   }, [cellPosition, columnsByKey, editedWithDraft, editingCell, focusCell, rows, updateCell])
 
   return (
-    <div className="flex h-[100dvh] w-screen min-w-0 flex-col overflow-hidden bg-white text-[#1E1E1E]">
+    <div className="clean-saas-app flex h-[100dvh] w-screen min-w-0 flex-col overflow-hidden bg-white text-[#1E1E1E]">
       <style>
         {`@keyframes sossonCellSelect {
           0%, 100% { box-shadow: 0 0 0 1px rgba(240,107,33,0.18), 0 0 0 0 rgba(240,107,33,0.24); }

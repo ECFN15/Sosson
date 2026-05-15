@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { useApp } from '@/lib/store'
 import { canAccessPath } from '@/lib/accessControl'
+import { getModuleMeta } from '@/lib/moduleMeta'
 
 /**
  * Shell canonique (design-tokens.md §8.1).
@@ -11,6 +12,8 @@ import { canAccessPath } from '@/lib/accessControl'
 export function AppLayout() {
   const { user, accessMatrix } = useApp()
   const location = useLocation()
+  const moduleMeta = getModuleMeta(location.pathname)
+  const ModuleIcon = moduleMeta.Icon
 
   if (!user) return <Navigate to="/login" replace />
   if (!canAccessPath(user.role, location.pathname, accessMatrix)) {
@@ -18,15 +21,29 @@ export function AppLayout() {
   }
 
   return (
-    <div className="flex h-screen bg-[#FAF6F2] text-[#1E1E1E]">
+    <div
+      className="clean-saas-app flex h-screen bg-[#FAF6F2] text-[#1E1E1E]"
+      data-module={moduleMeta.key}
+    >
       <div className="hidden lg:block">
         <Sidebar />
       </div>
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="relative flex flex-1 flex-col overflow-hidden">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#F2E8DC] bg-white px-4 lg:hidden">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#F06B21]">
+              {moduleMeta.eyebrow}
+            </p>
+            <h1 className="truncate text-[16px] font-semibold text-[#1E1E1E]">{moduleMeta.label}</h1>
+          </div>
+          <span className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#1E1E1E] text-[#F06B21]">
+            <ModuleIcon className="h-5 w-5" strokeWidth={1.75} />
+          </span>
+        </div>
         <div className="hidden lg:block">
           <Topbar />
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="clean-saas-viewport flex-1 overflow-y-auto">
           <Outlet />
         </div>
       </main>

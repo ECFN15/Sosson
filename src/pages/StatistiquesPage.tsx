@@ -44,7 +44,7 @@ import { useApp } from '@/lib/store'
 import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-[20px] border border-[#F2E8DC] bg-white ${className}`}>{children}</section>
+  return <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset,0_14px_34px_rgba(30,30,30,0.045)] ${className}`}>{children}</section>
 }
 
 function StatCard({

@@ -160,7 +160,7 @@ const alerts = [
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <section className={`rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${className}`}>
+    <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset,0_14px_34px_rgba(30,30,30,0.045)] ${className}`}>
       {children}
     </section>
   )
@@ -201,7 +201,7 @@ function EventBlock({ event, team, dayIndex, selected, onSelect }: { event: Plan
     <button
       type="button"
       onClick={onSelect}
-      className={`relative min-h-[70px] w-full rounded-[10px] px-2.5 py-2 text-left transition hover:-translate-y-[1px] ${selected ? 'ring-2 ring-[#F06B21]/30' : ''} ${
+      className={`relative min-h-[70px] w-full rounded-[10px] px-2.5 py-2 text-left transition hover:ring-1 hover:ring-[#F06B21]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/30 ${selected ? 'ring-2 ring-[#F06B21]/30' : ''} ${
         isGhost ? 'border-2 border-dashed bg-white' : 'border-l-[3px]'
       } ${isLate ? 'bg-[#FEE2E2] bg-[repeating-linear-gradient(135deg,rgba(220,38,38,0.10)_0,rgba(220,38,38,0.10)_4px,transparent_4px,transparent_9px)]' : ''}`}
       style={{
@@ -210,7 +210,7 @@ function EventBlock({ event, team, dayIndex, selected, onSelect }: { event: Plan
       }}
     >
       {isGhost && dayIndex === 4 && (
-        <div className="pointer-events-none absolute -right-2 -top-9 z-20 hidden w-[148px] rotate-[4deg] rounded-[10px] border border-[#EADBC8] bg-[#FDE9DB] px-3 py-2 shadow-[0_10px_24px_rgba(30,30,30,0.14)] 2xl:block">
+        <div className="pointer-events-none absolute -right-2 -top-9 z-20 hidden w-[148px] rounded-[10px] border border-[#EADBC8] bg-[#FDE9DB] px-3 py-2 shadow-[0_10px_24px_rgba(30,30,30,0.14)] 2xl:block">
           <p className="truncate text-[11px] font-semibold text-[#1E1E1E]">Villa des Pins</p>
           <p className="text-[10px] text-[#3C3C3C]">Charpente</p>
           <p className="mt-1 text-[10px] text-[#6B6B6B]">08:00 - 17:00</p>

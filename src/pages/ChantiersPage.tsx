@@ -330,7 +330,7 @@ export function ChantiersPage() {
                 return (
                   <tr
                     key={row.key}
-                    className="group cursor-pointer border-t border-[#F2E8DC] transition-colors hover:bg-[#FFF9F4]"
+                    className="group cursor-pointer border-t border-[#F2E8DC] transition-colors hover:bg-[#FFF9F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#F06B21]/30"
                     onClick={() => navigate(`/chantiers/${row.chantier.id}`)}
                     onKeyDown={event => {
                       if (event.key === 'Enter' || event.key === ' ') {

@@ -536,7 +536,7 @@ export function ClientsPage() {
               {directoryRows.map(row => (
                   <tr
                     key={row.key}
-                    className="group cursor-pointer border-t border-[#F2E8DC] transition-colors hover:bg-[#FFF9F4]"
+                    className="group cursor-pointer border-t border-[#F2E8DC] transition-colors hover:bg-[#FFF9F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#F06B21]/30"
                     onClick={() => navigate(`/clients/${row.clientId}`)}
                     onKeyDown={event => {
                       if (event.key === 'Enter' || event.key === ' ') {
@@ -678,8 +678,8 @@ export function ClientsPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_24px_80px_rgba(30,30,30,0.18)]">
             <div className="flex items-center justify-between border-b border-[#F2E8DC] px-6 py-5">
               <h2 className="font-semibold text-[#1E1E1E]">Nouveau client</h2>
               <button onClick={() => setShowModal(false)} className="text-[#9CA3AF] hover:text-[#1E1E1E]">

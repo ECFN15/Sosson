@@ -1,0 +1,591 @@
+/*
+ * Clean SaaS layer for Sosson.
+ * Goal: one calm operational language across every app page without replacing
+ * the canonical Sosson identity from theme.css.
+ */
+
+:root {
+  --cs-canvas: #FAF6F2;
+  --cs-surface: #FFFFFF;
+  --cs-surface-muted: #F9F7F3;
+  --cs-surface-raised: #FFFDF9;
+  --cs-ink: #1E1E1E;
+  --cs-ink-soft: #3C3C3C;
+  --cs-muted: #6B6B6B;
+  --cs-line: #F2E8DC;
+  --cs-line-strong: #EADBC8;
+  --cs-action: #F06B21;
+  --cs-action-hover: #D95B17;
+  --cs-action-soft: #FDEBDD;
+  --cs-shadow-card: 0 1px 2px rgba(30, 30, 30, 0.05), 0 12px 32px rgba(30, 30, 30, 0.045);
+  --cs-shadow-panel: 0 18px 48px rgba(30, 30, 30, 0.095);
+  --cs-shadow-ledge: 0 1px 0 rgba(255, 255, 255, 0.96) inset, 0 0 0 1px rgba(255, 255, 255, 0.58) inset, 0 1px 2px rgba(30, 30, 30, 0.04), 0 14px 38px rgba(30, 30, 30, 0.055);
+  --cs-shadow-cut: 0 0 0 1px rgba(234, 219, 200, 0.88), 0 0 0 5px rgba(255, 255, 255, 0.72), 0 16px 42px rgba(30, 30, 30, 0.07);
+  --cs-focus: 0 0 0 3px rgba(240, 107, 33, 0.24);
+  --cs-ease: cubic-bezier(.2, .8, .2, 1);
+  --module-accent: #F06B21;
+  --module-ink: #1E1E1E;
+  --module-soft: #FDEBDD;
+  --module-line: #EADBC8;
+  --module-grid: rgba(240, 107, 33, 0.075);
+}
+
+.clean-saas-app {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0) 180px),
+    var(--cs-canvas);
+}
+
+.clean-saas-app[data-module="dashboard"] { --module-accent: #F06B21; --module-soft: #FDEBDD; }
+.clean-saas-app[data-module="chantiers"] { --module-accent: #F06B21; --module-soft: #FFF4EA; --module-grid: rgba(240, 107, 33, 0.09); }
+.clean-saas-app[data-module="clients"] { --module-accent: #A45A2C; --module-soft: #F1E6D6; --module-grid: rgba(164, 90, 44, 0.08); }
+.clean-saas-app[data-module="documents"] { --module-accent: #3C3C3C; --module-soft: #FAF6F2; --module-grid: rgba(60, 60, 60, 0.065); }
+.clean-saas-app[data-module="factures"] { --module-accent: #D95B17; --module-soft: #FDEBDD; --module-grid: rgba(217, 91, 23, 0.08); }
+.clean-saas-app[data-module="previsionnel"] { --module-accent: #A45A2C; --module-soft: #F1E6D6; --module-grid: rgba(164, 90, 44, 0.075); }
+.clean-saas-app[data-module="statistiques"] { --module-accent: #6B6B6B; --module-soft: #F9F7F3; --module-grid: rgba(107, 107, 107, 0.06); }
+.clean-saas-app[data-module="emails"] { --module-accent: #D95B17; --module-soft: #FDEBDD; --module-grid: rgba(217, 91, 23, 0.075); }
+.clean-saas-app[data-module="planning"] { --module-accent: #F89A62; --module-soft: #FFF4EA; --module-grid: rgba(248, 154, 98, 0.09); }
+.clean-saas-app[data-module="documentation"] { --module-accent: #1E1E1E; --module-soft: #FAF6F2; --module-grid: rgba(30, 30, 30, 0.06); }
+.clean-saas-app[data-module="equipe"] { --module-accent: #A45A2C; --module-soft: #F1E6D6; --module-grid: rgba(164, 90, 44, 0.075); }
+.clean-saas-app[data-module="parametres"] { --module-accent: #1E1E1E; --module-soft: #FAF6F2; --module-grid: rgba(30, 30, 30, 0.06); }
+
+.clean-saas-viewport {
+  background:
+    radial-gradient(circle at 18% -10%, color-mix(in srgb, var(--module-soft), transparent 26%) 0 260px, transparent 460px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0, rgba(255, 255, 255, 0) 230px),
+    repeating-linear-gradient(90deg, rgba(242, 232, 220, 0.52) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, var(--module-grid) 0 1px, transparent 1px 96px),
+    var(--cs-canvas);
+}
+
+.clean-saas-viewport > [class*="min-h-full"],
+.clean-saas-viewport > div:not([class]) {
+  position: relative;
+}
+
+.clean-saas-viewport > [class*="min-h-full"]::before {
+  content: none;
+}
+
+.clean-saas-app ::selection {
+  background: rgba(240, 107, 33, 0.22);
+  color: var(--cs-ink);
+}
+
+.clean-saas-app h1 {
+  text-wrap: balance;
+  letter-spacing: -0.045em;
+  color: var(--cs-ink);
+}
+
+.clean-saas-app h2,
+.clean-saas-app h3 {
+  text-wrap: balance;
+  letter-spacing: -0.026em;
+  color: var(--cs-ink);
+}
+
+.clean-saas-app h1 + p,
+.clean-saas-app h2 + p {
+  color: var(--cs-muted);
+}
+
+.clean-saas-viewport h1 {
+  position: relative;
+  font-weight: 760;
+  line-height: .98;
+}
+
+.clean-saas-viewport h1::after {
+  content: none;
+}
+
+.clean-saas-app [class*="uppercase"][class*="tracking"] {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.135em;
+}
+
+.clean-saas-app * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cs-line-strong) transparent;
+}
+
+.clean-saas-app *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.clean-saas-app *::-webkit-scrollbar-thumb {
+  background: var(--cs-line-strong);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.clean-saas-app button,
+.clean-saas-app a,
+.clean-saas-app input,
+.clean-saas-app select,
+.clean-saas-app textarea,
+.clean-saas-app [role="button"] {
+  transition:
+    background-color 180ms var(--cs-ease),
+    border-color 180ms var(--cs-ease),
+    color 180ms var(--cs-ease),
+    box-shadow 180ms var(--cs-ease),
+    opacity 180ms var(--cs-ease);
+}
+
+.clean-saas-app button:focus-visible,
+.clean-saas-app a:focus-visible,
+.clean-saas-app input:focus-visible,
+.clean-saas-app select:focus-visible,
+.clean-saas-app textarea:focus-visible,
+.clean-saas-app [role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--cs-focus);
+}
+
+.clean-saas-app input,
+.clean-saas-app select,
+.clean-saas-app textarea {
+  caret-color: var(--cs-action);
+  color: var(--cs-ink);
+  background-color: var(--cs-surface);
+}
+
+.clean-saas-app input:hover,
+.clean-saas-app select:hover,
+.clean-saas-app textarea:hover {
+  border-color: var(--cs-line-strong);
+}
+
+.clean-saas-app [class*="rounded-[20px]"][class*="bg-white"],
+.clean-saas-app [class*="rounded-[24px]"][class*="bg-white"],
+.clean-saas-app [class*="rounded-[18px]"][class*="bg-white"] {
+  position: relative;
+  isolation: isolate;
+  box-shadow: var(--cs-shadow-ledge);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(255, 255, 255, 1) 112px),
+    var(--cs-surface);
+}
+
+.clean-saas-app [class*="rounded-[20px]"][class*="border"][class*="bg-white"]::before,
+.clean-saas-app [class*="rounded-[24px]"][class*="border"][class*="bg-white"]::before,
+.clean-saas-app [class*="rounded-[18px]"][class*="border"][class*="bg-white"]::before {
+  content: none;
+}
+
+.clean-saas-app [class*="rounded-[20px]"][class*="border"][class*="bg-white"] > *,
+.clean-saas-app [class*="rounded-[24px]"][class*="border"][class*="bg-white"] > *,
+.clean-saas-app [class*="rounded-[18px]"][class*="border"][class*="bg-white"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+.clean-saas-app [class*="rounded-[20px]"][class*="border"][class*="bg-white"]::after,
+.clean-saas-app [class*="rounded-[24px]"][class*="border"][class*="bg-white"]::after,
+.clean-saas-app [class*="rounded-[18px]"][class*="border"][class*="bg-white"]::after {
+  content: none;
+}
+
+.clean-saas-app [class*="rounded-[20px]"][class*="bg-white"]:has(> [class*="border-b"]),
+.clean-saas-app [class*="rounded-[24px]"][class*="bg-white"]:has(> [class*="border-b"]) {
+  overflow: hidden;
+}
+
+.clean-saas-app [class*="rounded-[20px]"][class*="border"][class*="bg-white"],
+.clean-saas-app [class*="rounded-[24px]"][class*="border"][class*="bg-white"],
+.clean-saas-app [class*="rounded-[18px]"][class*="border"][class*="bg-white"] {
+  border-color: color-mix(in srgb, var(--module-accent), var(--cs-line) 78%);
+}
+
+.clean-saas-app [class*="rounded-[14px]"][class*="border"][class*="bg-white"],
+.clean-saas-app [class*="rounded-[12px]"][class*="border"][class*="bg-white"],
+.clean-saas-app [class*="rounded-[10px]"][class*="border"][class*="bg-white"] {
+  border-color: var(--cs-line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .82) inset;
+}
+
+.clean-saas-app [class*="bg-[#FAF6F2]"] {
+  background-color: var(--cs-canvas);
+}
+
+.clean-saas-app [class*="bg-[#F9F7F3]"] {
+  background-color: var(--cs-surface-muted);
+}
+
+.clean-saas-app [class*="border-[#F2E8DC]"] {
+  border-color: var(--cs-line);
+}
+
+.clean-saas-app [class*="border-[#EADBC8]"] {
+  border-color: var(--cs-line-strong);
+}
+
+.clean-saas-app [class*="text-[#F06B21]"] {
+  color: var(--module-accent);
+}
+
+.clean-saas-app [class*="bg-[#F06B21]"] {
+  background-color: var(--cs-action);
+}
+
+.clean-saas-app [class*="bg-[#FDEBDD]"] {
+  background-color: var(--module-soft);
+}
+
+.clean-saas-app [class*="ring-[#F06B21]"],
+.clean-saas-app [class*="focus:ring-[#F06B21]"]:focus {
+  --tw-ring-color: rgba(240, 107, 33, 0.24);
+}
+
+.clean-saas-app table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.clean-saas-app thead {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--module-soft), white 52%), rgba(255, 255, 255, .75)),
+    var(--cs-surface-muted);
+}
+
+.clean-saas-app th {
+  white-space: nowrap;
+  color: var(--cs-ink-soft);
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.clean-saas-app td,
+.clean-saas-app th {
+  vertical-align: middle;
+}
+
+.clean-saas-app tbody tr,
+.clean-saas-app [class*="divide-y"] > * {
+  transition:
+    background-color 160ms var(--cs-ease),
+    box-shadow 160ms var(--cs-ease);
+}
+
+.clean-saas-app tbody tr:hover {
+  background: #FFF9F4;
+}
+
+.clean-saas-app tbody tr[role="button"]:hover,
+.clean-saas-app button[class*="hover:bg"]:hover {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--module-accent), transparent 72%) inset;
+}
+
+.clean-saas-app [class*="rounded-full"] {
+  font-variant-numeric: tabular-nums;
+}
+
+.clean-saas-app [class*="uppercase"][class*="tracking"] {
+  letter-spacing: 0.105em;
+}
+
+.clean-saas-app [class*="text-[26px]"],
+.clean-saas-app [class*="text-[24px]"],
+.clean-saas-app [class*="text-[36px]"],
+.clean-saas-app [class*="text-[34px]"] {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+.clean-saas-app [class*="grid"][class*="xl:grid-cols"],
+.clean-saas-app [class*="grid"][class*="2xl:grid-cols"] {
+  align-items: stretch;
+}
+
+.clean-saas-app [class*="shadow-[inset_3px_0_0_#F06B21]"],
+.clean-saas-app [class*="bg-[#FDEBDD]/45"] {
+  box-shadow: inset 3px 0 0 var(--cs-action);
+}
+
+.clean-saas-app [class*="bg-[#E6F4EA]"] {
+  background-color: #EEF7EF;
+}
+
+.clean-saas-app [class*="text-[#1E8E3E]"] {
+  color: #287A3E;
+}
+
+.clean-saas-app [class*="bg-[#DCE9F2]"] {
+  background-color: #F1E6D6;
+}
+
+.clean-saas-app [class*="text-[#315A78]"] {
+  color: var(--cs-ink-soft);
+}
+
+.clean-saas-app [class*="bg-[#FEE2E2]"] {
+  background-color: #FFF1EF;
+}
+
+.clean-saas-app [class*="text-[#DC2626]"] {
+  color: #B93A2F;
+}
+
+.clean-saas-app [class*="bg-[#FDEBDD]"] {
+  background-color: var(--cs-action-soft);
+}
+
+.clean-saas-app [class*="text-[#D95B17]"] {
+  color: var(--cs-action-hover);
+}
+
+.clean-saas-app [class*="hover:bg-[#FAF6F2]"]:hover,
+.clean-saas-app [class*="hover:bg-[#F9F7F3]"]:hover {
+  background-color: #FFF9F4;
+}
+
+.clean-saas-app [class*="bg-[#F06B21]"]:not(:disabled):hover {
+  background-color: var(--cs-action-hover);
+}
+
+.clean-saas-app [class*="rounded-[20px]"] > [class*="border-b"]:first-child,
+.clean-saas-app [class*="rounded-[24px]"] > [class*="border-b"]:first-child {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--module-soft), white 24%), transparent 68%),
+    repeating-linear-gradient(90deg, rgba(234, 219, 200, .35) 0 1px, transparent 1px 22px),
+    rgba(255, 255, 255, 0.66);
+}
+
+.clean-saas-app [class*="max-h-"][class*="overflow-auto"] {
+  scrollbar-gutter: stable;
+}
+
+.clean-saas-app [class*="border-dashed"] {
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,.9), transparent 62%),
+    repeating-linear-gradient(135deg, rgba(234, 219, 200, .55) 0 1px, transparent 1px 11px),
+    linear-gradient(135deg, color-mix(in srgb, var(--module-soft), white 68%), #fff 54%),
+    var(--cs-surface);
+}
+
+.clean-saas-app [class*="bg-[#1E1E1E]"][class*="text-white"] {
+  background:
+    radial-gradient(circle at 16% 0, rgba(240, 107, 33, 0.18), transparent 28%),
+    linear-gradient(135deg, #1E1E1E 0%, #242424 64%, #2A1A0D 100%);
+}
+
+.clean-saas-app [class*="bg-[#1E1E1E]"][class*="text-white"] h1,
+.clean-saas-app [class*="bg-[#1E1E1E]"][class*="text-white"] h2,
+.clean-saas-app [class*="bg-[#1E1E1E]"][class*="text-white"] h3 {
+  color: #ffffff;
+}
+
+/* Module-specific polish: enough identity per page without changing data logic. */
+.clean-saas-app[data-module="documents"] .clean-saas-viewport {
+  background:
+    radial-gradient(circle at 78% 10%, rgba(255, 255, 255, .9), transparent 330px),
+    linear-gradient(90deg, rgba(242, 232, 220, .62) 0 1px, transparent 1px 100%),
+    repeating-linear-gradient(0deg, rgba(234, 219, 200, .34) 0 1px, transparent 1px 34px),
+    #fbf7f1;
+}
+
+.clean-saas-app[data-module="documents"] [class*="rounded-[20px]"][class*="bg-white"] {
+  background:
+    linear-gradient(180deg, #fffefb, #ffffff 48%),
+    repeating-linear-gradient(90deg, rgba(242, 232, 220, .42) 0 1px, transparent 1px 18px);
+}
+
+.clean-saas-app[data-module="documents"] nav button {
+  border: 1px solid transparent;
+}
+
+.clean-saas-app[data-module="documents"] nav button[class*="bg-[#FDEBDD]"] {
+  border-color: #EADBC8;
+  background:
+    linear-gradient(90deg, #FDEBDD, #FFF8F1 58%),
+    #FDEBDD;
+}
+
+.clean-saas-app[data-module="documents"] [class*="border-dashed"] {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--module-accent), var(--cs-line) 74%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.72), inset 0 0 0 6px rgba(250,246,242,.72);
+}
+
+.clean-saas-app[data-module="documents"] table tbody tr:empty,
+.clean-saas-app[data-module="documents"] [class*="py-12"],
+.clean-saas-app[data-module="documents"] [class*="py-10"] {
+  background:
+    radial-gradient(circle at center, rgba(60, 60, 60, .055), transparent 120px),
+    repeating-linear-gradient(90deg, rgba(242, 232, 220, .55) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(0deg, rgba(242, 232, 220, .42) 0 1px, transparent 1px 26px);
+}
+
+.clean-saas-app[data-module="factures"] aside [class*="rounded-[20px]"][class*="bg-white"] {
+  box-shadow: var(--cs-shadow-cut);
+}
+
+.clean-saas-app[data-module="factures"] .clean-saas-viewport {
+  background:
+    radial-gradient(circle at 85% 6%, rgba(253, 235, 221, .82), transparent 280px),
+    repeating-linear-gradient(0deg, rgba(217, 91, 23, .055) 0 1px, transparent 1px 32px),
+    linear-gradient(180deg, rgba(255, 255, 255, .8), transparent 260px),
+    var(--cs-canvas);
+}
+
+.clean-saas-app[data-module="factures"] main [class*="rounded-[20px]"][class*="overflow-hidden"] {
+  background:
+    linear-gradient(180deg, #fff, #fffaf6),
+    repeating-linear-gradient(0deg, rgba(234,219,200,.7) 0 1px, transparent 1px 44px);
+}
+
+.clean-saas-app[data-module="clients"] [class*="xl:grid-cols-3"] > [class*="rounded-[20px]"][class*="p-5"],
+.clean-saas-app[data-module="chantiers"] [class*="xl:grid-cols-4"] > [class*="rounded-[20px]"][class*="p-5"],
+.clean-saas-app[data-module="factures"] [class*="md:grid-cols-3"] > [class*="rounded-[20px]"][class*="p-5"],
+.clean-saas-app[data-module="dashboard"] [class*="grid-cols-1"] > [class*="rounded-[20px]"][class*="p-5"] {
+  overflow: hidden;
+  box-shadow: var(--cs-shadow-ledge);
+}
+
+.clean-saas-app[data-module="clients"] [class*="xl:grid-cols-3"] > [class*="rounded-[20px]"][class*="p-5"] p:first-child,
+.clean-saas-app[data-module="chantiers"] [class*="xl:grid-cols-4"] > [class*="rounded-[20px]"][class*="p-5"] p:first-child,
+.clean-saas-app[data-module="factures"] [class*="md:grid-cols-3"] > [class*="rounded-[20px]"][class*="p-5"] p:first-child {
+  display: inline-flex;
+  width: max-content;
+  border: 1px solid color-mix(in srgb, var(--module-accent), var(--cs-line) 70%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .72);
+  padding: 4px 9px;
+  color: var(--cs-ink-soft);
+}
+
+.clean-saas-app[data-module="factures"] input,
+.clean-saas-app[data-module="factures"] select,
+.clean-saas-app[data-module="factures"] textarea {
+  background:
+    linear-gradient(180deg, #fff, #fff 70%, #fffaf6),
+    var(--cs-surface);
+}
+
+.clean-saas-app[data-module="factures"] table tbody tr {
+  background-image: linear-gradient(90deg, rgba(217, 91, 23, .06), transparent 62%);
+  background-repeat: no-repeat;
+  background-size: 0 100%;
+}
+
+.clean-saas-app[data-module="factures"] table tbody tr:hover {
+  background-size: 100% 100%;
+}
+
+.clean-saas-app[data-module="chantiers"] table tbody tr,
+.clean-saas-app[data-module="clients"] table tbody tr {
+  background-image:
+    linear-gradient(90deg, color-mix(in srgb, var(--module-accent), transparent 88%), transparent 52%),
+    linear-gradient(0deg, transparent, transparent);
+  background-repeat: no-repeat;
+  background-size: 0 100%;
+}
+
+.clean-saas-app[data-module="chantiers"] table tbody tr:hover,
+.clean-saas-app[data-module="clients"] table tbody tr:hover {
+  background-size: 100% 100%;
+}
+
+.clean-saas-app[data-module="planning"] [class*="grid"] > [class*="rounded"][class*="bg-white"],
+.clean-saas-app[data-module="planning"] [class*="border"][class*="bg-white"] {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(255,255,255,1)),
+    repeating-linear-gradient(0deg, rgba(248,154,98,.08) 0 1px, transparent 1px 34px);
+}
+
+.clean-saas-app[data-module="chantiers"] .clean-saas-viewport {
+  background:
+    radial-gradient(circle at 18% 4%, rgba(253, 235, 221, .9), transparent 310px),
+    repeating-linear-gradient(90deg, rgba(30, 30, 30, .045) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgba(240, 107, 33, .055) 0 1px, transparent 1px 72px),
+    var(--cs-canvas);
+}
+
+.clean-saas-app[data-module="chantiers"] [class*="xl:grid-cols-4"] > [class*="rounded-[20px]"][class*="p-5"] {
+  background:
+    linear-gradient(135deg, rgba(253, 235, 221, .75), transparent 42%),
+    #ffffff;
+}
+
+.clean-saas-app[data-module="clients"] .clean-saas-viewport {
+  background:
+    radial-gradient(circle at 18% 0, rgba(241, 230, 214, .95), transparent 300px),
+    repeating-linear-gradient(90deg, rgba(164, 90, 44, .045) 0 1px, transparent 1px 120px),
+    var(--cs-canvas);
+}
+
+.clean-saas-app[data-module="clients"] [class*="xl:grid-cols-3"] > [class*="rounded-[20px]"][class*="p-5"] {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .96), #fff),
+    repeating-linear-gradient(0deg, rgba(241, 230, 214, .7) 0 1px, transparent 1px 28px);
+}
+
+.clean-saas-app[data-module="planning"] .clean-saas-viewport {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.78), transparent 260px),
+    repeating-linear-gradient(90deg, rgba(248,154,98,.09) 0 1px, transparent 1px 120px),
+    repeating-linear-gradient(0deg, rgba(234,219,200,.56) 0 1px, transparent 1px 40px),
+    var(--cs-canvas);
+}
+
+.clean-saas-app[data-module="planning"] main [class*="overflow-x-auto"] {
+  background:
+    linear-gradient(90deg, rgba(250,246,242,.92), transparent 112px),
+    #ffffff;
+}
+
+.clean-saas-app[data-module="emails"] [class*="rounded-[20px]"][class*="bg-white"] {
+  background-image:
+    linear-gradient(180deg, rgba(255, 253, 249, 1), rgba(255,255,255,1) 108px),
+    linear-gradient(90deg, rgba(217,91,23,.09), transparent 36%),
+    repeating-linear-gradient(0deg, rgba(242,232,220,.32) 0 1px, transparent 1px 28px);
+}
+
+.clean-saas-app[data-module="statistiques"] svg,
+.clean-saas-app[data-module="dashboard"] svg {
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.72));
+}
+
+.clean-saas-app[data-module="previsionnel"] table,
+.clean-saas-app[data-module="statistiques"] table {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,1)),
+    repeating-linear-gradient(90deg, rgba(164,90,44,.055) 0 1px, transparent 1px 72px);
+}
+
+.clean-saas-app[data-module="equipe"] [class*="rounded-full"][class*="bg-[#F06B21]"],
+.clean-saas-app[data-module="equipe"] [class*="rounded-[12px]"][class*="bg-[#FDEBDD]"] {
+  box-shadow: inset 0 0 0 1px rgba(164,90,44,.18), 0 8px 20px rgba(164,90,44,.12);
+}
+
+.clean-saas-app [class*="active:scale"] {
+  transform-origin: center;
+}
+
+.clean-saas-app [aria-busy="true"],
+.clean-saas-app button:disabled {
+  cursor: wait;
+}
+
+.clean-saas-app button:disabled {
+  opacity: .62;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clean-saas-app *,
+  .clean-saas-app *::before,
+  .clean-saas-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

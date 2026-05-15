@@ -54,10 +54,10 @@ function NavItem({ to, icon: Icon, label }: NavEntry) {
       to={to}
       className={({ isActive }) =>
         [
-          'relative flex items-center gap-3 h-[38px] px-3 rounded-[10px]',
+          'group relative flex h-[40px] items-center gap-3 rounded-[12px] px-3',
           'text-[13px] font-medium transition-colors',
           isActive
-            ? 'bg-[#2A1A0D] text-white'
+            ? 'bg-[#2A1A0D] text-white ring-1 ring-[#F06B21]/20'
             : 'text-[#C9C9C9] hover:bg-[#2A2A2A] hover:text-white',
         ].join(' ')
       }
@@ -70,11 +70,15 @@ function NavItem({ to, icon: Icon, label }: NavEntry) {
               className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-[#F06B21]"
             />
           )}
-          <Icon
-            size={16}
-            strokeWidth={1.5}
-            className={isActive ? 'text-[#F06B21]' : 'text-[#C9C9C9]'}
-          />
+          <span
+            aria-hidden="true"
+            className={[
+              'grid h-7 w-7 shrink-0 place-items-center rounded-[10px] transition-colors',
+              isActive ? 'bg-[#FDEBDD] text-[#F06B21]' : 'bg-[#262626] text-[#C9C9C9] group-hover:bg-[#303030] group-hover:text-white',
+            ].join(' ')}
+          >
+            <Icon size={15} strokeWidth={1.75} />
+          </span>
           <span className="truncate">{label}</span>
         </>
       )}
@@ -95,31 +99,47 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[232px] h-screen bg-[#1E1E1E] text-white flex flex-col shrink-0">
-      <div className="px-5 pt-6 pb-8">
+    <aside className="relative flex h-screen w-[252px] shrink-0 flex-col overflow-hidden bg-[#1E1E1E] text-white">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(240,107,33,0.12),rgba(240,107,33,0))]" />
+      <div className="relative px-5 pb-5 pt-6">
         <SossonBrand variant="light" className="w-full" />
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 flex flex-col gap-0.5 pt-2">
+      <div className="relative mx-3 mb-3 rounded-[18px] border border-[#2A2A2A] bg-[#242424] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8A8A8A]">Console</p>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <span className="truncate text-[12px] font-semibold text-white">Pilotage chantier</span>
+          <span className="rounded-full bg-[#2A1A0D] px-2 py-0.5 text-[10px] font-semibold text-[#F06B21]">Live</span>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {['SQL', 'Auth', 'GED'].map(item => (
+            <span key={item} className="rounded-[8px] border border-[#2A2A2A] bg-[#1E1E1E] px-2 py-1 text-center text-[10px] font-semibold text-[#C9C9C9]">
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <nav className="relative flex flex-1 flex-col gap-1 overflow-y-auto px-3 pt-2">
         {visibleMain.map(item => (
           <NavItem key={item.to} {...item} />
         ))}
 
-        <div className="my-2 border-t border-[#2A2A2A]" />
+        <div className="my-3 border-t border-[#2A2A2A]" />
 
         {visibleSecondary.map(item => (
           <NavItem key={item.to} {...item} />
         ))}
       </nav>
 
-      <div className="border-t border-[#2A2A2A] px-3 py-3">
+      <div className="relative border-t border-[#2A2A2A] px-3 py-3">
         <button
           type="button"
           onClick={handleLogout}
           aria-label="Menu utilisateur"
-          className="w-full flex items-center gap-2.5 hover:bg-[#2A2A2A] rounded-[10px] px-2 py-2 transition-colors"
+          className="flex w-full items-center gap-2.5 rounded-[14px] px-2 py-2 transition-colors hover:bg-[#2A2A2A]"
         >
-          <div className="w-8 h-8 rounded-full bg-[#F06B21] flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#F06B21] text-[11px] font-bold text-white">
             {user?.avatar}
           </div>
           <div className="flex-1 min-w-0 text-left">

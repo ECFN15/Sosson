@@ -193,18 +193,101 @@ export function DashboardPage() {
 
   return (
     <div className="p-7 space-y-6 min-h-full bg-[#FAF6F2]">
-      {/* Header */}
-      <div>
-        <h1 className="text-[22px] font-bold text-[#1E1E1E] leading-snug">
-          Bonjour {user?.prenom},
-        </h1>
-        <p className="text-[13px] text-[#6B6B6B] mt-0.5">
-          Voici la situation de votre entreprise ce {dateStr}
-        </p>
-      </div>
+      {/* Operational command header */}
+      <section className="overflow-hidden rounded-[24px] border border-[#2A2A2A] bg-[#1E1E1E] text-white shadow-[0_18px_48px_rgba(30,30,30,0.16)]">
+        <div className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="flex min-w-0 flex-col justify-between gap-8">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#F89A62]">
+                Vue operationnelle
+              </p>
+              <h1 className="mt-3 max-w-[720px] text-[34px] font-semibold leading-[1.02] tracking-[-0.01em] text-white">
+                Bonjour {user?.prenom}, voici les dossiers qui demandent votre attention.
+              </h1>
+              <p className="mt-3 max-w-[620px] text-sm leading-6 text-[#C9C9C9]">
+                Situation consolidee ce {dateStr}. Les cartes ci-dessous priorisent les factures, les marges chantier et les prochains jalons.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/factures?status=en_attente')}
+                className="inline-flex h-10 items-center gap-2 rounded-[12px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
+              >
+                <ReceiptText className="h-4 w-4" strokeWidth={1.75} />
+                Traiter les factures
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/chantiers')}
+                className="inline-flex h-10 items-center gap-2 rounded-[12px] border border-[#3C3C3C] bg-[#242424] px-4 text-sm font-semibold text-[#E5E5E5] transition hover:border-[#F06B21] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
+              >
+                <HardHat className="h-4 w-4" strokeWidth={1.75} />
+                Voir les chantiers
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/planning')}
+                className="inline-flex h-10 items-center gap-2 rounded-[12px] border border-[#3C3C3C] bg-[#242424] px-4 text-sm font-semibold text-[#E5E5E5] transition hover:border-[#F06B21] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
+              >
+                <Calendar className="h-4 w-4" strokeWidth={1.75} />
+                Planning semaine
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-[20px] border border-[#2A2A2A] bg-[#242424] p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
+                Priorites du jour
+              </span>
+              <span className="rounded-full bg-[#2A1A0D] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">
+                {alertesImportantesCount} alerte{alertesImportantesCount > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="grid gap-3">
+              {[
+                {
+                  label: 'Factures en attente',
+                  value: facturesEnAttente.length.toString(),
+                  meta: `${fmt(facturesEnAttente.reduce((s, f) => s + f.montantTTC, 0))} EUR a qualifier`,
+                  Icon: ReceiptText,
+                },
+                {
+                  label: 'Chantiers a risque',
+                  value: chantiersRisqueCount.toString(),
+                  meta: 'Marge ou planning sous surveillance',
+                  Icon: AlertTriangle,
+                },
+                {
+                  label: 'Marge previsionnelle',
+                  value: `${Math.round((marge / chiffreAffaires) * 100)}%`,
+                  meta: `${fmt(Math.round(marge))} EUR estimes`,
+                  Icon: PieChartIcon,
+                },
+              ].map(item => {
+                const Icon = item.Icon
+                return (
+                  <div key={item.label} className="grid grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-3 rounded-[14px] border border-[#2A2A2A] bg-[#1E1E1E] p-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13px] font-semibold text-white">{item.label}</span>
+                      <span className="block truncate text-[11px] text-[#8A8A8A]">{item.meta}</span>
+                    </span>
+                    <strong className="text-[18px] font-semibold text-white">{item.value}</strong>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <KpiCard
           label="Chiffre d'affaires (HT)"
           value={`${fmt(chiffreAffaires)} €`}
@@ -249,7 +332,7 @@ export function DashboardPage() {
       </div>
 
       {/* Row 2: Marge par chantier + Répartition dépenses + Alertes */}
-      <div className="grid grid-cols-[1fr_1fr_280px] gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_280px]">
         {/* Marge par chantier */}
         <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
           <div className="flex items-center justify-between mb-4">
@@ -401,7 +484,7 @@ export function DashboardPage() {
       </div>
 
       {/* Row 3: Activité récente + Trésorerie + Chantiers en risque + Prochaines échéances */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
         {/* Activité récente */}
         <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Activité récente</h2>
@@ -561,7 +644,7 @@ export function DashboardPage() {
       </div>
 
       {/* Row 4: Bottom stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
         {/* Dépenses par mois */}
         <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
           <p className="text-[12px] font-medium text-[#6B6B6B] mb-1">Dépenses par mois (8 derniers mois)</p>
