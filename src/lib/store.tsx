@@ -11,6 +11,7 @@ import type { Client } from '@/data/clients'
 import { emails as seedEmails } from '@/data/emails'
 import { getCurrentUser } from '@/lib/auth'
 import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
 import { buildPrevisionnelChantiers, buildPrevisionnelClients } from '@/lib/previsionnelModel'
 import type { User } from '@/data/users'
 import { loadAccessMatrix, saveAccessMatrix } from '@/lib/accessControl'
@@ -163,6 +164,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async function loadDataConnectData() {
       setIsDataConnectLoading(true)
       try {
+        const firebaseUser = await waitForFirebaseUser()
+        if (!firebaseUser) return
+
         const dc = getSossonDataConnect()
         const [clientsResponse, chantiersResponse, facturesResponse] = await Promise.all([
           listClients(dc),

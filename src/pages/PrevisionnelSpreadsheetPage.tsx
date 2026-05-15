@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
-import { ArrowLeft, Cloud, Download, RotateCcw } from 'lucide-react'
+import { ArchiveRestore, ArrowLeft, Cloud, Download, RotateCcw, Save } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
   listPrevisionnelCellEdits,
@@ -14,6 +14,7 @@ import { exportCurrentPrevisionnelWorkbookFromCells, type WorkbookCellUpdates } 
 import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
 import {
   buildSpreadsheetView,
+  checkpointCellUpdates,
   formatSpreadsheetValue,
   isNumericColumn,
   normalizeSpreadsheetInput,
@@ -21,9 +22,18 @@ import {
   type SpreadsheetCellUpdates,
 } from '@/lib/previsionnelSpreadsheet'
 import { useApp } from '@/lib/store'
+import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
+import {
+  checkpointChecksum,
+  PREVISIONNEL_BASELINE_CHECKPOINT,
+  readUserCheckpoints,
+  writeUserCheckpoints,
+  type PrevisionnelUserCheckpoint,
+} from '@/lib/previsionnelCheckpoint'
 import type { CurrentSheetColumn, CurrentSheetRow } from '@/data/previsionnelCurrentSheet'
 
 const STORAGE_KEY = `sosson:previsionnel:${currentPrevisionnelSheet.sheet}:cell-updates`
+const BASELINE_CHECKPOINT_ID = PREVISIONNEL_BASELINE_CHECKPOINT.id
 
 type SqlStatus = 'idle' | 'loading' | 'ready' | 'saving' | 'unavailable' | 'error'
 type SqlCellBinding = {
@@ -47,6 +57,9 @@ type DraftCell = {
   value: string
   numeric: boolean
 }
+
+const SPREADSHEET_ROW_HEIGHT = 32
+const SPREADSHEET_ROW_OVERSCAN = 6
 
 function cellEditId(sheet: string, ref: string) {
   return `${sheet}:${ref}`
@@ -117,7 +130,6 @@ interface SpreadsheetRowProps {
   columnsByKey: Map<string, CurrentSheetColumn>
   edited: WorkbookCellUpdates
   sqlValues: WorkbookCellUpdates
-  spreadsheetValues: SpreadsheetCellUpdates
   draftCellInRow: DraftCell | null
   activeCellInRow: string | null
   editingCellInRow: string | null
@@ -134,8 +146,6 @@ const SpreadsheetRow = memo(function SpreadsheetRow({
   row,
   columnsByKey,
   edited,
-  sqlValues,
-  spreadsheetValues,
   draftCellInRow,
   activeCellInRow,
   editingCellInRow,
@@ -167,7 +177,7 @@ const SpreadsheetRow = memo(function SpreadsheetRow({
       {row.cells.map(cell => {
         const column = columnsByKey.get(cell.col)
         const draftValue = draftCellInRow?.ref === cell.ref ? draftCellInRow.value : null
-        const committedValue = valueForCell(cell.ref, cell.value, edited, sqlValues, spreadsheetValues)
+        const committedValue = cell.value
         const value = draftValue ?? committedValue
         const editable = cell.editable
         const numeric = typeof rowInitialValue(row, cell.col) === 'number' || isNumericColumn(column)
@@ -262,7 +272,8 @@ function areSpreadsheetRowPropsEqual(previous: SpreadsheetRowProps, next: Spread
       previousCell.ref !== nextCell.ref ||
       previousCell.col !== nextCell.col ||
       previousCell.editable !== nextCell.editable ||
-      previousCell.fillId !== nextCell.fillId
+      previousCell.fillId !== nextCell.fillId ||
+      !Object.is(previousCell.value, nextCell.value)
     ) {
       return false
     }
@@ -271,15 +282,11 @@ function areSpreadsheetRowPropsEqual(previous: SpreadsheetRowProps, next: Spread
     const nextChanged = Object.prototype.hasOwnProperty.call(next.edited, nextCell.ref)
     if (previousChanged !== nextChanged) return false
 
-    const previousValue = valueForCell(
-      nextCell.ref,
-      previousCell.value,
-      previous.edited,
-      previous.sqlValues,
-      previous.spreadsheetValues,
-    )
-    const nextValue = valueForCell(nextCell.ref, nextCell.value, next.edited, next.sqlValues, next.spreadsheetValues)
-    if (!Object.is(previousValue, nextValue)) return false
+    const previousSqlValue = Object.prototype.hasOwnProperty.call(previous.sqlValues, nextCell.ref)
+      ? previous.sqlValues[nextCell.ref]
+      : undefined
+    const nextSqlValue = Object.prototype.hasOwnProperty.call(next.sqlValues, nextCell.ref) ? next.sqlValues[nextCell.ref] : undefined
+    if (!Object.is(previousSqlValue, nextSqlValue)) return false
   }
 
   return true
@@ -289,19 +296,27 @@ export function PrevisionnelSpreadsheetPage() {
   const { user } = useApp()
   const cellInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const cellInputRefCallbacks = useRef<Record<string, (node: HTMLInputElement | null) => void>>({})
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const focusFrame = useRef<number | null>(null)
+  const scrollFrame = useRef<number | null>(null)
   const handleSaveSqlRef = useRef<(() => Promise<void>) | null>(null)
   const editedRef = useRef<WorkbookCellUpdates>({})
   const draftCellRef = useRef<DraftCell | null>(null)
   const editSessionRef = useRef<{ ref: string; hadEditedValue: boolean; value: string | number | null } | null>(null)
   const [sqlStatus, setSqlStatus] = useState<SqlStatus>('idle')
-  const [, setSqlMessage] = useState('Mode local navigateur')
+  const [sqlMessage, setSqlMessage] = useState('Mode local navigateur')
   const [sqlValues, setSqlValues] = useState<WorkbookCellUpdates>({})
   const [sqlBindings, setSqlBindings] = useState<Record<string, SqlCellBinding>>({})
   const [sqlLineBindings, setSqlLineBindings] = useState<Record<number, SqlLineBinding>>({})
   const [activeCell, setActiveCell] = useState<string | null>(null)
   const [editingCell, setEditingCell] = useState<string | null>(null)
   const [draftCell, setDraftCell] = useState<DraftCell | null>(null)
+  const [selectedCheckpointId, setSelectedCheckpointId] = useState<string>(BASELINE_CHECKPOINT_ID)
+  const [userCheckpoints, setUserCheckpoints] = useState<PrevisionnelUserCheckpoint[]>(() =>
+    readUserCheckpoints(currentPrevisionnelSheet.sheet),
+  )
+  const [scrollTop, setScrollTop] = useState(0)
+  const [viewportHeight, setViewportHeight] = useState(720)
   const [edited, setEdited] = useState<WorkbookCellUpdates>(() => {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as WorkbookCellUpdates
@@ -321,9 +336,24 @@ export function PrevisionnelSpreadsheetPage() {
   useEffect(
     () => () => {
       if (focusFrame.current !== null) cancelAnimationFrame(focusFrame.current)
+      if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current)
     },
     [],
   )
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    setViewportHeight(container.clientHeight || 720)
+    const observer = new ResizeObserver(entries => {
+      const height = entries[0]?.contentRect.height
+      if (height) setViewportHeight(height)
+    })
+    observer.observe(container)
+
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -339,6 +369,14 @@ export function PrevisionnelSpreadsheetPage() {
       setSqlStatus('loading')
       setSqlMessage('Chargement SQL Connect...')
       try {
+        const firebaseUser = await waitForFirebaseUser()
+        if (!firebaseUser) {
+          if (!mounted) return
+          setSqlStatus('unavailable')
+          setSqlMessage('SQL Connect indisponible : utilisateur Firebase non connecte, mode navigateur actif')
+          return
+        }
+
         const dc = getSossonDataConnect()
         const exercisesResponse = await listPrevisionnelExercises(dc)
         const exercise = exercisesResponse.data.previsionnelExercises.find(item => item.sheet === currentPrevisionnelSheet.sheet)
@@ -408,6 +446,19 @@ export function PrevisionnelSpreadsheetPage() {
   )
 
   const rows = spreadsheet.rows
+  const visibleWindow = useMemo(() => {
+    const start = Math.max(0, Math.floor(scrollTop / SPREADSHEET_ROW_HEIGHT) - SPREADSHEET_ROW_OVERSCAN)
+    const visibleCount = Math.ceil(viewportHeight / SPREADSHEET_ROW_HEIGHT) + SPREADSHEET_ROW_OVERSCAN * 2
+    const end = Math.min(rows.length, start + visibleCount)
+
+    return {
+      start,
+      end,
+      rows: rows.slice(start, end),
+      topHeight: start * SPREADSHEET_ROW_HEIGHT,
+      bottomHeight: Math.max(0, (rows.length - end) * SPREADSHEET_ROW_HEIGHT),
+    }
+  }, [rows, scrollTop, viewportHeight])
   const columnsByKey = useMemo(() => new Map(currentPrevisionnelSheet.columns.map(column => [column.key, column])), [])
   const cellPositionByRef = useMemo(() => {
     const positions = new Map<string, CellPosition>()
@@ -495,6 +546,55 @@ export function PrevisionnelSpreadsheetPage() {
     draftCellRef.current = nextDraft
     setDraftCell(nextDraft)
   }, [ensureEditSession])
+
+  const restoreCheckpoint = useCallback(() => {
+    const selectedCheckpoint = userCheckpoints.find(checkpoint => checkpoint.id === selectedCheckpointId)
+    const checkpoint = selectedCheckpoint
+      ? selectedCheckpoint.values
+      : sqlCanSave
+        ? checkpointCellUpdates(currentPrevisionnelSheet)
+        : {}
+    draftCellRef.current = null
+    editedRef.current = checkpoint
+    setEdited(checkpoint)
+    setDraftCell(null)
+    setEditingCell(null)
+    setSqlMessage(
+      selectedCheckpoint
+        ? `${selectedCheckpoint.label} restaure localement`
+        : sqlCanSave
+          ? `Reference immuable PREVISIONNEL.xlsx ${currentPrevisionnelSheet.sheet} prete a sauvegarder dans SQL`
+          : `Reference immuable PREVISIONNEL.xlsx ${currentPrevisionnelSheet.sheet} restauree en mode navigateur`,
+    )
+  }, [selectedCheckpointId, sqlCanSave, userCheckpoints])
+
+  const createUserCheckpoint = useCallback(async () => {
+    const values = editedWithDraft(buildExportUpdates(editedRef.current, sqlValues))
+    const now = new Date()
+    const label = `Checkpoint ${now.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`
+    const checkpoint: PrevisionnelUserCheckpoint = {
+      id: `checkpoint-${now.toISOString()}`,
+      label,
+      sheet: currentPrevisionnelSheet.sheet,
+      createdAt: now.toISOString(),
+      baseCheckpointId: PREVISIONNEL_BASELINE_CHECKPOINT.id,
+      baseSha256: PREVISIONNEL_BASELINE_CHECKPOINT.sha256,
+      values,
+      valueCount: Object.keys(values).length,
+      checksum: await checkpointChecksum(values),
+    }
+    const next = [checkpoint, ...userCheckpoints].slice(0, 20)
+    setUserCheckpoints(next)
+    writeUserCheckpoints(currentPrevisionnelSheet.sheet, next)
+    setSelectedCheckpointId(checkpoint.id)
+    setSqlMessage(`${label} cree depuis la reference immuable PREVISIONNEL.xlsx`)
+  }, [editedWithDraft, sqlValues, userCheckpoints])
 
   const cancelCellEdit = useCallback((ref: string) => {
     const session = editSessionRef.current
@@ -683,21 +783,29 @@ export function PrevisionnelSpreadsheetPage() {
     commitDraft()
     setActiveCell(current => (current === ref ? current : ref))
     stopEditing()
+    const position = cellPositionByRef.get(ref)
+    if (position && scrollContainerRef.current) {
+      const targetTop = Math.max(0, position.rowIndex * SPREADSHEET_ROW_HEIGHT - SPREADSHEET_ROW_HEIGHT * 4)
+      scrollContainerRef.current.scrollTop = targetTop
+      setScrollTop(targetTop)
+    }
     if (focusFrame.current !== null) cancelAnimationFrame(focusFrame.current)
 
     focusFrame.current = requestAnimationFrame(() => {
-      const input = cellInputRefs.current[ref]
-      if (!input) return
+      requestAnimationFrame(() => {
+        const input = cellInputRefs.current[ref]
+        if (!input) return
 
-      if (document.activeElement !== input) input.focus({ preventScroll: true })
-      input.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-      if (select === true) input.select()
-      if (select === 'end') {
-        const end = input.value.length
-        input.setSelectionRange(end, end)
-      }
+        if (document.activeElement !== input) input.focus({ preventScroll: true })
+        input.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+        if (select === true) input.select()
+        if (select === 'end') {
+          const end = input.value.length
+          input.setSelectionRange(end, end)
+        }
+      })
     })
-  }, [commitDraft, stopEditing])
+  }, [cellPositionByRef, commitDraft, stopEditing])
 
   const startEditingCell = useCallback((ref: string, select: boolean | 'end' = false) => {
     setActiveCell(current => (current === ref ? current : ref))
@@ -960,6 +1068,37 @@ export function PrevisionnelSpreadsheetPage() {
           </button>
           <button
             type="button"
+            onClick={() => void createUserCheckpoint()}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+            title="Créer un snapshot applicatif basé sur la référence immuable PREVISIONNEL.xlsx"
+          >
+            <Save className="h-4 w-4 text-[#F06B21]" />
+            Créer checkpoint
+          </button>
+          <select
+            value={selectedCheckpointId}
+            onChange={event => setSelectedCheckpointId(event.target.value)}
+            className="h-9 max-w-[280px] shrink-0 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+            title={`Référence absolue: ${PREVISIONNEL_BASELINE_CHECKPOINT.sourcePath}`}
+          >
+            <option value={BASELINE_CHECKPOINT_ID}>Référence immuable PREVISIONNEL.xlsx</option>
+            {userCheckpoints.map(checkpoint => (
+              <option key={checkpoint.id} value={checkpoint.id}>
+                {checkpoint.label} · {checkpoint.valueCount} cellule(s)
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={restoreCheckpoint}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+            title={`Restaurer le checkpoint sélectionné. Référence immuable: ${PREVISIONNEL_BASELINE_CHECKPOINT.sha256}`}
+          >
+            <ArchiveRestore className="h-4 w-4 text-[#F06B21]" />
+            Revenir checkpoint
+          </button>
+          <button
+            type="button"
             onClick={() => void handleSaveSql()}
             disabled={!sqlCanSave || editedCount === 0}
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white hover:bg-[#3C3C3C] disabled:cursor-not-allowed disabled:bg-[#C8B18C]"
@@ -969,9 +1108,28 @@ export function PrevisionnelSpreadsheetPage() {
           </button>
         </div>
       </div>
+      <div className="flex h-8 shrink-0 items-center gap-2 border-b border-[#EADBC8] bg-[#FAF6F2] px-3 text-[11px] font-semibold text-[#6B6B6B]">
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{
+            backgroundColor:
+              sqlStatus === 'ready' ? '#1E8E3E' : sqlStatus === 'saving' || sqlStatus === 'loading' ? '#F06B21' : '#C8B18C',
+          }}
+        />
+        <span className="truncate">{sqlMessage}</span>
+        {editedCount > 0 && <span className="ml-auto text-[#1E1E1E]">{editedCount} cellule(s) modifiee(s)</span>}
+      </div>
 
       <section className="min-h-0 flex-1 overflow-hidden bg-white">
-        <div className="h-full overflow-auto overscroll-contain">
+        <div
+          ref={scrollContainerRef}
+          className="h-full overflow-auto overscroll-contain"
+          onScroll={event => {
+            const nextTop = event.currentTarget.scrollTop
+            if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current)
+            scrollFrame.current = requestAnimationFrame(() => setScrollTop(nextTop))
+          }}
+        >
           <table className="min-w-max border-separate border-spacing-0 text-left text-[12px]">
             <thead className="sticky top-0 z-30">
               <tr>
@@ -1009,7 +1167,12 @@ export function PrevisionnelSpreadsheetPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(row => {
+              {visibleWindow.topHeight > 0 && (
+                <tr aria-hidden="true">
+                  <td colSpan={currentPrevisionnelSheet.columns.length + 1} style={{ height: visibleWindow.topHeight, padding: 0 }} />
+                </tr>
+              )}
+              {visibleWindow.rows.map(row => {
                 const rowActive = activeRowNumber === row.rowNumber
 
                 return (
@@ -1019,7 +1182,6 @@ export function PrevisionnelSpreadsheetPage() {
                     columnsByKey={columnsByKey}
                     edited={edited}
                     sqlValues={sqlValues}
-                    spreadsheetValues={spreadsheet.values}
                     draftCellInRow={draftRowNumber === row.rowNumber ? draftCell : null}
                     activeCellInRow={rowActive ? activeCell : null}
                     editingCellInRow={rowActive ? editingCell : null}
@@ -1033,6 +1195,11 @@ export function PrevisionnelSpreadsheetPage() {
                   />
                 )
               })}
+              {visibleWindow.bottomHeight > 0 && (
+                <tr aria-hidden="true">
+                  <td colSpan={currentPrevisionnelSheet.columns.length + 1} style={{ height: visibleWindow.bottomHeight, padding: 0 }} />
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -8,6 +8,7 @@ import type {
 } from '../data/previsionnelCurrentSheet'
 import {
   buildSpreadsheetView,
+  checkpointCellUpdates,
   columnNumber,
   editableCellRefs,
   editableSpreadsheetRefAt,
@@ -89,6 +90,7 @@ describe('previsionnel spreadsheet parsing and formatting', () => {
   it('keeps non numeric text visible when formatting a numeric cell', () => {
     expect(formatSpreadsheetValue('#DIV/0!', true)).toBe('#DIV/0!')
     expect(formatSpreadsheetValue(12345.5, true)).toBe('12\u202f345,5')
+    expect(formatSpreadsheetValue('', true)).toBe('')
     expect(formatSpreadsheetValue('Client A', false)).toBe('Client A')
   })
 
@@ -106,6 +108,7 @@ describe('previsionnel spreadsheet cell references', () => {
     expect(spreadsheetRef(sheetRow, 'AR')).toBe('AR12')
     expect(spreadsheetRef(sheetRow, 'ZZ')).toBeUndefined()
     expect(editableCellRefs([sheetRow])).toEqual(['B12', 'AR12'])
+    expect(checkpointCellUpdates(makeSheet([sheetRow]))).toEqual({ B12: 'Client', AR12: 100 })
   })
 
   it('sorts spreadsheet refs by row first, then by column index', () => {

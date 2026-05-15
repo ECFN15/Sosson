@@ -79,6 +79,7 @@ export function isNumericColumn(column?: CurrentSheetColumn) {
 
 export function formatSpreadsheetValue(value: SpreadsheetCellValue, numeric: boolean) {
   if (value === null || value === undefined) return ''
+  if (numeric && typeof value === 'string' && value.trim() === '') return ''
   if (!numeric) return String(value)
   if (typeof value === 'string' && value.trim() !== '' && !Number.isFinite(Number(value.replace(/\s/g, '').replace(',', '.')))) {
     return value
@@ -219,6 +220,18 @@ export function spreadsheetRef(row: CurrentSheetRow, col: string) {
 
 export function editableCellRefs(rows: CurrentSheetRow[]) {
   return rows.flatMap(row => row.cells.filter(cell => cell.editable).map(cell => cell.ref))
+}
+
+export function checkpointCellUpdates(sheet: CurrentPrevisionnelSheet): SpreadsheetCellUpdates {
+  const updates: SpreadsheetCellUpdates = {}
+
+  sheet.rows.forEach(row => {
+    row.cells.forEach(cell => {
+      if (cell.editable) updates[cell.ref] = cell.value
+    })
+  })
+
+  return updates
 }
 
 export function spreadsheetCellPosition(rows: CurrentSheetRow[], ref: string): SpreadsheetCellPosition | null {

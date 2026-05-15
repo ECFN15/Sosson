@@ -285,7 +285,7 @@ const output = [
   '    {',
   `      id: ${gqlString(BATCH_ID)},`,
   '      workbook: "PREVISIONNEL.xlsx",',
-  '      sourcePath: "C:/Users/pcpor/OneDrive/Bureau/previsionnelsosson/PREVISIONNEL.xlsx",',
+  '      sourcePath: "C:/Users/pcpor/OneDrive/Bureau/prévisionnelsosson/PREVISIONNEL.xlsx",',
   `      workbookHash: ${workbookHash() ? gqlString(workbookHash()) : 'null'},`,
   '      notes: "Import genere depuis src/data/previsionnel.ts. Jaune Excel = facture envoyee, pas paiement."',
   '    }',

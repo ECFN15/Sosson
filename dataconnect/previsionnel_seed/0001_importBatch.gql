@@ -3,7 +3,7 @@ mutation @transaction {
     {
       id: "6eafb4bd-e2e2-505d-b358-8238cb9b5af2",
       workbook: "PREVISIONNEL.xlsx",
-      sourcePath: "C:/Users/pcpor/OneDrive/Bureau/previsionnelsosson/PREVISIONNEL.xlsx",
+      sourcePath: "C:/Users/pcpor/OneDrive/Bureau/prévisionnelsosson/PREVISIONNEL.xlsx",
       workbookHash: "95d30a33b56f2d5051592ad258a5cd5e7a18b5ee124bd60fc0c5c95dbf9452f7",
       notes: "Import genere depuis src/data/previsionnel.ts. Jaune Excel = facture envoyee, pas paiement."
     }
