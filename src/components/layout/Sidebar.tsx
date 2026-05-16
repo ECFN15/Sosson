@@ -14,12 +14,14 @@ import {
   Settings,
   Folder,
   ChevronDown,
+  Clock3,
 } from 'lucide-react'
 import { logout } from '@/lib/auth'
 import { useApp } from '@/lib/store'
 import { roleLabels } from '@/data/users'
 import { SossonBrand } from '@/components/brand/SossonLogo'
 import { canAccessPage } from '@/lib/accessControl'
+import { useCurrentDateTime } from '@/lib/useCurrentDateTime'
 import type { PagePermissionKey } from '@/lib/accessControl'
 
 type NavEntry = {
@@ -89,6 +91,7 @@ function NavItem({ to, icon: Icon, label }: NavEntry) {
 export function Sidebar() {
   const { user, setUser, accessMatrix } = useApp()
   const navigate = useNavigate()
+  const { date, time } = useCurrentDateTime()
   const visibleMain = navMain.filter(item => canAccessPage(user?.role, item.accessKey, accessMatrix))
   const visibleSecondary = navSecondary.filter(item => canAccessPage(user?.role, item.accessKey, accessMatrix))
 
@@ -106,17 +109,15 @@ export function Sidebar() {
       </div>
 
       <div className="relative mx-3 mb-3 rounded-[18px] border border-[#2A2A2A] bg-[#242424] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8A8A8A]">Console</p>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <span className="truncate text-[12px] font-semibold text-white">Pilotage chantier</span>
-          <span className="rounded-full bg-[#2A1A0D] px-2 py-0.5 text-[10px] font-semibold text-[#F06B21]">Live</span>
-        </div>
-        <div className="mt-3 grid grid-cols-3 gap-1.5">
-          {['SQL', 'Auth', 'GED'].map(item => (
-            <span key={item} className="rounded-[8px] border border-[#2A2A2A] bg-[#1E1E1E] px-2 py-1 text-center text-[10px] font-semibold text-[#C9C9C9]">
-              {item}
-            </span>
-          ))}
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8A8A8A]">Aujourd'hui</p>
+        <div className="mt-2 flex items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#2A1A0D] text-[#F06B21]">
+            <Clock3 size={17} strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[18px] font-semibold leading-tight text-white">{time}</p>
+            <p className="truncate text-[11px] capitalize leading-tight text-[#C9C9C9]">{date}</p>
+          </div>
         </div>
       </div>
 

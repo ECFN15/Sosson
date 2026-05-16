@@ -56,7 +56,7 @@ const initialClients = excelClients.length ? excelClients : seedClients
 const initialChantiers = excelChantiers.length ? excelChantiers : seedChantiers
 const initialDataSource: DataSource = excelClients.length && excelChantiers.length ? 'excel' : 'seed'
 const initialFactures = initialDataSource === 'excel' ? [] : seedFactures
-const emails = initialDataSource === 'excel' ? [] : seedEmails
+const emails = seedEmails
 
 function asClientType(value: string): Client['type'] {
   return clientTypes.includes(value as Client['type']) ? (value as Client['type']) : 'particulier'

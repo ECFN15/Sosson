@@ -307,6 +307,11 @@ Le front couvre deja les ecrans principaux :
 - le store principal utilise encore `src/data/chantiers.ts` et `src/data/factures.ts`
 - `clients` et `chantiers` utilisent maintenant les donnees Excel previsionnelles nettoyees en fallback local quand SQL Connect n'a pas encore fourni de donnees
 - `emails` reste expose depuis les seeds locaux
+- une app Microsoft Entra de test `Sosson Email Test` a ete creee pour valider le module email Outlook/Graph avec un compte Outlook de developpement
+- les URI de redirection configurees sur cette app Microsoft de test sont :
+  - `https://sosson-sandbox.web.app/auth/microsoft/callback`
+  - `http://localhost:5173/auth/microsoft/callback`
+- les identifiants non secrets de cette app sont ranges dans `.env.local`; le `MICROSOFT_CLIENT_SECRET` doit rester uniquement local/serveur et ne jamais etre prefixe par `VITE_`
 - l'effet "ajout de facture" met a jour le state React local, pas encore SQL Connect
 
 ### Auth actuelle

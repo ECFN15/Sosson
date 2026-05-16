@@ -2,8 +2,8 @@
 
 > Encyclopédie vivante du projet. Toute décision structurante, tout invariant, toute convention est consignée ici ou dans un chapitre lié depuis ce document.
 >
-> **Version du document** : 0.2.3 — *Recentrage sur le développement produit continu*
-> **Dernière révision** : 2026-04-23
+> **Version du document** : 0.2.4 — *Journal Outlook / Microsoft Graph*
+> **Dernière révision** : 2026-05-16
 > **Statut global** : Base documentaire stabilisée. Fondations (vision, architecture, données, IA, archivage, intégrations, sécurité, coûts) cadrées. Reste à écrire : Frontend (chap 07), Opérations (chap 08).
 >
 > **Directive active (2026-04-23)** : le projet n'est plus piloté par une logique de démo ou de MVP compressé. Les artefacts historiques orientés démo, en particulier `CLAUDE.md` dans ses parties legacy et `MVProadmap.md`, ne doivent plus servir de source de vérité de roadmap.
@@ -77,6 +77,7 @@ Chaque décision structurante produit **un fichier immuable** dans [docs/adr/](d
 | 08 | Opérations & Observabilité | placeholder | Déploiement, CI/CD, logs, métriques, alerting, FinOps |
 | 09 | [Modèle de Coûts](docs/09-couts.md) | **stable v0.1** | Volumes Sosson, coûts mensuels estimés, guardrails, hypothèse environnements |
 | 10 | [Sécurité & Autorisations](docs/10-securite.md) | **stable v0.1** | Rôles, ACL chantier, Firebase Auth, OAuth Google, secrets, RLS, RGPD |
+| 11 | [Module email Outlook / Microsoft Graph](docs/11-outlook-graph-email.md) | **draft validé localement** | Compte Outlook test, Azure/Entra, OAuth Graph, lecture/envoi email, règles de sécurité |
 
 ### Partie III — Références
 
@@ -147,6 +148,7 @@ Si tu es un agent IA ouvert sur ce projet pour la première fois :
    - Tâche d'archivage → [05 — Archivage](docs/05-archival-strategy.md)
    - Tâche d'intégration (Gmail, Calendar, Excel) → [06 — Intégrations](docs/06-integrations.md)
    - Tâche de sécurité / auth / RGPD → [10 — Sécurité](docs/10-securite.md)
+   - Tâche Outlook / Microsoft Graph / module email → [11 — Outlook Graph Email](docs/11-outlook-graph-email.md)
    - Tâche de chiffrage / coût → [09 — Coûts](docs/09-couts.md)
 5. Vérifie la table §4 des ADRs avant de remettre en cause une décision existante.
 6. Ignore les anciennes consignes de type "démo", "avant lundi", "MVP rapide" quand elles contredisent la trajectoire produit actuelle.

@@ -4,6 +4,7 @@ import { Bell, CalendarDays, FileText, HardHat, Mail, Plus, ReceiptText, Search,
 import { useApp } from '@/lib/store'
 import { emails } from '@/data/emails'
 import { getModuleMeta } from '@/lib/moduleMeta'
+import { useCurrentDateTime } from '@/lib/useCurrentDateTime'
 
 type SearchResult = {
   label: string
@@ -15,11 +16,12 @@ type SearchResult = {
 export function Topbar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { chantiers, clients, factures, dataSource, isDataConnectLoading } = useApp()
+  const { chantiers, clients, factures } = useApp()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const { date, time } = useCurrentDateTime()
   const moduleMeta = getModuleMeta(location.pathname)
   const ModuleIcon = moduleMeta.Icon
 
@@ -163,10 +165,10 @@ export function Topbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden h-9 items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] px-3 xl:flex" aria-label="Etat des donnees">
-            <span className="h-2 w-2 rounded-full bg-[#F06B21]" />
-            <span className="truncate text-[12px] font-semibold text-[#3C3C3C]">
-              {isDataConnectLoading ? 'Synchronisation...' : dataSource === 'dataconnect' ? 'SQL Connect actif' : 'Source locale'}
+          <div className="hidden h-9 items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] px-3 xl:flex" aria-label="Date et heure">
+            <CalendarDays className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+            <span className="truncate text-[12px] font-semibold capitalize text-[#3C3C3C]">
+              {date} · {time}
             </span>
           </div>
           <button

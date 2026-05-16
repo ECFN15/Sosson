@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BookOpen, Code2, FileText, Link as LinkIcon, Server, ShieldCheck } from 'lucide-react'
+import { BookOpen, Code2, FileText, Link as LinkIcon, MailCheck, Server, ShieldCheck } from 'lucide-react'
 import { previsionnelClients, previsionnelLines, previsionnelSheetAudit, previsionnelSource } from '@/data/previsionnel'
 
 const chapters = [
@@ -8,6 +8,7 @@ const chapters = [
   { id: 'clients', label: 'Clients' },
   { id: 'analytics', label: 'Statistiques' },
   { id: 'firebase', label: 'Firebase' },
+  { id: 'outlook', label: 'Outlook' },
   { id: 'couts', label: 'Coûts' },
   { id: 'suite', label: 'Suite' },
 ]
@@ -33,6 +34,7 @@ export function SossonDocsPage() {
       ['documentation.md', 'Vision produit et architecture'],
       ['docs/02-architecture.md', 'Architecture Firebase cible'],
       ['docs/09-couts.md', 'Stratégie coût bas'],
+      ['docs/11-outlook-graph-email.md', 'Journal Outlook / Microsoft Graph'],
       ['dataconnect/schema/schema.gql', 'Source de vérité SQL Connect'],
       [previsionnelSource.workbook, 'Classeur prévisionnel source'],
     ],
@@ -178,8 +180,55 @@ src/pages/StatistiquesPage.tsx`}</pre>,
             )}
           </section>
 
-          <section id="couts" className="scroll-mt-8 border-b border-[#EADBC8] py-8">
+          <section id="outlook" className="scroll-mt-8 border-b border-[#EADBC8] py-8">
             <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#F06B21]">06</p>
+            <h2 className="mt-3 text-[28px] font-semibold text-[#1E1E1E]">Outlook et Microsoft Graph</h2>
+            <p className="mt-4 text-[15px] leading-7 text-[#3C3C3C]">
+              Une boite Outlook de développement a été créée puis connectée à une App Registration Microsoft Entra `Sosson Email Test`.
+              Le test local a validé OAuth, `Mail.Read` et `Mail.Send` via Microsoft Graph, sans exposer le secret client dans React.
+            </p>
+            {sourceBlock(
+              'Etat validé le 2026-05-16',
+              <ul className="list-disc space-y-2 pl-5">
+                <li>Compte test : `matthis.fradinpro14@outlook.fr`.</li>
+                <li>Callbacks configurés : `https://sosson-sandbox.web.app/auth/microsoft/callback` et `http://localhost:5173/auth/microsoft/callback`.</li>
+                <li>Permissions déléguées : `User.Read`, `email`, `offline_access`, `Mail.Read`, `Mail.Send`.</li>
+                <li>Tests réussis : lecture du dernier email et envoi d'un email `Sosson Graph test ...`.</li>
+              </ul>,
+            )}
+            {sourceBlock(
+              'Parcours Azure / Entra suivi',
+              <ol className="list-decimal space-y-2 pl-5">
+                <li>Ouverture du portail `https://portal.azure.com/` avec le compte Outlook de test.</li>
+                <li>Recherche `Inscriptions d'applications`, puis clic sur `Nouvelle inscription`.</li>
+                <li>Création de l'app `Sosson Email Test` avec le type `Tout locataire Entra ID + compte personnel Microsoft`.</li>
+                <li>Récupération de `ID d'application (client)` pour `MICROSOFT_CLIENT_ID` et `ID de l'annuaire (locataire)` pour `MICROSOFT_TENANT_ID`.</li>
+                <li>Ajout de deux URI dans `Authentification (Preview)` en plateforme `Web`, pas en flux implicite.</li>
+                <li>Ajout des permissions Graph déléguées dans `API autorisées`, puis consentement admin sur `Default Directory`.</li>
+                <li>Création d'un secret dans `Certificats & secrets`, suppression du premier secret exposé, puis régénération propre.</li>
+              </ol>,
+            )}
+            {sourceBlock(
+              'Secret client : règle exacte',
+              <pre>{`Dans Azure, il y a deux colonnes :
+- Valeur      -> vrai secret OAuth, a mettre dans MICROSOFT_CLIENT_SECRET
+- ID de secret -> identifiant technique, ne sert pas pour OAuth
+
+Azure n'affiche la Valeur qu'une seule fois.
+Si elle est perdue ou visible dans une capture, supprimer le secret et en creer un nouveau.`}</pre>,
+            )}
+            {sourceBlock(
+              'Règles de sécurité',
+              <pre>{`MICROSOFT_CLIENT_SECRET reste uniquement dans .env.local ou Secret Manager.
+Ne jamais créer VITE_MICROSOFT_CLIENT_SECRET.
+Ne jamais stocker les tokens Microsoft dans localStorage.
+Tout secret visible dans une capture ou un log doit être supprimé et régénéré.
+Le script scripts/test-outlook-oauth.mjs est un outil de validation, pas le code produit.`}</pre>,
+            )}
+          </section>
+
+          <section id="couts" className="scroll-mt-8 border-b border-[#EADBC8] py-8">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#F06B21]">07</p>
             <h2 className="mt-3 text-[28px] font-semibold text-[#1E1E1E]">Optimisation des coûts</h2>
             <p className="mt-4 text-[15px] leading-7 text-[#3C3C3C]">
               Le coût fixe principal est Cloud SQL. Hosting et Auth restent faibles aux volumes d’une PME interne. Les coûts variables à surveiller sont les photos HD dans Storage et les futurs traitements IA.
@@ -196,7 +245,7 @@ src/pages/StatistiquesPage.tsx`}</pre>,
           </section>
 
           <section id="suite" className="scroll-mt-8 py-8">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#F06B21]">07</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#F06B21]">08</p>
             <h2 className="mt-3 text-[28px] font-semibold text-[#1E1E1E]">Prochaines étapes</h2>
             <p className="mt-4 text-[15px] leading-7 text-[#3C3C3C]">
               La prochaine étape robuste consiste à transformer cette extraction front en pipeline contrôlé : import sandbox, validation comptable, puis tables SQL Connect dédiées au prévisionnel mensuel et aux alias clients.
@@ -234,6 +283,7 @@ src/pages/StatistiquesPage.tsx`}</pre>,
               <div className="mt-4 space-y-3 text-[12px] text-white/75">
                 <p className="flex items-center gap-2"><FileText className="h-4 w-4" /> Extraction Excel créée</p>
                 <p className="flex items-center gap-2"><Code2 className="h-4 w-4" /> Pages React raccordées</p>
+                <p className="flex items-center gap-2"><MailCheck className="h-4 w-4" /> Graph Outlook validé</p>
                 <p className="flex items-center gap-2"><Server className="h-4 w-4" /> SQL Connect cible</p>
                 <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Prod à valider plus tard</p>
               </div>

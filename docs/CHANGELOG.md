@@ -7,6 +7,20 @@ Les sections possibles : `Ajouté`, `Modifié`, `Déprécié`, `Retiré`, `Corri
 
 ---
 
+## [0.2.4] — 2026-05-16 — Journal Outlook / Microsoft Graph
+
+### Ajouté
+- Nouveau chapitre [11 — Module email Outlook / Microsoft Graph](11-outlook-graph-email.md) : journal complet de la création du compte Outlook de développement, du passage par Azure/Entra, de l'application `Sosson Email Test`, des URI de redirection, permissions Graph, secret client, `.env.local`, tests OAuth, lecture `Mail.Read` et envoi `Mail.Send`.
+
+### Sécurité
+- Formalisation de la règle : tout secret visible dans une capture, un chat, un commit ou un log est compromis et doit être régénéré.
+- Rappel explicite : `MICROSOFT_CLIENT_SECRET` reste local/serveur, jamais `VITE_`, jamais dans React, jamais dans `localStorage`.
+
+### Modifié
+- `documentation.md` : bump 0.2.3 → 0.2.4 et ajout du chapitre 11 au sommaire.
+
+---
+
 ## [0.2.2] — 2026-04-22 — Cohérence : rétention archives & pattern upload
 
 ### Contexte

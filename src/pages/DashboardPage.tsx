@@ -1,188 +1,366 @@
+import { useEffect, useState } from 'react'
 import {
-  TrendingUp,
-  TrendingDown,
-  HardHat,
-  FileText,
-  PieChart as PieChartIcon,
-  ReceiptText,
   AlertTriangle,
   ArrowRight,
-  Mail,
-  CheckCircle,
-  MoreHorizontal,
   Calendar,
-  Users,
+  Database,
+  FileText,
+  HardHat,
+  PieChart as PieChartIcon,
+  ReceiptText,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '@/lib/store'
-import { categorieLabels } from '@/data/factures'
-import type { CategorieDepense } from '@/data/factures'
 import {
-  BarChart,
   Bar,
+  BarChart,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts'
+import { listPrevisionnelExercises, listPrevisionnelLinesByExercise } from '@dataconnect/generated'
+import type { ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData } from '@dataconnect/generated'
+import { useApp } from '@/lib/store'
+import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import {
+  amountBase,
+  categoryColors,
+  categoryLabels,
+  latestCategoryData,
+  latestExercise,
+} from '@/lib/previsionnelAnalytics'
+import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
 
-const DONUT_COLORS: Record<string, string> = {
-  bois_materiaux: '#F06B21',
-  sous_traitance: '#1E1E1E',
-  quincaillerie: '#A45A2C',
-  carburant: '#C8B18C',
-  location_materiel: '#EADBC8',
-  plomberie: '#F89A62',
-  electricite: '#6B6B6B',
-  peinture: '#3C3C3C',
+type SqlExercise = ListPrevisionnelExercisesData['previsionnelExercises'][number]
+type SqlPrevisionnelLine = ListPrevisionnelLinesByExerciseData['previsionnelLines'][number]
+
+type DashboardLine = {
+  id: string
+  name: string
+  clientName: string
+  category: string
+  base: number
+  plannedTotal: number
+  realizedTotal: number
+  invoicedTotal: number
+  monthly: Array<{
+    order: number
+    label: string
+    planned: number
+    realized: number
+    invoiceSent: boolean
+  }>
+  chantierId?: string
 }
 
-const tresoData = [
-  { mois: 'Avr.', prevision: 180000, realise: 160000 },
-  { mois: 'Mai', prevision: 220000, realise: 195000 },
-  { mois: 'Juin', prevision: 200000, realise: 210000 },
-  { mois: 'Jul.', prevision: 260000, realise: 240000 },
-  { mois: 'Août', prevision: 240000, realise: 270000 },
-  { mois: 'Sept.', prevision: 280000, realise: null },
-  { mois: 'Oct.', prevision: 320000, realise: null },
-]
-
-const depensesParMoisData = [
-  { mois: 'M-7', val: 62000 },
-  { mois: 'M-6', val: 88000 },
-  { mois: 'M-5', val: 74000 },
-  { mois: 'M-4', val: 110000 },
-  { mois: 'M-3', val: 95000 },
-  { mois: 'M-2', val: 130000 },
-  { mois: 'M-1', val: 115000 },
-  { mois: 'M', val: 155000 },
-]
-
-const docTraitesData = [
-  { x: 1, val: 80 },
-  { x: 2, val: 95 },
-  { x: 3, val: 88 },
-  { x: 4, val: 110 },
-  { x: 5, val: 102 },
-  { x: 6, val: 126 },
-]
+type CategoryPoint = {
+  name: string
+  category: string
+  planned: number
+  realized: number
+  count: number
+  color: string
+  pct: number
+}
 
 const scrollableDashboardListClass =
   'min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 -mr-1 [scrollbar-width:thin] [scrollbar-color:#EADBC8_transparent]'
 
+const syntheticLinePatterns = [
+  /\bcumul\b/i,
+  /\btotal\b/i,
+  /\btotaux\b/i,
+  /\bsous[-\s]?total\b/i,
+  /\bca\s+r[eé]alis[eé]e?\b/i,
+  /\breste\s+a\s+facturer\b/i,
+  /\bfacturation\s+globale\b/i,
+]
+
 function fmt(n: number) {
-  return n.toLocaleString('fr-FR')
+  return Math.round(n).toLocaleString('fr-FR')
+}
+
+function fmtEuro(n: number) {
+  return `${fmt(n)} EUR`
+}
+
+function ratio(value: number, total: number) {
+  return total > 0 ? Math.round((value / total) * 100) : 0
+}
+
+function exerciseBaseSql(exercise: SqlExercise) {
+  return exercise.caPrevision || exercise.plannedTotal || exercise.caContrat
+}
+
+function isSyntheticLabel(value: string) {
+  return syntheticLinePatterns.some(pattern => pattern.test(value))
+}
+
+function isOperationalSqlLine(line: SqlPrevisionnelLine) {
+  const label = `${line.rawName} ${line.clientName}`.trim()
+  const amount = Math.max(line.caPrevision, line.caContrat, line.plannedTotal, line.realizedTotal)
+  return line.lineType === 'chantier' && Boolean(line.clientName.trim()) && !isSyntheticLabel(label) && amount > 0
+}
+
+function lineBase(line: {
+  caPrevision: number
+  caContrat: number
+  plannedTotal: number
+  realizedTotal: number
+}) {
+  return line.caPrevision || line.plannedTotal || line.caContrat || line.realizedTotal
+}
+
+function linesFromSql(lines: SqlPrevisionnelLine[]): DashboardLine[] {
+  return lines.filter(isOperationalSqlLine).map(line => ({
+    id: line.id,
+    name: line.rawName || line.clientName,
+    clientName: line.clientName,
+    category: line.category,
+    base: lineBase(line),
+    plannedTotal: line.plannedTotal,
+    realizedTotal: line.realizedTotal,
+    invoicedTotal: line.invoicedTotal,
+    chantierId: line.chantier?.id,
+    monthly: line.monthly.map(month => ({
+      order: month.monthOrder,
+      label: month.label,
+      planned: month.planned,
+      realized: month.realized,
+      invoiceSent: Boolean(month.invoiceSent),
+    })),
+  }))
+}
+
+function linesFromLocal(exercise: string): DashboardLine[] {
+  return operationalPrevisionnelLines
+    .filter(line => line.exercise === exercise)
+    .map(line => ({
+      id: line.id,
+      name: line.rawName || line.clientName,
+      clientName: line.clientName,
+      category: line.category,
+      base: lineBase(line),
+      plannedTotal: line.plannedTotal,
+      realizedTotal: line.realizedTotal,
+      invoicedTotal: line.invoicedTotal,
+      monthly: line.monthly.map(month => ({
+        order: month.order,
+        label: month.label,
+        planned: month.planned,
+        realized: month.realized,
+        invoiceSent: Boolean(month.invoiceSent),
+      })),
+    }))
+}
+
+function monthlyFromLines(lines: DashboardLine[]) {
+  const grouped = new Map<number, { mois: string; planned: number; realized: number; invoiceSent: number }>()
+
+  lines.forEach(line => {
+    line.monthly.forEach(month => {
+      const item = grouped.get(month.order) ?? {
+        mois: month.label,
+        planned: 0,
+        realized: 0,
+        invoiceSent: 0,
+      }
+      item.planned += month.planned
+      item.realized += month.realized
+      item.invoiceSent += month.invoiceSent ? 1 : 0
+      grouped.set(month.order, item)
+    })
+  })
+
+  return Array.from(grouped.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([, item]) => ({
+      ...item,
+      planned: Math.round(item.planned),
+      realized: Math.round(item.realized),
+    }))
+}
+
+function categoriesFromSql(lines: DashboardLine[]): CategoryPoint[] {
+  const grouped = new Map<string, { category: string; planned: number; realized: number; count: number }>()
+
+  lines.forEach(line => {
+    const item = grouped.get(line.category) ?? { category: line.category, planned: 0, realized: 0, count: 0 }
+    item.planned += line.plannedTotal || line.base
+    item.realized += line.realizedTotal
+    item.count += 1
+    grouped.set(line.category, item)
+  })
+
+  const total = Array.from(grouped.values()).reduce((sum, item) => sum + item.realized, 0)
+
+  return Array.from(grouped.values())
+    .map(item => ({
+      name: categoryLabels[item.category as keyof typeof categoryLabels] ?? item.category,
+      category: item.category,
+      planned: Math.round(item.planned),
+      realized: Math.round(item.realized),
+      count: item.count,
+      color: categoryColors[item.category as keyof typeof categoryColors] ?? '#C8B18C',
+      pct: ratio(item.realized, total),
+    }))
+    .sort((a, b) => b.realized - a.realized)
+}
+
+function categoriesFromLocal(): CategoryPoint[] {
+  const raw = latestCategoryData()
+  const total = raw.reduce((sum, item) => sum + item.realized, 0)
+  return raw
+    .map(item => ({ ...item, pct: ratio(item.realized, total) }))
+    .sort((a, b) => b.realized - a.realized)
 }
 
 function KpiCard({
   label,
   value,
-  trend,
-  trendLabel,
-  sub,
+  detail,
   icon: Icon,
-  iconBg = 'bg-[#FFF4EA]',
-  iconColor = 'text-[#F06B21]',
+  trend,
   trendUp,
 }: {
   label: string
   value: string
-  trend?: string
-  trendLabel?: string
-  sub?: string
+  detail: string
   icon: React.ElementType
-  iconBg?: string
-  iconColor?: string
+  trend?: string
   trendUp?: boolean
 }) {
   return (
-    <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC] min-h-[132px] flex flex-col gap-3 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-      <div className="flex items-start justify-between">
-        <p className="text-[13px] font-medium text-[#3C3C3C] leading-none">{label}</p>
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ring-1 ring-[#F06B21]/5 ${iconBg}`}>
-          <Icon size={18} strokeWidth={1.9} className={iconColor} />
+    <div className="flex min-h-[132px] flex-col gap-3 rounded-[20px] border border-[#F2E8DC] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[13px] font-medium leading-none text-[#3C3C3C]">{label}</p>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[#FFF4EA] text-[#F06B21] ring-1 ring-[#F06B21]/5">
+          <Icon size={18} strokeWidth={1.75} />
         </div>
       </div>
-      <div className="text-[26px] font-bold text-[#1E1E1E] leading-none tracking-tight">{value}</div>
-      {trend && (
-        <div className="flex items-center gap-1.5">
-          {trendUp !== undefined ? (
-            trendUp ? (
+      <div className="text-[26px] font-bold leading-none tracking-tight text-[#1E1E1E]">{value}</div>
+      <div className="flex items-center gap-1.5">
+        {trend && (
+          <>
+            {trendUp ? (
               <TrendingUp size={13} className="text-[#1E8E3E]" />
             ) : (
               <TrendingDown size={13} className="text-[#DC2626]" />
-            )
-          ) : null}
-          <span className={`text-[12px] font-semibold ${trendUp ? 'text-[#1E8E3E]' : 'text-[#DC2626]'}`}>{trend}</span>
-          {trendLabel && <span className="text-[11px] text-[#6B6B6B]">{trendLabel}</span>}
-        </div>
-      )}
-      {sub && !trend && <p className="text-[11px] text-[#6B6B6B]">{sub}</p>}
+            )}
+            <span className={`text-[12px] font-semibold ${trendUp ? 'text-[#1E8E3E]' : 'text-[#DC2626]'}`}>
+              {trend}
+            </span>
+          </>
+        )}
+        <span className="text-[11px] text-[#6B6B6B]">{detail}</span>
+      </div>
     </div>
   )
 }
 
-function RiskBadge({ level }: { level: 'high' | 'medium' }) {
-  if (level === 'high') {
-    return (
-      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626]">
-        Risque élevé
-      </span>
-    )
-  }
+function GapBadge({ gap, rate }: { gap: number; rate: number }) {
+  const isBehind = gap < 0
   return (
-    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309]">
-      Risque moyen
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        isBehind ? 'bg-[#FEF3C7] text-[#B45309]' : 'bg-[#FDEBDD] text-[#F06B21]'
+      }`}
+    >
+      {isBehind ? `${fmt(Math.abs(gap))} EUR a couvrir` : `${Math.round(rate)}% realise`}
     </span>
   )
 }
 
 export function DashboardPage() {
-  const { chantiers, factures, user, clients } = useApp()
+  const { chantiers, factures, user, dataSource, isDataConnectLoading } = useApp()
   const navigate = useNavigate()
+  const [sqlStatus, setSqlStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback'>('idle')
+  const [sqlExercises, setSqlExercises] = useState<SqlExercise[]>([])
+  const [sqlLatestLines, setSqlLatestLines] = useState<SqlPrevisionnelLine[]>([])
 
-  const chantiersActifs = chantiers.filter(c => c.statut === 'en_cours')
-  const facturesEnAttente = factures.filter(f => f.statut === 'en_attente')
-  const totalDepenses = factures
-    .filter(f => f.statut === 'validee')
-    .reduce((sum, f) => sum + f.montantTTC, 0)
-  const totalBudget = chantiers.reduce((s, c) => s + c.budgetPrevisionnel, 0)
-  const chiffreAffaires = totalBudget
-  const marge = chiffreAffaires - totalDepenses
+  useEffect(() => {
+    let mounted = true
 
-  const depensesParCategorie = factures
-    .filter(f => f.statut === 'validee')
-    .reduce<Record<string, number>>((acc, f) => {
-      acc[f.categorie] = (acc[f.categorie] ?? 0) + f.montantTTC
-      return acc
-    }, {})
+    async function loadPrevisionnel() {
+      if (!isDataConnectEnabled || !user) {
+        if (mounted) setSqlStatus('fallback')
+        return
+      }
 
-  const donutData = Object.entries(depensesParCategorie)
-    .map(([cat, val]) => ({
-      name: categorieLabels[cat as CategorieDepense] ?? cat,
-      value: Math.round(val),
-      color: DONUT_COLORS[cat] ?? '#9CA3AF',
-      pct: Math.round((val / totalDepenses) * 100),
+      setSqlStatus('loading')
+      try {
+        const dc = getSossonDataConnect()
+        const exercisesResponse = await listPrevisionnelExercises(dc)
+        const exercises = exercisesResponse.data.previsionnelExercises
+        const latest = exercises[exercises.length - 1]
+        const linesResponse = latest ? await listPrevisionnelLinesByExercise(dc, { exerciseId: latest.id }) : null
+
+        if (!mounted) return
+        setSqlExercises(exercises)
+        setSqlLatestLines(linesResponse?.data.previsionnelLines ?? [])
+        setSqlStatus(exercises.length ? 'ready' : 'fallback')
+      } catch {
+        if (mounted) setSqlStatus('fallback')
+      }
+    }
+
+    void loadPrevisionnel()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
+
+  const localLatest = latestExercise()
+  const usesSql = sqlStatus === 'ready' && sqlExercises.length > 0
+  const currentExercise = usesSql ? sqlExercises[sqlExercises.length - 1] : localLatest
+  const currentExerciseLabel = currentExercise.exercise
+  const sourceLabel = usesSql ? 'SQL Connect' : dataSource === 'dataconnect' ? 'SQL Connect + Excel local' : 'Excel local'
+  const coverage = previsionnelDataCoverage()
+
+  const dashboardLines = usesSql ? linesFromSql(sqlLatestLines) : linesFromLocal(currentExerciseLabel)
+  const monthlyData = monthlyFromLines(dashboardLines)
+  const categoryData = usesSql ? categoriesFromSql(dashboardLines) : categoriesFromLocal()
+
+  const baseAmount = usesSql ? exerciseBaseSql(currentExercise as SqlExercise) : amountBase(localLatest)
+  const realizedAmount = currentExercise.realizedTotal
+  const invoicedAmount = currentExercise.invoicedTotal
+  const gapAmount = realizedAmount - baseAmount
+  const realizationRate = ratio(realizedAmount, baseAmount)
+  const invoiceSentLines = dashboardLines.filter(line => line.monthly.some(month => month.invoiceSent))
+  const invoiceSentCells = dashboardLines.reduce(
+    (sum, line) => sum + line.monthly.filter(month => month.invoiceSent).length,
+    0,
+  )
+  const topGaps = [...dashboardLines]
+    .map(line => ({
+      ...line,
+      gap: line.realizedTotal - line.base,
+      rate: line.base > 0 ? (line.realizedTotal / line.base) * 100 : 0,
     }))
-    .sort((a, b) => b.value - a.value)
+    .filter(line => line.base > 0)
+    .sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))
+    .slice(0, 8)
 
-  const margeParChantierData = chantiers.map(c => ({
-    name: c.nom.length > 10 ? c.nom.split(' ').slice(0, 2).join(' ') : c.nom,
-    realise: c.depensesEngagees,
-    previsionnel: c.budgetPrevisionnel,
-  }))
+  const topChantiers = [...dashboardLines]
+    .sort((a, b) => Math.max(b.base, b.realizedTotal) - Math.max(a.base, a.realizedTotal))
+    .slice(0, 8)
 
-  const chantiersEnRisque = chantiers.filter(c => c.tendance === 'rouge' || c.tendance === 'orange')
-  const chantiersRetardPlanning = chantiers.filter(c => c.tendance === 'vert' && c.statut === 'en_cours').slice(0, 1)
-  const chantiersRisqueCount = chantiersEnRisque.length + chantiersRetardPlanning.length
-  const alertesImportantesCount = chantiersEnRisque.length + (facturesEnAttente.length > 0 ? 1 : 0)
-
-  const topCategories = donutData.slice(0, 3)
+  const chantiersCourants = chantiers.filter(chantier => chantier.statut === 'en_cours')
+  const chantiersPlanifies = chantiers
+    .filter(chantier => chantier.statut !== 'cloture')
+    .sort((a, b) => a.dateFinPrevue.localeCompare(b.dateFinPrevue))
+    .slice(0, 5)
+  const facturesEnAttente = factures.filter(facture => facture.statut === 'en_attente')
+  const totalFacturesEnAttente = facturesEnAttente.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const alertCount = topGaps.filter(line => line.gap < 0).length + invoiceSentLines.length
 
   const dateStr = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -192,31 +370,39 @@ export function DashboardPage() {
   })
 
   return (
-    <div className="p-7 space-y-6 min-h-full bg-[#FAF6F2]">
-      {/* Operational command header */}
+    <div className="min-h-full space-y-6 bg-[#FAF6F2] p-7">
       <section className="overflow-hidden rounded-[24px] border border-[#2A2A2A] bg-[#1E1E1E] text-white shadow-[0_18px_48px_rgba(30,30,30,0.16)]">
         <div className="grid gap-6 p-6 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="flex min-w-0 flex-col justify-between gap-8">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#F89A62]">
-                Vue operationnelle
+                Pilotage previsionnel vivant
               </p>
-              <h1 className="mt-3 max-w-[720px] text-[34px] font-semibold leading-[1.02] tracking-[-0.01em] text-white">
-                Bonjour {user?.prenom}, voici les dossiers qui demandent votre attention.
+              <h1 className="mt-3 max-w-[760px] text-[34px] font-semibold leading-[1.02] tracking-[-0.01em] text-white">
+                Bonjour {user?.prenom}, voici l'exercice {currentExerciseLabel} consolide depuis le fichier Excel.
               </h1>
-              <p className="mt-3 max-w-[620px] text-sm leading-6 text-[#C9C9C9]">
-                Situation consolidee ce {dateStr}. Les cartes ci-dessous priorisent les factures, les marges chantier et les prochains jalons.
+              <p className="mt-3 max-w-[660px] text-sm leading-6 text-[#C9C9C9]">
+                Situation au {dateStr}. Les indicateurs ci-dessous utilisent le previsionnel importe, les chantiers
+                derives de l'Excel et les donnees SQL Connect quand elles sont disponibles.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => navigate('/factures?status=en_attente')}
+                onClick={() => navigate('/previsionnel')}
                 className="inline-flex h-10 items-center gap-2 rounded-[12px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
               >
-                <ReceiptText className="h-4 w-4" strokeWidth={1.75} />
-                Traiter les factures
+                <Database className="h-4 w-4" strokeWidth={1.75} />
+                Ouvrir le previsionnel
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/statistiques')}
+                className="inline-flex h-10 items-center gap-2 rounded-[12px] border border-[#3C3C3C] bg-[#242424] px-4 text-sm font-semibold text-[#E5E5E5] transition hover:border-[#F06B21] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
+              >
+                <PieChartIcon className="h-4 w-4" strokeWidth={1.75} />
+                Analyse detaillee
               </button>
               <button
                 type="button"
@@ -224,15 +410,7 @@ export function DashboardPage() {
                 className="inline-flex h-10 items-center gap-2 rounded-[12px] border border-[#3C3C3C] bg-[#242424] px-4 text-sm font-semibold text-[#E5E5E5] transition hover:border-[#F06B21] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
               >
                 <HardHat className="h-4 w-4" strokeWidth={1.75} />
-                Voir les chantiers
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/planning')}
-                className="inline-flex h-10 items-center gap-2 rounded-[12px] border border-[#3C3C3C] bg-[#242424] px-4 text-sm font-semibold text-[#E5E5E5] transition hover:border-[#F06B21] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/40"
-              >
-                <Calendar className="h-4 w-4" strokeWidth={1.75} />
-                Planning semaine
+                Chantiers vivants
               </button>
             </div>
           </div>
@@ -240,36 +418,39 @@ export function DashboardPage() {
           <div className="rounded-[20px] border border-[#2A2A2A] bg-[#242424] p-4">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8A8A8A]">
-                Priorites du jour
+                Source et controles
               </span>
               <span className="rounded-full bg-[#2A1A0D] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">
-                {alertesImportantesCount} alerte{alertesImportantesCount > 1 ? 's' : ''}
+                {sqlStatus === 'loading' || isDataConnectLoading ? 'Chargement' : sourceLabel}
               </span>
             </div>
             <div className="grid gap-3">
               {[
                 {
-                  label: 'Factures en attente',
-                  value: facturesEnAttente.length.toString(),
-                  meta: `${fmt(facturesEnAttente.reduce((s, f) => s + f.montantTTC, 0))} EUR a qualifier`,
+                  label: 'Lignes chantier',
+                  value: dashboardLines.length.toString(),
+                  meta: `${coverage.syntheticOrNonOperationalLines} lignes non operationnelles exclues`,
+                  Icon: HardHat,
+                },
+                {
+                  label: 'Cellules facture envoyee',
+                  value: invoiceSentCells.toString(),
+                  meta: `${invoiceSentLines.length} chantiers avec signal Excel jaune`,
                   Icon: ReceiptText,
                 },
                 {
-                  label: 'Chantiers a risque',
-                  value: chantiersRisqueCount.toString(),
-                  meta: 'Marge ou planning sous surveillance',
-                  Icon: AlertTriangle,
-                },
-                {
-                  label: 'Marge previsionnelle',
-                  value: `${Math.round((marge / chiffreAffaires) * 100)}%`,
-                  meta: `${fmt(Math.round(marge))} EUR estimes`,
-                  Icon: PieChartIcon,
+                  label: 'Ecart realise / prevu',
+                  value: fmtEuro(gapAmount),
+                  meta: `${realizationRate}% de realisation sur ${currentExerciseLabel}`,
+                  Icon: gapAmount >= 0 ? TrendingUp : AlertTriangle,
                 },
               ].map(item => {
                 const Icon = item.Icon
                 return (
-                  <div key={item.label} className="grid grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-3 rounded-[14px] border border-[#2A2A2A] bg-[#1E1E1E] p-3">
+                  <div
+                    key={item.label}
+                    className="grid grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-3 rounded-[14px] border border-[#2A2A2A] bg-[#1E1E1E] p-3"
+                  >
                     <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
                       <Icon className="h-4 w-4" strokeWidth={1.75} />
                     </span>
@@ -286,142 +467,110 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          label="Chiffre d'affaires (HT)"
-          value={`${fmt(chiffreAffaires)} €`}
-          trend="+12,5%"
-          trendLabel="vs mois dernier"
-          trendUp={true}
+          label="CA previsionnel"
+          value={fmtEuro(baseAmount)}
+          detail={`${currentExerciseLabel} depuis Excel`}
           icon={TrendingUp}
-          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
-          label="Marge prévisionnelle"
-          value={`${fmt(Math.round(marge))} €`}
-          trend={`${Math.round((marge / chiffreAffaires) * 100)}%`}
-          trendLabel="vs mois dernier"
-          trendUp={true}
+          label="CA realise"
+          value={fmtEuro(realizedAmount)}
+          detail={`${realizationRate}% du previsionnel`}
+          trend={gapAmount >= 0 ? `+${fmt(gapAmount)} EUR` : `-${fmt(Math.abs(gapAmount))} EUR`}
+          trendUp={gapAmount >= 0}
           icon={PieChartIcon}
-          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
-          label="Dépenses engagées"
-          value={`${fmt(Math.round(totalDepenses))} €`}
-          trend="-8,3%"
-          trendLabel="vs mois dernier"
-          trendUp={false}
+          label="Factures envoyees Excel"
+          value={fmtEuro(invoicedAmount)}
+          detail={`${invoiceSentCells} cellules marquees envoyees`}
           icon={ReceiptText}
-          iconBg="bg-[#FFF4EA]"
         />
         <KpiCard
           label="Chantiers en cours"
-          value={chantiersActifs.length.toString()}
-          sub={`+${chantiersActifs.length} ce mois-ci`}
+          value={chantiersCourants.length.toString()}
+          detail={`${chantiersPlanifies.length} dossiers non clotures visibles`}
           icon={HardHat}
-          iconBg="bg-[#FFF4EA]"
-        />
-        <KpiCard
-          label="Factures en attente"
-          value={facturesEnAttente.length.toString()}
-          sub={`${fmt(facturesEnAttente.reduce((s, f) => s + f.montantTTC, 0))} €`}
-          icon={FileText}
-          iconBg="bg-[#FFF4EA]"
         />
       </div>
 
-      {/* Row 2: Marge par chantier + Répartition dépenses + Alertes */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_280px]">
-        {/* Marge par chantier */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Marge par chantier</h2>
-            <div className="flex items-center gap-3 text-[11px] text-[#6B6B6B]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-[#1E1E1E] inline-block" />
-                Marge réalisée
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-[#F06B21] inline-block" />
-                Marge prévisionnelle
-              </span>
-            </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_320px]">
+        <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Top chantiers prevu / realise</h2>
+            <span className="text-[11px] font-medium text-[#6B6B6B]">{currentExerciseLabel}</span>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={margeParChantierData} barGap={4} barCategoryGap="30%">
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={topChantiers} barGap={4} barCategoryGap="30%">
               <XAxis
-                dataKey="name"
+                dataKey="clientName"
                 tick={{ fontSize: 10, fill: '#6B6B6B' }}
                 axisLine={false}
                 tickLine={false}
+                interval={0}
+                tickFormatter={value => String(value).split(' ').slice(0, 2).join(' ')}
               />
               <YAxis
                 tick={{ fontSize: 10, fill: '#6B6B6B' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={v => `${(v / 1000).toFixed(0)}k`}
+                tickFormatter={value => `${Number(value) / 1000}k`}
               />
               <Tooltip
-                formatter={(v, name) => [
-                  `${fmt(Number(v ?? 0))} €`,
-                  name === 'realise' ? 'Réalisé' : 'Prévisionnel',
+                formatter={(value, name) => [
+                  fmtEuro(Number(value ?? 0)),
+                  name === 'realizedTotal' ? 'Realise' : 'Previsionnel',
                 ]}
-                contentStyle={{
-                  borderRadius: '10px',
-                  border: '1px solid #F2E8DC',
-                  fontSize: '11px',
-                }}
+                contentStyle={{ borderRadius: '10px', border: '1px solid #F2E8DC', fontSize: '11px' }}
               />
-              <Bar dataKey="realise" fill="#1E1E1E" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="previsionnel" fill="#F06B21" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="base" fill="#F06B21" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="realizedTotal" fill="#1E1E1E" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Répartition dépenses donut */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Répartition des dépenses par catégorie</h2>
-            <button className="text-[#6B6B6B] hover:text-[#1E1E1E]">
-              <MoreHorizontal size={16} />
-            </button>
+        <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Repartition du realise par categorie</h2>
+            <span className="text-[11px] font-medium text-[#6B6B6B]">{categoryData.length} categories</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <PieChart width={160} height={160}>
+              <PieChart width={168} height={168}>
                 <Pie
-                  data={donutData}
-                  cx={75}
-                  cy={75}
-                  innerRadius={50}
-                  outerRadius={72}
+                  data={categoryData}
+                  cx={80}
+                  cy={80}
+                  innerRadius={52}
+                  outerRadius={74}
                   startAngle={90}
                   endAngle={-270}
-                  dataKey="value"
+                  dataKey="realized"
                   strokeWidth={2}
                   stroke="#FAF6F2"
                 >
-                  {donutData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
+                  {categoryData.map(entry => (
+                    <Cell key={entry.category} fill={entry.color} />
                   ))}
                 </Pie>
               </PieChart>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[13px] font-bold text-[#1E1E1E]">{fmt(Math.round(totalDepenses))} €</span>
-                <span className="text-[10px] text-[#6B6B6B]">Dépenses engagées</span>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[13px] font-bold text-[#1E1E1E]">{fmtEuro(realizedAmount)}</span>
+                <span className="text-[10px] text-[#6B6B6B]">Realise</span>
               </div>
             </div>
-            <div className="flex-1 space-y-1.5">
-              {donutData.slice(0, 6).map(d => (
-                <div key={d.name} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                    <span className="text-[11px] text-[#3C3C3C] truncate max-w-[90px]">{d.name}</span>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              {categoryData.slice(0, 6).map(category => (
+                <div key={category.category} className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: category.color }} />
+                    <span className="truncate text-[11px] text-[#3C3C3C]">{category.name}</span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[11px] font-semibold text-[#1E1E1E]">{d.pct}%</span>
-                    <span className="text-[10px] text-[#6B6B6B]">{fmt(d.value)} €</span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="text-[11px] font-semibold text-[#1E1E1E]">{category.pct}%</span>
+                    <span className="text-[10px] text-[#6B6B6B]">{fmtEuro(category.realized)}</span>
                   </div>
                 </div>
               ))}
@@ -429,289 +578,194 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Alertes importantes */}
-        <div className="flex h-[288px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+        <div className="flex h-[304px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Alertes importantes</h2>
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Ecarts a surveiller</h2>
             <span className="rounded-full bg-[#FAF6F2] px-2 py-0.5 text-[10px] font-semibold text-[#6B6B6B]">
-              {alertesImportantesCount}
+              {alertCount}
             </span>
           </div>
           <div className={scrollableDashboardListClass}>
-            {chantiersEnRisque.map(c => {
-              const depassement = Math.round(((c.depensesEngagees - c.budgetPrevisionnel) / c.budgetPrevisionnel) * 100)
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => navigate(`/chantiers/${c.id}`)}
-                  className="w-full flex items-start gap-3 text-left hover:bg-[#FAF6F2] rounded-[10px] p-2 -mx-2 transition-colors"
+            {topGaps.map(line => (
+              <button
+                key={line.id}
+                onClick={() => (line.chantierId ? navigate(`/chantiers/${line.chantierId}`) : navigate('/previsionnel'))}
+                className="flex w-full items-start gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-[#FAF6F2]"
+              >
+                <div
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] ${
+                    line.gap < 0 ? 'bg-[#FEF3C7]' : 'bg-[#FDEBDD]'
+                  }`}
                 >
-                  <div className={`w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5 ${c.tendance === 'rouge' ? 'bg-[#FEE2E2]' : 'bg-[#FEF3C7]'}`}>
-                    <AlertTriangle size={13} className={c.tendance === 'rouge' ? 'text-[#DC2626]' : 'text-[#B45309]'} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-semibold text-[#1E1E1E] truncate">
-                      {c.tendance === 'rouge' ? 'Dépassement budget' : 'Budget à surveiller'}
-                    </p>
-                    <p className="text-[11px] text-[#6B6B6B] truncate">
-                      {c.nom} {c.tendance === 'rouge' ? `+${depassement}%` : `${Math.round((c.depensesEngagees / c.budgetPrevisionnel) * 100)}%`}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-auto">il y a 2h</span>
-                </button>
-              )
-            })}
-            {facturesEnAttente.length > 0 && (
-              <div className="flex items-start gap-3 p-2 -mx-2">
-                <div className="w-7 h-7 rounded-[8px] bg-[#FEF3C7] flex items-center justify-center shrink-0 mt-0.5">
-                  <FileText size={13} className="text-[#B45309]" />
+                  <AlertTriangle size={13} className={line.gap < 0 ? 'text-[#B45309]' : 'text-[#F06B21]'} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-semibold text-[#1E1E1E]">Facture non rattachée</p>
-                  <p className="text-[11px] text-[#6B6B6B]">{facturesEnAttente.length} facture{facturesEnAttente.length > 1 ? 's' : ''} fournisseur en attente</p>
+                  <p className="truncate text-[12px] font-semibold text-[#1E1E1E]">{line.clientName}</p>
+                  <p className="truncate text-[11px] text-[#6B6B6B]">
+                    {fmtEuro(line.realizedTotal)} realise sur {fmtEuro(line.base)}
+                  </p>
                 </div>
-                <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-auto">il y a 5h</span>
-              </div>
-            )}
+                <GapBadge gap={line.gap} rate={line.rate} />
+              </button>
+            ))}
           </div>
           <button
-            onClick={() => navigate('/chantiers')}
-            className="mt-3 flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#F06B21] hover:text-[#D95B17] transition-colors"
+            onClick={() => navigate('/previsionnel')}
+            className="mt-3 flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
           >
-            Voir toutes les alertes <ArrowRight size={12} />
+            Voir le tableur <ArrowRight size={12} />
           </button>
         </div>
       </div>
 
-      {/* Row 3: Activité récente + Trésorerie + Chantiers en risque + Prochaines échéances */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        {/* Activité récente */}
         <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
-          <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Activité récente</h2>
-          <div className="flex-1 space-y-4">
-            {factures.slice(0, 4).map((f, i) => {
-              const chantier = chantiers.find(c => c.id === f.chantierId)
-              const icons = [CheckCircle, Mail, FileText, ArrowRight]
-              const Icon = icons[i % icons.length]
-              const colors = ['text-[#1E8E3E]', 'text-[#F06B21]', 'text-[#6B6B6B]', 'text-[#6B6B6B]']
-              const times = ['il y a 15 min', 'il y a 16 min', 'il y a 1 h', 'il y a 2 h']
-              return (
-                <div key={f.id} className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-[8px] bg-[#FAF6F2] flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon size={13} strokeWidth={1.75} className={colors[i]} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-[#1E1E1E] truncate">{f.fournisseur}</p>
-                    <p className="text-[11px] text-[#6B6B6B] truncate">{fmt(f.montantTTC)} € — {chantier?.nom}</p>
-                  </div>
-                  <span className="text-[10px] text-[#9CA3AF] shrink-0">{times[i]}</span>
-                </div>
-              )
-            })}
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Prevu / realise mensuel</h2>
           </div>
-          <button
-            onClick={() => navigate('/factures')}
-            className="mt-auto flex items-center gap-1.5 pt-4 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
-          >
-            Voir toute l'activité <ArrowRight size={12} />
-          </button>
-        </div>
-
-        {/* Trésorerie prévisionnelle */}
-        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Trésorerie prévisionnelle</h2>
-          </div>
-          <div className="flex items-center gap-4 mb-3">
+          <div className="mb-3 flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-[11px] text-[#6B6B6B]">
-              <span className="w-6 border-t-2 border-dashed border-[#F06B21] inline-block" />
-              Prévision
+              <span className="inline-block w-6 border-t-2 border-dashed border-[#F06B21]" />
+              Prevu
             </span>
             <span className="flex items-center gap-1.5 text-[11px] text-[#6B6B6B]">
-              <span className="w-6 border-t-2 border-[#1E1E1E] inline-block" />
-              Réalisé
+              <span className="inline-block w-6 border-t-2 border-[#1E1E1E]" />
+              Realise
             </span>
           </div>
           <div className="min-h-0 flex-1">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={tresoData}>
+              <LineChart data={monthlyData}>
                 <XAxis dataKey="mois" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} tickFormatter={v => `${v / 1000}k`} />
+                <YAxis
+                  tick={{ fontSize: 10, fill: '#6B6B6B' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={value => `${Number(value) / 1000}k`}
+                />
                 <Tooltip
-                  formatter={(v, name) => [`${fmt(Number(v ?? 0))} €`, name === 'prevision' ? 'Prévision' : 'Réalisé']}
+                  formatter={(value, name) => [
+                    fmtEuro(Number(value ?? 0)),
+                    name === 'planned' ? 'Prevu' : 'Realise',
+                  ]}
                   contentStyle={{ borderRadius: '10px', border: '1px solid #F2E8DC', fontSize: '11px' }}
                 />
-                <Line type="monotone" dataKey="prevision" stroke="#F06B21" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3, fill: '#F06B21' }} />
-                <Line type="monotone" dataKey="realise" stroke="#1E1E1E" strokeWidth={2} dot={{ r: 3, fill: '#1E1E1E' }} connectNulls={false} />
+                <Line type="monotone" dataKey="planned" stroke="#F06B21" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3, fill: '#F06B21' }} />
+                <Line type="monotone" dataKey="realized" stroke="#1E1E1E" strokeWidth={2} dot={{ r: 3, fill: '#1E1E1E' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Chantiers en risque */}
         <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Chantiers en risque</h2>
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Factures envoyees dans Excel</h2>
             <span className="rounded-full bg-[#FAF6F2] px-2 py-0.5 text-[10px] font-semibold text-[#6B6B6B]">
-              {chantiersRisqueCount}
+              {invoiceSentLines.length}
             </span>
           </div>
           <div className={scrollableDashboardListClass}>
-            {chantiersEnRisque.map(c => {
-              const client = clients.find(cl => cl.id === c.clientId)
-              const depassement = Math.round(((c.depensesEngagees - c.budgetPrevisionnel) / c.budgetPrevisionnel) * 100)
-              const margeText = `Marge prévisionnelle : ${Math.round((1 - c.depensesEngagees / c.budgetPrevisionnel) * 100)}%`
+            {invoiceSentLines.slice(0, 8).map(line => (
+              <div key={line.id} className="flex items-start gap-3 rounded-[10px] p-2">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[#FDEBDD]">
+                  <ReceiptText size={13} className="text-[#F06B21]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] font-semibold text-[#1E1E1E]">{line.clientName}</p>
+                  <p className="truncate text-[11px] text-[#6B6B6B]">
+                    {line.monthly.filter(month => month.invoiceSent).map(month => month.label).join(', ')}
+                  </p>
+                </div>
+                <span className="shrink-0 text-[11px] font-semibold text-[#1E1E1E]">{fmtEuro(line.invoicedTotal)}</span>
+              </div>
+            ))}
+            {invoiceSentLines.length === 0 && (
+              <p className="text-[12px] text-[#6B6B6B]">Aucun signal facture envoyee pour cet exercice.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Prochaines fins prevues</h2>
+            <Calendar size={16} className="text-[#F06B21]" />
+          </div>
+          <div className={scrollableDashboardListClass}>
+            {chantiersPlanifies.map(chantier => {
+              const date = new Date(`${chantier.dateFinPrevue}T00:00:00`)
               return (
                 <button
-                  key={c.id}
-                  onClick={() => navigate(`/chantiers/${c.id}`)}
-                  className="flex w-full items-start gap-3 rounded-[12px] text-left transition-colors hover:bg-[#FAF6F2]"
+                  key={chantier.id}
+                  onClick={() => navigate(`/chantiers/${chantier.id}`)}
+                  className="flex w-full items-center gap-3 rounded-[10px] p-2 text-left transition-colors hover:bg-[#FAF6F2]"
                 >
-                  <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] ${c.tendance === 'rouge' ? 'bg-[#FEE2E2]' : 'bg-[#FEF3C7]'}`}>
-                    <AlertTriangle size={13} className={c.tendance === 'rouge' ? 'text-[#DC2626]' : 'text-[#B45309]'} />
+                  <div className="w-10 shrink-0 text-center">
+                    <p className="text-[18px] font-bold leading-none text-[#F06B21]">{date.getDate()}</p>
+                    <p className="text-[10px] uppercase text-[#6B6B6B]">
+                      {date.toLocaleDateString('fr-FR', { month: 'short' })}
+                    </p>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="truncate text-[12px] font-semibold text-[#1E1E1E]">{c.nom}</span>
-                      <RiskBadge level={c.tendance === 'rouge' ? 'high' : 'medium'} />
-                    </div>
-                    <p className="truncate text-[11px] text-[#6B6B6B]">
-                      {c.tendance === 'rouge'
-                        ? `Dépassement prévisionnel : +${depassement}%`
-                        : margeText}
-                    </p>
-                    {client && <p className="truncate text-[10px] text-[#9CA3AF]">— {client.nom}</p>}
+                    <p className="truncate text-[12px] font-semibold text-[#1E1E1E]">{chantier.nom}</p>
+                    <p className="truncate text-[11px] text-[#6B6B6B]">{fmtEuro(chantier.budgetPrevisionnel)}</p>
                   </div>
                 </button>
               )
             })}
-            {chantiersRetardPlanning.map(c => (
-              <button
-                key={c.id}
-                onClick={() => navigate(`/chantiers/${c.id}`)}
-                className="flex w-full items-start gap-3 rounded-[12px] text-left transition-colors hover:bg-[#FAF6F2]"
-              >
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px] bg-[#FEF3C7]">
-                  <AlertTriangle size={13} className="text-[#B45309]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="truncate text-[12px] font-semibold text-[#1E1E1E]">{c.nom}</span>
-                    <RiskBadge level="medium" />
-                  </div>
-                  <p className="truncate text-[11px] text-[#6B6B6B]">Retard planning : 5 jours</p>
-                </div>
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => navigate('/chantiers')}
-            className="mt-3 flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
-          >
-            Voir tous les chantiers à risque <ArrowRight size={12} />
-          </button>
-        </div>
-
-        {/* Prochaines échéances */}
-        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
-          <h2 className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Prochaines échéances</h2>
-          <div className="flex-1 space-y-3">
-            {[
-              { day: '22', month: 'avr', label: 'Réunion de chantier', sub: 'Maison Dupont', time: '09:00', Icon: Users },
-              { day: '23', month: 'avr', label: 'Livraison matériaux', sub: 'Villa des Pins', time: '10:30', Icon: HardHat },
-              { day: '24', month: 'avr', label: 'Point planning', sub: 'Équipe 1', time: '14:00', Icon: Calendar },
-            ].map((e, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-9 shrink-0 text-center">
-                  <p className="text-[18px] font-bold text-[#F06B21] leading-none">{e.day}</p>
-                  <p className="text-[10px] text-[#6B6B6B] uppercase">{e.month}</p>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-[#1E1E1E] truncate">{e.label}</p>
-                  <p className="text-[11px] text-[#6B6B6B] truncate">{e.sub}</p>
-                </div>
-                <span className="text-[11px] font-medium text-[#6B6B6B] shrink-0">{e.time}</span>
-              </div>
-            ))}
           </div>
           <button
             onClick={() => navigate('/planning')}
-            className="mt-auto flex items-center gap-1.5 pt-4 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
+            className="mt-3 flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#F06B21] transition-colors hover:text-[#D95B17]"
           >
-            Voir tout le planning <ArrowRight size={12} />
+            Voir le planning <ArrowRight size={12} />
           </button>
         </div>
-      </div>
 
-      {/* Row 4: Bottom stats */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        {/* Dépenses par mois */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
-          <p className="text-[12px] font-medium text-[#6B6B6B] mb-1">Dépenses par mois (8 derniers mois)</p>
-          <p className="text-[22px] font-bold text-[#1E1E1E]">{fmt(Math.round(totalDepenses))} €</p>
-          <p className="text-[11px] text-[#6B6B6B] mb-3">Total dépenses</p>
-          <p className="text-[11px] text-[#DC2626] font-semibold">-8,3% vs période précédente</p>
-          <ResponsiveContainer width="100%" height={60}>
-            <BarChart data={depensesParMoisData} barSize={12}>
-              <Bar dataKey="val" radius={[3, 3, 0, 0]}>
-                {depensesParMoisData.map((_, i) => (
-                  <Cell key={i} fill={i === depensesParMoisData.length - 1 ? '#F06B21' : '#EADBC8'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Top catégories */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
-          <p className="text-[13px] font-semibold text-[#1E1E1E] mb-4">Top catégories</p>
-          <div className="space-y-3">
-            {topCategories.map(cat => (
-              <div key={cat.name}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    <span className="text-[12px] text-[#3C3C3C]">{cat.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-[#6B6B6B]">{fmt(cat.value)} €</span>
-                    <span className="text-[11px] font-semibold text-[#1E1E1E] w-8 text-right">{cat.pct}%</span>
-                  </div>
-                </div>
-                <div className="w-full bg-[#F2E8DC] rounded-full h-1.5">
-                  <div
-                    className="h-1.5 rounded-full transition-all"
-                    style={{ width: `${cat.pct}%`, backgroundColor: cat.color }}
-                  />
-                </div>
-              </div>
-            ))}
+        <div className="flex h-[276px] min-h-0 flex-col rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-[13px] font-semibold text-[#1E1E1E]">Couverture import</h2>
+            <Database size={16} className="text-[#F06B21]" />
+          </div>
+          <div className="grid gap-3">
+            <div className="rounded-[14px] bg-[#FAF6F2] p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Exercices</p>
+              <p className="mt-1 text-[24px] font-bold leading-none text-[#1E1E1E]">{coverage.exercises}</p>
+            </div>
+            <div className="rounded-[14px] bg-[#FAF6F2] p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Clients</p>
+              <p className="mt-1 text-[24px] font-bold leading-none text-[#1E1E1E]">{coverage.clients}</p>
+            </div>
+            <div className="rounded-[14px] bg-[#FAF6F2] p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Lignes exclues</p>
+              <p className="mt-1 text-[24px] font-bold leading-none text-[#1E1E1E]">
+                {coverage.syntheticOrNonOperationalLines}
+              </p>
+            </div>
           </div>
         </div>
-
-        {/* Productivité équipe */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
-          <p className="text-[12px] font-medium text-[#6B6B6B] mb-1">Productivité équipe (ce mois)</p>
-          <p className="text-[36px] font-bold text-[#1E1E1E] leading-none">89%</p>
-          <p className="text-[11px] text-[#6B6B6B] mb-4">vs objectif</p>
-          <div className="w-full bg-[#F2E8DC] rounded-full h-2 mb-2">
-            <div className="h-2 rounded-full bg-[#1E8E3E] transition-all" style={{ width: '89%' }} />
-          </div>
-          <p className="text-[11px] text-[#1E8E3E] font-semibold">+6% vs mois dernier</p>
-        </div>
-
-        {/* Documents traités */}
-        <div className="bg-white rounded-[20px] p-5 border border-[#F2E8DC]">
-          <p className="text-[12px] font-medium text-[#6B6B6B] mb-1">Documents traités (ce mois)</p>
-          <p className="text-[36px] font-bold text-[#1E1E1E] leading-none">126</p>
-          <p className="text-[11px] text-[#1E8E3E] font-semibold mb-3">+23% vs mois dernier</p>
-          <ResponsiveContainer width="100%" height={50}>
-            <LineChart data={docTraitesData}>
-              <Line type="monotone" dataKey="val" stroke="#F06B21" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
       </div>
+
+      {facturesEnAttente.length > 0 && (
+        <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[13px] font-semibold text-[#1E1E1E]">Factures fournisseurs a qualifier</p>
+              <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                {facturesEnAttente.length} facture{facturesEnAttente.length > 1 ? 's' : ''} issue
+                {facturesEnAttente.length > 1 ? 's' : ''} de SQL Connect, pour {fmtEuro(totalFacturesEnAttente)}.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/factures?status=en_attente')}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-[12px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17]"
+            >
+              <FileText className="h-4 w-4" strokeWidth={1.75} />
+              Traiter
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

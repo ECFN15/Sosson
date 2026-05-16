@@ -203,7 +203,7 @@ function EventBlock({ event, team, dayIndex, selected, onSelect }: { event: Plan
       onClick={onSelect}
       className={`relative min-h-[70px] w-full rounded-[10px] px-2.5 py-2 text-left transition hover:ring-1 hover:ring-[#F06B21]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/30 ${selected ? 'ring-2 ring-[#F06B21]/30' : ''} ${
         isGhost ? 'border-2 border-dashed bg-white' : 'border-l-[3px]'
-      } ${isLate ? 'bg-[#FEE2E2] bg-[repeating-linear-gradient(135deg,rgba(220,38,38,0.10)_0,rgba(220,38,38,0.10)_4px,transparent_4px,transparent_9px)]' : ''}`}
+      } ${isLate ? 'bg-[#FEE2E2]' : ''}`}
       style={{
         backgroundColor: isLate ? undefined : isGhost ? 'rgba(255,255,255,0.72)' : team.bg,
         borderColor: isLate ? '#DC2626' : team.border,
@@ -379,7 +379,7 @@ export function PlanningPage() {
               <span className="rounded-[8px] bg-[#FAF6F2] px-2.5 py-1 text-[11px] font-medium text-[#6B6B6B]">Terminé</span>
             </div>
             <div className="mt-4 flex items-center gap-2 text-[12px] text-[#6B6B6B]">
-              <span className="h-8 w-8 rounded-[8px] border border-dashed border-[#EADBC8] bg-[repeating-linear-gradient(135deg,#FAF6F2_0,#FAF6F2_4px,#FFFFFF_4px,#FFFFFF_9px)]" />
+              <span className="h-8 w-8 rounded-[8px] border border-dashed border-[#EADBC8] bg-[#FAF6F2]" />
               Absence / Congé
             </div>
           </Card>
@@ -395,7 +395,7 @@ export function PlanningPage() {
                     <div
                       key={day}
                       className={`border-r border-[#F2E8DC] p-4 text-center text-sm font-medium last:border-r-0 ${
-                        index >= 5 ? 'bg-[repeating-linear-gradient(135deg,#FAF6F2_0,#FAF6F2_4px,#FFFFFF_4px,#FFFFFF_9px)] text-[#6B6B6B]' : 'bg-white text-[#3C3C3C]'
+                        index >= 5 ? 'bg-[#FAF6F2] text-[#6B6B6B]' : 'bg-white text-[#3C3C3C]'
                       }`}
                     >
                       {day}
@@ -414,7 +414,7 @@ export function PlanningPage() {
                         key={`${team.id}-${dayIndex}`}
                         className={`border-r border-[#F2E8DC] p-2 last:border-r-0 ${
                           dayIndex >= 5
-                            ? 'bg-[repeating-linear-gradient(135deg,#FAF6F2_0,#FAF6F2_4px,#FFFFFF_4px,#FFFFFF_9px)]'
+                            ? 'bg-[#FAF6F2]'
                             : 'bg-white'
                         }`}
                       >

@@ -533,7 +533,7 @@ function MobilePhotosTab({ chantier }: { chantier: Chantier }) {
       <section>
         <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Localisation</h2>
         <MobileCard className="mt-3 overflow-hidden">
-          <div className="relative h-28 bg-[#EADBC8] bg-[linear-gradient(135deg,#FAF6F2_25%,transparent_25%),linear-gradient(225deg,#FAF6F2_25%,transparent_25%),linear-gradient(45deg,#F2E8DC_25%,transparent_25%),linear-gradient(315deg,#F2E8DC_25%,#EADBC8_25%)] bg-[length:38px_38px]">
+          <div className="relative h-28 bg-[#F1E6D6]">
             <MapPin className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 fill-[#F06B21] text-[#F06B21]" strokeWidth={1.75} />
           </div>
           <div className="p-4">

@@ -1,625 +1,890 @@
-import { useMemo, useState } from 'react'
-import { emails, useApp } from '@/lib/store'
-import { getChantierCover } from '@/data/media'
+import { useEffect, useMemo, useState } from 'react'
+import { useApp } from '@/lib/store'
 import type { Email } from '@/data/emails'
+import {
+  OUTLOOK_MAILBOX_ADDRESS,
+} from '@/lib/outlookMailKit'
 import type { LucideIcon } from 'lucide-react'
 import {
   AlertTriangle,
   Archive,
-  ArrowDown,
-  CalendarDays,
-  CheckCircle2,
+  BellRing,
   ChevronDown,
-  ChevronRight,
   Clock3,
-  Download,
+  Edit3,
   FileText,
-  Filter,
   Forward,
-  HardHat,
-  Home,
   Inbox,
-  Link2,
   Mail,
+  MailCheck,
   MailOpen,
   MoreHorizontal,
   Paperclip,
   Plus,
+  RefreshCcw,
   Reply,
   Search,
-  SlidersHorizontal,
+  Send,
   Sparkles,
   Star,
   Tag,
-  Zap,
+  Trash2,
+  X,
 } from 'lucide-react'
 
-type EmailTab = 'toutes' | 'prioritaires' | 'devis' | 'factures' | 'chantiers' | 'internes' | 'spam'
+type MailFolder = 'inbox' | 'unread' | 'flagged' | 'sent' | 'drafts' | 'archive' | 'deleted' | 'spam'
+type MailPriority = Email['priorite']
+type MailTag = Email['tag']
+type ComposeMode = 'new' | 'reply' | 'forward'
 
-const TAB_LABELS: Array<{ key: EmailTab; label: string }> = [
-  { key: 'toutes', label: 'Toutes' },
-  { key: 'prioritaires', label: 'Prioritaires' },
-  { key: 'devis', label: 'Devis / Demande' },
-  { key: 'factures', label: 'Factures' },
-  { key: 'chantiers', label: 'Chantiers' },
-  { key: 'internes', label: 'Internes' },
-  { key: 'spam', label: 'Spam' },
-]
+const OUTLOOK_LOCAL_API = 'http://localhost:8787'
+const OUTLOOK_RETURN_TO_KEY = 'sosson.outlook.returnTo'
 
-const TAG_LABELS: Record<Email['tag'], string> = {
+interface MailMessage extends Email {
+  folder: MailFolder
+  flagged: boolean
+  archived: boolean
+  deleted: boolean
+  attachments: Array<{ name: string; size: string; type: string }>
+}
+
+const FOLDER_LABELS: Record<MailFolder, string> = {
+  inbox: 'Boite de reception',
+  unread: 'Non lus',
+  flagged: 'Favoris',
+  sent: 'Elements envoyes',
+  drafts: 'Brouillons',
+  archive: 'Archive',
+  deleted: 'Elements supprimes',
+  spam: 'Courrier indesirable',
+}
+
+const FOLDER_ICONS: Record<MailFolder, LucideIcon> = {
+  inbox: Inbox,
+  unread: MailOpen,
+  flagged: Star,
+  sent: Send,
+  drafts: Edit3,
+  archive: Archive,
+  deleted: Trash2,
+  spam: AlertTriangle,
+}
+
+const FOLDER_ORDER: MailFolder[] = ['inbox', 'unread', 'flagged', 'sent', 'drafts', 'archive', 'deleted', 'spam']
+
+const TAG_LABELS: Record<MailTag, string> = {
   client: 'Client',
   fournisseur: 'Fournisseur',
   interne: 'Interne',
-  devis: 'Devis / Demande',
+  devis: 'Devis',
   facture: 'Facture',
   chantier: 'Chantier',
   spam: 'Spam',
 }
 
-const TAG_STYLES: Record<Email['tag'], string> = {
+const TAG_STYLES: Record<MailTag, string> = {
   client: 'bg-[#F1E6D6] text-[#1E1E1E]',
   fournisseur: 'bg-[#FAF6F2] text-[#6B6B6B]',
-  interne: 'bg-[#DCE9F2] text-[#3C3C3C]',
+  interne: 'bg-[#F1E6D6] text-[#3C3C3C]',
   devis: 'bg-[#FDEBDD] text-[#D95B17]',
   facture: 'bg-[#EADBC8] text-[#A45A2C]',
   chantier: 'bg-[#F06B21]/10 text-[#F06B21]',
-  spam: 'bg-[#FEE2E2] text-[#DC2626]',
+  spam: 'bg-[#FEE7E2] text-[#B42318]',
 }
 
-const TAG_ICONS: Record<Email['tag'], LucideIcon> = {
-  client: Home,
-  fournisseur: Inbox,
-  interne: Mail,
-  devis: AlertTriangle,
-  facture: FileText,
-  chantier: HardHat,
-  spam: MailOpen,
+const PRIORITY_LABELS: Record<MailPriority, string> = {
+  haute: 'Haute',
+  normale: 'Normale',
+  faible: 'Faible',
 }
 
-function splitSender(expediteur: string) {
-  const match = expediteur.match(/^(.*?)\s*<(.+)>$/)
-  if (match) {
-    return {
-      name: match[1]?.trim() || expediteur,
-      email: match[2]?.trim() || expediteur,
-    }
-  }
+function splitSender(sender: string) {
+  const match = sender.match(/^(.*?)\s*<(.+)>$/)
+  if (match) return { name: match[1]?.trim() || sender, email: match[2]?.trim() || sender }
+  if (!sender.includes('@')) return { name: sender, email: sender }
 
-  if (expediteur.includes('@')) {
-    const [localPart] = expediteur.split('@')
-    const name = localPart
-      .split(/[._-]/)
-      .filter(Boolean)
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ')
+  const [localPart] = sender.split('@')
+  const name = localPart
+    .split(/[._-]/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 
-    return { name: name || expediteur, email: expediteur }
-  }
-
-  return { name: expediteur, email: expediteur }
+  return { name: name || sender, email: sender }
 }
 
-function formatListDate(value: string) {
+function formatShortDate(value: string) {
   const date = new Date(value)
   const now = new Date()
   const sameDay = date.toDateString() === now.toDateString()
-  const yesterday = new Date(now)
-  yesterday.setDate(now.getDate() - 1)
-
-  if (sameDay) {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  }
-
-  if (date.toDateString() === yesterday.toDateString()) {
-    return 'Hier'
-  }
-
+  if (sameDay) return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
 }
 
 function formatFullDate(value: string) {
   return new Date(value).toLocaleDateString('fr-FR', {
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
 }
 
-function matchesTab(email: Email, tab: EmailTab) {
-  switch (tab) {
-    case 'prioritaires':
-      return email.priorite === 'haute'
-    case 'devis':
-      return email.tag === 'devis'
-    case 'factures':
-      return email.tag === 'facture'
-    case 'chantiers':
-      return email.tag === 'chantier' || email.tag === 'client'
-    case 'internes':
-      return email.tag === 'interne'
+function getFolderMessages(messages: MailMessage[], folder: MailFolder) {
+  switch (folder) {
+    case 'unread':
+      return messages.filter(message => !message.deleted && !message.lu)
+    case 'flagged':
+      return messages.filter(message => !message.deleted && message.flagged)
+    case 'archive':
+      return messages.filter(message => message.archived && !message.deleted)
+    case 'deleted':
+      return messages.filter(message => message.deleted)
     case 'spam':
-      return email.tag === 'spam'
-    case 'toutes':
+      return messages.filter(message => !message.deleted && message.folder === 'spam')
+    case 'sent':
+    case 'drafts':
+    case 'inbox':
     default:
-      return true
+      return messages.filter(message => !message.deleted && !message.archived && message.folder === folder)
   }
 }
 
-function countForTab(tab: EmailTab) {
-  return emails.filter(email => matchesTab(email, tab)).length
+function countFolder(messages: MailMessage[], folder: MailFolder) {
+  return getFolderMessages(messages, folder).length
 }
 
-function EmailListItem({
-  email,
-  chantierName,
+function matchesSearch(message: MailMessage, query: string) {
+  if (!query) return true
+  const sender = splitSender(message.expediteur)
+  return [
+    sender.name,
+    sender.email,
+    message.destinataire,
+    message.sujet,
+    message.extrait,
+    TAG_LABELS[message.tag],
+    PRIORITY_LABELS[message.priorite],
+  ]
+    .join(' ')
+    .toLowerCase()
+    .includes(query)
+}
+
+function buildDraft(mode: ComposeMode, message?: MailMessage) {
+  if (!message || mode === 'new') {
+    return { to: '', subject: '', body: '', mode }
+  }
+
+  const sender = splitSender(message.expediteur)
+  if (mode === 'forward') {
+    return {
+      to: '',
+      subject: `TR: ${message.sujet}`,
+      body: `\n\n---------- Message transfere ----------\nDe: ${sender.name} <${sender.email}>\nSujet: ${message.sujet}\n\n${message.extrait}`,
+      mode,
+    }
+  }
+
+  return {
+    to: sender.email,
+    subject: message.sujet.startsWith('Re:') ? message.sujet : `Re: ${message.sujet}`,
+    body: `Bonjour,\n\n\n\nCordialement,\nSosson\n\n--- Message original ---\n${message.extrait}`,
+    mode,
+  }
+}
+
+function FolderButton({
+  folder,
+  active,
+  count,
+  unread,
+  onClick,
+}: {
+  folder: MailFolder
+  active: boolean
+  count: number
+  unread: number
+  onClick: () => void
+}) {
+  const Icon = FOLDER_ICONS[folder]
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'flex h-10 w-full items-center gap-3 rounded-[14px] px-3 text-left text-[13px] font-medium transition-colors',
+        active ? 'bg-[#FDEBDD] text-[#F06B21]' : 'text-[#3C3C3C] hover:bg-[#FAF6F2]',
+      ].join(' ')}
+    >
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+      <span className="min-w-0 flex-1 truncate">{FOLDER_LABELS[folder]}</span>
+      {unread > 0 && folder === 'inbox' ? (
+        <span className="rounded-full bg-[#F06B21] px-2 py-0.5 text-[11px] font-semibold text-white">{unread}</span>
+      ) : count > 0 ? (
+        <span className="text-[11px] font-semibold text-[#9B8F82]">{count}</span>
+      ) : null}
+    </button>
+  )
+}
+
+function MessageRow({
+  message,
   selected,
   onSelect,
+  onToggleFlag,
 }: {
-  email: Email
-  chantierName: string
+  message: MailMessage
   selected: boolean
   onSelect: () => void
+  onToggleFlag: () => void
 }) {
-  const sender = splitSender(email.expediteur)
-  const Icon = email.priorite === 'haute' ? AlertTriangle : TAG_ICONS[email.tag]
+  const sender = splitSender(message.expediteur)
+  const hasAttachments = message.attachments.length > 0
 
   return (
     <button
       type="button"
       onClick={onSelect}
       className={[
-        'group relative w-full text-left px-4 py-4 transition-colors',
-        'border-b border-[#F2E8DC]/70 last:border-b-0',
-        selected ? 'bg-[#F06B21]/[0.07]' : 'bg-white hover:bg-[#F9F7F3]',
+        'group relative w-full border-b border-[#F2E8DC] px-4 py-3 text-left transition-colors last:border-b-0',
+        selected ? 'bg-[#FDEBDD]/70' : message.lu ? 'bg-white hover:bg-[#F9F7F3]' : 'bg-[#FFFDFC] hover:bg-[#F9F7F3]',
       ].join(' ')}
     >
-      {selected && <span className="absolute left-0 top-0 bottom-0 w-1 bg-[#F06B21]" aria-hidden="true" />}
-      {!email.lu && !selected && (
-        <span className="absolute left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-[#F06B21]" />
-      )}
+      {selected && <span className="absolute bottom-0 left-0 top-0 w-1 bg-[#F06B21]" aria-hidden="true" />}
+      {!message.lu && <span className="absolute left-2 top-5 h-2 w-2 rounded-full bg-[#F06B21]" aria-hidden="true" />}
 
-      <div className="flex gap-3 pl-1">
-        <div
-          className={[
-            'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]',
-            selected ? 'bg-white text-[#F06B21]' : 'bg-[#FAF6F2] text-[#6B6B6B]',
-          ].join(' ')}
-        >
-          <Icon className="h-4 w-4" strokeWidth={1.75} />
+      <div className="flex items-start gap-3 pl-2">
+        <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#FAF6F2] text-[12px] font-semibold text-[#1E1E1E]">
+          {sender.name.slice(0, 2).toUpperCase()}
         </div>
-
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{sender.name}</p>
-            <span className="shrink-0 text-[12px] text-[#6B6B6B]">{formatListDate(email.date)}</span>
+          <div className="flex items-start gap-2">
+            <p className={['min-w-0 flex-1 truncate text-[13px] text-[#1E1E1E]', message.lu ? 'font-medium' : 'font-semibold'].join(' ')}>
+              {sender.name}
+            </p>
+            <span className="shrink-0 text-[11px] text-[#6B6B6B]">{formatShortDate(message.date)}</span>
           </div>
-          <div className="mt-1 flex items-start gap-2">
-            <p className="min-w-0 flex-1 truncate text-[13px] font-medium text-[#1E1E1E]">{email.sujet}</p>
-            <span className={`shrink-0 rounded-[6px] px-2 py-0.5 text-[10px] font-medium ${TAG_STYLES[email.tag]}`}>
-              {email.priorite === 'haute' ? 'Prioritaire' : TAG_LABELS[email.tag]}
-            </span>
+          <div className="mt-1 flex items-center gap-2">
+            <p className={['min-w-0 flex-1 truncate text-[13px] text-[#1E1E1E]', message.lu ? 'font-medium' : 'font-semibold'].join(' ')}>
+              {message.sujet}
+            </p>
+            {hasAttachments && <Paperclip className="h-3.5 w-3.5 shrink-0 text-[#9B8F82]" strokeWidth={1.75} />}
           </div>
-          <p className="mt-1 line-clamp-1 text-[12px] leading-5 text-[#6B6B6B]">{email.extrait}</p>
-          <p className="mt-2 truncate text-[11px] text-[#9CA3AF]">{chantierName}</p>
+          <p className="mt-1 line-clamp-1 text-[12px] leading-5 text-[#6B6B6B]">{message.extrait}</p>
+          <div className="mt-2 flex items-center gap-2">
+            <span className={`rounded-[6px] px-2 py-0.5 text-[10px] font-semibold ${TAG_STYLES[message.tag]}`}>{TAG_LABELS[message.tag]}</span>
+            {message.priorite === 'haute' && (
+              <span className="rounded-[6px] bg-[#FEE7E2] px-2 py-0.5 text-[10px] font-semibold text-[#B42318]">Prioritaire</span>
+            )}
+          </div>
         </div>
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={event => {
+            event.stopPropagation()
+            onToggleFlag()
+          }}
+          onKeyDown={event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              event.stopPropagation()
+              onToggleFlag()
+            }
+          }}
+          className={[
+            'mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] transition-colors',
+            message.flagged ? 'text-[#F06B21]' : 'text-[#C8B8A7] hover:bg-[#FAF6F2] hover:text-[#6B6B6B]',
+          ].join(' ')}
+          aria-label={message.flagged ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        >
+          <Star className={message.flagged ? 'h-4 w-4 fill-current' : 'h-4 w-4'} strokeWidth={1.75} />
+        </span>
       </div>
     </button>
   )
 }
 
-function ProjectThumbnail({ src }: { src: string }) {
+function ComposePanel({
+  draft,
+  onClose,
+  onChange,
+  onSend,
+  onSaveDraft,
+}: {
+  draft: { to: string; subject: string; body: string; mode: ComposeMode }
+  onClose: () => void
+  onChange: (draft: { to: string; subject: string; body: string; mode: ComposeMode }) => void
+  onSend: () => void
+  onSaveDraft: () => void
+}) {
   return (
-    <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-[10px] border border-[#F2E8DC] bg-[#EADBC8]">
-      <img src={src} alt="Aperçu du chantier" className="h-full w-full object-cover" loading="lazy" />
-    </div>
+    <article className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+      <div className="flex min-h-[58px] items-center gap-3 border-b border-[#F2E8DC] px-5 text-[#1E1E1E]">
+        <Edit3 className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+        <p className="flex-1 text-sm font-semibold">
+          {draft.mode === 'new' ? 'Nouveau message' : draft.mode === 'reply' ? 'Repondre' : 'Transferer'}
+        </p>
+        <button type="button" onClick={onSaveDraft} className="rounded-[10px] border border-[#F2E8DC] bg-[#FAF6F2] px-3 py-2 text-xs font-semibold text-[#3C3C3C] hover:bg-white">
+          Brouillon
+        </button>
+        <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Fermer">
+          <X className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+      </div>
+      <div className="grid shrink-0 gap-0">
+        <label className="grid grid-cols-[72px_minmax(0,1fr)] items-center border-b border-[#F2E8DC] px-4 py-3 text-sm">
+          <span className="text-[#6B6B6B]">A</span>
+          <input
+            value={draft.to}
+            onChange={event => onChange({ ...draft, to: event.target.value })}
+            className="min-w-0 bg-transparent text-[#1E1E1E] outline-none"
+            placeholder="destinataire@exemple.fr"
+          />
+        </label>
+        <label className="grid grid-cols-[72px_minmax(0,1fr)] items-center border-b border-[#F2E8DC] px-4 py-3 text-sm">
+          <span className="text-[#6B6B6B]">Objet</span>
+          <input
+            value={draft.subject}
+            onChange={event => onChange({ ...draft, subject: event.target.value })}
+            className="min-w-0 bg-transparent text-[#1E1E1E] outline-none"
+            placeholder="Sujet"
+          />
+        </label>
+      </div>
+      <textarea
+        value={draft.body}
+        onChange={event => onChange({ ...draft, body: event.target.value })}
+        className="min-h-[260px] flex-1 resize-none bg-white px-4 py-4 text-sm leading-6 text-[#1E1E1E] outline-none"
+        placeholder="Rediger le message..."
+      />
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-[#F2E8DC] px-4 py-3">
+        <button
+          type="button"
+          onClick={onSend}
+          className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]"
+        >
+          <Send className="h-4 w-4" strokeWidth={1.75} />
+          Envoyer
+        </button>
+        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-[12px] text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Joindre un fichier">
+          <Paperclip className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-[12px] text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Plus d'options">
+          <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+      </div>
+    </article>
   )
 }
 
 export function EmailsPage() {
   const { chantiers, clients } = useApp()
-  const [activeTab, setActiveTab] = useState<EmailTab>('toutes')
-  const [search, setSearch] = useState('')
-  const [selectedId, setSelectedId] = useState(emails[0]?.id ?? '')
-  const [actionFeedback, setActionFeedback] = useState('')
-  const [selectedSuggestion, setSelectedSuggestion] = useState('Maison Dupont')
+  const [messages, setMessages] = useState<MailMessage[]>([])
+  const [activeFolder, setActiveFolder] = useState<MailFolder>('inbox')
+  const [query, setQuery] = useState('')
+  const [selectedId, setSelectedId] = useState('')
+  const [toast, setToast] = useState('')
+  const [composeOpen, setComposeOpen] = useState(false)
+  const [draft, setDraft] = useState(() => buildDraft('new'))
+  const [outlookConnected, setOutlookConnected] = useState(false)
+  const [outlookProfile, setOutlookProfile] = useState<{ mail?: string; userPrincipalName?: string; displayName?: string } | null>(null)
+  const [outlookLoading, setOutlookLoading] = useState(false)
+  const [outlookError, setOutlookError] = useState('')
 
-  const sortedEmails = useMemo(
-    () => [...emails].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    []
-  )
+  useEffect(() => {
+    fetch(`${OUTLOOK_LOCAL_API}/api/outlook/status`)
+      .then(async response => {
+        const payload = await response.json()
+        if (!response.ok) throw new Error(payload.error ?? 'Serveur Outlook local indisponible')
+        setOutlookConnected(Boolean(payload.connected))
+        setOutlookProfile(payload.profile ?? null)
+        if (payload.connected) void refreshOutlookSnapshot()
+      })
+      .catch(() => {
+        setOutlookConnected(false)
+        setOutlookError('Serveur Outlook local non demarre. Lance npm run outlook:local.')
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const visibleEmails = useMemo(() => {
-    const query = search.trim().toLowerCase()
-    return sortedEmails.filter(email => {
-      if (!matchesTab(email, activeTab)) return false
-      if (!query) return true
+  const unreadCount = messages.filter(message => !message.deleted && !message.lu).length
+  const folderMessages = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    return getFolderMessages(messages, activeFolder)
+      .filter(message => matchesSearch(message, normalized))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [activeFolder, messages, query])
 
-      const sender = splitSender(email.expediteur)
-      return [sender.name, sender.email, email.sujet, email.extrait, TAG_LABELS[email.tag]]
-        .join(' ')
-        .toLowerCase()
-        .includes(query)
-    })
-  }, [activeTab, search, sortedEmails])
+  const selectedMessage = messages.find(message => message.id === selectedId) ?? folderMessages[0]
+  const selectedSender = selectedMessage ? splitSender(selectedMessage.expediteur) : null
+  const selectedChantier = selectedMessage ? chantiers.find(chantier => chantier.id === selectedMessage.chantierId) : undefined
+  const selectedClient = selectedMessage ? clients.find(client => client.id === selectedMessage.clientId) : undefined
+  const confidence = selectedMessage?.priorite === 'haute' ? 92 : selectedMessage?.tag === 'facture' ? 83 : 74
 
-  const selectedEmail = sortedEmails.find(email => email.id === selectedId) ?? sortedEmails[0]
-  const selectedSender = splitSender(selectedEmail.expediteur)
-  const selectedChantier = chantiers.find(chantier => chantier.id === selectedEmail.chantierId)
-  const selectedClient = clients.find(client => client.id === selectedEmail.clientId)
-  const analysisProgress = selectedEmail.priorite === 'haute' ? 92 : 76
-  const emailBody = selectedEmail.extrait.replace(/^Bonjour,\s*/i, '')
+  async function connectOutlook() {
+    setOutlookLoading(true)
+    setOutlookError('')
+    try {
+      const response = await fetch(`${OUTLOOK_LOCAL_API}/api/outlook/auth-url`)
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? 'Impossible de generer l URL Microsoft')
+      localStorage.setItem(OUTLOOK_RETURN_TO_KEY, `${window.location.pathname}${window.location.search}`)
+      window.location.href = payload.url
+    } catch (error) {
+      setOutlookError(error instanceof Error ? error.message : String(error))
+      setToast('Serveur Outlook local indisponible. Lance npm run outlook:local dans un terminal.')
+    } finally {
+      setOutlookLoading(false)
+    }
+  }
+
+  async function refreshOutlookSnapshot() {
+    setOutlookLoading(true)
+    setOutlookError('')
+    try {
+      const folders: Array<'inbox' | 'sent' | 'drafts'> = ['inbox', 'sent', 'drafts']
+      const payloads = await Promise.all(
+        folders.map(async folder => {
+          const response = await fetch(`${OUTLOOK_LOCAL_API}/api/outlook/messages?folder=${folder}&top=30`)
+          const payload = await response.json()
+          if (!response.ok) throw new Error(payload.error ?? `Lecture Outlook impossible: ${folder}`)
+          return payload.messages as MailMessage[]
+        }),
+      )
+      const nextMessages = payloads.flat()
+      setMessages(nextMessages)
+      const preferred = getFolderMessages(nextMessages, activeFolder)[0] ?? nextMessages[0]
+      setSelectedId(preferred?.id ?? '')
+      setOutlookConnected(true)
+      setToast(`${nextMessages.length} messages Outlook charges depuis Microsoft Graph.`)
+    } catch (error) {
+      setOutlookError(error instanceof Error ? error.message : String(error))
+      setToast(error instanceof Error ? error.message : 'Synchronisation Outlook impossible.')
+    } finally {
+      setOutlookLoading(false)
+    }
+  }
+
+  function patchSelected(update: Partial<MailMessage>, feedback: string) {
+    if (!selectedMessage) return
+    setMessages(current => current.map(message => (message.id === selectedMessage.id ? { ...message, ...update } : message)))
+    setToast(feedback)
+  }
+
+  function toggleFlag(id: string) {
+    setMessages(current => current.map(message => (message.id === id ? { ...message, flagged: !message.flagged } : message)))
+  }
+
+  function openComposer(mode: ComposeMode) {
+    setDraft(buildDraft(mode, selectedMessage))
+    setComposeOpen(true)
+  }
+
+  async function sendDraft() {
+    const trimmedTo = draft.to.trim()
+    const trimmedSubject = draft.subject.trim() || '(sans objet)'
+    if (!trimmedTo) {
+      setToast('Ajoute un destinataire avant envoi.')
+      return
+    }
+
+    try {
+      if (outlookConnected) {
+        const response = await fetch(`${OUTLOOK_LOCAL_API}/api/outlook/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: trimmedTo, subject: trimmedSubject, body: draft.body }),
+        })
+        const payload = await response.json()
+        if (!response.ok) throw new Error(payload.error ?? 'Envoi Graph refuse')
+      }
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Envoi Outlook impossible.')
+      return
+    }
+
+    const sent: MailMessage = {
+      id: `sent-${Date.now()}`,
+      chantierId: selectedMessage?.chantierId ?? 'chantier-1',
+      clientId: selectedMessage?.clientId ?? 'client-1',
+      expediteur: OUTLOOK_MAILBOX_ADDRESS,
+      destinataire: trimmedTo,
+      sujet: trimmedSubject,
+      extrait: draft.body.trim() || 'Message envoye depuis Sosson.',
+      date: new Date().toISOString(),
+      lu: true,
+      priorite: 'normale',
+      tag: selectedMessage?.tag ?? 'interne',
+      folder: 'sent',
+      flagged: false,
+      archived: false,
+      deleted: false,
+      attachments: [],
+    }
+
+    setMessages(current => [sent, ...current])
+    setComposeOpen(false)
+    setActiveFolder('sent')
+    setSelectedId(sent.id)
+    setToast(outlookConnected ? 'Message envoye via Microsoft Graph.' : 'Message envoye dans la simulation locale.')
+  }
+
+  function saveDraft() {
+    const saved: MailMessage = {
+      id: `draft-${Date.now()}`,
+      chantierId: selectedMessage?.chantierId ?? 'chantier-1',
+      clientId: selectedMessage?.clientId ?? 'client-1',
+      expediteur: OUTLOOK_MAILBOX_ADDRESS,
+      destinataire: draft.to || 'Destinataire a renseigner',
+      sujet: draft.subject || '(brouillon sans objet)',
+      extrait: draft.body || 'Brouillon en cours.',
+      date: new Date().toISOString(),
+      lu: true,
+      priorite: 'normale',
+      tag: selectedMessage?.tag ?? 'interne',
+      folder: 'drafts',
+      flagged: false,
+      archived: false,
+      deleted: false,
+      attachments: [],
+    }
+    setMessages(current => [saved, ...current])
+    setComposeOpen(false)
+    setActiveFolder('drafts')
+    setSelectedId(saved.id)
+    setToast('Brouillon sauvegarde localement.')
+  }
+
+  function selectMessage(message: MailMessage) {
+    setComposeOpen(false)
+    setSelectedId(message.id)
+    if (!message.lu) {
+      setMessages(current => current.map(item => (item.id === message.id ? { ...item, lu: true } : item)))
+    }
+  }
 
   return (
-    <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
-      <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <div className="flex h-[calc(100vh-76px)] min-h-[720px] flex-col overflow-hidden bg-[#FAF6F2] p-4 xl:p-6">
+      <div className="mb-4 flex shrink-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-[28px] font-semibold leading-tight text-[#1E1E1E]">Boîte email - Tri intelligent</h1>
-          <p className="mt-2 text-sm text-[#3C3C3C]">Vos emails sont automatiquement triés et liés à vos chantiers.</p>
+          <h1 className="text-[28px] font-semibold leading-tight text-[#1E1E1E]">Outlook Sosson</h1>
+          <p className="mt-1 text-sm text-[#3C3C3C]">Boite de test Graph, qualification chantier et envoi depuis l'espace principal.</p>
         </div>
-
         <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#3C3C3C]">
+            <BellRing className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+            {unreadCount} non lus
+          </span>
           <button
             type="button"
-            className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] transition-colors hover:bg-[#F9F7F3]"
+            onClick={() => {
+              if (outlookConnected) void refreshOutlookSnapshot()
+              else void connectOutlook()
+            }}
+            disabled={outlookLoading}
+            className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]"
           >
-            Non lus
-            <ChevronDown className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+            <RefreshCcw className={outlookLoading ? 'h-4 w-4 animate-spin text-[#6B6B6B]' : 'h-4 w-4 text-[#6B6B6B]'} strokeWidth={1.75} />
+            {outlookConnected ? 'Synchroniser' : 'Connecter Outlook'}
           </button>
           <button
             type="button"
-            className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] transition-colors hover:bg-[#F9F7F3]"
+            onClick={() => openComposer('new')}
+            className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]"
           >
-            <CalendarDays className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-            Période
-            <ChevronDown className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] transition-colors hover:bg-[#F9F7F3]"
-          >
-            <Filter className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-            Filtres
-            <ChevronDown className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+            <Plus className="h-4 w-4" strokeWidth={1.75} />
+            Nouveau message
           </button>
         </div>
       </div>
 
-      {actionFeedback && (
-        <div className="mb-5 flex items-center justify-between rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-[13px] font-medium text-[#3C3C3C]">
-          <span>{actionFeedback}</span>
-          <button type="button" onClick={() => setActionFeedback('')} className="text-[#F06B21] hover:text-[#D95B17]">OK</button>
+      {toast && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-sm text-[#3C3C3C]">
+          <span>{toast}</span>
+          <button type="button" onClick={() => setToast('')} className="font-semibold text-[#F06B21] hover:text-[#D95B17]">
+            OK
+          </button>
         </div>
       )}
 
-      <div className="mb-5 overflow-x-auto">
-        <div className="inline-flex min-w-max rounded-[10px] border border-[#F2E8DC] bg-white p-1">
-          {TAB_LABELS.map(tab => {
-            const isActive = activeTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={[
-                  'inline-flex h-9 items-center gap-2 rounded-[8px] px-4 text-sm font-medium transition-colors',
-                  isActive ? 'bg-[#FDEBDD] text-[#F06B21]' : 'text-[#3C3C3C] hover:bg-[#FAF6F2]',
-                ].join(' ')}
-              >
-                {tab.label}
-                <span
-                  className={[
-                    'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                    isActive ? 'bg-white text-[#F06B21]' : 'bg-[#FAF6F2] text-[#6B6B6B]',
-                  ].join(' ')}
-                >
-                  {countForTab(tab.key)}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="grid min-h-[620px] grid-cols-1 gap-4 2xl:grid-cols-[360px_minmax(520px,1fr)_340px]">
-        <section className="flex min-h-[560px] flex-col overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white shadow-[2px_0_10px_rgba(0,0,0,0.02)]">
-          <div className="flex h-[58px] items-center gap-3 border-b border-[#F2E8DC] px-4">
-            <Search className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-            <input
-              type="search"
-              value={search}
-              onChange={event => setSearch(event.target.value)}
-              placeholder="Rechercher un email..."
-              className="min-w-0 flex-1 bg-transparent text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:outline-none"
-            />
-            <SlidersHorizontal className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {visibleEmails.length > 0 ? (
-              visibleEmails.map(email => {
-                const chantier = chantiers.find(item => item.id === email.chantierId)
-                return (
-                  <EmailListItem
-                    key={email.id}
-                    email={email}
-                    chantierName={chantier?.nom ?? 'Chantier a qualifier'}
-                    selected={selectedEmail.id === email.id}
-                    onSelect={() => setSelectedId(email.id)}
-                  />
-                )
-              })
-            ) : (
-              <div className="flex h-full min-h-[260px] items-center justify-center px-6 text-center text-sm text-[#6B6B6B]">
-                Aucun email ne correspond à ces critères.
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-[#F2E8DC] p-4">
-            <button
-              type="button"
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white text-sm font-medium text-[#1E1E1E] transition-colors hover:bg-[#F9F7F3]"
-            >
-              <ArrowDown className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              Charger plus d'emails
-            </button>
-          </div>
-        </section>
-
-        <section className="flex min-h-[560px] flex-col overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-          <div className="flex min-h-[58px] flex-wrap items-center gap-2 border-b border-[#F2E8DC] px-5 py-3">
-            <button onClick={() => setActionFeedback('Réponse préparée avec le contexte chantier')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
-              <Reply className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              Répondre
-            </button>
-            <button onClick={() => setActionFeedback('Email prêt à être transféré à l’équipe chantier')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
-              <Forward className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              Transférer
-            </button>
-            <button onClick={() => setActionFeedback('Email marqué comme lu pour la démonstration')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
-              <MailOpen className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              Marquer comme lu
-            </button>
-            <button onClick={() => setActionFeedback('Email archivé dans le flux de démonstration')} className="inline-flex items-center gap-2 rounded-[10px] px-2.5 py-2 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]" type="button">
-              <Archive className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              Archiver
-            </button>
-            <button className="ml-auto flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2]" type="button" aria-label="Plus d'actions">
-              <MoreHorizontal className="h-5 w-5" strokeWidth={1.75} />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-5 xl:p-6">
-            <div className="mb-7">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-[20px] font-semibold leading-tight text-[#1E1E1E]">{selectedEmail.sujet}</h2>
-                <span className={`rounded-[6px] px-2.5 py-1 text-[11px] font-medium ${TAG_STYLES[selectedEmail.tag]}`}>
-                  {selectedEmail.priorite === 'haute' ? 'Prioritaire' : TAG_LABELS[selectedEmail.tag]}
-                </span>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3 border-b border-[#F2E8DC] pb-5 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-[#1E1E1E]">
-                    {selectedSender.name}{' '}
-                    <span className="font-normal text-[#6B6B6B]">&lt;{selectedSender.email}&gt;</span>
-                  </p>
-                  <p className="mt-1 text-xs text-[#6B6B6B]">À : {selectedClient?.nom ?? selectedEmail.destinataire}</p>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-[#6B6B6B]">
-                  <span>{formatFullDate(selectedEmail.date)}</span>
-                  <Star className="h-4 w-4" strokeWidth={1.75} />
-                  <Reply className="h-4 w-4" strokeWidth={1.75} />
-                  <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
-                </div>
-              </div>
-            </div>
-
-            <div className="max-w-[680px] text-[15px] leading-7 text-[#1E1E1E]">
-              <p>Bonjour,</p>
-              <p className="mt-4">{emailBody}</p>
-              <p className="mt-4">
-                Cordialement,
-                <br />
-                {selectedSender.name}
-              </p>
-            </div>
-
-            <div className="mt-8 rounded-[20px] border border-[#F2E8DC] bg-[#FDEBDD]/45 p-5">
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-[#F06B21]" strokeWidth={1.75} />
-                  <h3 className="text-[15px] font-semibold text-[#1E1E1E]">Analyse IA</h3>
-                </div>
-                <span className="rounded-[6px] bg-white px-2.5 py-1 text-[11px] font-medium text-[#F06B21]">
-                  {selectedEmail.priorite === 'haute' ? 'Prioritaire' : 'A qualifier'}
-                </span>
-              </div>
-
-              <div className="grid gap-5 md:grid-cols-2">
-                <div>
-                  <p className="mb-3 text-xs font-semibold text-[#1E1E1E]">Detection</p>
-                  {['Demande de devis', 'Extension', 'Ossature bois', '20m2'].map(item => (
-                    <div key={item} className="mb-2 flex items-center gap-2 text-[13px] text-[#3C3C3C] last:mb-0">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-[#A45A2C]" strokeWidth={2} />
-                      {item}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <p className="mb-2 text-xs font-semibold text-[#1E1E1E]">Intention</p>
-                  <p className="text-[13px] leading-5 text-[#3C3C3C]">
-                    Demande de devis pour un projet d'extension en ossature bois.
-                  </p>
-                  <div className="mt-4">
-                    <p className="mb-2 text-xs font-semibold text-[#1E1E1E]">Confiance</p>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[15px] font-semibold text-[#1E1E1E]">{analysisProgress}%</span>
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#EADBC8]">
-                        <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${analysisProgress}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <div className="mb-3 flex items-center gap-2">
-                <Paperclip className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                <h3 className="text-[15px] font-semibold text-[#1E1E1E]">Pièces jointes (1)</h3>
-              </div>
-              <div className="flex items-center gap-4 rounded-[14px] border border-[#F2E8DC] bg-white p-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FEE2E2] text-[#DC2626]">
-                  <FileText className="h-5 w-5" strokeWidth={1.75} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[#1E1E1E]">Plan_extension.pdf</p>
-                  <p className="mt-0.5 text-xs text-[#6B6B6B]">PDF - 1.2 Mo</p>
-                </div>
-                <button type="button" className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Télécharger">
-                  <Download className="h-4 w-4" strokeWidth={1.75} />
-                </button>
-                <button type="button" className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Options">
-                  <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <aside className="flex min-h-[560px] flex-col gap-4">
-          <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5 shadow-[-2px_0_10px_rgba(0,0,0,0.02)]">
-            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Lier à un chantier / client</h2>
-
-            <div className="mt-6">
-              <p className="mb-3 text-xs font-semibold text-[#1E1E1E]">Chantier suggéré par IA</p>
-              <div className="rounded-[14px] border border-[#F2E8DC] bg-white p-3">
-                <div className="flex gap-3">
-                  <ProjectThumbnail src={getChantierCover(selectedChantier?.id)} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-[#1E1E1E]">{selectedChantier?.nom ?? 'Chantier à créer'}</p>
-                      <span className="rounded-[6px] bg-[#E6F4EA] px-2 py-0.5 text-[10px] font-semibold text-[#1E8E3E]">
-                        Match : 85%
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-[#6B6B6B]">{selectedClient?.nom ?? 'Client à qualifier'}</p>
-                    <p className="mt-1 text-xs text-[#3C3C3C]">En cours - Démarrage prévu mai 2026</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5">
-              <p className="mb-3 text-xs font-semibold text-[#1E1E1E]">Autres suggestions</p>
-              {[
-                { label: 'Maison Dupont', sub: 'Dupont Jean', match: '65%' },
-                { label: 'Extension Martin', sub: 'Martin SARL', match: '40%' },
-              ].map(item => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    setSelectedSuggestion(item.label)
-                    setActionFeedback(`${item.label} sélectionné comme chantier cible`)
-                  }}
-                  className="mb-2 flex w-full items-center gap-3 rounded-[10px] border border-[#F2E8DC] bg-white p-2.5 text-left transition-colors last:mb-0 hover:bg-[#F9F7F3]"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-[#FAF6F2] text-[#6B6B6B]">
-                    <HardHat className="h-4 w-4" strokeWidth={1.75} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium text-[#1E1E1E]">{item.label}</p>
-                    <p className="truncate text-[12px] text-[#6B6B6B]">{item.sub}</p>
-                  </div>
-                  <span className="rounded-[6px] bg-[#E6F4EA] px-2 py-0.5 text-[10px] font-semibold text-[#1E8E3E]">
-                    {selectedSuggestion === item.label ? 'Sélectionné' : `Match : ${item.match}`}
-                  </span>
-                </button>
-              ))}
-              <button
-                type="button"
-                className="mt-1 flex h-10 w-full items-center justify-between rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]"
-              >
-                Voir tous les chantiers
-                <ChevronRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              </button>
-            </div>
-
-            <div className="mt-6">
-              <div className="mb-3 flex items-center gap-2">
-                <Tag className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                <p className="text-xs font-semibold text-[#1E1E1E]">Tags</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {['devis', 'extension', 'ossature bois'].map(tag => (
-                  <span key={tag} className="rounded-[6px] bg-[#F1E6D6] px-2.5 py-1.5 text-[12px] font-medium text-[#3C3C3C]">
-                    {tag}
-                  </span>
-                ))}
-                <button type="button" className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-[#F2E8DC] bg-white text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Ajouter un tag">
-                  <Plus className="h-3.5 w-3.5" strokeWidth={1.75} />
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <p className="mb-3 text-xs font-semibold text-[#1E1E1E]">Actions rapides</p>
-              <button
-                type="button"
-                onClick={() => setActionFeedback(`Email lié à ${selectedSuggestion}`)}
-                className="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#D95B17]"
-              >
-                <Link2 className="h-4 w-4" strokeWidth={1.75} />
-                Lier au chantier
-              </button>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white text-xs font-medium text-[#3C3C3C] hover:bg-[#F9F7F3]">
-                  <FileText className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                  Créer un devis
-                </button>
-                <button type="button" className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white text-xs font-medium text-[#3C3C3C] hover:bg-[#F9F7F3]">
-                  <CalendarDays className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                  Créer une tâche
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
-            <h2 className="mb-5 text-[15px] font-semibold text-[#1E1E1E]">Activité liée</h2>
-            {[
-              { label: 'Email reçu', time: '21 avr. 2026 à 09:42' },
-              { label: 'Affecté à Jean Dupont', time: '21 avr. 2026 à 09:43' },
-              { label: 'Analyse IA - 92% de confiance', time: '21 avr. 2026 à 09:43' },
-            ].map(item => (
-              <div key={item.label} className="mb-4 flex items-center gap-3 last:mb-0">
-                <Clock3 className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                <p className="min-w-0 flex-1 truncate text-[12px] text-[#3C3C3C]">{item.label}</p>
-                <span className="shrink-0 text-[11px] text-[#9CA3AF]">{item.time}</span>
-              </div>
-            ))}
-          </section>
-
-          <section className="rounded-[20px] border border-[#F2E8DC] bg-[#FDEBDD]/45 p-5">
-            <div className="flex gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#F06B21]">
-                <Zap className="h-5 w-5" strokeWidth={1.9} />
-              </div>
-              <div>
-                <h2 className="text-[14px] font-semibold text-[#1E1E1E]">Gagnez du temps</h2>
-                <p className="mt-2 text-[13px] leading-5 text-[#3C3C3C]">
-                  L'IA a trié et analysé cet email. Vérifiez simplement les informations et liez-le au chantier correspondant.
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[260px_minmax(340px,440px)_minmax(0,1fr)]">
+        <aside className="min-h-0 overflow-y-auto rounded-[20px] border border-[#F2E8DC] bg-white p-3">
+          <div className="mb-3 rounded-[16px] bg-[#1E1E1E] p-4 text-white">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#F06B21] text-sm font-bold">OS</span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{outlookConnected ? 'Outlook connecte' : 'Outlook local'}</p>
+                <p className="truncate text-xs text-white/65">
+                  {outlookProfile?.mail ?? outlookProfile?.userPrincipalName ?? OUTLOOK_MAILBOX_ADDRESS}
                 </p>
               </div>
             </div>
-          </section>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+              <span className="rounded-[10px] bg-white/10 px-2 py-2">{outlookConnected ? 'Graph live' : 'A connecter'}</span>
+              <span className="rounded-[10px] bg-white/10 px-2 py-2">{messages.length} mails</span>
+            </div>
+            {!outlookConnected && (
+              <button
+                type="button"
+                onClick={connectOutlook}
+                className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-[12px] bg-[#F06B21] text-sm font-semibold text-white hover:bg-[#D95B17]"
+              >
+                Connecter mes mails
+              </button>
+            )}
+          </div>
+
+          <nav className="space-y-1">
+            {FOLDER_ORDER.map(folder => (
+              <FolderButton
+                key={folder}
+                folder={folder}
+                active={activeFolder === folder}
+                count={countFolder(messages, folder)}
+                unread={unreadCount}
+                onClick={() => {
+                  setComposeOpen(false)
+                  setActiveFolder(folder)
+                  const next = getFolderMessages(messages, folder)[0]
+                  if (next) setSelectedId(next.id)
+                }}
+              />
+            ))}
+          </nav>
+
+          <div className="mt-5 border-t border-[#F2E8DC] pt-4">
+            <p className="mb-2 px-3 text-[11px] font-semibold uppercase text-[#9B8F82]">Categories</p>
+            {(['devis', 'facture', 'client', 'chantier'] as MailTag[]).map(tag => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => {
+                  setQuery(TAG_LABELS[tag].toLowerCase())
+                  setToast(`Filtre categorie: ${TAG_LABELS[tag]}`)
+                }}
+                className="flex h-9 w-full items-center gap-3 rounded-[12px] px-3 text-left text-[13px] text-[#3C3C3C] hover:bg-[#FAF6F2]"
+              >
+                <Tag className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                {TAG_LABELS[tag]}
+              </button>
+            ))}
+          </div>
         </aside>
+
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white">
+          <div className="border-b border-[#F2E8DC] p-4">
+            <div className="flex h-11 items-center gap-3 rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] px-3">
+              <Search className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              <input
+                value={query}
+                onChange={event => setQuery(event.target.value)}
+                placeholder="Rechercher dans la boite..."
+                className="min-w-0 flex-1 bg-transparent text-sm text-[#1E1E1E] outline-none placeholder:text-[#9B8F82]"
+              />
+              {query && (
+                <button type="button" onClick={() => setQuery('')} className="text-[#6B6B6B] hover:text-[#1E1E1E]" aria-label="Effacer la recherche">
+                  <X className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+              )}
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-[#6B6B6B]">
+              <span>{FOLDER_LABELS[activeFolder]}</span>
+              <button type="button" className="inline-flex items-center gap-1 rounded-[8px] px-2 py-1 hover:bg-[#FAF6F2]">
+                Tries par date
+                <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.75} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {folderMessages.length > 0 ? (
+              folderMessages.map(message => (
+                <MessageRow
+                  key={message.id}
+                  message={message}
+                  selected={selectedMessage?.id === message.id}
+                  onSelect={() => selectMessage(message)}
+                  onToggleFlag={() => toggleFlag(message.id)}
+                />
+              ))
+            ) : (
+              <div className="flex h-full min-h-[320px] flex-col items-center justify-center px-8 text-center">
+                <MailCheck className="h-10 w-10 text-[#C8B8A7]" strokeWidth={1.5} />
+                <p className="mt-3 text-sm font-semibold text-[#1E1E1E]">
+                  {outlookConnected ? 'Aucun message' : 'Tes mails Outlook ne sont pas encore charges'}
+                </p>
+                <p className="mt-1 text-sm text-[#6B6B6B]">
+                  {outlookConnected ? 'Change de dossier ou retire le filtre de recherche.' : 'Lance le serveur local puis connecte ton compte Microsoft.'}
+                </p>
+                {!outlookConnected && (
+                  <button
+                    type="button"
+                    onClick={connectOutlook}
+                    className="mt-4 inline-flex h-10 items-center justify-center rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]"
+                  >
+                    Connecter Outlook
+                  </button>
+                )}
+                {outlookError && <p className="mt-3 max-w-[280px] text-xs leading-5 text-[#B42318]">{outlookError}</p>}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <main className="flex min-h-0 flex-col overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white">
+          <div className="flex min-h-[58px] flex-wrap items-center gap-2 border-b border-[#F2E8DC] px-4 py-3">
+            <button type="button" onClick={() => openComposer('reply')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+              <Reply className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              Repondre
+            </button>
+            <button type="button" onClick={() => openComposer('forward')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+              <Forward className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              Transferer
+            </button>
+            <button type="button" onClick={() => patchSelected({ lu: !selectedMessage?.lu }, selectedMessage?.lu ? 'Message marque non lu.' : 'Message marque lu.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+              {selectedMessage?.lu ? <Mail className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} /> : <MailOpen className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />}
+              {selectedMessage?.lu ? 'Non lu' : 'Lu'}
+            </button>
+            <button type="button" onClick={() => patchSelected({ archived: true, folder: 'archive' }, 'Message archive.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+              <Archive className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              Archiver
+            </button>
+            <button type="button" onClick={() => patchSelected({ deleted: true, folder: 'deleted' }, 'Message deplace dans elements supprimes.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+              <Trash2 className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+              Supprimer
+            </button>
+            <button type="button" className="ml-auto flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2]" aria-label="Parametres">
+              <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+          </div>
+
+          {composeOpen ? (
+            <ComposePanel
+              draft={draft}
+              onClose={() => setComposeOpen(false)}
+              onChange={setDraft}
+              onSend={sendDraft}
+              onSaveDraft={saveDraft}
+            />
+          ) : selectedMessage && selectedSender ? (
+            <article className="flex-1 overflow-y-auto p-5 xl:p-6">
+              <div className="flex flex-col gap-4 border-b border-[#F2E8DC] pb-5 xl:flex-row xl:items-start xl:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-[22px] font-semibold leading-tight text-[#1E1E1E]">{selectedMessage.sujet}</h2>
+                    <span className={`rounded-[6px] px-2.5 py-1 text-[11px] font-semibold ${TAG_STYLES[selectedMessage.tag]}`}>{TAG_LABELS[selectedMessage.tag]}</span>
+                    {selectedMessage.flagged && <Star className="h-4 w-4 fill-[#F06B21] text-[#F06B21]" strokeWidth={1.75} />}
+                  </div>
+                  <p className="mt-2 text-sm text-[#6B6B6B]">
+                    De {selectedSender.name} <span className="text-[#9B8F82]">&lt;{selectedSender.email}&gt;</span>
+                  </p>
+                  <p className="mt-1 text-sm text-[#6B6B6B]">A {selectedMessage.destinataire}</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#6B6B6B]">
+                  <Clock3 className="h-4 w-4" strokeWidth={1.75} />
+                  {formatFullDate(selectedMessage.date)}
+                  <button type="button" onClick={() => toggleFlag(selectedMessage.id)} className="ml-2 flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-[#FAF6F2]" aria-label="Favori">
+                    <Star className={selectedMessage.flagged ? 'h-4 w-4 fill-[#F06B21] text-[#F06B21]' : 'h-4 w-4 text-[#6B6B6B]'} strokeWidth={1.75} />
+                  </button>
+                </div>
+              </div>
+
+              <section className="mt-5 rounded-[18px] border border-[#F2E8DC] bg-[#FAF6F2] p-4">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase text-[#9B8F82]">Rattachement Sosson</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="rounded-[8px] bg-white px-3 py-1.5 text-sm font-semibold text-[#1E1E1E]">
+                        {selectedChantier?.nom ?? 'Chantier a qualifier'}
+                      </span>
+                      <span className="rounded-[8px] bg-white px-3 py-1.5 text-sm text-[#6B6B6B]">
+                        {selectedClient?.nom ?? 'Client non rattache'}
+                      </span>
+                      <span className="rounded-[8px] bg-[#FDEBDD] px-3 py-1.5 text-xs font-semibold text-[#D95B17]">
+                        Match {confidence}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setToast('Email lie au dossier suggere.')}
+                      className="inline-flex h-10 items-center justify-center rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]"
+                    >
+                      Lier au dossier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setToast('Recherche de chantier a ouvrir dans une modale de selection.')}
+                      className="inline-flex h-10 items-center justify-center rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-semibold text-[#1E1E1E] hover:bg-[#F9F7F3]"
+                    >
+                      Changer
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <div className="mt-6 max-w-[760px] text-[15px] leading-7 text-[#1E1E1E]">
+                <p>Bonjour,</p>
+                <p className="mt-4">{selectedMessage.extrait.replace(/^Bonjour,\s*/i, '')}</p>
+                <p className="mt-4">Cordialement,</p>
+                <p>{selectedSender.name}</p>
+              </div>
+
+              {selectedMessage.attachments.length > 0 && (
+                <section className="mt-8">
+                  <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#1E1E1E]">
+                    <Paperclip className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                    Pieces jointes
+                  </h3>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {selectedMessage.attachments.map(attachment => (
+                      <div key={attachment.name} className="flex items-center gap-3 rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] p-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-white text-[#F06B21]">
+                          <FileText className="h-5 w-5" strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-[#1E1E1E]">{attachment.name}</p>
+                          <p className="text-xs text-[#6B6B6B]">{attachment.type} - {attachment.size}</p>
+                        </div>
+                        <button type="button" className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-white" aria-label="Actions piece jointe">
+                          <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <section className="mt-8 rounded-[20px] border border-[#F2E8DC] bg-[#FDEBDD]/45 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1E1E1E]">
+                      <Sparkles className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+                      Analyse et rattachement
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-[#3C3C3C]">
+                      Intention detectee: {selectedMessage.tag === 'facture' ? 'facture fournisseur a classer' : selectedMessage.tag === 'devis' ? 'demande de devis a traiter' : 'message client a rattacher'}.
+                    </p>
+                  </div>
+                  <span className="rounded-[8px] bg-white px-3 py-1 text-xs font-semibold text-[#F06B21]">Confiance {confidence}%</span>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#EADBC8]">
+                  <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${confidence}%` }} />
+                </div>
+              </section>
+            </article>
+          ) : (
+            <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-[#6B6B6B]">Selectionne un message.</div>
+          )}
+        </main>
+
       </div>
+
     </div>
   )
 }

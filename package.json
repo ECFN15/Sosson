@@ -17,6 +17,9 @@
     "verify:dataconnect": "node scripts/verify-dataconnect-local.mjs",
     "verify:previsionnel:dataconnect": "node scripts/verify-previsionnel-dataconnect-local.mjs",
     "verify:previsionnel:clients": "node scripts/verify-previsionnel-client-directory.mjs",
+    "test:outlook:oauth": "node scripts/test-outlook-oauth.mjs",
+    "test:outlook:send": "node scripts/test-outlook-oauth.mjs --send",
+    "outlook:local": "node scripts/outlook-local-server.mjs",
     "lint": "eslint .",
     "test:previsionnel": "vitest run src/lib/previsionnelSpreadsheet.test.ts",
     "preview": "vite preview"

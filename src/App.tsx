@@ -11,6 +11,7 @@ import { ClientDetailPage } from '@/pages/ClientDetailPage'
 import { DocumentsPage } from '@/pages/DocumentsPage'
 import { FacturesPage } from '@/pages/FacturesPage'
 import { EmailsPage } from '@/pages/EmailsPage'
+import { MicrosoftCallbackPage } from '@/pages/MicrosoftCallbackPage'
 import { PlanningPage } from '@/pages/PlanningPage'
 import { PrevisionnelPage } from '@/pages/PrevisionnelPage'
 import { StatistiquesPage } from '@/pages/StatistiquesPage'
@@ -53,6 +54,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/microsoft/callback" element={<MicrosoftCallbackPage />} />
           <Route
             path="/previsionnel/tableur"
             element={

@@ -115,12 +115,12 @@ export function EquipePage() {
     saveCollection(LEAVES_STORAGE_KEY, leaves)
   }, [leaves])
 
-  const selectedTeam = teams.find(team => team.id === selectedTeamId) ?? teams[0]
+  const selectedTeam = teams.find(team => team.id === selectedTeamId) ?? teams[0] ?? null
   const selectedTeamMembers = useMemo(
     () => members.filter(member => member.teamId === selectedTeam?.id),
     [members, selectedTeam?.id]
   )
-  const selectedMember = members.find(member => member.id === selectedMemberId) ?? selectedTeamMembers[0]
+  const selectedMember = selectedTeamMembers.find(member => member.id === selectedMemberId) ?? selectedTeamMembers[0] ?? null
   const selectedMemberLeaves = useMemo(
     () => leaves.filter(leave => leave.memberId === selectedMember?.id),
     [leaves, selectedMember?.id]
@@ -171,16 +171,16 @@ export function EquipePage() {
   }
 
   function deleteTeam(teamId: string) {
-    if (teams.length <= 1) return
     const deletedMemberIds = members.filter(member => member.teamId === teamId).map(member => member.id)
     const remainingTeams = teams.filter(team => team.id !== teamId)
-    const nextTeam = remainingTeams[0]
+    const nextTeam = selectedTeamId === teamId ? remainingTeams[0] : remainingTeams.find(team => team.id === selectedTeamId)
+    const remainingMembers = members.filter(member => member.teamId !== teamId)
 
     setTeams(remainingTeams)
-    setMembers(prev => prev.filter(member => member.teamId !== teamId))
+    setMembers(remainingMembers)
     setLeaves(prev => prev.filter(leave => !deletedMemberIds.includes(leave.memberId)))
     setSelectedTeamId(nextTeam?.id ?? '')
-    setSelectedMemberId(members.find(member => member.teamId === nextTeam?.id)?.id ?? '')
+    setSelectedMemberId(remainingMembers.find(member => member.teamId === nextTeam?.id)?.id ?? '')
   }
 
   function addMember() {
@@ -287,9 +287,7 @@ export function EquipePage() {
     })
   }
 
-  if (!selectedTeam) return null
-
-  const selectedTheme = themeOptions[selectedTeam.theme]
+  const selectedTheme = selectedTeam ? themeOptions[selectedTeam.theme] : null
 
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
@@ -336,7 +334,7 @@ export function EquipePage() {
             <div className="mt-4 space-y-2">
               {teams.map(team => {
                 const theme = themeOptions[team.theme]
-                const isSelected = team.id === selectedTeam.id
+                const isSelected = team.id === selectedTeam?.id
                 const count = members.filter(member => member.teamId === team.id).length
                 return (
                   <div
@@ -362,8 +360,7 @@ export function EquipePage() {
                         <button
                           type="button"
                           onClick={() => deleteTeam(team.id)}
-                          disabled={teams.length <= 1}
-                          className="inline-flex h-8 items-center gap-2 rounded-[10px] px-2 text-[11px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2] disabled:cursor-not-allowed disabled:text-[#9CA3AF] disabled:hover:bg-transparent"
+                          className="inline-flex h-8 items-center gap-2 rounded-[10px] px-2 text-[11px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]"
                         >
                           <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
                           Supprimer equipe
@@ -373,6 +370,11 @@ export function EquipePage() {
                   </div>
                 )
               })}
+              {teams.length === 0 && (
+                <p className="rounded-[14px] bg-[#FAF6F2] p-4 text-[13px] leading-5 text-[#6B6B6B]">
+                  Aucune equipe pour le moment. Creez la premiere avec le formulaire ci-dessous.
+                </p>
+              )}
             </div>
           </section>
 
@@ -391,26 +393,37 @@ export function EquipePage() {
         </aside>
 
         <main className="min-w-0 space-y-5">
-          <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <span className="inline-flex rounded-[8px] px-2.5 py-1 text-[11px] font-semibold" style={{ backgroundColor: selectedTheme.bg, color: selectedTheme.text }}>
-                  {selectedTheme.label}
-                </span>
-                <h2 className="mt-3 text-[22px] font-semibold text-[#1E1E1E]">{selectedTeam.name}</h2>
-                <p className="mt-2 text-[13px] leading-5 text-[#3C3C3C]">{selectedTeam.description}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedTeam.activeSites.map(site => (
-                    <span key={site} className="rounded-[6px] bg-[#FAF6F2] px-2.5 py-1 text-[11px] font-semibold text-[#6B6B6B]">{site}</span>
-                  ))}
+          {selectedTeam && selectedTheme ? (
+            <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <span className="inline-flex rounded-[8px] px-2.5 py-1 text-[11px] font-semibold" style={{ backgroundColor: selectedTheme.bg, color: selectedTheme.text }}>
+                    {selectedTheme.label}
+                  </span>
+                  <h2 className="mt-3 text-[22px] font-semibold text-[#1E1E1E]">{selectedTeam.name}</h2>
+                  <p className="mt-2 text-[13px] leading-5 text-[#3C3C3C]">{selectedTeam.description}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedTeam.activeSites.map(site => (
+                      <span key={site} className="rounded-[6px] bg-[#FAF6F2] px-2.5 py-1 text-[11px] font-semibold text-[#6B6B6B]">{site}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Responsable</p>
+                  <p className="mt-1 text-[13px] font-semibold text-[#1E1E1E]">{selectedTeam.lead}</p>
                 </div>
               </div>
-              <div className="rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">Responsable</p>
-                <p className="mt-1 text-[13px] font-semibold text-[#1E1E1E]">{selectedTeam.lead}</p>
+            </section>
+          ) : (
+            <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+              <div className="rounded-[16px] bg-[#FAF6F2] p-5">
+                <p className="text-[15px] font-semibold text-[#1E1E1E]">Aucune equipe selectionnee</p>
+                <p className="mt-2 text-[13px] leading-5 text-[#6B6B6B]">
+                  La liste est vide. Ajoutez les vraies equipes Sosson pour commencer a creer les fiches membres.
+                </p>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           <section className="rounded-[20px] border border-[#F2E8DC] bg-white">
             <div className="flex items-center justify-between border-b border-[#F2E8DC] px-5 py-4">
@@ -438,6 +451,11 @@ export function EquipePage() {
                   </div>
                 </button>
               ))}
+              {selectedTeamMembers.length === 0 && (
+                <p className="rounded-[14px] bg-[#FAF6F2] p-4 text-[13px] text-[#6B6B6B] md:col-span-2">
+                  {selectedTeam ? 'Aucun membre dans cette equipe.' : "Creez une equipe avant d'ajouter des membres."}
+                </p>
+              )}
             </div>
           </section>
 
@@ -448,7 +466,9 @@ export function EquipePage() {
               </div>
               <div>
                 <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Ajouter un membre</h2>
-                <p className="text-[12px] text-[#6B6B6B]">La fiche sera enregistree dans la base locale de l'equipe selectionnee.</p>
+                <p className="text-[12px] text-[#6B6B6B]">
+                  {selectedTeam ? "La fiche sera enregistree dans la base locale de l'equipe selectionnee." : "Creez une equipe avant d'ajouter une fiche membre."}
+                </p>
               </div>
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -469,7 +489,7 @@ export function EquipePage() {
               <textarea value={memberDraft.activeSites} onChange={event => setMemberDraft(prev => ({ ...prev, activeSites: event.target.value }))} placeholder="Chantiers suivis, separes par virgules" rows={2} className="resize-none rounded-[14px] border border-[#F2E8DC] px-3 py-2 text-[13px] outline-none focus:border-[#F06B21]" />
               <textarea value={memberDraft.responsibilities} onChange={event => setMemberDraft(prev => ({ ...prev, responsibilities: event.target.value }))} placeholder="Responsabilites separees par virgules" rows={2} className="resize-none rounded-[14px] border border-[#F2E8DC] px-3 py-2 text-[13px] outline-none focus:border-[#F06B21]" />
             </div>
-            <button type="button" onClick={addMember} className="mt-4 inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#1E1E1E] px-4 text-[13px] font-semibold text-white transition hover:bg-[#2A2A2A]">
+            <button type="button" onClick={addMember} disabled={!selectedTeam} className="mt-4 inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#1E1E1E] px-4 text-[13px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
               <Plus className="h-4 w-4" strokeWidth={2} />
               Ajouter a l'equipe
             </button>
