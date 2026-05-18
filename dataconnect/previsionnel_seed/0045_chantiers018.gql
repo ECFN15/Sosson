@@ -2,6 +2,7 @@ mutation @transaction {
   chantiers018: chantier_upsertMany(data: [
     {
       id: "baeace14-3c80-5bdd-88e4-80a9b4aaa561",
+      origineImport: "previsionnel",
       clientId: "147ef48e-0ea8-54e6-ad9a-c2aecbc42ac2",
       nom: "Bonneau (2013-14)",
       statut: "cloture",
@@ -14,6 +15,7 @@ mutation @transaction {
     },
     {
       id: "cc418e5f-e57e-5d60-aaeb-b8491e469e0b",
+      origineImport: "previsionnel",
       clientId: "b7806316-a24a-5497-8b85-d1d9ffdb937c",
       nom: "Rf guillot (2013-14)",
       statut: "cloture",
@@ -26,6 +28,7 @@ mutation @transaction {
     },
     {
       id: "e1aa996f-5e75-5de9-987c-af635efd99b9",
+      origineImport: "previsionnel",
       clientId: "4f265ad2-b525-552b-ad66-927133a97c30",
       nom: "Selle iso ite (2013-14)",
       statut: "cloture",
@@ -38,6 +41,7 @@ mutation @transaction {
     },
     {
       id: "2d39300d-7ca9-582d-9025-2e1e46e05658",
+      origineImport: "previsionnel",
       clientId: "662856dc-ef86-50c6-8920-700d2cd4268a",
       nom: "Perin (2013-14)",
       statut: "cloture",
@@ -50,6 +54,7 @@ mutation @transaction {
     },
     {
       id: "f77c501e-b5af-538b-b45c-8ee4e1b30904",
+      origineImport: "previsionnel",
       clientId: "41868a36-e129-5652-9038-3a761329b567",
       nom: "Viquesnel mob (2013-14)",
       statut: "cloture",
@@ -62,6 +67,7 @@ mutation @transaction {
     },
     {
       id: "e322415b-c245-56dc-96b2-5e9c9a43370d",
+      origineImport: "previsionnel",
       clientId: "807bf407-e743-5384-a11b-b5f5850c3179",
       nom: "Legarrec terrasse (2013-14)",
       statut: "cloture",
@@ -74,6 +80,7 @@ mutation @transaction {
     },
     {
       id: "ba0f34ec-c267-564c-ac3a-b9b8c8734e65",
+      origineImport: "previsionnel",
       clientId: "637997e2-30e7-59cb-9624-8b99f48cd34a",
       nom: "Bisson (2013-14)",
       statut: "cloture",
@@ -86,6 +93,7 @@ mutation @transaction {
     },
     {
       id: "f174066e-f469-5beb-89b5-1599ac516b67",
+      origineImport: "previsionnel",
       clientId: "d1b5b7e1-c713-556f-a7ca-ab0c3249e12d",
       nom: "Foulon firma (2013-14)",
       statut: "cloture",
@@ -98,6 +106,7 @@ mutation @transaction {
     },
     {
       id: "1e096bd6-ea19-54ad-bd71-165e94711302",
+      origineImport: "previsionnel",
       clientId: "e19161db-fad3-55e3-9ce3-9456c4ac4a72",
       nom: "Mairie bretteville (2013-14)",
       statut: "cloture",
@@ -110,6 +119,7 @@ mutation @transaction {
     },
     {
       id: "54cda4a2-2ef7-5ead-83a0-2ff7b30510ae",
+      origineImport: "previsionnel",
       clientId: "370a7a3a-7c00-53b9-b725-2fdb59f83e4a",
       nom: "Bouyguesifs (2013-14)",
       statut: "cloture",
@@ -122,6 +132,7 @@ mutation @transaction {
     },
     {
       id: "e7586830-e5bb-5657-bd92-9a3196837537",
+      origineImport: "previsionnel",
       clientId: "696e7e64-f9c4-5b9b-99cf-fd4dc0cde1cb",
       nom: "Freire daniel (2013-14)",
       statut: "cloture",
@@ -134,6 +145,7 @@ mutation @transaction {
     },
     {
       id: "aa6d1159-8c80-5840-8b3e-7fe120127682",
+      origineImport: "previsionnel",
       clientId: "54720947-d13d-5e2e-8ae0-1f0bbe8676a8",
       nom: "Res fam rabout (2013-14)",
       statut: "cloture",
@@ -146,6 +158,7 @@ mutation @transaction {
     },
     {
       id: "e6ac5e9b-aabe-51bf-a572-cc88ee341ef0",
+      origineImport: "previsionnel",
       clientId: "658a7294-0b6d-57e9-8371-b9aa67565443",
       nom: "Guilbert thales (2013-14)",
       statut: "cloture",
@@ -158,6 +171,7 @@ mutation @transaction {
     },
     {
       id: "2e1b5d5d-0f0c-52d0-820f-ab4c90447581",
+      origineImport: "previsionnel",
       clientId: "f20808f8-0a90-5b00-866f-511a3c5f001b",
       nom: "Chaventre (2013-14)",
       statut: "cloture",
@@ -170,6 +184,7 @@ mutation @transaction {
     },
     {
       id: "c45178a5-7426-5263-906e-baa6cbe0337a",
+      origineImport: "previsionnel",
       clientId: "e8760822-2896-506a-9518-a9d42326cdec",
       nom: "Talmar (2013-14)",
       statut: "cloture",
@@ -182,6 +197,7 @@ mutation @transaction {
     },
     {
       id: "06cb3cd8-6c62-5682-9e9e-dbe29ebb3358",
+      origineImport: "previsionnel",
       clientId: "b5ea33b8-0b42-5508-9b62-da6516a923b5",
       nom: "Isoplaf (2013-14)",
       statut: "cloture",
@@ -194,6 +210,7 @@ mutation @transaction {
     },
     {
       id: "51ef71ab-1947-5ab3-8f08-c3d83658a0d0",
+      origineImport: "previsionnel",
       clientId: "5bafe49f-d048-5a9c-a890-fdec0f7db3f4",
       nom: "Benoist yohann (2013-14)",
       statut: "cloture",
@@ -206,6 +223,7 @@ mutation @transaction {
     },
     {
       id: "c66b13ec-108d-58bb-8a8b-b524ca6d354c",
+      origineImport: "previsionnel",
       clientId: "c4acc9d2-f0f4-5400-a212-874695eb9fd6",
       nom: "Bicard-burlot (2013-14)",
       statut: "cloture",
@@ -218,6 +236,7 @@ mutation @transaction {
     },
     {
       id: "eefeb12b-8fb9-5493-9438-cb09b0bbaddd",
+      origineImport: "previsionnel",
       clientId: "6ec9b5ec-c204-5ee3-8beb-2a6c4aeb205e",
       nom: "Cfab cotonnière (2013-14)",
       statut: "cloture",
@@ -230,6 +249,7 @@ mutation @transaction {
     },
     {
       id: "c5d7bf65-2d12-50cd-a22a-0600f6a37052",
+      origineImport: "previsionnel",
       clientId: "f18691a7-6ca9-5f9e-a639-47d3cf549656",
       nom: "Viglieri (2013-14)",
       statut: "cloture",
@@ -242,6 +262,7 @@ mutation @transaction {
     },
     {
       id: "54b98edb-9e93-5a51-ae1c-3281edec8804",
+      origineImport: "previsionnel",
       clientId: "3689469a-6699-54a7-b1ea-ddebc808362c",
       nom: "Marie toit mondeville (2013-14)",
       statut: "cloture",
@@ -254,6 +275,7 @@ mutation @transaction {
     },
     {
       id: "239679d6-e0a6-5e97-a0a3-1b0b1ab792d2",
+      origineImport: "previsionnel",
       clientId: "a74803bb-9182-549c-806b-60430eae218f",
       nom: "Hervieu (2013-14)",
       statut: "cloture",
@@ -266,6 +288,7 @@ mutation @transaction {
     },
     {
       id: "53ec46d9-8b01-5b81-a785-b932c7ebe2ef",
+      origineImport: "previsionnel",
       clientId: "19dd85bb-675b-537c-80a9-9c6126308711",
       nom: "Eoles aventures (2013-14)",
       statut: "cloture",
@@ -278,6 +301,7 @@ mutation @transaction {
     },
     {
       id: "768422f0-e3b2-5822-988d-a973a65e2904",
+      origineImport: "previsionnel",
       clientId: "7e4baf46-14c2-50fc-a9f1-c7d460cd4a5e",
       nom: "Moulinet (2013-14)",
       statut: "cloture",
@@ -290,6 +314,7 @@ mutation @transaction {
     },
     {
       id: "17e80c68-ace7-5109-a563-dd873ac0a421",
+      origineImport: "previsionnel",
       clientId: "490e9616-0c3a-56d8-aea3-a56b76f87280",
       nom: "Carre (2013-14)",
       statut: "cloture",
@@ -302,6 +327,7 @@ mutation @transaction {
     },
     {
       id: "2fbc706d-1610-55bd-b0f8-036632fdc692",
+      origineImport: "previsionnel",
       clientId: "68a485cd-9a6b-53dd-af3d-484cbc62774a",
       nom: "Dechauffour (2013-14)",
       statut: "cloture",
@@ -314,6 +340,7 @@ mutation @transaction {
     },
     {
       id: "62d1b274-7593-5074-ba40-0bf780e71903",
+      origineImport: "previsionnel",
       clientId: "9ce4ed50-1364-5868-ae96-05a75f6f8def",
       nom: "Memet kilick (2013-14)",
       statut: "cloture",
@@ -326,6 +353,7 @@ mutation @transaction {
     },
     {
       id: "c684d108-d979-5481-b676-b5236a1d420e",
+      origineImport: "previsionnel",
       clientId: "a8c02ab3-d662-5392-8c1e-7bc82b020c2f",
       nom: "Josse (2013-14)",
       statut: "cloture",
@@ -338,6 +366,7 @@ mutation @transaction {
     },
     {
       id: "9d15d30f-998a-515b-913a-24455b94481e",
+      origineImport: "previsionnel",
       clientId: "e363b353-a752-5bb4-9c17-6d7da2273706",
       nom: "Mary etienne (2013-14)",
       statut: "cloture",
@@ -350,6 +379,7 @@ mutation @transaction {
     },
     {
       id: "05260aac-dbb0-58bd-b967-4a16fbd04429",
+      origineImport: "previsionnel",
       clientId: "843da626-a0ce-50eb-b153-627f49643e1e",
       nom: "Delacotte (2013-14)",
       statut: "cloture",
@@ -362,6 +392,7 @@ mutation @transaction {
     },
     {
       id: "d31992c8-25c6-519d-944b-1a035dc00639",
+      origineImport: "previsionnel",
       clientId: "0c403277-08d7-5d6f-93de-733f35431cd4",
       nom: "Urban (2013-14)",
       statut: "cloture",
@@ -374,6 +405,7 @@ mutation @transaction {
     },
     {
       id: "c9df899e-2fea-55a6-b973-38892ba94e78",
+      origineImport: "previsionnel",
       clientId: "759e240a-79ef-52c2-82ed-bb8fa4abbccd",
       nom: "Dauvergne (2013-14)",
       statut: "cloture",
@@ -386,6 +418,7 @@ mutation @transaction {
     },
     {
       id: "601f59c4-12b6-51fb-940c-937f4632a3f4",
+      origineImport: "previsionnel",
       clientId: "c955d83c-1b6c-5e97-8b83-17d3ad455c84",
       nom: "Mariepierre(ancerne (2013-14)",
       statut: "cloture",
@@ -398,6 +431,7 @@ mutation @transaction {
     },
     {
       id: "54905e8c-8016-5226-aafd-9482d1b62bcd",
+      origineImport: "previsionnel",
       clientId: "128e8cfb-ea4d-5187-9a6d-a66993d68aa4",
       nom: "Sarl sosson depot repar (2013-14)",
       statut: "cloture",
@@ -410,6 +444,7 @@ mutation @transaction {
     },
     {
       id: "2b74ce72-639d-5351-b089-3a81eb4c8c42",
+      origineImport: "previsionnel",
       clientId: "d702245f-2e5e-514d-8ce8-301e44f5165f",
       nom: "Sarl sosson sci galou (2013-14)",
       statut: "cloture",
@@ -422,6 +457,7 @@ mutation @transaction {
     },
     {
       id: "ce910b63-3b3b-5993-90f4-50bfa5e4eb40",
+      origineImport: "previsionnel",
       clientId: "a455fabe-5dd0-59cd-91d4-6187c0b3b7ea",
       nom: "Toutain (2013-14)",
       statut: "cloture",
@@ -434,6 +470,7 @@ mutation @transaction {
     },
     {
       id: "3878f4cb-193a-5628-a1c2-d89c7855fe05",
+      origineImport: "previsionnel",
       clientId: "4a2d59d4-6590-5ad0-999e-5fd6b92c8aed",
       nom: "Maurice (2013-14)",
       statut: "cloture",
@@ -446,6 +483,7 @@ mutation @transaction {
     },
     {
       id: "72bf6655-3351-5111-9a8b-f590198e0a62",
+      origineImport: "previsionnel",
       clientId: "b7bc139f-31ca-5fac-bf82-f09b700fb483",
       nom: "Landron (2013-14)",
       statut: "cloture",
@@ -458,6 +496,7 @@ mutation @transaction {
     },
     {
       id: "b37a8755-cfd1-52cb-9955-70c6e497499d",
+      origineImport: "previsionnel",
       clientId: "418ed4af-d31f-558d-8449-ef75ddad21a2",
       nom: "Leloup (2013-14)",
       statut: "cloture",
@@ -470,6 +509,7 @@ mutation @transaction {
     },
     {
       id: "fbd22cdc-f68b-57b9-ad19-12d1ddc96491",
+      origineImport: "previsionnel",
       clientId: "53a63655-e179-53ce-92df-dd93cf52f666",
       nom: "Lefebvre letourneur (2013-14)",
       statut: "cloture",
@@ -482,6 +522,7 @@ mutation @transaction {
     },
     {
       id: "37dd90f5-2920-5666-8e2b-d8f0544953cf",
+      origineImport: "previsionnel",
       clientId: "3d4d9a17-4cde-547b-ad39-fbdd60125388",
       nom: "Fablet (2013-14)",
       statut: "cloture",
@@ -494,6 +535,7 @@ mutation @transaction {
     },
     {
       id: "e927594e-07bf-5558-941f-42ab2b2826ac",
+      origineImport: "previsionnel",
       clientId: "5f7f0c6b-2bb6-5550-8eeb-0cf2afd35535",
       nom: "Foulquier leveziel (2013-14)",
       statut: "cloture",
@@ -506,6 +548,7 @@ mutation @transaction {
     },
     {
       id: "95c2c63c-9129-508a-923a-8f04bc09b052",
+      origineImport: "previsionnel",
       clientId: "aec883c8-ed37-5a33-aaf4-06d720dd1749",
       nom: "Lycée malherbe (2013-14)",
       statut: "cloture",
@@ -518,6 +561,7 @@ mutation @transaction {
     },
     {
       id: "81f2e349-3ac9-51b8-be65-c43d427bbff2",
+      origineImport: "previsionnel",
       clientId: "ce655ab3-4864-5539-80f0-ec7b3436e5ee",
       nom: "Feve damien (2013-14)",
       statut: "cloture",
@@ -530,6 +574,7 @@ mutation @transaction {
     },
     {
       id: "4416073c-3c2c-56f5-b56d-4f2f29ee21ed",
+      origineImport: "previsionnel",
       clientId: "43548c46-2ae0-56cf-a854-8dddbf411a07",
       nom: "Mme etienne martine (2013-14)",
       statut: "cloture",
@@ -542,6 +587,7 @@ mutation @transaction {
     },
     {
       id: "720b0ef8-50bf-5771-bbbc-7c7461c5e9ab",
+      origineImport: "previsionnel",
       clientId: "394798b1-f2e2-551e-94aa-8970fa5e2866",
       nom: "Rf girard-marais (2013-14)",
       statut: "cloture",
@@ -554,6 +600,7 @@ mutation @transaction {
     },
     {
       id: "282b6889-14fd-5f09-8072-5a5da2f74bfe",
+      origineImport: "previsionnel",
       clientId: "15d51942-1bf6-5836-93a4-894f64874d3c",
       nom: "Pasquet menuiseries (2013-14)",
       statut: "cloture",
@@ -566,6 +613,7 @@ mutation @transaction {
     },
     {
       id: "cd925988-9a13-5576-8049-2bc7a48d5d88",
+      origineImport: "previsionnel",
       clientId: "a9683211-8ab3-5f54-ad8c-b916354af2ab",
       nom: "Suard 32000 (2013-14)",
       statut: "cloture",

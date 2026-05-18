@@ -13,6 +13,7 @@ import { FacturesPage } from '@/pages/FacturesPage'
 import { EmailsPage } from '@/pages/EmailsPage'
 import { MicrosoftCallbackPage } from '@/pages/MicrosoftCallbackPage'
 import { PlanningPage } from '@/pages/PlanningPage'
+import { RapportsPage } from '@/pages/RapportsPage'
 import { PrevisionnelPage } from '@/pages/PrevisionnelPage'
 import { StatistiquesPage } from '@/pages/StatistiquesPage'
 import { SossonDocsPage } from '@/pages/SossonDocsPage'
@@ -24,6 +25,12 @@ import { useApp } from '@/lib/store'
 const PrevisionnelSpreadsheetPage = lazy(() =>
   import('@/pages/PrevisionnelSpreadsheetPage').then(module => ({
     default: module.PrevisionnelSpreadsheetPage,
+  })),
+)
+
+const SossonEngineRoomPage = lazy(() =>
+  import('@/pages/SossonEngineRoomPage').then(module => ({
+    default: module.SossonEngineRoomPage,
   })),
 )
 
@@ -41,8 +48,9 @@ function RouteLoading() {
 }
 
 function FullscreenProtectedRoute({ children }: { children: ReactNode }) {
-  const { user } = useApp()
+  const { authInitializing, user } = useApp()
 
+  if (authInitializing) return <RouteLoading />
   if (!user) return <Navigate to="/login" replace />
 
   return children
@@ -65,6 +73,17 @@ function App() {
               </FullscreenProtectedRoute>
             }
           />
+          <Route
+            path="/moteur-dataflow"
+            element={
+              <FullscreenProtectedRoute>
+                <Suspense fallback={<RouteLoading />}>
+                  <SossonEngineRoomPage />
+                </Suspense>
+              </FullscreenProtectedRoute>
+            }
+          />
+          <Route path="/moteur" element={<Navigate to="/moteur-dataflow" replace />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/chantiers" element={<ChantiersPage />} />
@@ -77,7 +96,7 @@ function App() {
             <Route path="/statistiques" element={<StatistiquesPage />} />
             <Route path="/emails" element={<EmailsPage />} />
             <Route path="/planning" element={<PlanningPage />} />
-            <Route path="/rapports" element={<PlaceholderPage title="Rapports" />} />
+            <Route path="/rapports" element={<RapportsPage />} />
             <Route path="/documentation" element={<SossonDocsPage />} />
             <Route path="/equipe" element={<EquipePage />} />
             <Route path="/equipe/profils/:memberId" element={<EquipeProfilePage />} />

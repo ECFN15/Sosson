@@ -2,6 +2,7 @@ mutation @transaction {
   chantiers014: chantier_upsertMany(data: [
     {
       id: "13065896-5fac-537c-8cf0-edf28de4c06c",
+      origineImport: "previsionnel",
       clientId: "2bbd101f-c21a-54f3-9aaf-b3efa649934e",
       nom: "Thomann (2017-18)",
       statut: "cloture",
@@ -14,6 +15,7 @@ mutation @transaction {
     },
     {
       id: "7b39b33c-07d7-5043-9664-93b45f96808d",
+      origineImport: "previsionnel",
       clientId: "8522c663-845a-5a42-8620-47ac1ded1a6f",
       nom: "De Souza (2017-18)",
       statut: "cloture",
@@ -26,6 +28,7 @@ mutation @transaction {
     },
     {
       id: "7b824d67-e1f1-534d-a8c3-ffc72a5cc7cb",
+      origineImport: "previsionnel",
       clientId: "aabf3793-b510-5813-adaf-8d702ca3e9b5",
       nom: "Lequitte (2017-18)",
       statut: "cloture",
@@ -38,6 +41,7 @@ mutation @transaction {
     },
     {
       id: "e3f81bed-e1d4-53cc-88ab-b4e560600077",
+      origineImport: "previsionnel",
       clientId: "41f5b7b7-901d-5d9b-9d22-c55a592d4f0d",
       nom: "Rf plancher (2017-18)",
       statut: "cloture",
@@ -50,6 +54,7 @@ mutation @transaction {
     },
     {
       id: "84afc0f8-c596-59ef-8e7c-ee9d6061d676",
+      origineImport: "previsionnel",
       clientId: "a8c02ab3-d662-5392-8c1e-7bc82b020c2f",
       nom: "Josse (2017-18)",
       statut: "cloture",
@@ -62,6 +67,7 @@ mutation @transaction {
     },
     {
       id: "4402ea46-f05c-5640-9e55-b42282915fb0",
+      origineImport: "previsionnel",
       clientId: "35796466-74cf-5644-8df6-101a9b274fa8",
       nom: "Bihel sbtp (2017-18)",
       statut: "cloture",
@@ -74,6 +80,7 @@ mutation @transaction {
     },
     {
       id: "827e8f2b-d809-543e-8922-2f23670251c0",
+      origineImport: "previsionnel",
       clientId: "2e5c8257-a249-5e77-a219-521bbade0025",
       nom: "James (2017-18)",
       statut: "cloture",
@@ -86,6 +93,7 @@ mutation @transaction {
     },
     {
       id: "b59937e3-b305-52d3-a636-09f768dcd6bd",
+      origineImport: "previsionnel",
       clientId: "a9b88c65-9ed3-5b6e-b623-11cabc67e23f",
       nom: "Perree (2017-18)",
       statut: "cloture",
@@ -98,6 +106,7 @@ mutation @transaction {
     },
     {
       id: "4cff4779-96ef-52a3-bb75-260beb76d976",
+      origineImport: "previsionnel",
       clientId: "c5a0adfc-57cb-5ce8-b7e2-42e63770c77b",
       nom: "Henry ifs (2017-18)",
       statut: "cloture",
@@ -110,6 +119,7 @@ mutation @transaction {
     },
     {
       id: "7d51fda3-9a05-5887-9432-6617686c0402",
+      origineImport: "previsionnel",
       clientId: "234a101d-2cef-5f48-9f61-2413c75bf4fb",
       nom: "Desnos (2017-18)",
       statut: "cloture",
@@ -122,6 +132,7 @@ mutation @transaction {
     },
     {
       id: "bf7ed631-5567-532c-bcce-0972d87acddc",
+      origineImport: "previsionnel",
       clientId: "b4593cf1-f8cf-5c42-be99-474367819db7",
       nom: "Hoste (2017-18)",
       statut: "cloture",
@@ -134,6 +145,7 @@ mutation @transaction {
     },
     {
       id: "6049fe06-64e3-59b9-a03d-623efd05a760",
+      origineImport: "previsionnel",
       clientId: "4e100c13-bcd7-5abf-aea1-7669ace1287f",
       nom: "Letourneur (2017-18)",
       statut: "cloture",
@@ -146,6 +158,7 @@ mutation @transaction {
     },
     {
       id: "5b1460bc-7ace-5dde-9c98-dea002dbf03d",
+      origineImport: "previsionnel",
       clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
       nom: "Hamel extension (2017-18)",
       statut: "cloture",
@@ -158,6 +171,7 @@ mutation @transaction {
     },
     {
       id: "854aef1b-4e81-549f-b52a-8a2714945e49",
+      origineImport: "previsionnel",
       clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
       nom: "Hamel reno (2017-18)",
       statut: "cloture",
@@ -170,6 +184,7 @@ mutation @transaction {
     },
     {
       id: "bdf67245-2af4-5e8d-b082-1a4be122600e",
+      origineImport: "previsionnel",
       clientId: "ac6665dd-c1d2-5915-a74c-9bfc68653f19",
       nom: "Huard (2017-18)",
       statut: "cloture",
@@ -182,6 +197,7 @@ mutation @transaction {
     },
     {
       id: "294c0a72-d129-5216-918b-e0f1dcdd4ba3",
+      origineImport: "previsionnel",
       clientId: "a99625da-2d93-50f8-bd2c-6cf22f988d5a",
       nom: "Queron (2017-18)",
       statut: "cloture",
@@ -194,6 +210,7 @@ mutation @transaction {
     },
     {
       id: "e74b619e-2421-5540-b43b-9d884adf446e",
+      origineImport: "previsionnel",
       clientId: "f0aa4612-b79b-5151-8a30-8a5625b53871",
       nom: "Skrzypeck (2017-18)",
       statut: "cloture",
@@ -206,6 +223,7 @@ mutation @transaction {
     },
     {
       id: "9487fb8f-0d0e-50f3-82e9-b9c776a723e4",
+      origineImport: "previsionnel",
       clientId: "79f227d4-a258-51ef-9df0-ed32a63435ba",
       nom: "Mickaelis (2017-18)",
       statut: "cloture",
@@ -218,6 +236,7 @@ mutation @transaction {
     },
     {
       id: "b4179769-4fde-55f1-bbe9-b6eebc7ffb6c",
+      origineImport: "previsionnel",
       clientId: "15d51942-1bf6-5836-93a4-894f64874d3c",
       nom: "Pasquet menuiseries (2017-18)",
       statut: "cloture",
@@ -230,6 +249,7 @@ mutation @transaction {
     },
     {
       id: "a6dc19d9-9a0c-5ac9-8e83-daea9a030614",
+      origineImport: "previsionnel",
       clientId: "36103707-1e82-5e44-88d3-1bb97e331971",
       nom: "College sacre cœur (2017-18)",
       statut: "cloture",
@@ -242,6 +262,7 @@ mutation @transaction {
     },
     {
       id: "2ffd86a6-03bd-5aa9-b4cd-0d1d6431ac6e",
+      origineImport: "previsionnel",
       clientId: "59b95031-c8a3-5851-9b47-bad840ebd847",
       nom: "Hamon (2017-18)",
       statut: "cloture",
@@ -254,6 +275,7 @@ mutation @transaction {
     },
     {
       id: "4f783707-5452-5863-a336-255021943a4e",
+      origineImport: "previsionnel",
       clientId: "3875c899-4144-5b37-8c97-495b98653429",
       nom: "Le de (2017-18)",
       statut: "cloture",
@@ -266,6 +288,7 @@ mutation @transaction {
     },
     {
       id: "42a5d244-ca97-5569-8a0d-4e457ba67110",
+      origineImport: "previsionnel",
       clientId: "a88d88d7-edcb-5cae-9bde-ae114034b50f",
       nom: "Marie stephanie (2017-18)",
       statut: "cloture",
@@ -278,6 +301,7 @@ mutation @transaction {
     },
     {
       id: "10518981-214f-50d2-978e-7f6fc438c844",
+      origineImport: "previsionnel",
       clientId: "5ed7f322-572b-5786-810a-45d06c43b691",
       nom: "Peltier (2017-18)",
       statut: "cloture",
@@ -290,6 +314,7 @@ mutation @transaction {
     },
     {
       id: "7c639635-1180-5b6c-9583-99cd102cb12a",
+      origineImport: "previsionnel",
       clientId: "3e48683a-b961-5871-9980-c2fb0bada970",
       nom: "Guiboux (2017-18)",
       statut: "cloture",
@@ -302,6 +327,7 @@ mutation @transaction {
     },
     {
       id: "3a04bacb-d2d6-5d35-8048-d0e2dffd287d",
+      origineImport: "previsionnel",
       clientId: "11690c81-4d9e-5743-b2a2-1a1b0ce3afbb",
       nom: "Lefevre (2017-18)",
       statut: "cloture",
@@ -314,6 +340,7 @@ mutation @transaction {
     },
     {
       id: "0d46433f-a10b-5681-9983-b0d9236354a0",
+      origineImport: "previsionnel",
       clientId: "3306ecf2-347b-5a84-b861-c58072698717",
       nom: "Duquenoy (2017-18)",
       statut: "cloture",
@@ -326,6 +353,7 @@ mutation @transaction {
     },
     {
       id: "2636062d-4920-586c-a97c-3b9a67695da1",
+      origineImport: "previsionnel",
       clientId: "d8e3ec9c-3301-56ad-8322-ad6a2824fca8",
       nom: "Patrignani (2017-18)",
       statut: "cloture",
@@ -338,6 +366,7 @@ mutation @transaction {
     },
     {
       id: "4570769c-0fa0-5c6e-9030-3f1cd2ec60e8",
+      origineImport: "previsionnel",
       clientId: "f68f9b24-4359-5c68-b2ff-d4c411c509c8",
       nom: "JARDIN via C. CABARET (2017-18)",
       statut: "cloture",
@@ -350,6 +379,7 @@ mutation @transaction {
     },
     {
       id: "eb92c3d8-fcab-54a9-a795-232f241529b5",
+      origineImport: "previsionnel",
       clientId: "a65f7c59-5102-5c98-b420-75793e8aeeea",
       nom: "Germain (2017-18)",
       statut: "cloture",
@@ -362,6 +392,7 @@ mutation @transaction {
     },
     {
       id: "77822d69-a49f-5657-9c9d-06b0dcdf4952",
+      origineImport: "previsionnel",
       clientId: "50ffe008-3729-5864-a31a-570e676beec9",
       nom: "Poulain (2016-17)",
       statut: "cloture",
@@ -374,6 +405,7 @@ mutation @transaction {
     },
     {
       id: "0948e886-a65b-514b-bb03-2e0f15a1a34b",
+      origineImport: "previsionnel",
       clientId: "27825179-16b6-5d45-854f-d03a7e174701",
       nom: "Cointo (2016-17)",
       statut: "cloture",
@@ -386,6 +418,7 @@ mutation @transaction {
     },
     {
       id: "22ddb10e-de3f-5d90-a55b-bd0c93267329",
+      origineImport: "previsionnel",
       clientId: "fd56011a-de82-5641-8991-9efc77adafbf",
       nom: "Cardet (2016-17)",
       statut: "cloture",
@@ -398,6 +431,7 @@ mutation @transaction {
     },
     {
       id: "72457279-abd7-5607-a435-e4255e8f5ab8",
+      origineImport: "previsionnel",
       clientId: "a88d88d7-edcb-5cae-9bde-ae114034b50f",
       nom: "Marie stephanie (2016-17)",
       statut: "cloture",
@@ -410,6 +444,7 @@ mutation @transaction {
     },
     {
       id: "ec7e87d5-a4c2-51fe-a0db-baef7c6b7fac",
+      origineImport: "previsionnel",
       clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
       nom: "Hamel extension (2016-17)",
       statut: "cloture",
@@ -422,6 +457,7 @@ mutation @transaction {
     },
     {
       id: "2a8c69fa-e11a-5daf-b8a1-f44dc092f417",
+      origineImport: "previsionnel",
       clientId: "ac6665dd-c1d2-5915-a74c-9bfc68653f19",
       nom: "Huard (2016-17)",
       statut: "cloture",
@@ -434,6 +470,7 @@ mutation @transaction {
     },
     {
       id: "bd420ed9-22fc-56f7-871b-0a41672fe652",
+      origineImport: "previsionnel",
       clientId: "f0aa4612-b79b-5151-8a30-8a5625b53871",
       nom: "Skrzypeck (2016-17)",
       statut: "cloture",
@@ -446,6 +483,7 @@ mutation @transaction {
     },
     {
       id: "76b9a5cf-89fc-56e1-bad4-b71648b999d0",
+      origineImport: "previsionnel",
       clientId: "3875c899-4144-5b37-8c97-495b98653429",
       nom: "Le de (2016-17)",
       statut: "cloture",
@@ -458,6 +496,7 @@ mutation @transaction {
     },
     {
       id: "e064831f-a18c-5f12-918e-80389ee37c82",
+      origineImport: "previsionnel",
       clientId: "b838236e-23bd-54b2-bcef-ae52d5bc591f",
       nom: "Defibat (2016-17)",
       statut: "cloture",
@@ -470,6 +509,7 @@ mutation @transaction {
     },
     {
       id: "ff355e8d-83ba-54a8-895a-b93da1a4939f",
+      origineImport: "previsionnel",
       clientId: "15d51942-1bf6-5836-93a4-894f64874d3c",
       nom: "Pasquet menuiseries (2016-17)",
       statut: "cloture",
@@ -482,6 +522,7 @@ mutation @transaction {
     },
     {
       id: "83c8d4a6-a3bf-52c2-9b06-9a1e0cbe9b70",
+      origineImport: "previsionnel",
       clientId: "4e100c13-bcd7-5abf-aea1-7669ace1287f",
       nom: "Letourneur (2016-17)",
       statut: "cloture",
@@ -494,6 +535,7 @@ mutation @transaction {
     },
     {
       id: "dda2774d-e087-5c78-b76b-2b06dbb394c3",
+      origineImport: "previsionnel",
       clientId: "36103707-1e82-5e44-88d3-1bb97e331971",
       nom: "College sacre cœur (2016-17)",
       statut: "cloture",
@@ -506,6 +548,7 @@ mutation @transaction {
     },
     {
       id: "346a047f-34a2-537d-9c5d-a88741df83b5",
+      origineImport: "previsionnel",
       clientId: "a9683211-8ab3-5f54-ad8c-b916354af2ab",
       nom: "Suard (2016-17)",
       statut: "cloture",
@@ -518,6 +561,7 @@ mutation @transaction {
     },
     {
       id: "d65cf946-c5f9-5c4f-914c-8ac39e6460e5",
+      origineImport: "previsionnel",
       clientId: "a704a702-4837-5d29-9f16-0923e7fd0575",
       nom: "Marie nadine (2016-17)",
       statut: "cloture",
@@ -530,6 +574,7 @@ mutation @transaction {
     },
     {
       id: "799a4c20-68aa-5f18-8f23-f33892b00cae",
+      origineImport: "previsionnel",
       clientId: "71293e97-873f-532c-91b2-b9b1daed0d47",
       nom: "Delahayes (2016-17)",
       statut: "cloture",
@@ -542,6 +587,7 @@ mutation @transaction {
     },
     {
       id: "67025cf7-2736-51c9-a2c2-2003ba0ba0ef",
+      origineImport: "previsionnel",
       clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
       nom: "Hamel reno (2016-17)",
       statut: "cloture",
@@ -554,6 +600,7 @@ mutation @transaction {
     },
     {
       id: "f23e57c0-d781-52d2-97ee-c3c37f4add58",
+      origineImport: "previsionnel",
       clientId: "59b95031-c8a3-5851-9b47-bad840ebd847",
       nom: "Hamon (2016-17)",
       statut: "cloture",
@@ -566,6 +613,7 @@ mutation @transaction {
     },
     {
       id: "ed00b3f2-75d6-53a1-b16d-01a76f989b90",
+      origineImport: "previsionnel",
       clientId: "a99625da-2d93-50f8-bd2c-6cf22f988d5a",
       nom: "Queron (2016-17)",
       statut: "cloture",
@@ -578,6 +626,7 @@ mutation @transaction {
     },
     {
       id: "35e28f7a-e0f7-5ca8-afb8-998bb2783e25",
+      origineImport: "previsionnel",
       clientId: "2e5c8257-a249-5e77-a219-521bbade0025",
       nom: "James (2016-17)",
       statut: "cloture",
@@ -590,6 +639,7 @@ mutation @transaction {
     },
     {
       id: "0a419e83-e4a3-5382-a55c-e9c84cf7b2bd",
+      origineImport: "previsionnel",
       clientId: "5ed7f322-572b-5786-810a-45d06c43b691",
       nom: "Peltier (2016-17)",
       statut: "cloture",

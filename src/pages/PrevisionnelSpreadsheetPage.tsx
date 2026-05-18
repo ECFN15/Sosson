@@ -2,16 +2,14 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState, type Clipboard
 import { ArchiveRestore, ArrowLeft, Cloud, Download, RotateCcw, Save } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
-  listPrevisionnelCellEdits,
-  listPrevisionnelExercises,
-  listPrevisionnelLinesByExercise,
-  updatePrevisionnelLineAmounts,
-  updatePrevisionnelMonthlyAmount,
-  upsertPrevisionnelCellEdit,
-} from '@dataconnect/generated'
+  loadPrevisionnelSheetFromSql,
+  updatePrevisionnelLineAmountsInSql,
+  updatePrevisionnelMonthlyAmountInSql,
+  upsertPrevisionnelCellEditInSql,
+} from '@/features/previsionnel/previsionnelSql'
 import { currentPrevisionnelSheet } from '@/data/previsionnelCurrentSheet'
 import { exportCurrentPrevisionnelWorkbookFromCells, type WorkbookCellUpdates } from '@/lib/previsionnelExport'
-import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
 import {
   buildSpreadsheetView,
   checkpointCellUpdates,
@@ -377,9 +375,7 @@ export function PrevisionnelSpreadsheetPage() {
           return
         }
 
-        const dc = getSossonDataConnect()
-        const exercisesResponse = await listPrevisionnelExercises(dc)
-        const exercise = exercisesResponse.data.previsionnelExercises.find(item => item.sheet === currentPrevisionnelSheet.sheet)
+        const { exercise, lines, cellEdits } = await loadPrevisionnelSheetFromSql(currentPrevisionnelSheet.sheet)
 
         if (!exercise) {
           if (!mounted) return
@@ -388,15 +384,11 @@ export function PrevisionnelSpreadsheetPage() {
           return
         }
 
-        const [linesResponse, cellEditsResponse] = await Promise.all([
-          listPrevisionnelLinesByExercise(dc, { exerciseId: exercise.id }),
-          listPrevisionnelCellEdits(dc, { sourceSheet: currentPrevisionnelSheet.sheet }),
-        ])
         const nextValues: WorkbookCellUpdates = {}
         const nextBindings: Record<string, SqlCellBinding> = {}
         const nextLineBindings: Record<number, SqlLineBinding> = {}
 
-        linesResponse.data.previsionnelLines.forEach(line => {
+        lines.forEach(line => {
           nextLineBindings[line.sourceRow] = { lineId: line.id }
           nextValues[`A${line.sourceRow}`] = line.caTce
           nextValues[`B${line.sourceRow}`] = line.clientName || line.rawName
@@ -416,9 +408,10 @@ export function PrevisionnelSpreadsheetPage() {
           })
         })
 
-        cellEditsResponse.data.previsionnelCellEdits.forEach(cell => {
+        cellEdits.forEach(cell => {
           nextValues[cell.cellRef] = cell.numericValue ?? cell.valueText ?? ''
         })
+        const linesResponse = { data: { previsionnelLines: lines } }
 
         if (!mounted) return
         setSqlValues(nextValues)
@@ -561,7 +554,7 @@ export function PrevisionnelSpreadsheetPage() {
     setEditingCell(null)
     setSqlMessage(
       selectedCheckpoint
-        ? `${selectedCheckpoint.label} restaure localement`
+        ? `${selectedCheckpoint.label} restaure localement depuis le navigateur`
         : sqlCanSave
           ? `Reference immuable PREVISIONNEL.xlsx ${currentPrevisionnelSheet.sheet} prete a sauvegarder dans SQL`
           : `Reference immuable PREVISIONNEL.xlsx ${currentPrevisionnelSheet.sheet} restauree en mode navigateur`,
@@ -571,7 +564,7 @@ export function PrevisionnelSpreadsheetPage() {
   const createUserCheckpoint = useCallback(async () => {
     const values = editedWithDraft(buildExportUpdates(editedRef.current, sqlValues))
     const now = new Date()
-    const label = `Checkpoint ${now.toLocaleString('fr-FR', {
+    const label = `Checkpoint navigateur ${now.toLocaleString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -593,7 +586,7 @@ export function PrevisionnelSpreadsheetPage() {
     setUserCheckpoints(next)
     writeUserCheckpoints(currentPrevisionnelSheet.sheet, next)
     setSelectedCheckpointId(checkpoint.id)
-    setSqlMessage(`${label} cree depuis la reference immuable PREVISIONNEL.xlsx`)
+    setSqlMessage(`${label} cree localement dans ce navigateur depuis la reference immuable PREVISIONNEL.xlsx`)
   }, [editedWithDraft, sqlValues, userCheckpoints])
 
   const cancelCellEdit = useCallback((ref: string) => {
@@ -692,7 +685,6 @@ export function PrevisionnelSpreadsheetPage() {
     setSqlMessage('Sauvegarde SQL Connect en cours...')
 
     try {
-      const dc = getSossonDataConnect()
       const grouped = new Map<string, { planned?: number; realized?: number }>()
 
       changedSqlRefs.forEach(ref => {
@@ -704,7 +696,7 @@ export function PrevisionnelSpreadsheetPage() {
 
       await Promise.all(
         Array.from(grouped.entries()).map(([id, update]) =>
-          updatePrevisionnelMonthlyAmount(dc, {
+          updatePrevisionnelMonthlyAmountInSql({
             id,
             planned: update.planned,
             realized: update.realized,
@@ -726,7 +718,7 @@ export function PrevisionnelSpreadsheetPage() {
           const totals = lineTotals(row)
           const name = asDisplay(rowValue(row, 'B')).trim()
 
-          return updatePrevisionnelLineAmounts(dc, {
+          return updatePrevisionnelLineAmountsInSql({
             id: binding.lineId,
             rawName: name || undefined,
             clientName: name || undefined,
@@ -744,7 +736,7 @@ export function PrevisionnelSpreadsheetPage() {
           const numeric = typeof value === 'number' ? value : Number(String(value).replace(',', '.'))
           const isNumeric = Number.isFinite(numeric) && String(value).trim() !== ''
 
-          return upsertPrevisionnelCellEdit(dc, {
+          return upsertPrevisionnelCellEditInSql({
             id: cellEditId(currentPrevisionnelSheet.sheet, ref),
             sourceSheet: currentPrevisionnelSheet.sheet,
             cellRef: ref,
@@ -1070,10 +1062,10 @@ export function PrevisionnelSpreadsheetPage() {
             type="button"
             onClick={() => void createUserCheckpoint()}
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
-            title="Créer un snapshot applicatif basé sur la référence immuable PREVISIONNEL.xlsx"
+            title="Creer un checkpoint navigateur base sur la reference immuable PREVISIONNEL.xlsx"
           >
             <Save className="h-4 w-4 text-[#F06B21]" />
-            Créer checkpoint
+            Creer checkpoint navigateur
           </button>
           <select
             value={selectedCheckpointId}
@@ -1092,10 +1084,10 @@ export function PrevisionnelSpreadsheetPage() {
             type="button"
             onClick={restoreCheckpoint}
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
-            title={`Restaurer le checkpoint sélectionné. Référence immuable: ${PREVISIONNEL_BASELINE_CHECKPOINT.sha256}`}
+            title={`Restaurer le checkpoint navigateur selectionne. Reference immuable: ${PREVISIONNEL_BASELINE_CHECKPOINT.sha256}`}
           >
             <ArchiveRestore className="h-4 w-4 text-[#F06B21]" />
-            Revenir checkpoint
+            Revenir checkpoint navigateur
           </button>
           <button
             type="button"

@@ -15,6 +15,7 @@ import {
   Folder,
   ChevronDown,
   Clock3,
+  Database,
 } from 'lucide-react'
 import { logout } from '@/lib/auth'
 import { useApp } from '@/lib/store'
@@ -45,6 +46,7 @@ const navMain: NavEntry[] = [
 ]
 
 const navSecondary: NavEntry[] = [
+  { to: '/moteur-dataflow', icon: Database, label: 'Moteur live', accessKey: 'moteur' },
   { to: '/documentation', icon: BookOpen, label: 'Documentation', accessKey: 'documentation' },
   { to: '/equipe', icon: UsersRound, label: 'Equipe', accessKey: 'equipe' },
   { to: '/parametres', icon: Settings, label: 'Parametres', accessKey: 'parametres' },

@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  Check,
   Clock,
   Euro,
   ExternalLink,
@@ -11,9 +12,11 @@ import {
   Hammer,
   Mail,
   MapPin,
+  Pencil,
   Phone,
   ReceiptText,
   User,
+  X,
 } from 'lucide-react'
 import type { Client } from '@/data/clients'
 import type { StatutChantier, TendanceChantier } from '@/data/chantiers'
@@ -21,6 +24,10 @@ import type { PrevisionnelLine } from '@/data/previsionnel'
 import { operationalPrevisionnelLines } from '@/lib/previsionnelModel'
 import { categoryColors, categoryLabels, euro } from '@/lib/previsionnelAnalytics'
 import { useApp } from '@/lib/store'
+import { canAccessPage } from '@/lib/accessControl'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { updateClientInSql } from '@/features/operations/operationalAdapters'
+import { useOperationalData } from '@/features/operations/useOperationalData'
 
 const typeLabel: Record<Client['type'], string> = {
   particulier: 'Particulier',
@@ -33,6 +40,8 @@ const typeStyle: Record<Client['type'], string> = {
   professionnel: 'bg-[#F1E6D6] text-[#A45A2C]',
   public: 'bg-[#DCE9F2] text-[#3C3C3C]',
 }
+
+const clientTypeOptions = Object.keys(typeLabel) as Client['type'][]
 
 const chantierStatus: Record<StatutChantier, { label: string; className: string }> = {
   en_cours: { label: 'En cours', className: 'bg-[#FDEBDD] text-[#F06B21]' },
@@ -67,6 +76,21 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
   return <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset,0_14px_34px_rgba(30,30,30,0.045)] ${className}`}>{children}</section>
 }
 
+function SourcePill({ label, tone = 'local' }: { label: string; tone?: 'sql' | 'local' | 'static' }) {
+  const className =
+    tone === 'sql'
+      ? 'border-[#D8EBDD] bg-[#E6F4EA] text-[#1E8E3E]'
+      : tone === 'static'
+        ? 'border-[#F2E8DC] bg-[#FAF6F2] text-[#6B6B6B]'
+        : 'border-[#F2E8DC] bg-[#FDEBDD] text-[#D95B17]'
+
+  return (
+    <span className={`inline-flex items-center rounded-[8px] border px-2.5 py-1 text-[11px] font-semibold ${className}`}>
+      {label}
+    </span>
+  )
+}
+
 function MetricCard({
   icon: Icon,
   label,
@@ -98,11 +122,50 @@ function EmptyValue({ label }: { label: string }) {
   return <span className="text-[#9CA3AF]">{label} non fourni par l'Excel</span>
 }
 
+type ClientEditForm = {
+  type: Client['type']
+  nom: string
+  email: string
+  telephone: string
+  adresse: string
+  ville: string
+  codePostal: string
+}
+
+function createClientEditForm(client: Client): ClientEditForm {
+  return {
+    type: client.type,
+    nom: client.nom,
+    email: client.email,
+    telephone: client.telephone,
+    adresse: client.adresse,
+    ville: client.ville,
+    codePostal: client.codePostal,
+  }
+}
+
+function optionalField(value: string) {
+  const trimmed = value.trim()
+  return trimmed ? trimmed : null
+}
+
 export function ClientDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { clients, chantiers } = useApp()
+  const { user, accessMatrix, updateClient } = useApp()
+  const {
+    clients,
+    chantiers,
+    source: operationalSource,
+    isLoading: isOperationalLoading,
+    error: operationalError,
+    hasUnsyncedLocalChanges,
+  } = useOperationalData()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [clientEditForm, setClientEditForm] = useState<ClientEditForm | null>(null)
+  const [clientFeedback, setClientFeedback] = useState('')
+  const [isClientSaving, setIsClientSaving] = useState(false)
+  const canEditClient = canAccessPage(user?.role, 'clients', accessMatrix, 'edit')
 
   const previsionnelByLineId = useMemo(
     () => new Map(operationalPrevisionnelLines.map(line => [line.id, line])),
@@ -132,6 +195,18 @@ export function ClientDetailPage() {
     0,
   )
   const latestExercise = clientLines.map(line => line.exercise).sort().at(-1) ?? 'Non renseigné'
+  const isSqlSource = operationalSource === 'dataconnect'
+  const sourceLabel = isOperationalLoading
+    ? 'Chargement SQL'
+    : isSqlSource
+      ? 'SQL lu par le front'
+      : operationalSource === 'excel'
+        ? 'Fallback Excel/local visible'
+        : 'Seeds locaux visibles'
+  const sourceDetail = isSqlSource
+    ? "Le client et ses chantiers sont lus via Data Connect dans cette session. Ce n'est pas un comptage sandbox distant."
+    : "Le client et ses chantiers viennent d'un fallback front. Cela ne prouve aucune donnee presente en SQL sandbox."
+  const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
 
   if (!client) {
     return (
@@ -148,6 +223,72 @@ export function ClientDetailPage() {
     )
   }
 
+  const currentClient = client
+
+  function startClientEdit() {
+    setClientEditForm(createClientEditForm(currentClient))
+    setClientFeedback('')
+  }
+
+  async function saveClientEdit() {
+    if (!clientEditForm || isClientSaving) return
+
+    if (!canEditClient) {
+      setClientFeedback("Client non modifie: votre role n'autorise pas l'edition des clients.")
+      return
+    }
+
+    const normalized = {
+      type: clientEditForm.type,
+      nom: clientEditForm.nom.trim(),
+      email: clientEditForm.email.trim(),
+      telephone: clientEditForm.telephone.trim(),
+      adresse: clientEditForm.adresse.trim(),
+      ville: clientEditForm.ville.trim(),
+      codePostal: clientEditForm.codePostal.trim(),
+    }
+
+    if (!normalized.nom) {
+      setClientFeedback('Client non modifie: le nom est obligatoire.')
+      return
+    }
+
+    setIsClientSaving(true)
+    setClientFeedback('')
+
+    try {
+      if (canWriteSql) {
+        if (currentClient.id.startsWith('prev-client-') || currentClient.id.startsWith('local-')) {
+          setClientFeedback("Client non modifie: cette fiche n'est pas une ligne operationnelle SQL.")
+          return
+        }
+
+        await updateClientInSql({
+          id: currentClient.id,
+          type: normalized.type,
+          nom: normalized.nom,
+          email: optionalField(normalized.email),
+          telephone: optionalField(normalized.telephone),
+          adresse: optionalField(normalized.adresse),
+          ville: optionalField(normalized.ville),
+          codePostal: optionalField(normalized.codePostal),
+        })
+        updateClient(currentClient.id, normalized)
+        setClientEditForm(null)
+        setClientFeedback('Client SQL Connect mis a jour.')
+      } else {
+        updateClient(currentClient.id, normalized)
+        setClientEditForm(null)
+        setClientFeedback("Client mis a jour en fallback local uniquement. Cela ne prouve pas une ecriture SQL ni une donnee sandbox.")
+      }
+    } catch (error) {
+      console.error(error)
+      setClientFeedback("Le client n'a pas pu etre enregistre en SQL. Aucun fallback local silencieux n'a ete applique.")
+    } finally {
+      setIsClientSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
       <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -160,11 +301,11 @@ export function ClientDetailPage() {
             <h1 className="text-[30px] font-semibold leading-tight text-[#1E1E1E]">{client.nom}</h1>
             <span className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${typeStyle[client.type]}`}>{typeLabel[client.type]}</span>
             <span className="rounded-full bg-[#FAF6F2] px-2.5 py-1 text-[12px] font-semibold text-[#6B6B6B]">
-              {clientLines.length} ligne{clientLines.length > 1 ? 's' : ''} Excel
+              {clientLines.length} ligne{clientLines.length > 1 ? 's' : ''} previsionnel
             </span>
           </div>
           <p className="mt-2 max-w-2xl text-sm text-[#6B6B6B]">
-            Fiche consolidée depuis le prévisionnel Excel : chantiers, exercices, catégories, montants et cellules mensuelles de factures envoyées.
+            Fiche consolidant la source operationnelle chargee et les lignes previsionnelles Excel rattachees quand elles existent.
           </p>
         </div>
 
@@ -175,6 +316,24 @@ export function ClientDetailPage() {
           </Link>
         )}
       </div>
+
+      <Card className="mb-5 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <SourcePill label={sourceLabel} tone={isSqlSource ? 'sql' : 'local'} />
+          {hasUnsyncedLocalChanges && <SourcePill label="Fallback non verite SQL" tone="local" />}
+          {operationalError && <SourcePill label="SQL indisponible" tone="local" />}
+          <SourcePill label="Previsionnel Excel rattache" tone="static" />
+          <SourcePill label="Documents/emails: non affiches ici" tone="static" />
+        </div>
+        <p className="mt-2 text-[12px] text-[#6B6B6B]">
+          {sourceDetail} Les montants previsionnels restent issus du fichier Excel importe et ne transforment pas les chantiers historiques en chantiers operationnels actifs.
+        </p>
+        {operationalError && (
+          <p className="mt-2 text-[12px] font-medium text-[#D95B17]">
+            Derniere erreur SQL: {operationalError}
+          </p>
+        )}
+      </Card>
 
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <main className="min-w-0 space-y-5">
@@ -308,6 +467,72 @@ export function ClientDetailPage() {
         </main>
 
         <aside className="space-y-5">
+          <Card className="p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Edition client</h2>
+                <div className="mt-2">
+                  <SourcePill label={canWriteSql ? 'Mutation SQL disponible' : 'Edition fallback local'} tone={canWriteSql ? 'sql' : 'local'} />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={clientEditForm ? () => setClientEditForm(null) : startClientEdit}
+                className="inline-flex h-9 items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+              >
+                {clientEditForm ? <X className="h-3.5 w-3.5" strokeWidth={1.75} /> : <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />}
+                {clientEditForm ? 'Annuler' : 'Modifier'}
+              </button>
+            </div>
+
+            {clientFeedback && (
+              <p className="mt-3 text-[12px] font-medium text-[#D95B17]">{clientFeedback}</p>
+            )}
+
+            {clientEditForm && (
+              <div className="mt-4 space-y-3">
+                <label className="block text-[12px] font-medium text-[#6B6B6B]">
+                  Type
+                  <select
+                    value={clientEditForm.type}
+                    onChange={event => setClientEditForm(prev => prev ? { ...prev, type: event.target.value as Client['type'] } : prev)}
+                    className="mt-1 h-10 w-full rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-[13px] font-semibold text-[#1E1E1E] outline-none focus:border-[#F06B21]"
+                  >
+                    {clientTypeOptions.map(type => (
+                      <option key={type} value={type}>{typeLabel[type]}</option>
+                    ))}
+                  </select>
+                </label>
+                {[
+                  ['nom', 'Nom'],
+                  ['email', 'Email'],
+                  ['telephone', 'Telephone'],
+                  ['adresse', 'Adresse'],
+                  ['ville', 'Ville'],
+                  ['codePostal', 'Code postal'],
+                ].map(([key, label]) => (
+                  <label key={key} className="block text-[12px] font-medium text-[#6B6B6B]">
+                    {label}
+                    <input
+                      value={clientEditForm[key as keyof Omit<ClientEditForm, 'type'>]}
+                      onChange={event => setClientEditForm(prev => prev ? { ...prev, [key]: event.target.value } : prev)}
+                      className="mt-1 h-10 w-full rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-[13px] font-semibold text-[#1E1E1E] outline-none focus:border-[#F06B21]"
+                    />
+                  </label>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => void saveClientEdit()}
+                  disabled={isClientSaving}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:bg-[#C8B18C]"
+                >
+                  <Check className="h-4 w-4" strokeWidth={1.75} />
+                  {isClientSaving ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
+              </div>
+            )}
+          </Card>
+
           <Card className="p-5">
             <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Informations client</h2>
             <div className="mt-4 space-y-3 text-[13px]">

@@ -2,6 +2,7 @@ mutation @transaction {
   chantiers002: chantier_upsertMany(data: [
     {
       id: "098bd892-9c74-53ab-af55-13d12abf57e8",
+      origineImport: "previsionnel",
       clientId: "8122f8b8-3880-5c8e-ae3e-fc1b06e5e92c",
       nom: "Huchet (2025-26)",
       statut: "en_attente",
@@ -14,6 +15,7 @@ mutation @transaction {
     },
     {
       id: "999d7cb5-2602-52ed-a993-cfc0ed88d396",
+      origineImport: "previsionnel",
       clientId: "1e73a246-2bed-56db-add3-4407b1dc8955",
       nom: "Cruchon Leguevasques (2025-26)",
       statut: "en_attente",
@@ -26,6 +28,7 @@ mutation @transaction {
     },
     {
       id: "55034ec3-a2c6-5cec-a6af-640b25584478",
+      origineImport: "previsionnel",
       clientId: "9680236d-39ca-5b89-aaf8-fb2713f22a40",
       nom: "Campagnile (2025-26)",
       statut: "en_attente",
@@ -38,6 +41,7 @@ mutation @transaction {
     },
     {
       id: "2d826e7d-9d79-5d82-9e41-1878475c447f",
+      origineImport: "previsionnel",
       clientId: "5ea660d8-1cb5-5f0b-b6b7-626f93ed32ef",
       nom: "Gaudin (2025-26)",
       statut: "en_attente",
@@ -50,6 +54,7 @@ mutation @transaction {
     },
     {
       id: "4bd79d6f-1c06-5c89-8c8b-0714148fc086",
+      origineImport: "previsionnel",
       clientId: "f7f7d35c-b0e7-5e32-a2f0-be432895270b",
       nom: "Ravenel (2025-26)",
       statut: "en_attente",
@@ -62,6 +67,7 @@ mutation @transaction {
     },
     {
       id: "54b4b9ff-459c-52f4-9a8d-9ab7fbc03eac",
+      origineImport: "previsionnel",
       clientId: "f4f38322-7ea4-506b-87d5-9af7be4f6442",
       nom: "Seegers (2025-26)",
       statut: "en_attente",
@@ -74,6 +80,7 @@ mutation @transaction {
     },
     {
       id: "dd7b4e8d-31be-5f0c-a634-e2200132ab7a",
+      origineImport: "previsionnel",
       clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
       nom: "Guillot 2 (2025-26)",
       statut: "en_cours",
@@ -86,6 +93,7 @@ mutation @transaction {
     },
     {
       id: "13b8d2c1-c758-5ea7-aeb1-7ebc65c24992",
+      origineImport: "previsionnel",
       clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
       nom: "Guillot 18 (2025-26)",
       statut: "en_cours",
@@ -98,6 +106,7 @@ mutation @transaction {
     },
     {
       id: "8479532a-da1a-5f44-8557-f88b722eda88",
+      origineImport: "previsionnel",
       clientId: "a01b4901-1d01-5890-ba60-0d9019c1f774",
       nom: "Bouty (2025-26)",
       statut: "en_attente",
@@ -110,6 +119,7 @@ mutation @transaction {
     },
     {
       id: "9ba6d61a-27bc-5690-bc2b-de7b965b647e",
+      origineImport: "previsionnel",
       clientId: "c7644622-1f80-5d6f-a01b-c71633487b33",
       nom: "SAMSON Agnes (2025-26)",
       statut: "en_attente",
@@ -122,6 +132,7 @@ mutation @transaction {
     },
     {
       id: "c6ccd62e-4b4a-51b2-aa5a-c9b9b96ca1ff",
+      origineImport: "previsionnel",
       clientId: "d12afc56-5fb3-5c87-8ca6-04dbd7a09f4c",
       nom: "Baron (2025-26)",
       statut: "en_attente",
@@ -134,6 +145,7 @@ mutation @transaction {
     },
     {
       id: "41d466ca-27c1-587a-a9f0-bda969a5f17a",
+      origineImport: "previsionnel",
       clientId: "d1ae3495-d48e-51a4-ba78-fafec9ea06a2",
       nom: "Valsemey (2025-26)",
       statut: "en_attente",
@@ -146,6 +158,7 @@ mutation @transaction {
     },
     {
       id: "0367c3c6-603d-530c-8e7f-66610f8d304c",
+      origineImport: "previsionnel",
       clientId: "63b65a9d-97c0-5b09-b96f-60ddfa5b0691",
       nom: "Monin M (2025-26)",
       statut: "en_attente",
@@ -158,6 +171,7 @@ mutation @transaction {
     },
     {
       id: "90b85f3e-8607-51c3-8a1a-cbfdd2028ccf",
+      origineImport: "previsionnel",
       clientId: "0bb3e3be-16ce-576a-abdd-586a41e7f13a",
       nom: "Guesnon (2025-26)",
       statut: "en_attente",
@@ -170,6 +184,7 @@ mutation @transaction {
     },
     {
       id: "66fe3bb3-cf13-5f01-9710-9b1c658fb680",
+      origineImport: "previsionnel",
       clientId: "d800d795-e348-57d9-a184-54f77db2406d",
       nom: "Delasalle (2025-26)",
       statut: "en_attente",
@@ -182,6 +197,7 @@ mutation @transaction {
     },
     {
       id: "636d4c5c-e7ff-5cd4-bbb0-6f7b86ba53f0",
+      origineImport: "previsionnel",
       clientId: "a55d275e-d567-5b24-b713-f78f21544a34",
       nom: "Viray (2025-26)",
       statut: "en_attente",
@@ -194,6 +210,7 @@ mutation @transaction {
     },
     {
       id: "c38e534a-8dfd-51aa-bc39-0306f7bacea9",
+      origineImport: "previsionnel",
       clientId: "25d5c13a-fcb3-53cf-8ec0-4d33edaa13aa",
       nom: "Gervais (2025-26)",
       statut: "en_attente",
@@ -206,6 +223,7 @@ mutation @transaction {
     },
     {
       id: "533719ca-7143-57a5-9407-f87527e87651",
+      origineImport: "previsionnel",
       clientId: "2e7bdc80-ef0f-56bf-8a77-eff64d2b3622",
       nom: "Raoult (2025-26)",
       statut: "en_attente",
@@ -218,6 +236,7 @@ mutation @transaction {
     },
     {
       id: "f4cd571d-c96d-5bbd-bceb-4b78bec37d36",
+      origineImport: "previsionnel",
       clientId: "dcbb1bce-d6d7-539c-b6c5-2936b5a3d01e",
       nom: "Chauveau (2025-26)",
       statut: "en_attente",
@@ -230,6 +249,7 @@ mutation @transaction {
     },
     {
       id: "2fa53521-7f79-5a08-9ac7-839784e879a8",
+      origineImport: "previsionnel",
       clientId: "5ea660d8-1cb5-5f0b-b6b7-626f93ed32ef",
       nom: "Gaudin (2025-26)",
       statut: "en_attente",
@@ -242,6 +262,7 @@ mutation @transaction {
     },
     {
       id: "a17c3ea0-0ae9-5a52-8f68-cfc5ff9b990e",
+      origineImport: "previsionnel",
       clientId: "9b7ee751-e846-5f2c-9f2c-63daab5e4011",
       nom: "Glowacki (2025-26)",
       statut: "en_attente",
@@ -254,6 +275,7 @@ mutation @transaction {
     },
     {
       id: "6e7dd610-943e-5d45-97a6-ba06167b56d3",
+      origineImport: "previsionnel",
       clientId: "7d66bd09-ed1d-5d26-bd81-fbdf64f036ca",
       nom: "Lauvergne (2025-26)",
       statut: "en_attente",
@@ -266,6 +288,7 @@ mutation @transaction {
     },
     {
       id: "f02b8626-e266-5a4b-907d-1437b1467aca",
+      origineImport: "previsionnel",
       clientId: "c85b4884-b586-5109-ad57-d71d57b1ec87",
       nom: "Kufel (2025-26)",
       statut: "en_attente",
@@ -278,6 +301,7 @@ mutation @transaction {
     },
     {
       id: "1c9c5c90-c8e2-5b09-81f3-f129040c15cc",
+      origineImport: "previsionnel",
       clientId: "038b9de4-ecde-562a-8649-f1828f7910d1",
       nom: "Leclerc Dumarais (2025-26)",
       statut: "en_attente",
@@ -290,6 +314,7 @@ mutation @transaction {
     },
     {
       id: "48cbfa72-9c8a-525e-97a7-812d8e07f31e",
+      origineImport: "previsionnel",
       clientId: "ca446c99-029c-5cbb-8e50-632b5dc09251",
       nom: "Leprete (2025-26)",
       statut: "en_attente",
@@ -302,6 +327,7 @@ mutation @transaction {
     },
     {
       id: "34baeb6b-b1b5-5e7d-9483-d8b905b92336",
+      origineImport: "previsionnel",
       clientId: "cb2905dd-adb1-5f50-a8e6-0817f32e4e71",
       nom: "Leroyer (2025-26)",
       statut: "en_attente",
@@ -314,6 +340,7 @@ mutation @transaction {
     },
     {
       id: "addab9a3-92b1-544e-82cd-53d6f2cde96f",
+      origineImport: "previsionnel",
       clientId: "d6d2d11f-63a4-554e-b8e3-816551c4a0ee",
       nom: "Urbain (2025-26)",
       statut: "en_cours",
@@ -326,6 +353,7 @@ mutation @transaction {
     },
     {
       id: "1070c9af-0c7e-5d03-ac1e-5cc7378323bb",
+      origineImport: "previsionnel",
       clientId: "5188b7be-98a3-5e14-afd7-8249e8d28068",
       nom: "Signoret (2025-26)",
       statut: "en_cours",
@@ -338,6 +366,7 @@ mutation @transaction {
     },
     {
       id: "10557870-3187-56a9-8a07-16ba2500e611",
+      origineImport: "previsionnel",
       clientId: "f6f0b8ce-7eaf-5d70-9d1b-939b5ec1b7c1",
       nom: "Cambay (2025-26)",
       statut: "en_cours",
@@ -350,6 +379,7 @@ mutation @transaction {
     },
     {
       id: "4d319cc6-8c4d-58c0-8bc0-f5e6da1a42f6",
+      origineImport: "previsionnel",
       clientId: "86fca1cd-ed3a-5e24-baee-0dae918f5555",
       nom: "DUFOUR Maxime (2025-26)",
       statut: "en_cours",
@@ -362,6 +392,7 @@ mutation @transaction {
     },
     {
       id: "a63a8414-7d57-5cb2-8a7f-9956f5559a81",
+      origineImport: "previsionnel",
       clientId: "40cf37c4-f776-56f5-b367-5956e453f9c1",
       nom: "Philippe (2025-26)",
       statut: "en_cours",
@@ -374,6 +405,7 @@ mutation @transaction {
     },
     {
       id: "5d52d3a9-97c9-56a6-8afb-152e2b0f8353",
+      origineImport: "previsionnel",
       clientId: "a9c7b9ca-9baa-5986-b687-c4e2c8d7f031",
       nom: "HAMON Alexandre (2025-26)",
       statut: "en_attente",
@@ -386,6 +418,7 @@ mutation @transaction {
     },
     {
       id: "a98b0cbe-3293-5a6b-b6fb-eeef8f1af08d",
+      origineImport: "previsionnel",
       clientId: "202cd42d-46d0-51aa-80af-47aa3dbe1ee7",
       nom: "Sci Cotard (2025-26)",
       statut: "en_attente",
@@ -398,6 +431,7 @@ mutation @transaction {
     },
     {
       id: "795c3cff-a010-5286-8066-a1599aebc794",
+      origineImport: "previsionnel",
       clientId: "b5c3ca32-fcfe-5101-b315-382bbe22fd40",
       nom: "Brunschvicg (2025-26)",
       statut: "en_attente",
@@ -410,6 +444,7 @@ mutation @transaction {
     },
     {
       id: "b71b09a6-d198-594c-8291-f8df5fa227db",
+      origineImport: "previsionnel",
       clientId: "a9c7b9ca-9baa-5986-b687-c4e2c8d7f031",
       nom: "HAMON Alexandre (2025-26)",
       statut: "en_attente",
@@ -422,6 +457,7 @@ mutation @transaction {
     },
     {
       id: "6dc0f458-456d-5bae-b87f-b76b787f442a",
+      origineImport: "previsionnel",
       clientId: "03bbf32d-d65a-5cb3-bb7d-4b2e8753a59f",
       nom: "Bacon Alvin (2025-26)",
       statut: "en_attente",
@@ -434,6 +470,7 @@ mutation @transaction {
     },
     {
       id: "c4302a15-4443-560e-acc2-b8680bb2d2eb",
+      origineImport: "previsionnel",
       clientId: "fa1348f6-c6a2-5ade-8345-214c2830c10c",
       nom: "Ben Julien (2025-26)",
       statut: "en_cours",
@@ -446,6 +483,7 @@ mutation @transaction {
     },
     {
       id: "252ae7fe-c194-5444-a672-863f31e147eb",
+      origineImport: "previsionnel",
       clientId: "ddfd5c9b-7de8-5985-ae9a-e2ac89165a2b",
       nom: "Leconte Stephane (2025-26)",
       statut: "en_attente",
@@ -458,6 +496,7 @@ mutation @transaction {
     },
     {
       id: "0c85c568-e428-515b-9263-4f60abe61504",
+      origineImport: "previsionnel",
       clientId: "01e90885-b7d1-5f2d-8bf6-64013b058cf6",
       nom: "Bergar (2025-26)",
       statut: "en_attente",
@@ -470,6 +509,7 @@ mutation @transaction {
     },
     {
       id: "f5fbc76f-f195-5e09-8b73-f10a1670c843",
+      origineImport: "previsionnel",
       clientId: "e6f3299b-7f15-5489-8bc8-ea150bfb43da",
       nom: "Pepin Jacques (2025-26)",
       statut: "en_attente",
@@ -482,6 +522,7 @@ mutation @transaction {
     },
     {
       id: "54d7be0b-fc20-5858-ba87-f6043d40482a",
+      origineImport: "previsionnel",
       clientId: "feabfc50-fca8-5cd7-8962-600c33e83e4d",
       nom: "Ganivet (2025-26)",
       statut: "en_cours",
@@ -494,6 +535,7 @@ mutation @transaction {
     },
     {
       id: "e806aaaf-a1f6-5e74-b822-e0da29c2ed56",
+      origineImport: "previsionnel",
       clientId: "ce626d72-6684-5bfa-b0d6-0fefd24ace7f",
       nom: "Bernard (2025-26)",
       statut: "en_cours",
@@ -506,6 +548,7 @@ mutation @transaction {
     },
     {
       id: "8dec39ce-5f63-5090-b04b-8e3a84431452",
+      origineImport: "previsionnel",
       clientId: "aabf3793-b510-5813-adaf-8d702ca3e9b5",
       nom: "Lequitte (2025-26)",
       statut: "en_cours",
@@ -518,6 +561,7 @@ mutation @transaction {
     },
     {
       id: "c6385de5-e08d-5df5-8783-e3731efb33a3",
+      origineImport: "previsionnel",
       clientId: "22ca2005-4e10-58e5-86e6-8a4b68d1aa32",
       nom: "Poret (2025-26)",
       statut: "en_cours",
@@ -530,6 +574,7 @@ mutation @transaction {
     },
     {
       id: "ae7d0cc6-efa8-5f7e-9105-3520666fcfcd",
+      origineImport: "previsionnel",
       clientId: "13fd849e-899c-581d-8811-c02340d27c31",
       nom: "Sas Colleville Production (2025-26)",
       statut: "en_cours",
@@ -542,6 +587,7 @@ mutation @transaction {
     },
     {
       id: "5d6babcb-a795-58bf-b139-9af8de028d3e",
+      origineImport: "previsionnel",
       clientId: "fa3aca76-9f2d-5e1b-a21c-2059fdede970",
       nom: "Pfeiffer (2025-26)",
       statut: "en_attente",
@@ -554,6 +600,7 @@ mutation @transaction {
     },
     {
       id: "abc4a1f2-25b8-5dd3-8d6b-02e92c8e481f",
+      origineImport: "previsionnel",
       clientId: "999ac1e5-d9f3-5319-a127-a8768733669f",
       nom: "Duchesne (2025-26)",
       statut: "en_attente",
@@ -566,6 +613,7 @@ mutation @transaction {
     },
     {
       id: "ad5d327d-0d7e-59f0-a0f0-89b22655b2fd",
+      origineImport: "previsionnel",
       clientId: "f7f7d35c-b0e7-5e32-a2f0-be432895270b",
       nom: "Ravenel (2025-26)",
       statut: "en_attente",
@@ -578,6 +626,7 @@ mutation @transaction {
     },
     {
       id: "19bdb820-f3bc-5bc9-bd01-dc8e33d24c8d",
+      origineImport: "previsionnel",
       clientId: "9b7ee751-e846-5f2c-9f2c-63daab5e4011",
       nom: "Glowacki (2025-26)",
       statut: "en_attente",
@@ -590,6 +639,7 @@ mutation @transaction {
     },
     {
       id: "fdbfc977-e820-52ce-8a6c-17f6fbe489e4",
+      origineImport: "previsionnel",
       clientId: "e5eac775-755b-5ca3-aa4c-590034a1292e",
       nom: "Isabelle (2025-26)",
       statut: "en_cours",

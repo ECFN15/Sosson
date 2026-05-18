@@ -24,8 +24,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { listPrevisionnelExercises, listPrevisionnelLinesByExercise } from '@dataconnect/generated'
-import type { ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData } from '@dataconnect/generated'
 import {
   annualTrendData,
   bestAndWorstYears,
@@ -39,7 +37,14 @@ import {
   percent,
   topClientPortfolios,
 } from '@/lib/previsionnelAnalytics'
-import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { ENV } from '@/lib/firebase'
+import { loadAnalyticsSnapshotsFromSql } from '@/features/analytics/analyticsSql'
+import {
+  loadLatestPrevisionnelFromSql,
+  type SqlPrevisionnelExercise,
+  type SqlPrevisionnelLine as SqlPrevisionnelLineRow,
+} from '@/features/previsionnel/previsionnelSql'
 import { useApp } from '@/lib/store'
 import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
 
@@ -74,10 +79,17 @@ function StatCard({
   )
 }
 
-type SqlExercise = ListPrevisionnelExercisesData['previsionnelExercises'][number]
-type SqlPrevisionnelLine = ListPrevisionnelLinesByExerciseData['previsionnelLines'][number]
+type SqlExercise = SqlPrevisionnelExercise
+type SqlPrevisionnelLine = SqlPrevisionnelLineRow
 type TrendPoint = { exercise: string; prevision: number; contrat: number; realise: number; taux: number }
 type GrowthPoint = { exercise: string; value: number; growth: number }
+type AnalyticsSnapshotSummary = {
+  snapshotType: string
+  status: string
+  payloadHash?: string | null
+  sourceWatermark?: string | null
+  dateCreation: string
+}
 
 function amountBaseSql(exercise: SqlExercise) {
   return exercise.caPrevision || exercise.plannedTotal || exercise.caContrat
@@ -168,6 +180,35 @@ export function StatistiquesPage() {
   const [sqlStatus, setSqlStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback'>('idle')
   const [sqlExercises, setSqlExercises] = useState<SqlExercise[]>([])
   const [sqlLatestLines, setSqlLatestLines] = useState<SqlPrevisionnelLine[]>([])
+  const [analyticsStatus, setAnalyticsStatus] = useState<'idle' | 'loading' | 'ready' | 'empty' | 'fallback'>('idle')
+  const [latestAnalyticsSnapshot, setLatestAnalyticsSnapshot] = useState<AnalyticsSnapshotSummary | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadAnalyticsSnapshot() {
+      if (!isDataConnectEnabled || !user) {
+        if (mounted) setAnalyticsStatus('fallback')
+        return
+      }
+
+      setAnalyticsStatus('loading')
+      try {
+        const snapshots = await loadAnalyticsSnapshotsFromSql({ environment: ENV })
+        if (!mounted) return
+        setLatestAnalyticsSnapshot(snapshots[0] ?? null)
+        setAnalyticsStatus(snapshots.length ? 'ready' : 'empty')
+      } catch {
+        if (mounted) setAnalyticsStatus('fallback')
+      }
+    }
+
+    void loadAnalyticsSnapshot()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
 
   useEffect(() => {
     let mounted = true
@@ -181,15 +222,11 @@ export function StatistiquesPage() {
 
       setSqlStatus('loading')
       try {
-        const dc = getSossonDataConnect()
-        const exercisesResponse = await listPrevisionnelExercises(dc)
-        const exercises = exercisesResponse.data.previsionnelExercises
-        const latest = exercises[exercises.length - 1]
-        const linesResponse = latest ? await listPrevisionnelLinesByExercise(dc, { exerciseId: latest.id }) : null
+        const { exercises, lines } = await loadLatestPrevisionnelFromSql()
 
         if (!mounted) return
         setSqlExercises(exercises)
-        setSqlLatestLines(linesResponse?.data.previsionnelLines ?? [])
+        setSqlLatestLines(lines)
         setSqlStatus(exercises.length ? 'ready' : 'fallback')
       } catch {
         if (!mounted) return
@@ -219,7 +256,16 @@ export function StatistiquesPage() {
   const categories = usesSql ? categoryDataFromSql(sqlLatestLines) : latestCategoryData()
   const lots = usesSql ? lotDataFromSql(sqlLatestLines, 9) : latestLotData(9)
   const clients = topClientPortfolios(10)
-  const sourceLabel = usesSql ? 'SQL Connect' : 'Données locales'
+  const sourceLabel = usesSql
+    ? latestAnalyticsSnapshot
+      ? 'SQL Connect + snapshot'
+      : 'SQL Connect, calcul front'
+    : 'Donnees locales'
+  const snapshotLabel = latestAnalyticsSnapshot
+    ? `${latestAnalyticsSnapshot.snapshotType} - ${latestAnalyticsSnapshot.status}`
+    : analyticsStatus === 'loading'
+      ? 'Snapshot analytics: chargement'
+      : 'Snapshot analytics: non disponible'
   const exerciseCount = usesSql ? sqlExercises.length : coverage.exercises
   const chantierCount = usesSql ? sqlExercises.reduce((sum, exercise) => sum + exercise.chantierCount, 0) : coverage.operationalLines
   const latestLabel = usesSql ? sqlExercises[sqlExercises.length - 1]?.sheet : latest.sheet
@@ -239,6 +285,9 @@ export function StatistiquesPage() {
             </span>
             <span className="rounded-full bg-[#FDEBDD] px-3 py-1 text-[12px] font-semibold text-[#F06B21]">
               Source : {sourceLabel}
+            </span>
+            <span className="rounded-full border border-[#F2E8DC] bg-white px-3 py-1 text-[12px] font-semibold text-[#6B6B6B]">
+              {snapshotLabel}
             </span>
           </div>
           <h1 className="text-[30px] font-bold leading-tight text-[#1E1E1E]">Statistiques</h1>

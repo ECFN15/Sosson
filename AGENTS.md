@@ -3,8 +3,8 @@
 
 > A lire en priorite avant toute intervention importante sur le repo.
 >
-> Derniere mise a jour : 23 avril 2026
-> Version : 0.3.0
+> Derniere mise a jour : 16 mai 2026
+> Version : 0.4.0
 
 ---
 
@@ -37,7 +37,7 @@ Le produit vise a centraliser :
 - les emails et documents lies aux dossiers
 - la vision budgetaire et operationnelle
 
-### Etat global au 23 avril 2026
+### Etat global au 16 mai 2026
 
 La base du projet est maintenant saine :
 - le front React/Vite existe et tourne
@@ -49,10 +49,11 @@ La base du projet est maintenant saine :
 - les tables `user`, `client`, `chantier`, `facture` existent
 - le connecteur `sosson` est deploye
 
-Ce qui n'est **pas encore fait** :
-- le seed n'a pas encore ete injecte en sandbox
-- le front lit encore majoritairement les donnees en memoire depuis `src/data/*`
-- SQL Connect n'est pas encore branche dans le store React
+Ce qui reste **non termine** :
+- le seed sandbox reel reste a valider explicitement sur l'environnement Firebase cible
+- le front est encore hybride : SQL Connect est partiellement branche, mais plusieurs pages restent locales ou derivees des seeds/previsionnel
+- le profil applicatif utilisateur tente maintenant SQL `GetCurrentUser`, avec Firestore encore en fallback transitoire
+- le RBAC serveur SQL Connect est implemente localement sur les mutations sensibles, mais pas encore deploye/verifie sur sandbox
 - la production ne doit pas encore etre consideree comme validee
 
 ### Decision de cadrage
@@ -79,7 +80,7 @@ Ces points ne doivent plus etre remis en question sans bonne raison :
 ### Front
 
 - React 19
-- Vite 8
+- Vite 6
 - TypeScript 6
 - TailwindCSS 4
 - React Router 7
@@ -98,9 +99,9 @@ Ces points ne doivent plus etre remis en question sans bonne raison :
 
 L'application est encore dans un **etat hybride** :
 - l'auth utilise Firebase si la config est presente
-- le profil utilisateur est encore lu via Firestore dans `src/lib/auth.ts`
-- les entites metier front (`clients`, `chantiers`, `factures`) viennent encore du seed TypeScript local
-- SQL Connect est pret cote backend mais pas encore branche dans le store principal
+- le profil applicatif tente SQL Connect `GetCurrentUser` dans `src/lib/auth.ts`, avec Firestore encore en fallback transitoire
+- les entites metier front (`clients`, `chantiers`, `factures`) peuvent venir de SQL Connect si disponible, sinon des donnees Excel/locales
+- SQL Connect est branche partiellement dans le store principal, mais pas encore comme source unique
 
 ---
 
@@ -189,11 +190,11 @@ le schema existe, mais le seed n'a pas encore ete charge.
 
 ### Schema metier courant
 
-Le schema SQL Connect de Sosson modelise 4 entites :
+Le schema SQL Connect de Sosson modelise 4 entites metier principales :
 
 - `User` : utilisateur interne lie a Firebase Auth
-- `Client` : client final
-- `Chantier` : dossier operationnel rattache a un client
+- `Client` : client final, avec `origineImport` (`operationnel` ou `previsionnel`)
+- `Chantier` : dossier operationnel rattache a un client, avec `origineImport` (`operationnel` ou `previsionnel`)
 - `Facture` : facture fournisseur rattachee a un chantier
 
 Les champs derives comme les depenses agregees, la marge ou la tendance budgetaire ne sont pas stockes en dur dans la base principale : ils se calculent a partir des relations et des donnees de factures.
@@ -214,6 +215,7 @@ Un seed previsionnel complementaire existe maintenant :
 - injection locale : `npm run seed:previsionnel:dataconnect`
 - verification locale : `npm run verify:previsionnel:dataconnect`
 - contenu courant : 13 exercices, 586 clients, 616 alias, 898 chantiers, 898 lignes previsionnelles, 1577 montants mensuels et 887 montants par lot
+- les clients/chantiers crees par ce seed portent `origineImport: "previsionnel"`; les listes operationnelles SQL filtrent `origineImport: "operationnel"`
 - les lignes de synthese Excel (`Cumul`, `Total`, etc.) sont exclues
 - le jaune Excel signifie facture envoyee (`invoiceSent`), pas facture payee / encaissee
 
@@ -225,6 +227,29 @@ Le schema SQL Connect contient maintenant les tables previsionnelles :
 - `PrevisionnelMonthlyAmount`
 - `PrevisionnelLotAmount`
 - `PrevisionnelCellEdit`
+
+Un premier lot local, non deploye en sandbox, prepare aussi la tracabilite SQL :
+- `AuditEvent`
+- `CheckpointRun`
+- `CheckpointStep`
+- `CheckpointArtifact`
+- `CheckpointDecision`
+- `DataImportRun`
+- `DataImportIssue`
+- `EntityChangeLog`
+
+Ces tables sont destinees a indexer et historiser les checkpoints, imports, preuves, hashes et changements d'entites. Les gros logs/fichiers restent hors SQL. Leur presence dans le repo ne prouve pas encore leur existence en sandbox distante.
+
+Un deuxieme lot local, non deploye en sandbox, prepare aussi les domaines email, planning, rapports et analytics :
+- `EmailThread`
+- `EmailMessage`
+- `EmailAttachment`
+- `PlanningEvent`
+- `PlanningAssignment`
+- `AnalyticsSnapshot`
+- `Rapport`
+
+Les operations Data Connect et adapters front existent pour ces domaines (`src/features/email`, `src/features/planning`, `src/features/reports`, `src/features/analytics`). Emails, Planning, Rapports, Dashboard et Statistiques ont un raccordement SQL partiel avec fallbacks visibles. La page Emails lit l'index SQL et peut indexer un fil/message; la preuve locale cree et relit aussi une piece jointe metadata. La page Planning lit, cree, modifie, deplace et annule maintenant les cartes SQL quand Data Connect est la source active; l'annulation passe par `CancelPlanningEvent` et conserve la ligne SQL avec statut `cancelled`. Les fiches Client et Chantier savent aussi modifier respectivement un client via `UpdateClient` et un statut via `UpdateChantierStatut` quand Data Connect est la source active, avec fallback local explicite sinon. La page Factures sait creer une facture via `CreateFacture` et modifier son statut via `SetFactureStatut`, avec fallback annonce hors source SQL. Le tableur Previsionnel sait modifier un montant mensuel via `UpdatePrevisionnelMonthlyAmount` et sauvegarder une cellule exacte via `UpsertPrevisionnelCellEdit`, avec fallback `localStorage` annonce quand SQL n'est pas disponible. La page Rapports lit/cree des metadonnees SQL et une preuve locale genere un artefact CSV sous `tmp/`, calcule son hash reel, puis marque le rapport comme genere avec ce chemin/hash. La page Equipe lit aussi `ListUsers` via `src/features/team/teamSql.ts`, mais les equipes/membres/conges/droits restent localStorage tant que le modele RH SQL n'existe pas. `AnalyticsSnapshot`, une preuve edition previsionnel, une preuve edition client, une preuve statut chantier, une preuve facture, une preuve email, une preuve planning et une preuve rapport sont crees et relus en emulateur local par `npm run checkpoint:002:emulator`. Rien de cela ne prouve encore leur existence ou leur contenu en sandbox distante.
 
 La page `src/pages/PrevisionnelPage.tsx` charge maintenant les valeurs `2025-26` depuis SQL Connect quand disponible.
 Le bouton `Sauvegarder SQL` :
@@ -304,7 +329,7 @@ Le front couvre deja les ecrans principaux :
 
 ### Ce qui est encore provisoire
 
-- le store principal utilise encore `src/data/chantiers.ts` et `src/data/factures.ts`
+- le store principal utilise SQL Connect quand disponible, avec fallback Excel/local (`src/data/*`)
 - `clients` et `chantiers` utilisent maintenant les donnees Excel previsionnelles nettoyees en fallback local quand SQL Connect n'a pas encore fourni de donnees
 - `emails` reste expose depuis les seeds locaux
 - une app Microsoft Entra de test `Sosson Email Test` a ete creee pour valider le module email Outlook/Graph avec un compte Outlook de developpement
@@ -318,11 +343,13 @@ Le front couvre deja les ecrans principaux :
 
 Dans `src/lib/auth.ts` :
 - si Firebase est configure, login via Firebase Auth
-- ensuite lecture d'un profil `users/{uid}` dans Firestore
-- si absent, fallback vers les utilisateurs seedes de `src/data/users.ts`
+- ensuite tentative de lecture du profil applicatif via SQL Connect `GetCurrentUser`
+- si SQL Connect n'est pas disponible, fallback transitoire `users/{uid}` dans Firestore
+- si absent, fallback vers les utilisateurs seedes de `src/data/users.ts` seulement en dev local opt-in
 
 Donc aujourd'hui :
 - **Auth Firebase est reelle**
+- **SQL `User` est la cible du profil applicatif et commence a etre lu**
 - **la persistence metier front ne l'est pas encore completement**
 
 ---
@@ -382,12 +409,13 @@ Aujourd'hui :
 
 Ordre recommande pour reprendre demain :
 
-1. Injecter le seed sandbox.
-2. Creer `src/lib/dataconnect.ts` pour initialiser le SDK client SQL Connect.
-3. Remplacer progressivement le store memoire par des lectures SQL Connect.
-4. Brancher en premier les `clients`, puis les `chantiers`, puis les `factures`.
-5. Definir proprement la strategie de creation / synchronisation du `User` applicatif avec Firebase Auth.
-6. Une fois le flux sandbox stable, preparer la suite sur production.
+1. Valider en sandbox les regles Firestore/Storage durcies.
+2. Provisionner et verifier les profils SQL `User` sandbox lus par `GetCurrentUser`.
+3. Valider en sandbox les mutations SQL Connect sensibles durcies par RBAC serveur.
+4. Valider en sandbox la separation `origineImport` entre chantiers operationnels et historique previsionnel.
+5. Remplacer progressivement les fallbacks locaux par des hooks SQL Connect metier.
+6. Executer et valider le seed sandbox reel avec le script garde `seed:sandbox`.
+7. Une fois le flux sandbox stable, preparer la suite sur production.
 
 ---
 
@@ -416,9 +444,45 @@ npm run dashboard
 ### SQL Connect
 
 ```bash
+npm run checkpoint:002:local
+npm run emulators:dataconnect
+npm run checkpoint:002:emulator
+npm run verify:previsionnel-edits:dataconnect
+npm run verify:operational-boundary:dataconnect
+npm run verify:team-users:dataconnect
+npm run verify:chantier-status:dataconnect
+npm run verify:client-update:dataconnect
+npm run verify:factures:dataconnect
+npm run verify:checkpoint-audit:dataconnect
+npm run verify:email:dataconnect
+npm run verify:documents:dataconnect
+npm run verify:planning:dataconnect
+npm run verify:reports:dataconnect
+npm run snapshot:analytics:dataconnect
+npm run reset:dataconnect:local -- --yes-local-reset
+npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 firebase deploy --only dataconnect --project sosson-sandbox
 firebase dataconnect:sdk:generate
 ```
+
+Notes :
+- `checkpoint:002:local` ne touche pas la sandbox distante.
+- `checkpoint:002:emulator` demande l'emulateur Data Connect deja lance dans un autre terminal; il enchaine maintenant les seeds, verifications, frontiere operationnel/previsionnel, preuve statut chantier SQL, preuve edition client SQL, lecture `ListUsers`, preuves email/planning/rapport SQL locales, comptage local propre, snapshot analytics SQL local, preuve edition previsionnel SQL locale, preuve factures SQL locale, preuve documents SQL locale, RBAC local et trace SQL checkpoint/audit locale.
+- `verify:previsionnel-edits:dataconnect` modifie puis restaure un montant mensuel previsionnel seed via `UpdatePrevisionnelMonthlyAmount`, puis upsert une cellule de preuve via `UpsertPrevisionnelCellEdit`; il ne touche pas la sandbox.
+- `verify:operational-boundary:dataconnect` verifie en emulateur que le seed previsionnel ne remonte pas dans les listes operationnelles.
+- `verify:team-users:dataconnect` cree puis relit un profil `User` local via `ListUsers`; il ne provisionne rien en sandbox.
+- `verify:chantier-status:dataconnect` modifie puis restaure le statut d'un chantier seed local via `UpdateChantierStatut`; il ne touche pas la sandbox.
+- `verify:client-update:dataconnect` modifie puis restaure un client seed local via `UpdateClient`; il ne touche pas la sandbox.
+- `verify:factures:dataconnect` cree une facture locale, la relit, modifie son statut via `SetFactureStatut` et la relit par statut; il ne touche pas la sandbox.
+- `verify:email:dataconnect` cree puis relit un `EmailThread`, un `EmailMessage` et une `EmailAttachment` locaux; il ne touche pas la sandbox.
+- `verify:documents:dataconnect` cree puis relit un `DocumentFolder` et un `DocumentAttache` local avec `storagePath`, `tailleBytes` et `sha256`; il ne touche pas la sandbox ni Storage.
+- `verify:planning:dataconnect` cree une carte planning SQL locale, la modifie via `UpdatePlanningEventDetails`, l'annule via `CancelPlanningEvent`, puis la relit par periode; il ne touche pas la sandbox.
+- `verify:reports:dataconnect` cree un `AnalyticsSnapshot`, ecrit un payload source et un artefact CSV local sous `tmp/`, cree un `Rapport`, le marque genere avec chemin/hash reel de l'artefact, puis relit la liste et le detail; il ne touche pas la sandbox ni Storage.
+- `verify:checkpoint-audit:dataconnect` ecrit puis relit les tables checkpoint/audit/import/change log dans l'emulateur uniquement.
+- `snapshot:analytics:dataconnect` cree puis relit un `AnalyticsSnapshot` local et archive `tmp/checkpoint-002/analytics-snapshot-local.json`.
+- `reset:dataconnect:local` supprime uniquement `dataconnect/.dataconnect/pgliteData` et sert a repartir d'une base emulateur propre; ne pas confondre avec une action sandbox.
+- `seed:sandbox -- --dry-run` archive la liste des seeds sandbox sous `tmp/`; l'execution reelle exige `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`.
+- `firebase deploy --only dataconnect --project sosson-sandbox` reste une action sandbox reelle a validation humaine.
 
 ### Auth / projet actif
 

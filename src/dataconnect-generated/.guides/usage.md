@@ -12,10 +12,8 @@ For each operation, there is a wrapper hook that can be used to call the operati
 
 Here are all of the hooks that get generated:
 ```ts
-import { useUpsertCurrentUser, useCreateClient, useUpdateClient, useCreateChantier, useUpdateChantierStatut, useCreateFacture, useSetFactureStatut, useCreateDocumentFolder, useCreateDocumentAttache, useUpdateDocumentAttacheLinks } from '@dataconnect/generated/react';
+import { useCreateClient, useUpdateClient, useCreateChantier, useUpdateChantierStatut, useCreateFacture, useSetFactureStatut, useCreateDocumentFolder, useCreateDocumentAttache, useUpdateDocumentAttacheLinks, useCreatePrevisionnelImportBatch } from '@dataconnect/generated/react';
 // The types of these hooks are available in react/index.d.ts
-
-const { data, isPending, isSuccess, isError, error } = useUpsertCurrentUser(upsertCurrentUserVars);
 
 const { data, isPending, isSuccess, isError, error } = useCreateClient(createClientVars);
 
@@ -34,6 +32,8 @@ const { data, isPending, isSuccess, isError, error } = useCreateDocumentFolder(c
 const { data, isPending, isSuccess, isError, error } = useCreateDocumentAttache(createDocumentAttacheVars);
 
 const { data, isPending, isSuccess, isError, error } = useUpdateDocumentAttacheLinks(updateDocumentAttacheLinksVars);
+
+const { data, isPending, isSuccess, isError, error } = useCreatePrevisionnelImportBatch(createPrevisionnelImportBatchVars);
 
 ```
 
@@ -72,11 +72,8 @@ If a user is not using a supported framework, they can use the generated SDK dir
 Here's an example of how to use it with the first 5 operations:
 
 ```js
-import { upsertCurrentUser, createClient, updateClient, createChantier, updateChantierStatut, createFacture, setFactureStatut, createDocumentFolder, createDocumentAttache, updateDocumentAttacheLinks } from '@dataconnect/generated';
+import { createClient, updateClient, createChantier, updateChantierStatut, createFacture, setFactureStatut, createDocumentFolder, createDocumentAttache, updateDocumentAttacheLinks, createPrevisionnelImportBatch } from '@dataconnect/generated';
 
-
-// Operation UpsertCurrentUser:  For variables, look at type UpsertCurrentUserVars in ../index.d.ts
-const { data } = await UpsertCurrentUser(dataConnect, upsertCurrentUserVars);
 
 // Operation CreateClient:  For variables, look at type CreateClientVars in ../index.d.ts
 const { data } = await CreateClient(dataConnect, createClientVars);
@@ -104,6 +101,9 @@ const { data } = await CreateDocumentAttache(dataConnect, createDocumentAttacheV
 
 // Operation UpdateDocumentAttacheLinks:  For variables, look at type UpdateDocumentAttacheLinksVars in ../index.d.ts
 const { data } = await UpdateDocumentAttacheLinks(dataConnect, updateDocumentAttacheLinksVars);
+
+// Operation CreatePrevisionnelImportBatch:  For variables, look at type CreatePrevisionnelImportBatchVars in ../index.d.ts
+const { data } = await CreatePrevisionnelImportBatch(dataConnect, createPrevisionnelImportBatchVars);
 
 
 ```

@@ -16,46 +16,26 @@ import {
   Upload,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import {
-  createDocumentAttache,
-  createDocumentFolder,
-  listDocumentFolders,
-  listDocumentsAttaches,
-  updateDocumentAttacheLinks,
-} from '@dataconnect/generated'
-import type { ListDocumentFoldersData, ListDocumentsAttachesData } from '@dataconnect/generated'
+import type { FileRejection } from 'react-dropzone'
 import { useApp } from '@/lib/store'
-import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { canAccessPage } from '@/lib/accessControl'
+import {
+  MAX_DOCUMENT_BYTES,
+  buildPendingDocumentStoragePath,
+  documentDropzoneAccept,
+  hashDocumentFile,
+  validateDocumentUploadFile,
+} from '@/features/documents/storagePaths'
+import {
+  createDocumentAttacheInSql,
+  createDocumentFolderInSql,
+  loadDocumentsSqlData,
+  updateDocumentAttacheLinksInSql,
+} from '@/features/documents/documentSql'
+import type { DocumentKind, DocumentRecord, DocumentStatus, FolderRecord } from '@/features/documents/documentTypes'
 
-type DocumentKind = 'facture' | 'email_piece_jointe' | 'devis' | 'chantier' | 'import'
-type DocumentStatus = 'a_classer' | 'lie' | 'action_requise'
-type FolderKind = 'all' | 'inbox' | 'factures' | 'devis' | 'plans' | 'photos' | 'imports' | 'custom'
 type SortKey = 'recent' | 'amount_desc' | 'amount_asc' | 'name'
-
-interface DocumentRecord {
-  id: string
-  title: string
-  kind: DocumentKind
-  status: DocumentStatus
-  source: 'sql_connect' | 'upload'
-  date: string
-  folderId?: string
-  folderName?: string
-  chantierId?: string
-  clientId?: string
-  factureId?: string
-  amount?: number
-  detail: string
-  downloadUrl?: string
-}
-
-interface FolderRecord {
-  id: string
-  name: string
-  kind: FolderKind
-  description: string
-  sqlId?: string
-}
 
 const LOCAL_FOLDERS_KEY = 'sosson.documentFolders'
 
@@ -108,20 +88,6 @@ function slugify(value: string) {
     .slice(0, 140)
 }
 
-function asDocumentKind(value: string): DocumentKind {
-  if (value === 'facture') return 'facture'
-  if (value === 'email_piece_jointe') return 'email_piece_jointe'
-  if (value === 'devis') return 'devis'
-  if (value === 'chantier' || value === 'plan' || value === 'photo') return 'chantier'
-  return 'import'
-}
-
-function asDocumentStatus(value: string): DocumentStatus {
-  if (value === 'lie') return 'lie'
-  if (value === 'action_requise' || value === 'archive') return 'action_requise'
-  return 'a_classer'
-}
-
 function inferKind(fileName: string, selectedFolder: FolderRecord): DocumentKind {
   const lower = fileName.toLowerCase()
   if (selectedFolder.kind === 'factures' || lower.includes('facture')) return 'facture'
@@ -131,36 +97,14 @@ function inferKind(fileName: string, selectedFolder: FolderRecord): DocumentKind
   return 'import'
 }
 
-function documentFromSql(row: ListDocumentsAttachesData['documentAttaches'][number]): DocumentRecord {
-  const chantier = row.chantier ?? row.facture?.chantier
-  const client = row.client ?? chantier?.client ?? row.facture?.chantier.client
+function formatDropRejectedMessage(rejections: FileRejection[]) {
+  const first = rejections[0]
+  if (!first) return 'Fichier refuse.'
 
-  return {
-    id: `sql-${row.id}`,
-    title: row.nomFichier,
-    kind: asDocumentKind(row.typeDocument),
-    status: asDocumentStatus(row.statut),
-    source: 'sql_connect',
-    date: row.dateDocument ?? row.dateCreation.slice(0, 10),
-    folderId: row.folder?.id,
-    folderName: row.folder?.nom,
-    chantierId: chantier?.id,
-    clientId: client?.id,
-    factureId: row.facture?.id,
-    amount: row.facture?.montantTTC,
-    detail: row.description || row.storagePath,
-    downloadUrl: row.storagePath.startsWith('http') ? row.storagePath : undefined,
-  }
-}
-
-function folderFromSql(row: ListDocumentFoldersData['documentFolders'][number]): FolderRecord {
-  return {
-    id: `folder-${row.id}`,
-    sqlId: row.id,
-    name: row.nom,
-    kind: 'custom',
-    description: row.description || 'Dossier partagé',
-  }
+  const reason = first.errors[0]?.code
+  if (reason === 'file-too-large') return `${first.file.name}: fichier trop volumineux, limite 30 Mo.`
+  if (reason === 'file-invalid-type') return `${first.file.name}: type de fichier non autorise.`
+  return `${first.file.name}: fichier refuse.`
 }
 
 function readLocalFolders() {
@@ -172,13 +116,12 @@ function readLocalFolders() {
     return []
   }
 }
-
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset] ${className}`}>{children}</section>
 }
 
 export function DocumentsPage() {
-  const { chantiers, clients, dataSource, user } = useApp()
+  const { chantiers, clients, dataSource, user, accessMatrix } = useApp()
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('recent')
@@ -192,7 +135,13 @@ export function DocumentsPage() {
   const [feedback, setFeedback] = useState('')
   const chantierFilter = searchParams.get('chantierId') ?? ''
   const folderParam = searchParams.get('folder') ?? 'all'
-  const canWriteSql = dataSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
+  const canCreateDocuments = canAccessPage(user?.role, 'documents', accessMatrix, 'create')
+  const canEditDocuments = canAccessPage(user?.role, 'documents', accessMatrix, 'edit')
+  const canCreateDocumentSql = dataSource === 'dataconnect' && isDataConnectEnabled && Boolean(user) && canCreateDocuments
+  const canEditDocumentSql = dataSource === 'dataconnect' && isDataConnectEnabled && Boolean(user) && canEditDocuments
+  const optimisticSqlDocuments = uploads.filter(document => document.source === 'sql_connect').length
+  const localOnlyDocuments = uploads.length - optimisticSqlDocuments
+  const visibleSqlDocumentCount = sqlDocuments.length + optimisticSqlDocuments
 
   const folders = useMemo(() => [...smartFolders, ...sqlFolders, ...localFolders], [localFolders, sqlFolders])
   const activeFolder = folders.find(folder => folder.id === folderParam) ?? folders[0]
@@ -208,14 +157,10 @@ export function DocumentsPage() {
 
     async function loadSqlData() {
       try {
-        const dc = getSossonDataConnect()
-        const [documentsResponse, foldersResponse] = await Promise.all([
-          listDocumentsAttaches(dc),
-          listDocumentFolders(dc),
-        ])
+        const sqlData = await loadDocumentsSqlData()
         if (!isMounted) return
-        setSqlDocuments(documentsResponse.data.documentAttaches.map(documentFromSql))
-        setSqlFolders(foldersResponse.data.documentFolders.map(folderFromSql))
+        setSqlDocuments(sqlData.documents)
+        setSqlFolders(sqlData.folders)
       } catch (error) {
         console.info('Documents SQL Connect indisponibles, gestionnaire local utilisé.', error)
       }
@@ -244,7 +189,10 @@ export function DocumentsPage() {
       if (document.kind === 'devis') counts.devis = (counts.devis ?? 0) + 1
       if (document.kind === 'chantier') counts.plans = (counts.plans ?? 0) + 1
       if (document.kind === 'import') counts.imports = (counts.imports ?? 0) + 1
-      if (document.folderId) counts[`folder-${document.folderId}`] = (counts[`folder-${document.folderId}`] ?? 0) + 1
+      if (document.folderId) {
+        counts[document.folderId] = (counts[document.folderId] ?? 0) + 1
+        counts[`folder-${document.folderId}`] = (counts[`folder-${document.folderId}`] ?? 0) + 1
+      }
     }
 
     return counts
@@ -310,6 +258,11 @@ export function DocumentsPage() {
 
   async function handleCreateFolder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!canCreateDocuments) {
+      setFeedback('Creation de dossier non autorisee pour ce profil.')
+      return
+    }
+
     const name = newFolderName.trim()
     if (!name) return
 
@@ -321,10 +274,9 @@ export function DocumentsPage() {
       description: 'Dossier local',
     }
 
-    if (canWriteSql) {
+    if (canCreateDocumentSql) {
       try {
-        const dc = getSossonDataConnect()
-        const response = await createDocumentFolder(dc, {
+        const folderId = await createDocumentFolderInSql({
           nom: name,
           slug,
           parentId: null,
@@ -332,15 +284,13 @@ export function DocumentsPage() {
           chantierId: chantierFilter || null,
           description: 'Dossier créé depuis le gestionnaire documents.',
         })
-        const sqlFolder = { ...localFolder, id: `folder-${response.data.documentFolder_insert.id}`, sqlId: response.data.documentFolder_insert.id, description: 'Dossier SQL Connect' }
+        const sqlFolder = { ...localFolder, id: `folder-${folderId}`, sqlId: folderId, description: 'Dossier SQL Connect' }
         setSqlFolders(current => [...current, sqlFolder].sort((a, b) => a.name.localeCompare(b.name, 'fr')))
         setActiveFolder(sqlFolder)
         setFeedback('Dossier créé dans SQL Connect.')
       } catch (error) {
-        console.info('Création SQL Connect impossible, dossier local créé.', error)
-        setLocalFolders(current => [...current, localFolder])
-        setActiveFolder(localFolder)
-        setFeedback('Dossier créé localement.')
+        console.info('Creation SQL Connect impossible, aucun dossier local cree.', error)
+        setFeedback("Creation SQL Connect impossible. Aucun dossier local n'a ete cree.")
       }
     } else {
       setLocalFolders(current => [...current, localFolder])
@@ -352,6 +302,11 @@ export function DocumentsPage() {
   }
 
   async function handleClassifyDocument(document: DocumentRecord, folderId: string) {
+    if (!canEditDocuments) {
+      setFeedback('Classement de document non autorise pour ce profil.')
+      return
+    }
+
     const targetFolder = folders.find(folder => folder.id === folderId)
     if (!targetFolder) return
 
@@ -381,10 +336,14 @@ export function DocumentsPage() {
       setFeedback(`Document classé dans ${targetFolder.name}.`)
     }
 
-    if (document.id.startsWith('sql-') && canWriteSql) {
+    if (document.id.startsWith('sql-')) {
+      if (!canEditDocumentSql) {
+        setFeedback("Document SQL Connect: classement non applique car l'ecriture SQL est indisponible. Aucun fallback local n'a ete applique.")
+        return
+      }
+
       try {
-        const dc = getSossonDataConnect()
-        await updateDocumentAttacheLinks(dc, {
+        await updateDocumentAttacheLinksInSql({
           id: document.id.replace(/^sql-/, ''),
           folderId: targetFolder.kind === 'custom' ? targetFolder.sqlId ?? null : null,
           clientId: document.clientId ?? null,
@@ -395,8 +354,8 @@ export function DocumentsPage() {
         })
         applyLocalUpdate()
       } catch (error) {
-        console.info('Classement SQL Connect impossible, classement local appliqué.', error)
-        applyLocalUpdate()
+        console.info('Classement SQL Connect impossible, aucun classement local applique.', error)
+        setFeedback("Classement SQL Connect impossible. Aucun classement local n'a ete applique.")
       }
       return
     }
@@ -405,17 +364,20 @@ export function DocumentsPage() {
   }
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'image/heic': ['.heic'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    },
-    maxSize: 30 * 1024 * 1024,
+    accept: documentDropzoneAccept,
+    maxSize: MAX_DOCUMENT_BYTES,
     multiple: true,
     noClick: true,
+    disabled: !canCreateDocuments,
+    onDropRejected: rejections => {
+      setFeedback(formatDropRejectedMessage(rejections))
+    },
     onDrop: async acceptedFiles => {
+      if (!canCreateDocuments) {
+        setFeedback('Import de document non autorise pour ce profil.')
+        return
+      }
+
       const now = new Date().toISOString()
       const linkedClientId = chantierFilter ? chantiers.find(chantier => chantier.id === chantierFilter)?.clientId : undefined
       const nextDocuments: DocumentRecord[] = []
@@ -423,7 +385,14 @@ export function DocumentsPage() {
       const localFolderId = activeFolder.kind === 'custom' ? activeFolder.id : undefined
 
       for (const file of acceptedFiles) {
+        const validationError = validateDocumentUploadFile(file)
+        if (validationError) {
+          setFeedback(`${file.name}: ${validationError}`)
+          continue
+        }
+
         const typeDocument = inferKind(file.name, activeFolder)
+        const sha256 = await hashDocumentFile(file)
         const baseDocument: DocumentRecord = {
           id: `upload-${file.name}-${Date.now()}`,
           title: file.name,
@@ -436,33 +405,35 @@ export function DocumentsPage() {
           chantierId: chantierFilter || undefined,
           clientId: linkedClientId,
           detail: `${(file.size / 1024 / 1024).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Mo - ${file.type || 'type inconnu'}`,
+          sha256,
           downloadUrl: URL.createObjectURL(file),
         }
 
-        if (canWriteSql) {
+        if (canCreateDocumentSql) {
           try {
-            const dc = getSossonDataConnect()
-            const response = await createDocumentAttache(dc, {
+            const documentId = await createDocumentAttacheInSql({
               folderId: sqlFolderId || null,
               clientId: linkedClientId || null,
               chantierId: chantierFilter || null,
               factureId: null,
               nomFichier: file.name,
-              storagePath: `pending/${Date.now()}-${file.name}`,
+              storagePath: buildPendingDocumentStoragePath(file, chantierFilter || undefined),
               mimeType: file.type || null,
               tailleBytes: file.size,
+              sha256,
               typeDocument,
               statut: 'a_classer',
               source: 'upload',
               description: baseDocument.detail,
               dateDocument: now.slice(0, 10),
             })
-            baseDocument.id = `sql-${response.data.documentAttache_insert.id}`
+            baseDocument.id = `sql-${documentId}`
             baseDocument.source = 'sql_connect'
-            setFeedback('Document enregistré dans SQL Connect.')
+            setFeedback('Metadonnees document enregistrees dans SQL Connect. Fichier Storage a finaliser.')
           } catch (error) {
-            console.info('Création document SQL Connect impossible, classement local conservé.', error)
-            setFeedback('Document gardé en local.')
+            console.info('Creation document SQL Connect impossible, aucun document local cree.', error)
+            setFeedback(`Creation SQL Connect impossible pour ${file.name}. Aucun document local n'a ete cree.`)
+            continue
           }
         } else {
           setFeedback('Document ajouté localement.')
@@ -471,8 +442,10 @@ export function DocumentsPage() {
         nextDocuments.push(baseDocument)
       }
 
-      setUploads(current => [...nextDocuments, ...current])
-      setSelectedId(nextDocuments[0]?.id ?? '')
+      if (nextDocuments.length) {
+        setUploads(current => [...nextDocuments, ...current])
+        setSelectedId(nextDocuments[0]?.id ?? '')
+      }
     },
   })
 
@@ -489,11 +462,28 @@ export function DocumentsPage() {
             <span className="inline-flex rounded-full border border-[#EADBC8] bg-white px-3 py-1 text-[11px] font-semibold text-[#6B6B6B]">
               {dataSource === 'dataconnect' ? 'SQL Connect actif' : 'Source locale'}
             </span>
+            <span className="inline-flex rounded-full border border-[#EADBC8] bg-white px-3 py-1 text-[11px] font-semibold text-[#6B6B6B]">
+              SQL {visibleSqlDocumentCount}
+            </span>
+            {(localOnlyDocuments > 0 || localFolders.length > 0) && (
+              <span className="inline-flex rounded-full border border-[#F2C7A6] bg-[#FFF7F1] px-3 py-1 text-[11px] font-semibold text-[#D95B17]">
+                Fallback local: {localOnlyDocuments} fichier{localOnlyDocuments > 1 ? 's' : ''}, {localFolders.length} dossier{localFolders.length > 1 ? 's' : ''}
+              </span>
+            )}
           </div>
           <h1 className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-[#1E1E1E]">Gestionnaire de documents</h1>
           <p className="mt-2 text-sm text-[#3C3C3C]">Dossiers, import et recherche sur les fichiers réellement ajoutés.</p>
         </div>
-        <button type="button" onClick={open} className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]">
+        <button
+          type="button"
+          onClick={() => {
+            if (canCreateDocuments) open()
+            else setFeedback('Import de document non autorise pour ce profil.')
+          }}
+          className={`inline-flex h-10 items-center gap-2 rounded-[14px] px-4 text-sm font-semibold text-white ${
+            canCreateDocuments ? 'bg-[#F06B21] hover:bg-[#D95B17]' : 'bg-[#9CA3AF]'
+          }`}
+        >
           <Upload className="h-4 w-4" strokeWidth={1.75} />
           Importer
         </button>
@@ -516,11 +506,16 @@ export function DocumentsPage() {
                 <input
                   value={newFolderName}
                   onChange={event => setNewFolderName(event.target.value)}
+                  disabled={!canCreateDocuments}
                   placeholder="Ex: Factures frais"
-                  className="mt-2 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  className="mt-2 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm text-[#1E1E1E] placeholder:text-[#9CA3AF] disabled:cursor-not-allowed disabled:bg-[#FAF6F2] disabled:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
                 />
               </label>
-              <button type="submit" className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-sm font-semibold text-white hover:bg-[#2A2A2A]">
+              <button
+                type="submit"
+                disabled={!canCreateDocuments}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-sm font-semibold text-white hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
+              >
                 <FolderPlus className="h-4 w-4" strokeWidth={1.75} />
                 Créer le dossier
               </button>
@@ -658,9 +653,18 @@ export function DocumentsPage() {
                   </div>
                   <p className="mt-4 text-sm font-semibold text-[#1E1E1E]">Dossier vide</p>
                   <p className="mt-2 max-w-md text-sm leading-6 text-[#6B6B6B]">
-                    Déposez des fichiers ici. Aucun chantier Excel n’est affiché comme document tant qu’un fichier n’a pas été importé.
+                    Déposez des fichiers ici. Aucun chantier Excel n'est affiché comme document tant qu'un fichier n'a pas été importé.
                   </p>
-                  <button type="button" onClick={open} className="mt-5 inline-flex h-10 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-4 text-sm font-semibold text-white hover:bg-[#2A2A2A]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (canCreateDocuments) open()
+                      else setFeedback('Import de document non autorise pour ce profil.')
+                    }}
+                    className={`mt-5 inline-flex h-10 items-center gap-2 rounded-[12px] px-4 text-sm font-semibold text-white ${
+                      canCreateDocuments ? 'bg-[#1E1E1E] hover:bg-[#2A2A2A]' : 'bg-[#9CA3AF]'
+                    }`}
+                  >
                     <Upload className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
                     Importer un document
                   </button>
@@ -682,7 +686,14 @@ export function DocumentsPage() {
               <span className="mx-auto grid h-12 w-12 place-items-center rounded-[16px] border border-[#EADBC8] bg-white text-[#F06B21]">
                 <Upload className="h-6 w-6" strokeWidth={1.75} />
               </span>
-              <button type="button" onClick={open} className="mt-4 text-[14px] font-semibold text-[#1E1E1E]">
+              <button
+                type="button"
+                onClick={() => {
+                  if (canCreateDocuments) open()
+                  else setFeedback('Import de document non autorise pour ce profil.')
+                }}
+                className={`mt-4 text-[14px] font-semibold ${canCreateDocuments ? 'text-[#1E1E1E]' : 'text-[#6B6B6B]'}`}
+              >
                 Glisser-déposer ou parcourir
               </button>
               <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
@@ -711,6 +722,12 @@ export function DocumentsPage() {
                   <div className="min-w-0">
                     <p className="text-[13px] font-semibold text-[#1E1E1E]">{selectedDocument.folderName || activeFolder.name}</p>
                     <p className="mt-1 text-[12px] text-[#6B6B6B]">{selectedChantier?.nom || selectedClient?.nom || 'Aucun dossier chantier lié'}</p>
+                    <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                      {selectedDocument.source === 'sql_connect' ? 'Metadonnees SQL Connect' : 'Session locale non durable SQL'}
+                    </p>
+                    {selectedDocument.sha256 && (
+                      <p className="mt-1 truncate text-[11px] font-mono text-[#6B6B6B]">SHA-256 {selectedDocument.sha256}</p>
+                    )}
                   </div>
                 </div>
 
@@ -745,7 +762,8 @@ export function DocumentsPage() {
                                 : 'plans'
                       }
                       onChange={event => handleClassifyDocument(selectedDocument, event.target.value)}
-                      className="mt-2 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm text-[#1E1E1E] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                      disabled={!canEditDocuments}
+                      className="mt-2 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm text-[#1E1E1E] disabled:cursor-not-allowed disabled:bg-[#FAF6F2] disabled:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
                     >
                       {folders.map(folder => (
                         <option key={folder.id} value={folder.id}>{folder.name}</option>

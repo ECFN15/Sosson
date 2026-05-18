@@ -284,3 +284,17 @@ Si un client final doit consulter un PDF sans compte :
 ---
 
 **Retour au** [sommaire](../documentation.md#3-sommaire).
+
+## 10.13 Notes checkpoint 002 - etat reel 2026-05-16
+
+Cette section complete le cadrage cible ci-dessus avec l'etat reel du repo.
+
+- Firebase Auth prouve l'identite et fournit `auth.uid`.
+- SQL `User` devient le profil applicatif cible; le login tente maintenant `GetCurrentUser` avant le fallback Firestore transitoire.
+- Firestore `users/{uid}` reste seulement une transition a supprimer une fois les profils SQL sandbox provisionnes.
+- localStorage peut stocker des brouillons, preferences ou caches, mais ne doit jamais autoriser une action sensible.
+- La matrice locale d'acces ne peut maintenant que restreindre l'UX par rapport aux droits par defaut du role; elle ne peut pas elever un role au-dessus de `defaultAccessMatrix`.
+- Le fallback auth local est strictement opt-in via `VITE_ENABLE_LOCAL_AUTH_FALLBACK=true`, en dev local uniquement, jamais production.
+- `UpsertCurrentUser` n'est plus expose dans le connecteur client; le provisioning des roles passe par script admin avec Admin SDK Data Connect.
+
+Gate securite avant production: aucun utilisateur ne doit pouvoir creer ou modifier son role applicatif depuis le navigateur, meme en bricolant les appels SQL Connect.

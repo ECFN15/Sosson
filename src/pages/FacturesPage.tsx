@@ -14,11 +14,15 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import { createFacture, setFactureStatut } from '@dataconnect/generated'
 import { useApp } from '@/lib/store'
-import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { canAccessPage } from '@/lib/accessControl'
 import { categorieLabels } from '@/data/factures'
 import type { CategorieDepense, Facture, StatutFacture } from '@/data/factures'
+import { createFactureInSql, setFactureStatutInSql } from '@/features/factures/factureSql'
+import { useOperationalData } from '@/features/operations/useOperationalData'
+import { createDocumentAttacheInSql } from '@/features/documents/documentSql'
+import { buildPendingDocumentStoragePath, hashDocumentFile } from '@/features/documents/storagePaths'
 
 type FactureTab = 'toutes' | StatutFacture
 
@@ -94,9 +98,12 @@ export function FacturesPage() {
     factures,
     chantiers,
     clients,
+    source: operationalSource,
+    isLoading: isOperationalLoading,
+  } = useOperationalData()
+  const {
     user,
-    dataSource,
-    isDataConnectLoading,
+    accessMatrix,
     addFacture,
     updateFactureStatus,
   } = useApp()
@@ -111,7 +118,7 @@ export function FacturesPage() {
   const [selectedId, setSelectedId] = useState(factureParam || factures[0]?.id || '')
   const [isSaving, setIsSaving] = useState(false)
   const [feedback, setFeedback] = useState('')
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [form, setForm] = useState({
     chantierId: chantierFilter || chantiers[0]?.id || '',
     fournisseur: '',
@@ -123,7 +130,9 @@ export function FacturesPage() {
     description: '',
   })
 
-  const canWriteSql = dataSource === 'dataconnect' && isDataConnectEnabled
+  const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
+  const canCreateFactures = canAccessPage(user?.role, 'factures', accessMatrix, 'create')
+  const canEditFactures = canAccessPage(user?.role, 'factures', accessMatrix, 'edit')
 
   const scopedFactures = useMemo(() => {
     if (user?.role !== 'chef_chantier') return factures
@@ -198,16 +207,46 @@ export function FacturesPage() {
     multiple: true,
     noClick: true,
     onDrop: acceptedFiles => {
-      setUploadedFiles(files => [...acceptedFiles.map(file => file.name), ...files])
+      setUploadedFiles(files => [...acceptedFiles, ...files])
       if (acceptedFiles[0] && !form.numeroFacture) {
         setForm(current => ({
           ...current,
           numeroFacture: acceptedFiles[0].name.replace(/\.[^.]+$/, '').slice(0, 64),
         }))
       }
-      setFeedback(`${acceptedFiles.length} fichier(s) pret(s) a qualifier.`)
+      setFeedback(canWriteSql
+        ? `${acceptedFiles.length} fichier(s) selectionne(s). Le fichier n'est pas encore stocke durablement tant que le flux Storage facture n'est pas branche.`
+        : `${acceptedFiles.length} fichier(s) selectionne(s) dans le fallback local. Ce n'est pas une preuve Storage.`)
     },
   })
+
+  async function createFactureDocumentMetadata(facture: Facture, files: File[]) {
+    const chantier = chantiers.find(item => item.id === facture.chantierId)
+    let created = 0
+
+    for (const file of files) {
+      const sha256 = await hashDocumentFile(file)
+      await createDocumentAttacheInSql({
+        folderId: null,
+        clientId: chantier?.clientId ?? null,
+        chantierId: facture.chantierId,
+        factureId: facture.id,
+        nomFichier: file.name,
+        storagePath: buildPendingDocumentStoragePath(file, facture.chantierId),
+        mimeType: file.type || null,
+        tailleBytes: file.size,
+        sha256,
+        typeDocument: 'facture',
+        statut: 'lie',
+        source: 'upload',
+        description: `Piece jointe facture ${facture.numeroFacture}. Fichier Storage a finaliser.`,
+        dateDocument: facture.date,
+      })
+      created += 1
+    }
+
+    return created
+  }
 
   function handleTabChange(tab: FactureTab) {
     setActiveTab(tab)
@@ -225,6 +264,11 @@ export function FacturesPage() {
 
   async function handleCreateFacture(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!canCreateFactures) {
+      setFeedback("Votre role ne permet pas de creer une facture.")
+      return
+    }
+
     const chantierId = form.chantierId || chantiers[0]?.id
     const montantHT = Number(form.montantHT)
     const tva = Number(form.tva)
@@ -252,21 +296,18 @@ export function FacturesPage() {
     setIsSaving(true)
     try {
       if (canWriteSql) {
-        const dc = getSossonDataConnect()
-        const response = await createFacture(dc, {
-          chantierId,
-          fournisseur: nextFacture.fournisseur,
-          numeroFacture: nextFacture.numeroFacture,
-          montantHT,
-          tva,
-          montantTTC,
-          date: nextFacture.date,
-          categorie: nextFacture.categorie,
-          statut: nextFacture.statut,
-          description: nextFacture.description || null,
-        })
-        nextFacture.id = response.data.facture_insert.id
-        setFeedback('Facture creee dans SQL Connect et ajoutee a la file de traitement.')
+        nextFacture.id = await createFactureInSql(nextFacture)
+        if (uploadedFiles.length) {
+          try {
+            const documentCount = await createFactureDocumentMetadata(nextFacture, uploadedFiles)
+            setFeedback(`Facture creee dans SQL Connect. ${documentCount} metadata document enregistree(s); fichier Storage a finaliser.`)
+          } catch (error) {
+            console.info('Creation metadata document facture impossible apres creation SQL facture.', error)
+            setFeedback('Facture creee dans SQL Connect, mais metadata document non enregistree. Fichier Storage toujours a finaliser.')
+          }
+        } else {
+          setFeedback('Facture creee dans SQL Connect et ajoutee a la file de traitement.')
+        }
       } else {
         setFeedback('Facture ajoutee localement. SQL Connect reprendra le relais quand la source sera active.')
       }
@@ -280,6 +321,7 @@ export function FacturesPage() {
         montantHT: '',
         description: '',
       }))
+      setUploadedFiles([])
     } catch (error) {
       console.error(error)
       setFeedback("Ecriture SQL Connect impossible. Aucune facture n'a ete creee.")
@@ -289,11 +331,20 @@ export function FacturesPage() {
   }
 
   async function handleStatusChange(facture: Facture, statut: StatutFacture) {
+    if (!canEditFactures) {
+      setFeedback("Votre role ne permet pas de modifier le statut d'une facture.")
+      return
+    }
+
     setIsSaving(true)
     try {
-      if (canWriteSql && !facture.id.startsWith('local-')) {
-        const dc = getSossonDataConnect()
-        await setFactureStatut(dc, { id: facture.id, statut })
+      if (canWriteSql) {
+        if (facture.id.startsWith('local-')) {
+          setFeedback("Statut non modifie: cette facture est locale alors que la page est en source SQL.")
+          return
+        }
+
+        await setFactureStatutInSql(facture.id, statut)
         setFeedback(`Statut SQL Connect mis a jour: ${statusMeta[statut].label}.`)
       } else {
         setFeedback(`Statut mis a jour localement: ${statusMeta[statut].label}.`)
@@ -318,7 +369,7 @@ export function FacturesPage() {
               Controle financier
             </span>
             <span className="inline-flex rounded-full border border-[#3C3C3C] bg-[#242424] px-3 py-1 text-[11px] font-semibold text-[#C9C9C9]">
-              {canWriteSql ? 'Ecriture SQL Connect' : 'Ecriture locale'}
+              {canWriteSql ? 'Ecriture SQL Connect' : 'Fallback local'}
             </span>
           </div>
           <h1 className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-white">Factures fournisseurs</h1>
@@ -326,12 +377,12 @@ export function FacturesPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#3C3C3C]">
-            {isDataConnectLoading ? 'Chargement SQL...' : dataSource === 'dataconnect' ? 'Source SQL Connect' : 'Source locale / Excel'}
+            {isOperationalLoading ? 'Chargement SQL...' : operationalSource === 'dataconnect' ? 'Source SQL Connect' : 'Source locale / Excel'}
           </span>
           {!canWriteSql && (
             <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#D95B17]">
               <WifiOff className="h-4 w-4" strokeWidth={1.75} />
-              Ecriture locale
+              Fallback local
             </span>
           )}
         </div>
@@ -372,6 +423,7 @@ export function FacturesPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
         <main className="min-w-0 space-y-5">
+          {canCreateFactures ? (
           <Card className="p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-h-10 flex-wrap gap-2">
@@ -406,6 +458,19 @@ export function FacturesPage() {
               </label>
             </div>
           </Card>
+          ) : (
+          <Card className="p-5">
+            <div className="flex gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 text-[#F06B21]" strokeWidth={1.75} />
+              <div>
+                <h2 className="text-[14px] font-semibold text-[#1E1E1E]">Creation verrouillee</h2>
+                <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
+                  Votre role permet de consulter les factures, mais pas d'en creer depuis cette interface.
+                </p>
+              </div>
+            </div>
+          </Card>
+          )}
 
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
@@ -496,7 +561,11 @@ export function FacturesPage() {
               <button type="button" onClick={open} className="mt-2 text-[13px] font-semibold text-[#1E1E1E]">
                 Joindre un PDF ou une image
               </button>
-              {uploadedFiles[0] && <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{uploadedFiles[0]}</p>}
+              {uploadedFiles[0] && (
+                <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">
+                  {uploadedFiles[0].name} - metadata SQL possible, fichier Storage a finaliser
+                </p>
+              )}
             </div>
 
             <form className="space-y-3" onSubmit={handleCreateFacture}>
@@ -549,7 +618,7 @@ export function FacturesPage() {
                 <textarea value={form.description} onChange={event => setForm(current => ({ ...current, description: event.target.value }))} className="mt-1 h-20 w-full resize-none rounded-[10px] border border-[#F2E8DC] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" />
               </label>
               <button type="submit" disabled={isSaving || chantiers.length === 0} className="h-11 w-full rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:opacity-60">
-                {isSaving ? 'Enregistrement...' : canWriteSql ? 'Creer dans SQL Connect' : 'Ajouter au dossier local'}
+                {isSaving ? 'Enregistrement...' : canWriteSql ? 'Creer dans SQL Connect' : 'Ajouter au fallback local'}
               </button>
             </form>
           </Card>
@@ -600,6 +669,7 @@ export function FacturesPage() {
                 <p className="mt-4 rounded-[14px] bg-[#FAF6F2] p-4 text-[13px] leading-5 text-[#3C3C3C]">{selectedFacture.description}</p>
               )}
 
+              {canEditFactures ? (
               <div className="mt-5 grid grid-cols-3 gap-2">
                 <button type="button" disabled={isSaving} onClick={() => handleStatusChange(selectedFacture, 'validee')} className="h-10 rounded-[10px] bg-[#F06B21] text-[12px] font-semibold text-white hover:bg-[#D95B17] disabled:opacity-60">
                   Valider
@@ -611,6 +681,11 @@ export function FacturesPage() {
                   Rejeter
                 </button>
               </div>
+              ) : (
+              <div className="mt-5 rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] p-4 text-[12px] leading-5 text-[#6B6B6B]">
+                Votre role ne permet pas de modifier le statut des factures.
+              </div>
+              )}
             </Card>
           )}
 
@@ -620,7 +695,7 @@ export function FacturesPage() {
               <div>
                 <h2 className="text-[14px] font-semibold text-[#1E1E1E]">MVP retenu</h2>
                 <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
-                  Le faux OCR a ete retire. Le flux testable est: saisir, rattacher a un chantier, enregistrer, puis valider ou rejeter.
+                  Le faux OCR a ete retire. Le flux testable est: saisir, rattacher a un chantier, enregistrer, puis valider ou rejeter. Les fichiers selectionnes ici ne sont pas encore des fichiers Storage durables.
                 </p>
               </div>
             </div>

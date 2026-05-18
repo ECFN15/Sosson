@@ -20,20 +20,37 @@ query GetCurrentUser @auth(level: USER) {
   }
 }
 
+query ListUsers
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff can inspect provisioned application profiles while role changes remain admin/provisioning-only."
+  ) {
+  users(orderBy: { nom: ASC }, limit: 100) {
+    id
+    email
+    nom
+    prenom
+    role
+    avatar
+    dateCreation
+  }
+}
+
 
 # ---------- Clients ----------------------------------------------------------
 
-query ListClients
+query ListOperationalClients
   @auth(
     level: USER
     insecureReason: "Internal back-office app for a single company; authenticated staff need shared client access while fine-grained RBAC is still enforced in the application layer."
   ) {
-  clients(orderBy: { nom: ASC }, limit: 1000) {
+  clients(where: { origineImport: { eq: "operationnel" } }, orderBy: { nom: ASC }, limit: 1000) {
     id
     type
     nom
     email
     telephone
+    adresse
     ville
     codePostal
     dateCreation
@@ -69,12 +86,12 @@ query GetClient($id: UUID!)
 
 # ---------- Chantiers --------------------------------------------------------
 
-query ListChantiers
+query ListOperationalChantiers
   @auth(
     level: USER
     insecureReason: "Internal back-office app for a single company; authenticated staff need shared chantier access while fine-grained RBAC is still enforced in the application layer."
   ) {
-  chantiers(orderBy: { dateDebut: DESC }, limit: 1200) {
+  chantiers(where: { origineImport: { eq: "operationnel" } }, orderBy: { dateDebut: DESC }, limit: 1200) {
     id
     nom
     statut
@@ -204,6 +221,7 @@ query ListDocumentsAttaches
     storagePath
     mimeType
     tailleBytes
+    sha256
     typeDocument
     statut
     source
@@ -245,6 +263,7 @@ query ListDocumentsByChantier($chantierId: UUID!)
     storagePath
     mimeType
     tailleBytes
+    sha256
     typeDocument
     statut
     source
@@ -356,5 +375,490 @@ query ListPrevisionnelCellEdits($sourceSheet: String!)
     valueText
     numericValue
     dateModification
+  }
+}
+
+
+# ---------- Emails, planning, analytics et rapports --------------------------
+
+query ListEmailThreads
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read the business email index while Outlook remains the external source."
+  ) {
+  emailThreads(orderBy: { lastMessageAt: DESC }, limit: 200) {
+    id
+    provider
+    externalThreadId
+    subject
+    statut
+    importance
+    lastMessageAt
+    participantsSummary
+    messageCount
+    hasAttachments
+    dateModification
+    client { id nom type }
+    chantier { id nom statut client { id nom } }
+    assignedTo { id nom prenom avatar }
+  }
+}
+
+query ListUnreadEmailThreads
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read actionable email thread indexes."
+  ) {
+  emailThreads(where: { statut: { eq: "a_traiter" } }, orderBy: { lastMessageAt: DESC }, limit: 100) {
+    id
+    provider
+    externalThreadId
+    subject
+    statut
+    importance
+    lastMessageAt
+    participantsSummary
+    messageCount
+    hasAttachments
+    client { id nom type }
+    chantier { id nom statut }
+    assignedTo { id nom prenom avatar }
+  }
+}
+
+query GetEmailThread($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read messages indexed for business processing."
+  ) {
+  emailThread(id: $id) {
+    id
+    provider
+    externalThreadId
+    subject
+    statut
+    importance
+    lastMessageAt
+    participantsSummary
+    messageCount
+    hasAttachments
+    dateCreation
+    dateModification
+    client { id nom type email telephone }
+    chantier { id nom statut client { id nom type } }
+    assignedTo { id nom prenom email avatar }
+    messages: emailMessages_on_thread(orderBy: { receivedAt: DESC }, limit: 300) {
+      id
+      externalMessageId
+      direction
+      fromEmail
+      fromName
+      toSummary
+      ccSummary
+      subject
+      bodyPreview
+      bodyStoragePath
+      bodyHash
+      sentAt
+      receivedAt
+      isRead
+      hasAttachments
+      attachments: emailAttachments_on_message(orderBy: { dateCreation: ASC }, limit: 100) {
+        id
+        externalAttachmentId
+        nomFichier
+        storagePath
+        mimeType
+        tailleBytes
+        sha256
+        statut
+        document { id nomFichier storagePath statut typeDocument }
+      }
+    }
+  }
+}
+
+query ListPlanningEventsByPeriod($startAt: Timestamp!, $endAt: Timestamp!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read shared planning."
+  ) {
+  planningEvents(where: { startAt: { ge: $startAt }, endAt: { le: $endAt } }, orderBy: { startAt: ASC }, limit: 500) {
+    id
+    titre
+    eventType
+    statut
+    startAt
+    endAt
+    location
+    notes
+    chantier { id nom statut client { id nom } }
+    createdBy { id nom prenom avatar }
+    updatedBy { id nom prenom avatar }
+    assignmentsByPeriod: planningAssignments_on_event(orderBy: { dateCreation: ASC }, limit: 100) {
+      id
+      assignmentRole
+      statut
+      notes
+      user { id nom prenom avatar role }
+    }
+  }
+}
+
+query ListPlanningEventsByChantier($chantierId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read planning linked to a chantier."
+  ) {
+  planningEvents(where: { chantierId: { eq: $chantierId } }, orderBy: { startAt: ASC }, limit: 300) {
+    id
+    titre
+    eventType
+    statut
+    startAt
+    endAt
+    location
+    notes
+    assignmentsByChantier: planningAssignments_on_event(orderBy: { dateCreation: ASC }, limit: 100) {
+      id
+      assignmentRole
+      statut
+      user { id nom prenom avatar role }
+    }
+  }
+}
+
+query ListAnalyticsSnapshots($environment: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read analytics snapshots for dashboards and reports."
+  ) {
+  analyticsSnapshots(where: { environment: { eq: $environment } }, orderBy: { dateCreation: DESC }, limit: 100) {
+    id
+    environment
+    snapshotType
+    scopeType
+    scopeId
+    periodStart
+    periodEnd
+    status
+    totalCaPrevision
+    totalCaRealise
+    totalFacturesTtc
+    totalMarge
+    payloadPath
+    payloadHash
+    sourceWatermark
+    createdBy { id nom prenom avatar }
+    dateCreation
+  }
+}
+
+query GetAnalyticsSnapshot($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect analytics snapshot metadata."
+  ) {
+  analyticsSnapshot(id: $id) {
+    id
+    environment
+    snapshotType
+    scopeType
+    scopeId
+    periodStart
+    periodEnd
+    status
+    totalCaPrevision
+    totalCaRealise
+    totalFacturesTtc
+    totalMarge
+    payloadPath
+    payloadHash
+    sourceWatermark
+    createdBy { id nom prenom email avatar }
+    rapports: rapports_on_snapshot(orderBy: { dateCreation: DESC }, limit: 100) {
+      id
+      titre
+      rapportType
+      statut
+      format
+      storagePath
+      sha256
+      generatedAt
+    }
+    dateCreation
+  }
+}
+
+query ListRapports
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read generated report indexes."
+  ) {
+  rapports(orderBy: { dateCreation: DESC }, limit: 200) {
+    id
+    titre
+    rapportType
+    statut
+    periodeDebut
+    periodeFin
+    format
+    storagePath
+    sha256
+    generatedAt
+    author { id nom prenom avatar }
+    client { id nom type }
+    chantier { id nom statut client { id nom } }
+    snapshot { id environment snapshotType status payloadHash }
+    dateCreation
+  }
+}
+
+query GetRapport($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read report metadata and artifact references."
+  ) {
+  rapport(id: $id) {
+    id
+    titre
+    rapportType
+    statut
+    periodeDebut
+    periodeFin
+    format
+    storagePath
+    sha256
+    summary
+    generatedAt
+    author { id nom prenom email avatar }
+    client { id nom type email telephone }
+    chantier { id nom statut client { id nom type } }
+    snapshot {
+      id
+      environment
+      snapshotType
+      scopeType
+      scopeId
+      periodStart
+      periodEnd
+      status
+      payloadPath
+      payloadHash
+      sourceWatermark
+    }
+    dateCreation
+  }
+}
+
+
+# ---------- Audit, checkpoints et imports -----------------------------------
+
+query ListRecentAuditEvents($environment: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read audit indexes for operational traceability."
+  ) {
+  auditEvents(where: { environment: { eq: $environment } }, orderBy: { dateCreation: DESC }, limit: 200) {
+    id
+    environment
+    eventType
+    severity
+    entityType
+    entityId
+    action
+    status
+    actorUid
+    actorEmail
+    source
+    message
+    evidencePath
+    evidenceHash
+    dateCreation
+  }
+}
+
+query ListEntityChangeLogs($environment: String!, $entityType: String!, $entityId: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read entity change history."
+  ) {
+  entityChangeLogs(
+    where: {
+      environment: { eq: $environment }
+      entityType: { eq: $entityType }
+      entityId: { eq: $entityId }
+    }
+    orderBy: { dateCreation: DESC }
+    limit: 300
+  ) {
+    id
+    environment
+    entityType
+    entityId
+    action
+    source
+    actorUid
+    actorEmail
+    beforeHash
+    afterHash
+    reason
+    dateCreation
+    auditEvent { id eventType action status evidencePath evidenceHash }
+    checkpointRun { id checkpointKey status }
+    dataImportRun { id importKind sourceName status }
+  }
+}
+
+query ListCheckpointRuns($environment: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read checkpoint run indexes."
+  ) {
+  checkpointRuns(where: { environment: { eq: $environment } }, orderBy: { dateCreation: DESC }, limit: 100) {
+    id
+    environment
+    checkpointKey
+    title
+    status
+    startedAt
+    finishedAt
+    commitSha
+    sourceBranch
+    command
+    actorUid
+    actorEmail
+    summary
+    dateCreation
+  }
+}
+
+query GetCheckpointRun($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read checkpoint run evidence metadata."
+  ) {
+  checkpointRun(id: $id) {
+    id
+    environment
+    checkpointKey
+    title
+    status
+    startedAt
+    finishedAt
+    commitSha
+    sourceBranch
+    command
+    actorUid
+    actorEmail
+    summary
+    dateCreation
+    steps: checkpointSteps_on_run(orderBy: { dateCreation: ASC }, limit: 1000) {
+      id
+      stepKey
+      label
+      status
+      command
+      exitCode
+      durationMs
+      startedAt
+      finishedAt
+      logPath
+      logHash
+      message
+      dateCreation
+    }
+    artifacts: checkpointArtifacts_on_run(orderBy: { dateCreation: ASC }, limit: 1000) {
+      id
+      artifactType
+      path
+      storagePath
+      sha256
+      sizeBytes
+      mimeType
+      description
+      step { id stepKey label status }
+      dateCreation
+    }
+    decisions: checkpointDecisions_on_run(orderBy: { dateCreation: ASC }, limit: 100) {
+      id
+      decisionType
+      status
+      decidedByUid
+      decidedByEmail
+      decisionText
+      validationPhraseHash
+      dateCreation
+    }
+  }
+}
+
+query ListDataImportRuns($environment: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read import run indexes."
+  ) {
+  dataImportRuns(where: { environment: { eq: $environment } }, orderBy: { dateCreation: DESC }, limit: 100) {
+    id
+    environment
+    importKind
+    sourceName
+    sourcePath
+    sourceHash
+    status
+    startedAt
+    finishedAt
+    rowCount
+    insertedCount
+    updatedCount
+    skippedCount
+    artifactPath
+    artifactHash
+    actorUid
+    actorEmail
+    notes
+    previsionnelBatch { id workbook workbookHash importedAt }
+    dateCreation
+  }
+}
+
+query GetDataImportRun($id: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read import run evidence metadata."
+  ) {
+  dataImportRun(id: $id) {
+    id
+    environment
+    importKind
+    sourceName
+    sourcePath
+    sourceHash
+    status
+    startedAt
+    finishedAt
+    rowCount
+    insertedCount
+    updatedCount
+    skippedCount
+    artifactPath
+    artifactHash
+    actorUid
+    actorEmail
+    notes
+    previsionnelBatch { id workbook sourcePath workbookHash importedAt }
+    issues: dataImportIssues_on_run(orderBy: { dateCreation: ASC }, limit: 1000) {
+      id
+      severity
+      code
+      entityType
+      entityKey
+      sourceSheet
+      sourceRow
+      message
+      resolutionStatus
+      dateCreation
+    }
+    dateCreation
   }
 }

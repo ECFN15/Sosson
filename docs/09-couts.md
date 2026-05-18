@@ -140,3 +140,18 @@ Sosson à **15-30 €/mois** remplace fonctionnellement une partie de cela. Le r
 ---
 
 **Retour au** [sommaire](../documentation.md#3-sommaire).
+
+## 9.9 Notes checkpoint 002 - exploitation sandbox
+
+Production reste explicitement non prete. Avant tout passage prod, il faut verifier les couts et alertes sur le projet reel, pas seulement dans cette estimation.
+
+Minimum attendu pour checkpoint 002:
+
+- Budget GCP sandbox/prod avec alertes 50 %, 80 %, 100 %.
+- Suivi Cloud SQL: CPU, connexions, stockage, erreurs.
+- Suivi SQL Connect: erreurs de requetes, latence, volumes des listes larges.
+- Revue des queries sans pagination stricte (`ListOperationalClients`, `ListOperationalChantiers`, `ListFactures`, previsionnel).
+- Backup Cloud SQL documente: frequence, retention, procedure de restore sandbox.
+- Rollback documente: revenir au dernier deploy Hosting/Data Connect connu et restaurer un dump si migration data ratee.
+
+Risque cout principal a court terme: instance Cloud SQL laissee active sans monitoring + requetes larges sur previsionnel. Le lot Data checkpoint 002 doit donc preferer des filtres serveur et des limites par page avant d'ouvrir davantage l'analytics.

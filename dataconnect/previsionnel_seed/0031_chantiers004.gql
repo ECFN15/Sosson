@@ -2,6 +2,7 @@ mutation @transaction {
   chantiers004: chantier_upsertMany(data: [
     {
       id: "dbc9df49-7fa8-55e9-8523-2a29dfe8c193",
+      origineImport: "previsionnel",
       clientId: "7e37aa26-817b-52c1-a60b-96f4b2a9838d",
       nom: "Groussard (2024-25)",
       statut: "cloture",
@@ -14,6 +15,7 @@ mutation @transaction {
     },
     {
       id: "68f0881e-e2c0-5b68-8eeb-360047cd1304",
+      origineImport: "previsionnel",
       clientId: "77bed385-9ad7-5cc8-9ec1-e991b420029f",
       nom: "Marie (2024-25)",
       statut: "cloture",
@@ -26,6 +28,7 @@ mutation @transaction {
     },
     {
       id: "62d9358e-b1d1-5cba-8038-1f714220709d",
+      origineImport: "previsionnel",
       clientId: "81cdc722-1726-5913-a773-2197fc42ec8e",
       nom: "Sarl Alp (2024-25)",
       statut: "cloture",
@@ -38,6 +41,7 @@ mutation @transaction {
     },
     {
       id: "6b81ca7a-092f-55e9-8b74-d187690b7e9e",
+      origineImport: "previsionnel",
       clientId: "a37c0fbd-6853-5eea-a4b0-761bd435be08",
       nom: "Chanu Hd Equinoxe 1 (2024-25)",
       statut: "cloture",
@@ -50,6 +54,7 @@ mutation @transaction {
     },
     {
       id: "88d2bfea-eef1-5594-a703-e6709033941e",
+      origineImport: "previsionnel",
       clientId: "a738d31f-a66f-5c7c-b05b-e75a58b16a85",
       nom: "ARNOULD LEMOINE portes (2024-25)",
       statut: "cloture",
@@ -62,6 +67,7 @@ mutation @transaction {
     },
     {
       id: "7e4763c5-c8b5-57cf-ae37-bc27647922f3",
+      origineImport: "previsionnel",
       clientId: "96a6df6e-48a9-5031-aa74-917c9c51297c",
       nom: "Ecurie Basseneville (2024-25)",
       statut: "cloture",
@@ -74,6 +80,7 @@ mutation @transaction {
     },
     {
       id: "4260585a-399b-5b28-b107-585a6023081a",
+      origineImport: "previsionnel",
       clientId: "da36c0f5-2c9b-57ca-add0-584473096459",
       nom: "Campanile (2024-25)",
       statut: "cloture",
@@ -86,6 +93,7 @@ mutation @transaction {
     },
     {
       id: "dd013c24-7365-5a71-a83b-6a35015ea92a",
+      origineImport: "previsionnel",
       clientId: "5ea660d8-1cb5-5f0b-b6b7-626f93ed32ef",
       nom: "Gaudin (2024-25)",
       statut: "cloture",
@@ -98,6 +106,7 @@ mutation @transaction {
     },
     {
       id: "316a2313-bf9d-562f-b58b-f5b152407d79",
+      origineImport: "previsionnel",
       clientId: "f7f7d35c-b0e7-5e32-a2f0-be432895270b",
       nom: "Ravenel (2024-25)",
       statut: "cloture",
@@ -110,6 +119,7 @@ mutation @transaction {
     },
     {
       id: "79c20243-9063-505a-9462-6e2dfdccbac4",
+      origineImport: "previsionnel",
       clientId: "13edb9df-a731-5917-9790-1c32484a0cca",
       nom: "Breteau (2024-25)",
       statut: "cloture",
@@ -122,6 +132,7 @@ mutation @transaction {
     },
     {
       id: "b72f081a-e47a-59c7-a874-9597286b34f5",
+      origineImport: "previsionnel",
       clientId: "1265ab84-a735-5ada-871b-21ff600fb178",
       nom: "Simonet (2024-25)",
       statut: "cloture",
@@ -134,6 +145,7 @@ mutation @transaction {
     },
     {
       id: "a36b8239-3826-57ce-9165-dfd97441176a",
+      origineImport: "previsionnel",
       clientId: "b473dae8-89f2-5866-a8c1-1971ca159997",
       nom: "Hermilly Carreau (2024-25)",
       statut: "cloture",
@@ -146,6 +158,7 @@ mutation @transaction {
     },
     {
       id: "f199af14-7fc0-59d1-8358-01e1d593df3c",
+      origineImport: "previsionnel",
       clientId: "f20808f8-0a90-5b00-866f-511a3c5f001b",
       nom: "Chaventre (2024-25)",
       statut: "cloture",
@@ -158,6 +171,7 @@ mutation @transaction {
     },
     {
       id: "e9a6602f-fc86-51e9-9998-130353e91a9d",
+      origineImport: "previsionnel",
       clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
       nom: "Guillot 1 (2024-25)",
       statut: "cloture",
@@ -170,6 +184,7 @@ mutation @transaction {
     },
     {
       id: "b3c3be58-0f2d-51f1-bd8c-bbf73780647c",
+      origineImport: "previsionnel",
       clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
       nom: "Guillot 2 (2024-25)",
       statut: "cloture",
@@ -182,6 +197,7 @@ mutation @transaction {
     },
     {
       id: "b14efa22-9fd0-524e-996c-f41fbd57dfae",
+      origineImport: "previsionnel",
       clientId: "123da965-2f04-5d2b-a95b-3aa7f3487672",
       nom: "Guillot 3 (2024-25)",
       statut: "cloture",
@@ -194,6 +210,7 @@ mutation @transaction {
     },
     {
       id: "ac8f09c7-08f3-5a04-85b9-12343efeae7a",
+      origineImport: "previsionnel",
       clientId: "bb0123ad-0a33-51bc-a0f8-1b568f488144",
       nom: "DUFOUR Gaêtan (2024-25)",
       statut: "cloture",
@@ -206,6 +223,7 @@ mutation @transaction {
     },
     {
       id: "8fd6d0ee-f635-529f-82f5-703753fc4b67",
+      origineImport: "previsionnel",
       clientId: "8ad958ab-e84e-53b1-9fd4-452671f41b5a",
       nom: "Renaude (2024-25)",
       statut: "cloture",
@@ -218,6 +236,7 @@ mutation @transaction {
     },
     {
       id: "a45207a1-04a1-589d-89e3-1711af5d4f83",
+      origineImport: "previsionnel",
       clientId: "d34aff0b-6321-5e8b-9f9d-48f9737f7080",
       nom: "Billoin Heuguebart (2024-25)",
       statut: "cloture",
@@ -230,6 +249,7 @@ mutation @transaction {
     },
     {
       id: "cc17a917-22f2-5164-afba-aa6a8431978d",
+      origineImport: "previsionnel",
       clientId: "f8b8960f-a4a1-58bf-93e9-26deaf9f5216",
       nom: "Geslain (2024-25)",
       statut: "cloture",
@@ -242,6 +262,7 @@ mutation @transaction {
     },
     {
       id: "73d79324-cf52-56cb-a323-009e3341c2e9",
+      origineImport: "previsionnel",
       clientId: "26adc391-ec3f-548d-b8b9-3ff5ea1e44e1",
       nom: "Leroyer Pioline (2024-25)",
       statut: "cloture",
@@ -254,6 +275,7 @@ mutation @transaction {
     },
     {
       id: "adf4a067-58f0-5423-b5dc-0cc308daa60f",
+      origineImport: "previsionnel",
       clientId: "2e7bdc80-ef0f-56bf-8a77-eff64d2b3622",
       nom: "Raoult (2024-25)",
       statut: "cloture",
@@ -266,6 +288,7 @@ mutation @transaction {
     },
     {
       id: "fc99f818-c184-5055-a621-d1276519ef82",
+      origineImport: "previsionnel",
       clientId: "a3e96c65-9ea1-57cf-81fc-9cffa6ec3a47",
       nom: "CHATEL LAURENT Alexandra (2024-25)",
       statut: "cloture",
@@ -278,6 +301,7 @@ mutation @transaction {
     },
     {
       id: "567c30c1-4236-525f-a9e9-fa2f850d0d1d",
+      origineImport: "previsionnel",
       clientId: "696d8026-91d1-5e44-a57d-2701eed9429f",
       nom: "Denos Kopp (2024-25)",
       statut: "cloture",
@@ -290,6 +314,7 @@ mutation @transaction {
     },
     {
       id: "97076e50-03c5-5930-a275-7743e6625809",
+      origineImport: "previsionnel",
       clientId: "ece839d4-f69d-5867-ac20-a2a35d41c6ac",
       nom: "Leplus (2024-25)",
       statut: "cloture",
@@ -302,6 +327,7 @@ mutation @transaction {
     },
     {
       id: "ff241eed-8c93-5314-a4d0-874249e1d37f",
+      origineImport: "previsionnel",
       clientId: "a645467e-98df-5edb-b4bd-410c42db44a2",
       nom: "Bertrand (2024-25)",
       statut: "cloture",
@@ -314,6 +340,7 @@ mutation @transaction {
     },
     {
       id: "4140a2cf-0ca0-5ae6-9ae6-9920a7b1f437",
+      origineImport: "previsionnel",
       clientId: "dcbb1bce-d6d7-539c-b6c5-2936b5a3d01e",
       nom: "Chauveau (2024-25)",
       statut: "cloture",
@@ -326,6 +353,7 @@ mutation @transaction {
     },
     {
       id: "7ebfa1a6-abb7-5450-a366-fb07885fc31d",
+      origineImport: "previsionnel",
       clientId: "9b7ee751-e846-5f2c-9f2c-63daab5e4011",
       nom: "Glowacki (2024-25)",
       statut: "cloture",
@@ -338,6 +366,7 @@ mutation @transaction {
     },
     {
       id: "512a384b-5114-5abf-929a-575c465e9d72",
+      origineImport: "previsionnel",
       clientId: "5da63188-cf5c-501c-8fd3-24bcad2c8980",
       nom: "Beaussier (2024-25)",
       statut: "cloture",
@@ -350,6 +379,7 @@ mutation @transaction {
     },
     {
       id: "98869bdf-497a-5e88-9d00-493e8705dbe8",
+      origineImport: "previsionnel",
       clientId: "7d3a2a5e-0182-5e63-b83b-d4f0ffa32ddd",
       nom: "Henry (2024-25)",
       statut: "cloture",
@@ -362,6 +392,7 @@ mutation @transaction {
     },
     {
       id: "b3da9bfa-4376-5c1d-aa08-ab9b8189f046",
+      origineImport: "previsionnel",
       clientId: "7e4baf46-14c2-50fc-a9f1-c7d460cd4a5e",
       nom: "Moulinet (2024-25)",
       statut: "cloture",
@@ -374,6 +405,7 @@ mutation @transaction {
     },
     {
       id: "f54ff34b-0f4f-5601-aabf-da2841067524",
+      origineImport: "previsionnel",
       clientId: "e803033c-d85d-5cee-bde5-ca7903b50ec0",
       nom: "Martin (2024-25)",
       statut: "cloture",
@@ -386,6 +418,7 @@ mutation @transaction {
     },
     {
       id: "6e5e79e5-0499-5b43-a63b-1162f0e340fa",
+      origineImport: "previsionnel",
       clientId: "25da6189-c359-5e76-981d-a381b86f1573",
       nom: "POREE Romane (2024-25)",
       statut: "cloture",
@@ -398,6 +431,7 @@ mutation @transaction {
     },
     {
       id: "a7dbc3c5-03bf-584d-8755-e75732be4423",
+      origineImport: "previsionnel",
       clientId: "27d890b9-ec3f-5714-bf0b-970bf9f6b48f",
       nom: "Parisotto (2024-25)",
       statut: "cloture",
@@ -410,6 +444,7 @@ mutation @transaction {
     },
     {
       id: "a897035c-9773-5435-b169-fbda9824d202",
+      origineImport: "previsionnel",
       clientId: "e5eac775-755b-5ca3-aa4c-590034a1292e",
       nom: "Isabelle (2024-25)",
       statut: "cloture",
@@ -422,6 +457,7 @@ mutation @transaction {
     },
     {
       id: "c9508999-68fb-58bf-a375-1fa727ace5a7",
+      origineImport: "previsionnel",
       clientId: "5d4845d0-cddb-5696-86d4-95d3ff9b902d",
       nom: "Savary 01 (2024-25)",
       statut: "cloture",
@@ -434,6 +470,7 @@ mutation @transaction {
     },
     {
       id: "03a620e9-a60c-55a0-a1d6-e53b775eb37e",
+      origineImport: "previsionnel",
       clientId: "5d4845d0-cddb-5696-86d4-95d3ff9b902d",
       nom: "Savary 2 (2024-25)",
       statut: "cloture",
@@ -446,6 +483,7 @@ mutation @transaction {
     },
     {
       id: "550740c4-e495-53bc-8d50-0f2e7bffbe8a",
+      origineImport: "previsionnel",
       clientId: "96a6df6e-48a9-5031-aa74-917c9c51297c",
       nom: "Ecurie Basseneville (2024-25)",
       statut: "cloture",
@@ -458,6 +496,7 @@ mutation @transaction {
     },
     {
       id: "1f39db9e-2db1-5d0d-8ddd-9f4955ebadb6",
+      origineImport: "previsionnel",
       clientId: "dc1333ba-f82b-5519-968a-a9769e7be0c3",
       nom: "Tesson (2024-25)",
       statut: "cloture",
@@ -470,6 +509,7 @@ mutation @transaction {
     },
     {
       id: "bc297d97-cd58-5844-97fb-ec21d39c499b",
+      origineImport: "previsionnel",
       clientId: "1e9cffaa-92a1-58d4-ab23-2d1cd71c8ef5",
       nom: "Alto (2024-25)",
       statut: "cloture",
@@ -482,6 +522,7 @@ mutation @transaction {
     },
     {
       id: "35a78f01-b6ac-5755-9871-508ac083edd4",
+      origineImport: "previsionnel",
       clientId: "598238f3-e7b8-56aa-a43b-0b7b50b4ebd3",
       nom: "Chatelet (2024-25)",
       statut: "cloture",
@@ -494,6 +535,7 @@ mutation @transaction {
     },
     {
       id: "0243e538-b561-5783-be6d-6714c483b035",
+      origineImport: "previsionnel",
       clientId: "c7be6f26-b6d1-5657-a321-86468fc6ff3d",
       nom: "Sci Felah (2024-25)",
       statut: "cloture",
@@ -506,6 +548,7 @@ mutation @transaction {
     },
     {
       id: "51cb8be1-4af6-56cf-acfd-7cba01a32ff4",
+      origineImport: "previsionnel",
       clientId: "5b46c239-8469-518f-ae4b-6f14b3b0ff84",
       nom: "Francois (2024-25)",
       statut: "cloture",
@@ -518,6 +561,7 @@ mutation @transaction {
     },
     {
       id: "423f27aa-7aaf-59f2-a492-c01cd7d930a6",
+      origineImport: "previsionnel",
       clientId: "feabfc50-fca8-5cd7-8962-600c33e83e4d",
       nom: "Ganivet (2024-25)",
       statut: "cloture",
@@ -530,6 +574,7 @@ mutation @transaction {
     },
     {
       id: "fd548716-56cb-5c62-8c16-91e98eb6c72e",
+      origineImport: "previsionnel",
       clientId: "dc156fff-ae29-550b-b3af-231b3038f59f",
       nom: "BERNARD Goeff (2024-25)",
       statut: "cloture",
@@ -542,6 +587,7 @@ mutation @transaction {
     },
     {
       id: "6ec03fe8-2f48-561a-abf9-f97013b7f29c",
+      origineImport: "previsionnel",
       clientId: "8a1a2367-d1a3-52aa-98b0-0c23d4fe1b9e",
       nom: "LECONTE carport (2024-25)",
       statut: "cloture",
@@ -554,6 +600,7 @@ mutation @transaction {
     },
     {
       id: "026eb261-dd51-500c-a454-595d5b36d27a",
+      origineImport: "previsionnel",
       clientId: "419b282b-c271-5ac2-8266-475a2eb78bfc",
       nom: "DROCOURT Marina (2024-25)",
       statut: "cloture",
@@ -566,6 +613,7 @@ mutation @transaction {
     },
     {
       id: "959333f1-86d9-560d-b19e-ee55fa40334d",
+      origineImport: "previsionnel",
       clientId: "f1f31dc2-6416-5e2d-b24b-726c45ea5122",
       nom: "BARRE à Thaon (2024-25)",
       statut: "cloture",
@@ -578,6 +626,7 @@ mutation @transaction {
     },
     {
       id: "1fdd6dde-5eb2-52b5-958e-6c57106ffc05",
+      origineImport: "previsionnel",
       clientId: "23ac6960-921a-5152-a802-b247d8a4f7ae",
       nom: "Chanu Hd Oxygen (2024-25)",
       statut: "cloture",
@@ -590,6 +639,7 @@ mutation @transaction {
     },
     {
       id: "4018b1ca-9e60-5b3a-92fb-e6eca51d0279",
+      origineImport: "previsionnel",
       clientId: "dfd0649a-b211-59ae-ae53-175015137c89",
       nom: "Sci Pjr (2024-25)",
       statut: "cloture",

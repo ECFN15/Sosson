@@ -16,6 +16,7 @@ export const appPages = [
   { key: 'emails', label: 'Emails', path: '/emails', group: 'Communication' },
   { key: 'planning', label: 'Planning', path: '/planning', group: 'Operationnel' },
   { key: 'rapports', label: 'Rapports', path: '/rapports', group: 'Pilotage' },
+  { key: 'moteur', label: 'Moteur live', path: '/moteur-dataflow', group: 'Support' },
   { key: 'documentation', label: 'Documentation', path: '/documentation', group: 'Support' },
   { key: 'equipe', label: 'Equipe', path: '/equipe', group: 'Administration' },
   { key: 'parametres', label: 'Parametres', path: '/parametres', group: 'Administration' },
@@ -57,6 +58,7 @@ export const defaultAccessMatrix: AccessMatrix = {
     emails: readWrite,
     planning: readWrite,
     rapports: readOnly,
+    moteur: readOnly,
     documentation: readOnly,
     equipe: readOnly,
     parametres: noAccess,
@@ -72,6 +74,7 @@ export const defaultAccessMatrix: AccessMatrix = {
     emails: readOnly,
     planning: readOnly,
     rapports: noAccess,
+    moteur: readOnly,
     documentation: readOnly,
     equipe: readOnly,
     parametres: noAccess,
@@ -113,10 +116,10 @@ export function loadAccessMatrix(): AccessMatrix {
 
 export function saveAccessMatrix(matrix: AccessMatrix) {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(ACCESS_MATRIX_STORAGE_KEY, JSON.stringify(matrix))
+  window.localStorage.setItem(ACCESS_MATRIX_STORAGE_KEY, JSON.stringify(normalizeAccessMatrix(matrix)))
 }
 
-function normalizeAccessMatrix(value: unknown): AccessMatrix {
+export function normalizeAccessMatrix(value: unknown): AccessMatrix {
   const source = value as Partial<Record<Role, Partial<Record<PagePermissionKey, Partial<CapabilitySet>>>>>
 
   return {
@@ -133,12 +136,17 @@ function normalizeRoleAccess(source: Partial<Record<PagePermissionKey, Partial<C
       return [
         page.key,
         {
-          view: Boolean(capabilities?.view ?? fallback[page.key].view),
-          create: Boolean(capabilities?.create ?? fallback[page.key].create),
-          edit: Boolean(capabilities?.edit ?? fallback[page.key].edit),
-          admin: Boolean(capabilities?.admin ?? fallback[page.key].admin),
+          view: normalizeCapability(capabilities?.view, fallback[page.key].view),
+          create: normalizeCapability(capabilities?.create, fallback[page.key].create),
+          edit: normalizeCapability(capabilities?.edit, fallback[page.key].edit),
+          admin: normalizeCapability(capabilities?.admin, fallback[page.key].admin),
         },
       ]
     })
   ) as RoleAccess
+}
+
+function normalizeCapability(value: boolean | undefined, fallback: boolean) {
+  if (value === undefined) return fallback
+  return Boolean(value) && fallback
 }

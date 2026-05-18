@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Building2, CalendarDays, ChevronDown, HardHat, ReceiptText, ShieldCheck } from 'lucide-react'
-import { login } from '@/lib/auth'
+import { Building2, CalendarDays, HardHat, ReceiptText, ShieldCheck } from 'lucide-react'
+import { isLocalAuthFallbackEnabled, login } from '@/lib/auth'
 import { useApp } from '@/lib/store'
-import { users, roleLabels } from '@/data/users'
+import { users } from '@/data/users'
 import { chantierImages } from '@/data/media'
 
 const previewRows = [
@@ -12,13 +12,14 @@ const previewRows = [
   { label: 'Planning semaine', value: '21-27', meta: '5 equipes', Icon: CalendarDays },
 ]
 
+const devAccessUser = users.find(user => user.role === 'gerant') ?? users[0]
+
 export function LoginPage() {
   const { setUser } = useApp()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [showDemo, setShowDemo] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,16 +32,17 @@ export function LoginPage() {
     }
   }
 
-  async function loginAs(userEmail: string) {
-    console.log('[Login] Tentative connexion rapide :', userEmail)
-    const user = await login(userEmail, 'demo')
-    console.log('[Login] Resultat :', user)
+  async function loginAsDev() {
+    if (!isLocalAuthFallbackEnabled) {
+      setError('Acces dev desactive sur cet environnement.')
+      return
+    }
+    const user = await login(devAccessUser.email, 'demo')
     if (user) {
       setUser(user)
-      console.log('[Login] navigate -> /dashboard')
       navigate('/dashboard')
     } else {
-      setError('Echec de la connexion demo')
+      setError("Echec de l'acces dev")
     }
   }
 
@@ -156,44 +158,29 @@ export function LoginPage() {
             </button>
           </form>
 
+          {isLocalAuthFallbackEnabled && (
           <div className="mt-6 border-t border-[#F2E8DC] pt-6">
             <button
-              onClick={() => setShowDemo(!showDemo)}
-              className="flex w-full items-center justify-center gap-2 text-sm font-medium text-[#6B6B6B] transition-colors hover:text-[#1E1E1E]"
+              type="button"
+              onClick={() => void loginAsDev()}
+              className="flex w-full items-center justify-center gap-3 rounded-[14px] border border-[#F2E8DC] px-4 py-3 text-left transition-colors hover:border-[#EADBC8] hover:bg-[#FAF6F2] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
             >
-              <ChevronDown
-                size={16}
-                className={`transition-transform ${showDemo ? 'rotate-180' : ''}`}
-              />
-              Connexion rapide demo
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FDEBDD] text-xs font-bold text-[#F06B21]">
+                {devAccessUser.avatar}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-[#1E1E1E]">Acces dev complet</span>
+                <span className="block truncate text-xs text-[#6B6B6B]">
+                  {devAccessUser.prenom} {devAccessUser.nom} - role gerant
+                </span>
+              </span>
             </button>
-
-            {showDemo && (
-              <div className="mt-4 space-y-2">
-                {users.map(u => (
-                  <button
-                    key={u.id}
-                    onClick={() => loginAs(u.email)}
-                    className="flex w-full items-center gap-3 rounded-[14px] border border-[#F2E8DC] px-4 py-3 text-left transition-colors hover:border-[#EADBC8] hover:bg-[#FAF6F2] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FDEBDD] text-xs font-bold text-[#F06B21]">
-                      {u.avatar}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-[#1E1E1E]">
-                        {u.prenom} {u.nom}
-                      </div>
-                      <div className="text-xs text-[#6B6B6B]">{roleLabels[u.role]}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
+          )}
         </section>
 
         <p className="text-center text-xs font-medium text-[#C9C9C9] lg:col-span-2">
-          Mode demonstration - donnees fictives
+          {isLocalAuthFallbackEnabled ? 'Mode demonstration - donnees fictives' : 'Authentification Firebase active'}
         </p>
       </div>
     </div>

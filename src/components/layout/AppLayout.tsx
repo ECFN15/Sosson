@@ -10,10 +10,23 @@ import { getModuleMeta } from '@/lib/moduleMeta'
  * Sidebar anthracite fixe (gauche) + Topbar blanche (haut) + Outlet scrollable sur fond `paper-50`.
  */
 export function AppLayout() {
-  const { user, accessMatrix } = useApp()
+  const { user, authInitializing, accessMatrix } = useApp()
   const location = useLocation()
   const moduleMeta = getModuleMeta(location.pathname)
   const ModuleIcon = moduleMeta.Icon
+
+  if (authInitializing) {
+    return (
+      <div className="flex h-[100dvh] min-h-[360px] items-center justify-center bg-[#FAF6F2] p-6">
+        <div className="w-full max-w-[360px] rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+          <p className="text-sm font-semibold text-[#1E1E1E]">Verification de la session</p>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#FAF6F2]">
+            <div className="h-full w-2/3 animate-pulse rounded-full bg-[#F06B21]" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!user) return <Navigate to="/login" replace />
   if (!canAccessPath(user.role, location.pathname, accessMatrix)) {

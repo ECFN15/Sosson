@@ -1,159 +1,109 @@
-# Sosson — Documentation Technique
+# Sosson - Documentation technique
 
-> Encyclopédie vivante du projet. Toute décision structurante, tout invariant, toute convention est consignée ici ou dans un chapitre lié depuis ce document.
->
-> **Version du document** : 0.2.4 — *Journal Outlook / Microsoft Graph*
-> **Dernière révision** : 2026-05-16
-> **Statut global** : Base documentaire stabilisée. Fondations (vision, architecture, données, IA, archivage, intégrations, sécurité, coûts) cadrées. Reste à écrire : Frontend (chap 07), Opérations (chap 08).
->
-> **Directive active (2026-04-23)** : le projet n'est plus piloté par une logique de démo ou de MVP compressé. Les artefacts historiques orientés démo, en particulier `CLAUDE.md` dans ses parties legacy et `MVProadmap.md`, ne doivent plus servir de source de vérité de roadmap.
+> Statut: index racine
+> Derniere revision: 2026-05-17
+> Version: 0.3.0 - checkpoint audit 001
 
----
+Ce fichier est une porte d'entree. Le detail vit dans `docs/`.
 
-## 1. Comment lire cette documentation
+## Lire d'abord
 
-Cette documentation est conçue pour être lue par **trois publics** :
+1. [docs/00-index.md](docs/00-index.md) - index maintenable.
+2. [docs/11-audit-checkpoint-001.md](docs/11-audit-checkpoint-001.md) - etat reel audite le 2026-05-16.
+3. [AGENTS.md](AGENTS.md) - reference operationnelle courte pour agents et developpeurs.
 
-1. **Humain nouveau sur le projet** — commence par le chapitre [01 — Vision](docs/01-vision.md) puis [02 — Architecture](docs/02-architecture.md).
-2. **Humain qui cherche une réponse précise** — utilise le [Sommaire](#3-sommaire) ci-dessous comme table d'index.
-3. **Agent IA qui assiste le développement** — lis d'abord ce fichier racine en entier, puis les chapitres pertinents à ta tâche. Tout chapitre déclare ses invariants et ses frontières dès l'en-tête.
+## Etat global
 
-### Principe directeur
+Sosson est un hub operationnel interne mono-entreprise pour une PME francaise du batiment. La cible metier reste SQL Connect / Cloud SQL PostgreSQL. Firebase Auth est actif. Firestore et localStorage sont encore presents pour des usages transitoires ou locaux, mais ne doivent pas devenir source de verite metier.
 
-> **Un document, une responsabilité.** Ce fichier racine est un **index + charte**. Il ne contient pas de détail implémentation. Le détail vit dans les chapitres. Les décisions vivent dans les [ADRs](docs/adr/).
+Le checkpoint 001 confirme:
 
----
+- Build sandbox OK.
+- Lint OK apres correction du callback Microsoft.
+- Tests previsionnel OK.
+- SQL Connect partiellement branche au front.
+- Auth locale seedee desactivee par defaut.
+- Regles Firestore/Storage durcies dans le repo, a valider en sandbox avant deploy.
+- Production non validee.
 
-## 2. Conventions d'écriture
+## Sommaire utile
 
-Règles non-négociables pour toute contribution à cette documentation.
-
-| Règle | Détail |
+| Document | Usage |
 |---|---|
-| **Langue** | Français technique. Les termes anglais consacrés (schema, flow, tenant, cold storage) restent en anglais. |
-| **Dates** | ISO 8601 (`YYYY-MM-DD`). Pas de "hier", "la semaine dernière". |
-| **Statut de chapitre** | Chaque chapitre a un en-tête `Statut: draft | stable | obsolete | placeholder`. |
-| **Décisions** | Toute décision structurante → un [ADR](docs/adr/). Jamais inline dans un chapitre. |
-| **Code dans la doc** | Interdit en bloc implémentation. Autorisé en exemple court et en **schéma d'interface** (GraphQL type, Zod shape, signature TS). |
-| **Diagrammes** | Mermaid de préférence (rendu GitHub natif). ASCII accepté pour les flux simples. |
-| **Vocabulaire métier** | Tout terme domaine (Chantier, Devis, Facture, Archive) doit exister dans [99 — Glossaire](docs/99-glossary.md) avant d'être utilisé. |
-| **Invariants** | Énoncés comme des phrases impératives : "Une Facture émise ne peut pas être supprimée." |
-| **Liens** | Relatifs depuis la racine du workspace. Toujours cliquables en Markdown. |
+| [00 - Index](docs/00-index.md) | Carte de la documentation. |
+| [01 - Vision](docs/01-vision.md) | Produit, perimetre, principes. |
+| [02 - Architecture](docs/02-architecture.md) | Architecture cible historique, a lire avec le checkpoint. |
+| [03 - Data Architecture](docs/03-data-architecture.md) | Modele data cible. Le schema reel est dans `dataconnect/schema/schema.gql`. |
+| [04 - Firebase sandbox/prod](docs/04-firebase-sandbox-prod.md) | Environnements et garde-fous. |
+| [05 - SQL Connect](docs/05-sql-connect.md) | Etat reel SQL Connect et integration front. |
+| [06 - Integrations](docs/06-integrations.md) | Integrations externes; Outlook/Microsoft Graph courant, Gmail historique/alternatif. |
+| [07 - Frontend state](docs/07-frontend-state.md) | Sources de donnees par page. |
+| [08 - Quality checks](docs/08-quality-checks.md) | Build, lint, tests, smoke checks. |
+| [09 - Roadmap](docs/09-roadmap.md) | Roadmap priorisee P0-P5. |
+| [10 - Securite](docs/10-securite.md) | Cadrage securite cible. |
+| [10 - Runbooks](docs/10-runbooks.md) | Commandes sandbox/local. |
+| [11 - Audit checkpoint 001](docs/11-audit-checkpoint-001.md) | Audit officiel courant. |
+| [11 - Outlook Graph Email](docs/11-outlook-graph-email.md) | Journal de la preuve Outlook locale. |
+| [12 - Roadmap agents IA](docs/12-ai-agent-roadmap.md) | Plan de travail par agent specialise. |
+| [13 - Readiness checkpoint 002](docs/13-checkpoint-002-readiness.md) | Checklist de preuves pour declarer la sandbox prete checkpoint 002. |
+| [14 - Audit completion objectif global](docs/14-objective-completion-audit.md) | Mapping exigence -> preuve -> manque pour eviter une fausse cloture. |
+| [15 - Execution sandbox checkpoint 002](docs/15-checkpoint-002-sandbox-execution.md) | Gabarit d'execution humaine des actions sandbox reelles. |
+| [16 - Audit SQL reel et architecture cible](docs/16-sql-architecture-target-audit.md) | Rapport SQL/front/previsionnel/checkpoints et plan de migration durable. |
+| [ADR](docs/adr/README.md) | Decisions structurantes. |
 
-### Ajouter un chapitre
+## Documentation visible dans l'application
 
-1. Créer un fichier dans `docs/` avec le numéro suivant (`NN-nom-kebab.md`).
-2. Copier l'en-tête standard (voir [docs/01-vision.md](docs/01-vision.md)).
-3. Ajouter la ligne dans le [Sommaire](#3-sommaire) ci-dessous.
-4. Si le chapitre introduit une décision structurante → créer un ADR.
+La page React `/documentation` est maintenue dans `src/pages/SossonDocsPage.tsx`.
+Elle n'est pas un simple extrait de `docs/05-sql-connect.md`: c'est la documentation produit visible dans l'app, cumulative, avec les anciens contenus reorganises et les ajouts checkpoint 001/002.
 
-### Ajouter un ADR
+Chapitres actuels:
 
-Chaque décision structurante produit **un fichier immuable** dans [docs/adr/](docs/adr/).
-- Format : `NNNN-titre-kebab.md`, numérotation croissante, jamais recyclée.
-- Un ADR peut être **remplacé** (statut `Superseded by NNNN`) mais **jamais édité sur le fond** après validation.
-- Voir [docs/adr/README.md](docs/adr/README.md) pour le gabarit.
+1. Mails, Microsoft Azure et Microsoft Graph.
+2. SQL Connect, PostgreSQL et source de verite metier.
+3. Securite, Auth, roles et secrets.
+4. Previsionnel Excel, clients historiques et statistiques.
+5. Documents, factures et Firebase Storage.
+6. Frontend React, navigation et etat applicatif.
+7. Parcours produit: dashboard, chantiers, clients et operations.
+8. Sandbox, checkpoints, seeds et exploitation.
+9. Roadmap, agents IA et maintenance du livre.
 
----
+Regle de maintenance: ajouter ou deplacer un chapitre sans supprimer l'ancien contenu utile. Si un bloc devient historique, le ranger comme historique/alternative plutot que l'effacer.
 
-## 3. Sommaire
+## Regles de maintenance
 
-### Partie I — Fondations
+- Un changement d'architecture doit mettre a jour la doc concernee ou le checkpoint suivant.
+- Les SDKs generes SQL Connect ne se modifient jamais a la main.
+- Aucune valeur secrete ne doit etre ajoutee dans la doc.
+- Les chapitres anciens qui decrivent une cible doivent rester identifies comme cible, pas comme etat implemente.
 
-| # | Chapitre | Statut | Sujet |
-|---|---|---|---|
-| 01 | [Vision & Contexte](docs/01-vision.md) | **stable v0.2** | Outil interne, hub opérationnel, personas, cas d'usage fondateurs |
-| 02 | [Architecture Globale](docs/02-architecture.md) | **stable v0.2** | Stack Postgres+Firestore+Genkit, bounded contexts, 5 flux de référence |
-| 03 | [Architecture des Données](docs/03-data-architecture.md) | **stable v0.2** | Schéma SQL Connect mono-tenant, 23 entités, indexes |
-| 04 | [Couche Intelligence](docs/04-intelligence.md) | stable | Genkit, flows, prompts, gouvernance IA *(à ajuster : ajouter `categoriseDepense`, `trieEmail`, `rattacheEmailAuChantier`)* |
-| 05 | [Stratégie d'Archivage](docs/05-archival-strategy.md) | **placeholder v0.2** | Hot/Warm/Cold, déclencheurs, format de l'archive v1.1.0 aligné mono-tenant |
+## Prochain checkpoint recommande
 
-### Partie II — Domaines transverses
+Lire [docs/11-audit-checkpoint-001.md](docs/11-audit-checkpoint-001.md), puis executer:
 
-| # | Chapitre | Statut | Sujet |
-|---|---|---|---|
-| 06 | [Intégrations externes](docs/06-integrations.md) | **placeholder v0.2** | Gmail (critique V1), Google Calendar, comptable, Excel, migration legacy |
-| 07 | Frontend | placeholder | Stack UI web + mobile, offline-first, compression images |
-| 08 | Opérations & Observabilité | placeholder | Déploiement, CI/CD, logs, métriques, alerting, FinOps |
-| 09 | [Modèle de Coûts](docs/09-couts.md) | **stable v0.1** | Volumes Sosson, coûts mensuels estimés, guardrails, hypothèse environnements |
-| 10 | [Sécurité & Autorisations](docs/10-securite.md) | **stable v0.1** | Rôles, ACL chantier, Firebase Auth, OAuth Google, secrets, RLS, RGPD |
-| 11 | [Module email Outlook / Microsoft Graph](docs/11-outlook-graph-email.md) | **draft validé localement** | Compte Outlook test, Azure/Entra, OAuth Graph, lecture/envoi email, règles de sécurité |
+```bash
+npm run checkpoint:002:local
+```
 
-### Partie III — Références
+Ce preflight reste local: il lance la CI sandbox, l'audit sources front, le dry-run de comptage, le dry-run seed sandbox archive sous `tmp/` et le dry-run provisioning SQL `User`.
 
-| # | Chapitre | Statut | Sujet |
-|---|---|---|---|
-| 99 | [Glossaire](docs/99-glossary.md) | stable | Vocabulaire métier et technique partagé |
-| — | [Registre ADR](docs/adr/README.md) | stable | Liste de toutes les décisions structurantes |
-| — | [Changelog](docs/CHANGELOG.md) | stable | Historique des évolutions de la documentation |
+Pour verifier aussi SQL Connect avec l'emulateur local:
 
----
+```bash
+# Terminal 1
+npm run emulators:dataconnect
 
-## 4. Décisions structurantes en vigueur
+# Terminal 2
+npm run checkpoint:002:emulator
+```
 
-Ce tableau est le **point d'entrée canonique** pour comprendre pourquoi le projet est ce qu'il est. Chaque ligne renvoie à un ADR.
+Si l'etat local pglite est pollue par une verification RBAC precedente, arreter l'emulateur puis lancer `npm run reset:dataconnect:local -- --yes-local-reset`.
 
-| ADR | Décision | Statut |
-|---|---|---|
-| [0001](docs/adr/0001-platform-firebase.md) | Plateforme : Firebase/GCP plutôt que Supabase | Accepté |
-| [0002](docs/adr/0002-data-connect-relational.md) | Persistance relationnelle : Firebase SQL Connect (ex-Data Connect, Cloud SQL Postgres) | `Superseded by 0009` |
-| [0003](docs/adr/0003-genkit-ai-layer.md) | Couche IA : Firebase Genkit + Gemini | Accepté |
-| [0004](docs/adr/0004-cold-storage-strategy.md) | Archivage : extraction JSON + médias vers Cloud Storage Archive class | Accepté |
-| [0005](docs/adr/0005-firestore-adjoint-only.md) | Firestore adjoint uniquement, jamais source de vérité | Accepté |
-| [0006](docs/adr/0006-internal-tool-scope.md) | Outil interne mono-tenant (pas un SaaS) | Accepté |
-| [0007](docs/adr/0007-not-a-billing-tool.md) | Hub opérationnel, pas un outil de facturation légal | Accepté |
-| [0008](docs/adr/0008-architecture-postgres-firestore-hybrid.md) | Architecture hybride Postgres + Firestore (Option β) | Accepté |
-| [0009](docs/adr/0009-sql-connect-repivot-justification.md) | Re-justification SQL Connect après repivot (remplace 0002) | Accepté |
+Ensuite traiter en priorite:
 
----
-
-## 5. Invariants du projet
-
-Principes **non-négociables** qui traversent toute l'architecture. Toute contribution qui les violerait doit produire un ADR qui les remplace explicitement.
-
-1. **Souveraineté des données opérationnelles.** Aucune donnée ne doit être irrécupérable sans dépendance Firebase. Un export complet (JSON + médias) doit toujours être possible en < 24 h. *(Reformulé par [ADR 0007](docs/adr/0007-not-a-billing-tool.md) : retrait de la connotation légale, la rétention n'est plus un impératif fiscal mais une pratique d'archivage opérationnel.)*
-2. **Frontière stricte entre domaine et infrastructure.** La logique métier (catégorisation, calcul d'agrégats, règles de rattachement email ↔ chantier) ne doit **jamais** importer le SDK Firebase directement. Elle s'exprime en fonctions pures, testables sans émulateur.
-3. **Tout flow IA est observable.** Aucun appel modèle en production sans trace Genkit, coût loggué, et schéma de sortie validé par Zod.
-4. **Le coût est une fonctionnalité.** Toute feature nouvelle doit estimer son coût en conditions réelles (volume interne : 30-50 users, volumes documentés en [chapitre 09](#3-sommaire)).
-5. **Mono-tenant assumé.** Sosson sert une seule entreprise. Aucune structure de données ni fonctionnalité n'anticipe le multi-tenancy. Voir [ADR 0006](docs/adr/0006-internal-tool-scope.md). *(Remplace l'ancien invariant "multi-tenant dès le jour 1" de la version 0.1.0.)*
-6. **Postgres = source de vérité opérationnelle.** Firestore est adjoint optionnel (offline mobile, temps réel collaboratif). Toute donnée qui doit alimenter un dashboard, une recherche ou un historique vit en Postgres. Voir [ADR 0008](docs/adr/0008-architecture-postgres-firestore-hybrid.md).
-7. **Non fiscal.** Sosson n'émet pas de documents à valeur comptable. Le comptable externe conserve cette responsabilité. Voir [ADR 0007](docs/adr/0007-not-a-billing-tool.md).
-
----
-
-## 6. Cycle de vie de cette documentation
-
-| Événement | Conséquence |
-|---|---|
-| Décision structurante prise | Nouveau ADR + ligne dans le tableau §4 + entrée Changelog |
-| Chapitre écrit ou révisé | Mise à jour de son statut + date en en-tête + entrée Changelog |
-| Invariant §5 ajouté / modifié | **Jamais silencieux** : ADR obligatoire, revue explicite |
-| Chapitre rendu obsolète | Statut passe à `obsolete`, ligne barrée au Sommaire, conservé pour archéologie |
-| Version majeure | Bump du numéro de version en tête de ce fichier |
-
-La documentation est **versionnée avec le code** (même repo, même commit). Un changement d'architecture sans mise à jour de doc est un défaut de livraison.
-
----
-
-## 7. Pour une IA qui débarque sur le projet
-
-Si tu es un agent IA ouvert sur ce projet pour la première fois :
-
-1. Lis **ce fichier** en entier (tu y es).
-2. Lis [01 — Vision](docs/01-vision.md) pour le contexte métier.
-3. Lis [02 — Architecture](docs/02-architecture.md) pour la topologie technique.
-4. Selon la tâche demandée :
-   - Tâche sur données / schéma → [03 — Données](docs/03-data-architecture.md)
-   - Tâche IA / Genkit / extraction → [04 — Intelligence](docs/04-intelligence.md)
-   - Tâche d'archivage → [05 — Archivage](docs/05-archival-strategy.md)
-   - Tâche d'intégration (Gmail, Calendar, Excel) → [06 — Intégrations](docs/06-integrations.md)
-   - Tâche de sécurité / auth / RGPD → [10 — Sécurité](docs/10-securite.md)
-   - Tâche Outlook / Microsoft Graph / module email → [11 — Outlook Graph Email](docs/11-outlook-graph-email.md)
-   - Tâche de chiffrage / coût → [09 — Coûts](docs/09-couts.md)
-5. Vérifie la table §4 des ADRs avant de remettre en cause une décision existante.
-6. Ignore les anciennes consignes de type "démo", "avant lundi", "MVP rapide" quand elles contredisent la trajectoire produit actuelle.
-7. Respecte les invariants §5. Si tu proposes de les violer, **explique pourquoi et propose un ADR**, ne le fais pas silencieusement.
-
----
-
-*Fin du document racine. Point d'entrée : [docs/01-vision.md](docs/01-vision.md).*
+1. Validation sandbox des profils SQL `User` lus par `GetCurrentUser`.
+2. Validation sandbox du RBAC serveur SQL Connect deja implemente localement.
+3. Execution et verification du seed sandbox reel via le runbook humain.
+4. Validation sandbox de la separation operationnel / historique previsionnel via `origineImport`.
+5. Storage documents securise.
+6. Smoke tests sandbox.

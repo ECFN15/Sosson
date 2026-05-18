@@ -27,7 +27,7 @@ Un compte Microsoft gratuit a ete cree pour les tests email.
 Boite utilisee :
 
 ```text
-matthis.fradinpro14@outlook.fr
+compte-outlook-test@example.com
 ```
 
 Le compte a ete valide directement dans Outlook Web :
@@ -505,7 +505,7 @@ MICROSOFT_CLIENT_ID=b9316a09-9d96-44ec-ba09-4b037a01562d
 MICROSOFT_CLIENT_SECRET=valeur_locale_non_commitee
 MICROSOFT_REDIRECT_URI=http://localhost:5173/auth/microsoft/callback
 MICROSOFT_SANDBOX_REDIRECT_URI=https://sosson-sandbox.web.app/auth/microsoft/callback
-MICROSOFT_MAILBOX=matthis.fradinpro14@outlook.fr
+MICROSOFT_MAILBOX=compte-outlook-test@example.com
 ```
 
 Raison de chaque variable :
@@ -610,7 +610,7 @@ Resultat apres acceptation :
 
 ```text
 Connexion Microsoft Graph OK
-Compte: matthis.fradinpro14@outlook.fr
+Compte: compte Outlook de developpement masque dans le repo
 Dernier mail lu: Verification des informations de securite du compte Microsoft
 ```
 
@@ -652,7 +652,7 @@ Resultat navigateur :
 
 ```text
 Connexion Microsoft Graph OK
-Compte: matthis.fradinpro14@outlook.fr
+Compte: compte Outlook de developpement masque dans le repo
 Dernier mail lu: Nouvelle(s) application(s) connectee(s) a votre compte Microsoft
 Mail de test envoye: Sosson Graph test 2026-05-16T14:33:38.362Z
 ```

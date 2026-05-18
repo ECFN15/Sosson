@@ -2,6 +2,7 @@ mutation @transaction {
   chantiers011: chantier_upsertMany(data: [
     {
       id: "c860d8ba-78e6-5a56-93e7-9f7bddef6a02",
+      origineImport: "previsionnel",
       clientId: "4f10e1f5-ecc8-5d01-acc2-a2c861a5cccf",
       nom: "CAUCE via joris cenier (2019-20)",
       statut: "cloture",
@@ -14,6 +15,7 @@ mutation @transaction {
     },
     {
       id: "e3eb9c9e-b5e8-5fb1-aefd-653bfe1ac2ae",
+      origineImport: "previsionnel",
       clientId: "17c0d9e8-21ac-5a7e-95f3-1ae2b236b993",
       nom: "Atilla (2019-20)",
       statut: "cloture",
@@ -26,6 +28,7 @@ mutation @transaction {
     },
     {
       id: "25aec469-11c1-5104-a99e-50391992c19a",
+      origineImport: "previsionnel",
       clientId: "1afe9772-7e2a-5868-a5f3-ef73ab7a366e",
       nom: "Hamel (2019-20)",
       statut: "cloture",
@@ -38,6 +41,7 @@ mutation @transaction {
     },
     {
       id: "5e5d9c66-f2b2-55e8-bf8b-8c11aec4b933",
+      origineImport: "previsionnel",
       clientId: "e0821946-ce1e-523b-a79b-151c4affcb55",
       nom: "Agren (2019-20)",
       statut: "cloture",
@@ -50,6 +54,7 @@ mutation @transaction {
     },
     {
       id: "b3ffde95-7795-5216-b2b6-8d6fcd28a34f",
+      origineImport: "previsionnel",
       clientId: "93cc4a4e-dcb4-5788-9d06-4cd1c0afbc0a",
       nom: "Sinigaglia (2019-20)",
       statut: "cloture",
@@ -62,6 +67,7 @@ mutation @transaction {
     },
     {
       id: "0ea844e9-3413-5979-a158-5714c9768cab",
+      origineImport: "previsionnel",
       clientId: "666e814d-5d2c-5363-98e2-64fed35851a9",
       nom: "Zaghbouni (2019-20)",
       statut: "cloture",
@@ -74,6 +80,7 @@ mutation @transaction {
     },
     {
       id: "ecec5032-0c45-50d4-ae48-d14f948a6b68",
+      origineImport: "previsionnel",
       clientId: "2d3b1401-239a-5a48-994b-045cff26a352",
       nom: "Darde (2019-20)",
       statut: "cloture",
@@ -86,6 +93,7 @@ mutation @transaction {
     },
     {
       id: "d2718fce-0345-527b-a789-4f37675b13f4",
+      origineImport: "previsionnel",
       clientId: "558515b3-f228-5575-bc17-bbd52c4eb888",
       nom: "Coyer (2019-20)",
       statut: "cloture",
@@ -98,6 +106,7 @@ mutation @transaction {
     },
     {
       id: "8cf30d3e-51e7-57d7-81d8-8f93ef689ba7",
+      origineImport: "previsionnel",
       clientId: "5ca97729-f3c3-5c00-bcb0-89f5c6d7536b",
       nom: "Maincent (2019-20)",
       statut: "cloture",
@@ -110,6 +119,7 @@ mutation @transaction {
     },
     {
       id: "18bfb68d-c975-5d90-9ee1-3e5731363f6d",
+      origineImport: "previsionnel",
       clientId: "2e7bdc80-ef0f-56bf-8a77-eff64d2b3622",
       nom: "Raoult (2019-20)",
       statut: "cloture",
@@ -122,6 +132,7 @@ mutation @transaction {
     },
     {
       id: "38e6ed35-cd92-57ab-a8f2-80ef8f00bb23",
+      origineImport: "previsionnel",
       clientId: "40cf37c4-f776-56f5-b367-5956e453f9c1",
       nom: "Philippe (2019-20)",
       statut: "cloture",
@@ -134,6 +145,7 @@ mutation @transaction {
     },
     {
       id: "f2055518-0515-5ad7-af0a-dbd14a81bec6",
+      origineImport: "previsionnel",
       clientId: "9d706537-9649-5c42-adad-b152794369f4",
       nom: "Potet (2019-20)",
       statut: "cloture",
@@ -146,6 +158,7 @@ mutation @transaction {
     },
     {
       id: "8b34a4f6-e3a1-53f8-ba46-1a5b2815ff4f",
+      origineImport: "previsionnel",
       clientId: "2d8f792d-92d8-5d33-8e8e-0a4a4f22b396",
       nom: "Gosset (2019-20)",
       statut: "cloture",
@@ -158,6 +171,7 @@ mutation @transaction {
     },
     {
       id: "0e01443b-f15b-561f-ba06-9bf962954abb",
+      origineImport: "previsionnel",
       clientId: "86fba5e6-69b7-57e4-930f-dd1dab5a3894",
       nom: "Guimond (2019-20)",
       statut: "cloture",
@@ -170,6 +184,7 @@ mutation @transaction {
     },
     {
       id: "649f7ee4-7b15-5d79-abeb-206d18cdfd12",
+      origineImport: "previsionnel",
       clientId: "17c0d9e8-21ac-5a7e-95f3-1ae2b236b993",
       nom: "Atilla (2019-20)",
       statut: "cloture",
@@ -182,6 +197,7 @@ mutation @transaction {
     },
     {
       id: "66618e6d-b625-5ba2-958b-8d85b728c952",
+      origineImport: "previsionnel",
       clientId: "6463b527-a9e9-55f2-9c17-5bffb1e1493c",
       nom: "Maillard (2019-20)",
       statut: "cloture",
@@ -194,6 +210,7 @@ mutation @transaction {
     },
     {
       id: "5f47fb32-80b0-5715-8638-60084eec1343",
+      origineImport: "previsionnel",
       clientId: "1e7caba9-1b98-52ed-8da8-19238aacb517",
       nom: "Chao (2019-20)",
       statut: "cloture",
@@ -206,6 +223,7 @@ mutation @transaction {
     },
     {
       id: "5166a9e4-88ea-52d9-a330-3dc9f5d58bcf",
+      origineImport: "previsionnel",
       clientId: "65b78976-ed9f-5963-a4a1-b81709a68fa8",
       nom: "Rf Flipo (2019-20)",
       statut: "cloture",
@@ -218,6 +236,7 @@ mutation @transaction {
     },
     {
       id: "512f6793-3c31-5d1a-bb68-e1abbbdc1024",
+      origineImport: "previsionnel",
       clientId: "559103be-420c-5e27-af70-397e3e06e10a",
       nom: "Dubreul (2019-20)",
       statut: "cloture",
@@ -230,6 +249,7 @@ mutation @transaction {
     },
     {
       id: "5beceeee-b049-5691-98f8-30fecc9005fd",
+      origineImport: "previsionnel",
       clientId: "17c17945-0f54-5427-a2a0-922fed2cbfe7",
       nom: "Prevel (2019-20)",
       statut: "cloture",
@@ -242,6 +262,7 @@ mutation @transaction {
     },
     {
       id: "eca3ff20-4408-5217-9b3c-8614e4300adc",
+      origineImport: "previsionnel",
       clientId: "7fd75901-b6af-5481-915b-55acdc82f146",
       nom: "Le Masson (2019-20)",
       statut: "cloture",
@@ -254,6 +275,7 @@ mutation @transaction {
     },
     {
       id: "5a117c55-ee23-5caf-a795-8ec7d58df52b",
+      origineImport: "previsionnel",
       clientId: "1dc0d6d8-c2b3-572f-9b95-84c119bcde3b",
       nom: "Cabourg (2019-20)",
       statut: "cloture",
@@ -266,6 +288,7 @@ mutation @transaction {
     },
     {
       id: "4774ba53-c3c5-5f86-a6a5-3d6ff34831b9",
+      origineImport: "previsionnel",
       clientId: "41351551-17f6-53ce-884d-7cfa323c8460",
       nom: "Vaucher (2019-20)",
       statut: "cloture",
@@ -278,6 +301,7 @@ mutation @transaction {
     },
     {
       id: "142f6820-8f84-51a5-a854-e0c623cb4f12",
+      origineImport: "previsionnel",
       clientId: "88bf6248-0679-5496-a50f-8c26f4b535be",
       nom: "Benoist (2019-20)",
       statut: "cloture",
@@ -290,6 +314,7 @@ mutation @transaction {
     },
     {
       id: "0d06867b-e7f5-5715-9b01-600264ebdd16",
+      origineImport: "previsionnel",
       clientId: "44265dca-dbc9-5fdc-98e5-f413f278dbcb",
       nom: "Manche (2019-20)",
       statut: "cloture",
@@ -302,6 +327,7 @@ mutation @transaction {
     },
     {
       id: "e4ac9a3e-a0d2-516a-b93f-207c7aee8d7e",
+      origineImport: "previsionnel",
       clientId: "4948dd00-24f2-5d90-acaf-e4f231b3c7c5",
       nom: "Leveque (2019-20)",
       statut: "cloture",
@@ -314,6 +340,7 @@ mutation @transaction {
     },
     {
       id: "2d0c0bf0-3108-548d-99a0-ebbb2be17f5f",
+      origineImport: "previsionnel",
       clientId: "92d6f784-cd70-54e2-acf5-fbc823a4bda8",
       nom: "Hulin (2019-20)",
       statut: "cloture",
@@ -326,6 +353,7 @@ mutation @transaction {
     },
     {
       id: "ac5df740-f507-5a86-b470-9679f3a7e734",
+      origineImport: "previsionnel",
       clientId: "1c2cb019-48f6-514e-b20d-de354f6a5334",
       nom: "Desfeux (2019-20)",
       statut: "cloture",
@@ -338,6 +366,7 @@ mutation @transaction {
     },
     {
       id: "8c45f756-6da1-5917-a7ac-dca526056b8d",
+      origineImport: "previsionnel",
       clientId: "bb0105fe-17de-5156-b4c3-ef4d2fba3317",
       nom: "Cadieu Noury (2019-20)",
       statut: "cloture",
@@ -350,6 +379,7 @@ mutation @transaction {
     },
     {
       id: "de107b90-0a57-533b-ae1f-67388ff561b2",
+      origineImport: "previsionnel",
       clientId: "dc1333ba-f82b-5519-968a-a9769e7be0c3",
       nom: "Tesson (2019-20)",
       statut: "cloture",
@@ -362,6 +392,7 @@ mutation @transaction {
     },
     {
       id: "6dfc1aa7-f6bd-5e74-a1a7-412e8e2b1890",
+      origineImport: "previsionnel",
       clientId: "2b1e6722-8a61-5001-a617-e9196f47a9d1",
       nom: "Lozach Mary (2019-20)",
       statut: "cloture",
@@ -374,6 +405,7 @@ mutation @transaction {
     },
     {
       id: "b0beaaa6-a787-5aed-9e80-2bb8a6adbdc2",
+      origineImport: "previsionnel",
       clientId: "e37fea02-64f0-597b-a3ed-52fa8cfe42a4",
       nom: "Kite Surf (2019-20)",
       statut: "cloture",
@@ -386,6 +418,7 @@ mutation @transaction {
     },
     {
       id: "9c993ec4-395a-5308-ad01-668b3ca9810c",
+      origineImport: "previsionnel",
       clientId: "0271f657-a4c2-5d9f-9983-5be50f8d0832",
       nom: "Vergriete (2019-20)",
       statut: "cloture",
@@ -398,6 +431,7 @@ mutation @transaction {
     },
     {
       id: "eff14031-cbce-5c31-b395-7ec3f48f412d",
+      origineImport: "previsionnel",
       clientId: "cbe22469-53b6-5fef-bf23-bd02fafa48af",
       nom: "Rohrbach (2019-20)",
       statut: "cloture",
@@ -410,6 +444,7 @@ mutation @transaction {
     },
     {
       id: "1b9f3006-ce92-586c-ab73-ee53f3e3fb15",
+      origineImport: "previsionnel",
       clientId: "8e480e86-d9eb-59e3-88fb-3d167241483d",
       nom: "DUPONT CHALESLE iso ext (2019-20)",
       statut: "cloture",
@@ -422,6 +457,7 @@ mutation @transaction {
     },
     {
       id: "d5a7cc58-cd54-50bc-b464-9f8f7887abfa",
+      origineImport: "previsionnel",
       clientId: "de095f46-6e3c-5e8d-9a1f-023e6cc7075d",
       nom: "Delamare (2019-20)",
       statut: "cloture",
@@ -434,6 +470,7 @@ mutation @transaction {
     },
     {
       id: "1531ca19-b177-5f33-8fb8-9cbf2d03117d",
+      origineImport: "previsionnel",
       clientId: "10da6d7d-e908-51fb-9664-311c42dbf2bc",
       nom: "Sci Prj (2019-20)",
       statut: "cloture",
@@ -446,6 +483,7 @@ mutation @transaction {
     },
     {
       id: "c0351aba-1afb-504a-91af-cad090c400b7",
+      origineImport: "previsionnel",
       clientId: "da10e920-e1fe-5d46-ab6b-b9a068bc70ed",
       nom: "Gernault - Ibanescu (2019-20)",
       statut: "cloture",
@@ -458,6 +496,7 @@ mutation @transaction {
     },
     {
       id: "034f6c11-c5f0-5570-968b-97b9d7fe333f",
+      origineImport: "previsionnel",
       clientId: "d1be87b6-38f1-53a9-a8cd-1fa532ae55bb",
       nom: "Schiel (2019-20)",
       statut: "cloture",
@@ -470,6 +509,7 @@ mutation @transaction {
     },
     {
       id: "5decdcb3-ec0f-543f-b450-f408fbc36971",
+      origineImport: "previsionnel",
       clientId: "ebfe7e0a-d277-567c-afa7-80b47c9246f7",
       nom: "Geze (2019-20)",
       statut: "cloture",
@@ -482,6 +522,7 @@ mutation @transaction {
     },
     {
       id: "76be4308-3386-50f3-8d97-5afbfbb70386",
+      origineImport: "previsionnel",
       clientId: "b31e6072-27e4-5c6e-8248-267d60fdda30",
       nom: "Thire (2019-20)",
       statut: "cloture",
@@ -494,6 +535,7 @@ mutation @transaction {
     },
     {
       id: "55c1950c-d75e-51ee-a0cb-f85d411df4bb",
+      origineImport: "previsionnel",
       clientId: "e17e6892-832c-55cd-9b0d-204cd57bfc01",
       nom: "Leroullier (2019-20)",
       statut: "cloture",
@@ -506,6 +548,7 @@ mutation @transaction {
     },
     {
       id: "2b05102f-1ef7-5457-8ea1-fed43e727d62",
+      origineImport: "previsionnel",
       clientId: "fb1c35d0-b0d5-5eef-9469-b04014fc7a48",
       nom: "Chesnel (2019-20)",
       statut: "cloture",
@@ -518,6 +561,7 @@ mutation @transaction {
     },
     {
       id: "d6f3d9ef-82e0-542b-a929-9319a27492dd",
+      origineImport: "previsionnel",
       clientId: "6b765cdb-ffaf-533b-860c-ca0db40f8673",
       nom: "Rf Roussel (2019-20)",
       statut: "cloture",
@@ -530,6 +574,7 @@ mutation @transaction {
     },
     {
       id: "d0852c6b-0c14-56be-a85a-91686f51bd83",
+      origineImport: "previsionnel",
       clientId: "68c8c60b-e9a0-58ef-b908-a26294ff0d5a",
       nom: "Jager (2019-20)",
       statut: "cloture",
@@ -542,6 +587,7 @@ mutation @transaction {
     },
     {
       id: "598de80f-2d13-5838-a271-02742615acf9",
+      origineImport: "previsionnel",
       clientId: "92d6f784-cd70-54e2-acf5-fbc823a4bda8",
       nom: "Hulin (2019-20)",
       statut: "cloture",
@@ -554,6 +600,7 @@ mutation @transaction {
     },
     {
       id: "edcf6e42-5e19-5a36-b462-111275ffc9e8",
+      origineImport: "previsionnel",
       clientId: "9def8216-ceda-5492-9dd3-8891d3a0f574",
       nom: "Darcillon (2019-20)",
       statut: "cloture",
@@ -566,6 +613,7 @@ mutation @transaction {
     },
     {
       id: "9b46461c-30a8-570e-8e25-3419d4511b15",
+      origineImport: "previsionnel",
       clientId: "4ffb3be0-b7b2-5a40-915e-8d52873c5809",
       nom: "Lalloz (2019-20)",
       statut: "cloture",
@@ -578,6 +626,7 @@ mutation @transaction {
     },
     {
       id: "9437f15f-663e-5d5b-a9a3-fe22f8a03705",
+      origineImport: "previsionnel",
       clientId: "8c846b99-322c-51d4-816b-d46dac3b83f9",
       nom: "Froger (2019-20)",
       statut: "cloture",
@@ -590,6 +639,7 @@ mutation @transaction {
     },
     {
       id: "49a9b074-1215-5dec-b3f7-cb6757eae671",
+      origineImport: "previsionnel",
       clientId: "baecd01d-38f0-5d3e-a4c7-6409518e8564",
       nom: "Rouillard (2019-20)",
       statut: "cloture",

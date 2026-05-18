@@ -2,36 +2,9 @@
 # Mutations — connecteur `sosson`
 # =============================================================================
 # Toutes les écritures requièrent une session Firebase Auth active.
-# Les contrôles fins de permission par rôle (qui peut créer un chantier,
-# qui peut valider une facture, etc.) sont ajoutés ensuite via :
-#   - restrictions applicatives côté front / fonctions
-#   - règles `@check` sur les opérations sensibles
+# Les opérations sensibles vérifient aussi le profil SQL `User` par `auth.uid`
+# et le rôle applicatif via des règles `@check`.
 # =============================================================================
-
-
-# ---------- Utilisateur courant ---------------------------------------------
-
-# Crée ou met à jour le profil de l'utilisateur authentifié.
-# L'ID est forcé à `auth.uid` côté serveur — un utilisateur ne peut écrire
-# que son propre profil.
-mutation UpsertCurrentUser(
-  $email: String!
-  $nom: String!
-  $prenom: String!
-  $role: String!
-  $avatar: String
-) @auth(
-  level: USER
-) {
-  user_upsert(data: {
-    id_expr: "auth.uid"
-    email: $email
-    nom: $nom
-    prenom: $prenom
-    role: $role
-    avatar: $avatar
-  })
-}
 
 
 # ---------- Clients ----------------------------------------------------------
@@ -46,8 +19,13 @@ mutation CreateClient(
   $codePostal: String
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app for a single company; authenticated staff create clients from trusted UI flows while database-level role checks are added in a later hardening pass."
-) {
+  insecureReason: "Internal back-office app for a single company; authenticated staff create clients from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un client.")
+    }
+  }
   client_insert(data: {
     type: $type
     nom: $nom
@@ -70,8 +48,13 @@ mutation UpdateClient(
   $codePostal: String
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app for a single company; authenticated staff update clients from trusted UI flows while database-level role checks are added in a later hardening pass."
-) {
+  insecureReason: "Internal back-office app for a single company; authenticated staff update clients from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour modifier un client.")
+    }
+  }
   client_update(id: $id, data: {
     type: $type
     nom: $nom
@@ -98,8 +81,13 @@ mutation CreateChantier(
   $adresse: String
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app for a single company; authenticated staff create chantiers from trusted UI flows while database-level role checks are added in a later hardening pass."
-) {
+  insecureReason: "Internal back-office app for a single company; authenticated staff create chantiers from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer un chantier.")
+    }
+  }
   chantier_insert(data: {
     clientId: $clientId
     chefChantierId: $chefChantierId
@@ -119,8 +107,13 @@ mutation UpdateChantierStatut(
   $dateFin: Date
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app for a single company; authenticated staff update chantier status from trusted UI flows while database-level role checks are added in a later hardening pass."
-) {
+  insecureReason: "Internal back-office app for a single company; authenticated staff update chantier status from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour modifier un chantier.")
+    }
+  }
   chantier_update(id: $id, data: {
     statut: $statut
     dateFin: $dateFin
@@ -143,8 +136,13 @@ mutation CreateFacture(
   $description: String
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app for a single company; authenticated staff create invoices from trusted UI flows while database-level role checks are added in a later hardening pass."
-) {
+  insecureReason: "Internal back-office app for a single company; authenticated staff create invoices from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer une facture.")
+    }
+  }
   facture_insert(data: {
     chantierId: $chantierId
     fournisseur: $fournisseur
@@ -162,8 +160,13 @@ mutation CreateFacture(
 mutation SetFactureStatut($id: UUID!, $statut: String!)
   @auth(
     level: USER
-    insecureReason: "Internal back-office app for a single company; authenticated staff update invoice status from trusted UI flows while database-level role checks are added in a later hardening pass."
-  ) {
+    insecureReason: "Internal back-office app for a single company; authenticated staff update invoice status from trusted UI flows and the transaction checks the SQL User role."
+  ) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour modifier une facture.")
+    }
+  }
   facture_update(id: $id, data: { statut: $statut })
 }
 
@@ -180,7 +183,12 @@ mutation CreateDocumentFolder(
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app for a single company; authenticated staff create shared document folders from trusted UI flows."
-) {
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer un dossier document.")
+    }
+  }
   documentFolder_insert(data: {
     nom: $nom
     slug: $slug
@@ -200,6 +208,7 @@ mutation CreateDocumentAttache(
   $storagePath: String!
   $mimeType: String
   $tailleBytes: Int
+  $sha256: String
   $typeDocument: String!
   $statut: String!
   $source: String!
@@ -208,7 +217,12 @@ mutation CreateDocumentAttache(
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app for a single company; authenticated staff create document metadata from trusted UI flows while Storage contains the file bytes."
-) {
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer un document.")
+    }
+  }
   documentAttache_insert(data: {
     folderId: $folderId
     clientId: $clientId
@@ -218,6 +232,7 @@ mutation CreateDocumentAttache(
     storagePath: $storagePath
     mimeType: $mimeType
     tailleBytes: $tailleBytes
+    sha256: $sha256
     typeDocument: $typeDocument
     statut: $statut
     source: $source
@@ -237,7 +252,12 @@ mutation UpdateDocumentAttacheLinks(
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app for a single company; authenticated staff can classify and link document metadata."
-) {
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour classer un document.")
+    }
+  }
   documentAttache_update(id: $id, data: {
     folderId: $folderId
     clientId: $clientId
@@ -259,7 +279,12 @@ mutation CreatePrevisionnelImportBatch(
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can register controlled previsionnel imports from repository scripts."
-) {
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour importer le previsionnel.")
+    }
+  }
   previsionnelImportBatch_insert(data: {
     workbook: $workbook
     sourcePath: $sourcePath
@@ -275,8 +300,13 @@ mutation UpdatePrevisionnelMonthlyAmount(
   $invoiceSent: Boolean
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app; authenticated staff can update the editable previsionnel grid while role hardening is added later."
-) {
+  insecureReason: "Internal back-office app; authenticated staff can update the editable previsionnel grid and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour modifier le previsionnel.")
+    }
+  }
   previsionnelMonthlyAmount_update(id: $id, data: {
     planned: $planned
     realized: $realized
@@ -297,8 +327,13 @@ mutation UpdatePrevisionnelLineAmounts(
   $invoiceSentTotal: Float
 ) @auth(
   level: USER
-  insecureReason: "Internal back-office app; authenticated staff can update structured previsionnel line amounts from the editable grid while role hardening is added later."
-) {
+  insecureReason: "Internal back-office app; authenticated staff can update structured previsionnel line amounts from the editable grid and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour modifier le previsionnel.")
+    }
+  }
   previsionnelLine_update(id: $id, data: {
     rawName: $rawName
     clientName: $clientName
@@ -318,7 +353,12 @@ mutation LinkPrevisionnelLineToChantier(
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can manually confirm Excel line to chantier links."
-) {
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour lier une ligne previsionnelle.")
+    }
+  }
   previsionnelLine_update(id: $id, data: {
     chantierId: $chantierId
   })
@@ -333,12 +373,712 @@ mutation UpsertPrevisionnelCellEdit(
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can save exact previsionnel cell overrides."
-) {
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour sauvegarder le previsionnel.")
+    }
+  }
   previsionnelCellEdit_upsert(data: {
     id: $id
     sourceSheet: $sourceSheet
     cellRef: $cellRef
     valueText: $valueText
     numericValue: $numericValue
+  })
+}
+
+
+# ---------- Emails, planning, analytics et rapports --------------------------
+
+mutation CreateEmailThread(
+  $provider: String!
+  $externalThreadId: String!
+  $subject: String!
+  $statut: String!
+  $importance: String
+  $clientId: UUID
+  $chantierId: UUID
+  $assignedToId: String
+  $lastMessageAt: Timestamp!
+  $participantsSummary: String
+  $messageCount: Int!
+  $hasAttachments: Boolean!
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append email thread indexes while Outlook remains the external source."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer un fil email.")
+    }
+  }
+  emailThread_insert(data: {
+    provider: $provider
+    externalThreadId: $externalThreadId
+    subject: $subject
+    statut: $statut
+    importance: $importance
+    clientId: $clientId
+    chantierId: $chantierId
+    assignedToId: $assignedToId
+    lastMessageAt: $lastMessageAt
+    participantsSummary: $participantsSummary
+    messageCount: $messageCount
+    hasAttachments: $hasAttachments
+  })
+}
+
+mutation UpdateEmailThreadStatusAndLinks(
+  $id: UUID!
+  $statut: String
+  $clientId: UUID
+  $chantierId: UUID
+  $assignedToId: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can classify and link email thread indexes."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour classer un fil email.")
+    }
+  }
+  emailThread_update(id: $id, data: {
+    statut: $statut
+    clientId: $clientId
+    chantierId: $chantierId
+    assignedToId: $assignedToId
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CreateEmailMessage(
+  $threadId: UUID!
+  $externalMessageId: String!
+  $direction: String!
+  $fromEmail: String
+  $fromName: String
+  $toSummary: String
+  $ccSummary: String
+  $subject: String
+  $bodyPreview: String
+  $bodyStoragePath: String
+  $bodyHash: String
+  $sentAt: Timestamp
+  $receivedAt: Timestamp!
+  $isRead: Boolean!
+  $hasAttachments: Boolean!
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append email message indexes while bodies remain external or in Storage."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer un message email.")
+    }
+  }
+  emailMessage_insert(data: {
+    threadId: $threadId
+    externalMessageId: $externalMessageId
+    direction: $direction
+    fromEmail: $fromEmail
+    fromName: $fromName
+    toSummary: $toSummary
+    ccSummary: $ccSummary
+    subject: $subject
+    bodyPreview: $bodyPreview
+    bodyStoragePath: $bodyStoragePath
+    bodyHash: $bodyHash
+    sentAt: $sentAt
+    receivedAt: $receivedAt
+    isRead: $isRead
+    hasAttachments: $hasAttachments
+  })
+}
+
+mutation CreateEmailAttachment(
+  $messageId: UUID!
+  $documentId: UUID
+  $externalAttachmentId: String!
+  $nomFichier: String!
+  $storagePath: String
+  $mimeType: String
+  $tailleBytes: Int
+  $sha256: String
+  $statut: String!
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append email attachment metadata while files live in Storage."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer une piece jointe email.")
+    }
+  }
+  emailAttachment_insert(data: {
+    messageId: $messageId
+    documentId: $documentId
+    externalAttachmentId: $externalAttachmentId
+    nomFichier: $nomFichier
+    storagePath: $storagePath
+    mimeType: $mimeType
+    tailleBytes: $tailleBytes
+    sha256: $sha256
+    statut: $statut
+  })
+}
+
+mutation CreatePlanningEvent(
+  $chantierId: UUID
+  $titre: String!
+  $eventType: String!
+  $statut: String!
+  $startAt: Timestamp!
+  $endAt: Timestamp!
+  $location: String
+  $notes: String
+  $createdById: String
+  $updatedById: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can create shared planning events and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer un evenement planning.")
+    }
+  }
+  planningEvent_insert(data: {
+    chantierId: $chantierId
+    titre: $titre
+    eventType: $eventType
+    statut: $statut
+    startAt: $startAt
+    endAt: $endAt
+    location: $location
+    notes: $notes
+    createdById: $createdById
+    updatedById: $updatedById
+  })
+}
+
+mutation UpdatePlanningEventStatus(
+  $id: UUID!
+  $statut: String!
+  $updatedById: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can update planning status and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour modifier un evenement planning.")
+    }
+  }
+  planningEvent_update(id: $id, data: {
+    statut: $statut
+    updatedById: $updatedById
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation UpdatePlanningEventDetails(
+  $id: UUID!
+  $chantierId: UUID
+  $titre: String!
+  $eventType: String!
+  $statut: String!
+  $startAt: Timestamp!
+  $endAt: Timestamp!
+  $location: String
+  $notes: String
+  $updatedById: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can update planning event details and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour modifier un evenement planning.")
+    }
+  }
+  planningEvent_update(id: $id, data: {
+    chantierId: $chantierId
+    titre: $titre
+    eventType: $eventType
+    statut: $statut
+    startAt: $startAt
+    endAt: $endAt
+    location: $location
+    notes: $notes
+    updatedById: $updatedById
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CancelPlanningEvent(
+  $id: UUID!
+  $notes: String
+  $updatedById: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can cancel planning events without deleting the SQL record."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour annuler un evenement planning.")
+    }
+  }
+  planningEvent_update(id: $id, data: {
+    statut: "cancelled"
+    notes: $notes
+    updatedById: $updatedById
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CreatePlanningAssignment(
+  $eventId: UUID!
+  $userId: String
+  $assignmentRole: String
+  $statut: String!
+  $notes: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can assign users to planning events."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour affecter le planning.")
+    }
+  }
+  planningAssignment_insert(data: {
+    eventId: $eventId
+    userId: $userId
+    assignmentRole: $assignmentRole
+    statut: $statut
+    notes: $notes
+  })
+}
+
+mutation UpdatePlanningAssignmentStatus(
+  $id: UUID!
+  $statut: String!
+  $notes: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can update planning assignments."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour modifier une affectation planning.")
+    }
+  }
+  planningAssignment_update(id: $id, data: {
+    statut: $statut
+    notes: $notes
+  })
+}
+
+mutation CreateAnalyticsSnapshot(
+  $environment: String!
+  $snapshotType: String!
+  $scopeType: String!
+  $scopeId: String
+  $periodStart: Date
+  $periodEnd: Date
+  $status: String!
+  $totalCaPrevision: Float
+  $totalCaRealise: Float
+  $totalFacturesTtc: Float
+  $totalMarge: Float
+  $payloadPath: String
+  $payloadHash: String
+  $sourceWatermark: String
+  $createdById: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated managers can create analytics snapshots for reproducible reporting."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un snapshot analytics.")
+    }
+  }
+  analyticsSnapshot_insert(data: {
+    environment: $environment
+    snapshotType: $snapshotType
+    scopeType: $scopeType
+    scopeId: $scopeId
+    periodStart: $periodStart
+    periodEnd: $periodEnd
+    status: $status
+    totalCaPrevision: $totalCaPrevision
+    totalCaRealise: $totalCaRealise
+    totalFacturesTtc: $totalFacturesTtc
+    totalMarge: $totalMarge
+    payloadPath: $payloadPath
+    payloadHash: $payloadHash
+    sourceWatermark: $sourceWatermark
+    createdById: $createdById
+  })
+}
+
+mutation CreateRapport(
+  $snapshotId: UUID
+  $authorId: String
+  $clientId: UUID
+  $chantierId: UUID
+  $titre: String!
+  $rapportType: String!
+  $statut: String!
+  $periodeDebut: Date
+  $periodeFin: Date
+  $format: String
+  $storagePath: String
+  $sha256: String
+  $summary: String
+  $generatedAt: Timestamp
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated managers can create report indexes while exports remain in Storage."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un rapport.")
+    }
+  }
+  rapport_insert(data: {
+    snapshotId: $snapshotId
+    authorId: $authorId
+    clientId: $clientId
+    chantierId: $chantierId
+    titre: $titre
+    rapportType: $rapportType
+    statut: $statut
+    periodeDebut: $periodeDebut
+    periodeFin: $periodeFin
+    format: $format
+    storagePath: $storagePath
+    sha256: $sha256
+    summary: $summary
+    generatedAt: $generatedAt
+  })
+}
+
+mutation MarkRapportGenerated(
+  $id: UUID!
+  $statut: String!
+  $format: String
+  $storagePath: String
+  $sha256: String
+  $generatedAt: Timestamp
+  $summary: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated managers can mark report exports as generated."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour finaliser un rapport.")
+    }
+  }
+  rapport_update(id: $id, data: {
+    statut: $statut
+    format: $format
+    storagePath: $storagePath
+    sha256: $sha256
+    generatedAt: $generatedAt
+    summary: $summary
+  })
+}
+
+
+# ---------- Audit, checkpoints et imports -----------------------------------
+# Mutations append-only: creation uniquement. Les mises a jour et suppressions
+# de preuves/audits ne doivent pas etre exposees au front.
+
+mutation CreateAuditEvent(
+  $environment: String!
+  $eventType: String!
+  $severity: String!
+  $entityType: String
+  $entityId: String
+  $action: String!
+  $status: String!
+  $actorEmail: String
+  $source: String!
+  $message: String
+  $evidencePath: String
+  $evidenceHash: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append audit events for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un evenement d'audit.")
+    }
+  }
+  auditEvent_insert(data: {
+    environment: $environment
+    eventType: $eventType
+    severity: $severity
+    entityType: $entityType
+    entityId: $entityId
+    action: $action
+    status: $status
+    actorEmail: $actorEmail
+    source: $source
+    message: $message
+    evidencePath: $evidencePath
+    evidenceHash: $evidenceHash
+  })
+}
+
+mutation CreateCheckpointRun(
+  $environment: String!
+  $checkpointKey: String!
+  $title: String!
+  $status: String!
+  $finishedAt: Timestamp
+  $commitSha: String
+  $sourceBranch: String
+  $command: String
+  $actorEmail: String
+  $summary: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append checkpoint runs for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un checkpoint.")
+    }
+  }
+  checkpointRun_insert(data: {
+    environment: $environment
+    checkpointKey: $checkpointKey
+    title: $title
+    status: $status
+    finishedAt: $finishedAt
+    commitSha: $commitSha
+    sourceBranch: $sourceBranch
+    command: $command
+    actorEmail: $actorEmail
+    summary: $summary
+  })
+}
+
+mutation CreateCheckpointStep(
+  $runId: UUID!
+  $stepKey: String!
+  $label: String!
+  $status: String!
+  $command: String
+  $exitCode: Int
+  $durationMs: Int
+  $startedAt: Timestamp
+  $finishedAt: Timestamp
+  $logPath: String
+  $logHash: String
+  $message: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append checkpoint steps for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer une etape de checkpoint.")
+    }
+  }
+  checkpointStep_insert(data: {
+    runId: $runId
+    stepKey: $stepKey
+    label: $label
+    status: $status
+    command: $command
+    exitCode: $exitCode
+    durationMs: $durationMs
+    startedAt: $startedAt
+    finishedAt: $finishedAt
+    logPath: $logPath
+    logHash: $logHash
+    message: $message
+  })
+}
+
+mutation CreateCheckpointArtifact(
+  $runId: UUID!
+  $stepId: UUID
+  $artifactType: String!
+  $path: String!
+  $storagePath: String
+  $sha256: String
+  $sizeBytes: Int
+  $mimeType: String
+  $description: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append checkpoint artifact metadata for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer une preuve de checkpoint.")
+    }
+  }
+  checkpointArtifact_insert(data: {
+    runId: $runId
+    stepId: $stepId
+    artifactType: $artifactType
+    path: $path
+    storagePath: $storagePath
+    sha256: $sha256
+    sizeBytes: $sizeBytes
+    mimeType: $mimeType
+    description: $description
+  })
+}
+
+mutation CreateCheckpointDecision(
+  $runId: UUID!
+  $decisionType: String!
+  $status: String!
+  $decidedByEmail: String
+  $decisionText: String!
+  $validationPhraseHash: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append checkpoint decisions for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer une decision de checkpoint.")
+    }
+  }
+  checkpointDecision_insert(data: {
+    runId: $runId
+    decisionType: $decisionType
+    status: $status
+    decidedByEmail: $decidedByEmail
+    decisionText: $decisionText
+    validationPhraseHash: $validationPhraseHash
+  })
+}
+
+mutation CreateDataImportRun(
+  $environment: String!
+  $importKind: String!
+  $sourceName: String!
+  $sourcePath: String
+  $sourceHash: String
+  $status: String!
+  $finishedAt: Timestamp
+  $rowCount: Int
+  $insertedCount: Int
+  $updatedCount: Int
+  $skippedCount: Int
+  $artifactPath: String
+  $artifactHash: String
+  $actorEmail: String
+  $notes: String
+  $previsionnelBatchId: UUID
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append data import runs for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un suivi d'import.")
+    }
+  }
+  dataImportRun_insert(data: {
+    environment: $environment
+    importKind: $importKind
+    sourceName: $sourceName
+    sourcePath: $sourcePath
+    sourceHash: $sourceHash
+    status: $status
+    finishedAt: $finishedAt
+    rowCount: $rowCount
+    insertedCount: $insertedCount
+    updatedCount: $updatedCount
+    skippedCount: $skippedCount
+    artifactPath: $artifactPath
+    artifactHash: $artifactHash
+    actorEmail: $actorEmail
+    notes: $notes
+    previsionnelBatchId: $previsionnelBatchId
+  })
+}
+
+mutation CreateDataImportIssue(
+  $runId: UUID!
+  $severity: String!
+  $code: String!
+  $entityType: String
+  $entityKey: String
+  $sourceSheet: String
+  $sourceRow: Int
+  $message: String!
+  $resolutionStatus: String!
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append data import issues for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer une anomalie d'import.")
+    }
+  }
+  dataImportIssue_insert(data: {
+    runId: $runId
+    severity: $severity
+    code: $code
+    entityType: $entityType
+    entityKey: $entityKey
+    sourceSheet: $sourceSheet
+    sourceRow: $sourceRow
+    message: $message
+    resolutionStatus: $resolutionStatus
+  })
+}
+
+mutation CreateEntityChangeLog(
+  $environment: String!
+  $entityType: String!
+  $entityId: String!
+  $action: String!
+  $source: String!
+  $actorEmail: String
+  $beforeHash: String
+  $afterHash: String
+  $reason: String
+  $auditEventId: UUID
+  $checkpointRunId: UUID
+  $dataImportRunId: UUID
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can append entity change logs for traceability."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un journal de changement.")
+    }
+  }
+  entityChangeLog_insert(data: {
+    environment: $environment
+    entityType: $entityType
+    entityId: $entityId
+    action: $action
+    source: $source
+    actorEmail: $actorEmail
+    beforeHash: $beforeHash
+    afterHash: $afterHash
+    reason: $reason
+    auditEventId: $auditEventId
+    checkpointRunId: $checkpointRunId
+    dataImportRunId: $dataImportRunId
   })
 }

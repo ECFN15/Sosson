@@ -1,11 +1,15 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, ArrowRight, X, Check, Search, Database, Mail, Phone, MapPin, Users } from 'lucide-react'
+import { Plus, ArrowRight, X, Check, Search, Database, Mail, Phone, MapPin, Users, WifiOff } from 'lucide-react'
 import type { Client } from '@/data/clients'
 import { useApp } from '@/lib/store'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { canAccessPage } from '@/lib/accessControl'
 import { categoryColors, categoryLabels, euro } from '@/lib/previsionnelAnalytics'
 import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
 import type { PrevisionnelCategory } from '@/data/previsionnel'
+import { useOperationalData } from '@/features/operations/useOperationalData'
+import { createClientInSql } from '@/features/operations/operationalAdapters'
 
 const typeLabel = { particulier: 'Particulier', professionnel: 'Professionnel', public: 'Collectivité' }
 const typeColor = {
@@ -41,9 +45,11 @@ function formatDate(value: string) {
 }
 
 export function ClientsPage() {
-  const { chantiers, user, clients, addClient } = useApp()
+  const { clients, chantiers, source: operationalSource, isLoading: isOperationalLoading } = useOperationalData()
+  const { user, addClient, accessMatrix } = useApp()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
+  const [permissionFeedback, setPermissionFeedback] = useState('')
   const [clientQuery, setClientQuery] = useState('')
   const [clientTypeFilter, setClientTypeFilter] = useState<ClientTypeFilter>('all')
   const [clientSort, setClientSort] = useState<ClientSort>('nom')
@@ -55,9 +61,11 @@ export function ClientsPage() {
     email: '', telephone: '', adresse: '', ville: '', codePostal: '',
   })
   const [saved, setSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const coverage = previsionnelDataCoverage()
 
-  const canCreate = user?.role === 'gerant' || user?.role === 'assistante'
+  const canCreate = canAccessPage(user?.role, 'clients', accessMatrix, 'create')
+  const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
   const chantiersByClient = useMemo(() => {
     const grouped = new Map<string, typeof chantiers>()
     chantiers.forEach(chantier => {
@@ -353,18 +361,61 @@ export function ClientsPage() {
       return [client.name, ...client.aliases].some(value => value.toLowerCase().includes(query))
     })
 
-  function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
+    if (!canCreate) {
+      setPermissionFeedback('Creation client non autorisee pour ce profil.')
+      setShowModal(false)
+      return
+    }
+
+    const clientInput = {
+      type: form.type,
+      nom: form.nom.trim(),
+      email: form.email.trim() || null,
+      telephone: form.telephone.trim() || null,
+      adresse: form.adresse.trim() || null,
+      ville: form.ville.trim() || null,
+      codePostal: form.codePostal.trim() || null,
+    }
+
+    if (!clientInput.nom) {
+      setPermissionFeedback('Nom client obligatoire.')
+      return
+    }
+
     const newClient: Client = {
-      id: `client-new-${Date.now()}`,
-      ...form,
+      id: `local-client-${Date.now()}`,
+      type: form.type,
+      nom: clientInput.nom,
+      email: clientInput.email ?? '',
+      telephone: clientInput.telephone ?? '',
+      adresse: clientInput.adresse ?? '',
+      ville: clientInput.ville ?? '',
+      codePostal: clientInput.codePostal ?? '',
       dateCreation: new Date().toISOString().split('T')[0],
       chantierIds: [],
     }
-    addClient(newClient)
-    setSaved(true)
-    setTimeout(() => { setSaved(false); setShowModal(false) }, 1200)
-    setForm({ nom: '', type: 'particulier', email: '', telephone: '', adresse: '', ville: '', codePostal: '' })
+
+    setIsSaving(true)
+    try {
+      if (canWriteSql) {
+        newClient.id = await createClientInSql(clientInput)
+        setPermissionFeedback('Client cree dans SQL Connect.')
+      } else {
+        setPermissionFeedback('Client ajoute localement. Ce fallback ne prouve pas une ecriture SQL.')
+      }
+
+      addClient(newClient)
+      setSaved(true)
+      setTimeout(() => { setSaved(false); setShowModal(false) }, 1200)
+      setForm({ nom: '', type: 'particulier', email: '', telephone: '', adresse: '', ville: '', codePostal: '' })
+    } catch (error) {
+      console.error(error)
+      setPermissionFeedback("Ecriture SQL Connect impossible. Aucun client local n'a ete cree.")
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -376,12 +427,23 @@ export function ClientsPage() {
         </div>
         {canCreate && (
           <button
+            type="button"
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#D95B17]"
           >
             <Plus size={16} /> Nouveau client
           </button>
         )}
+      </div>
+
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#3C3C3C]">
+          {isOperationalLoading ? 'Chargement SQL...' : operationalSource === 'dataconnect' ? 'Source SQL Connect' : 'Source locale / Excel'}
+        </span>
+        <span className={`inline-flex h-10 items-center gap-2 rounded-[14px] border px-4 text-sm font-medium ${canWriteSql ? 'border-[#D7E7D9] bg-[#F7FBF7] text-[#1E8E3E]' : 'border-[#F2E8DC] bg-white text-[#D95B17]'}`}>
+          {!canWriteSql && <WifiOff className="h-4 w-4" strokeWidth={1.75} />}
+          {canWriteSql ? 'Creation SQL Connect' : 'Creation locale fallback'}
+        </span>
       </div>
 
       <div className="mb-6 grid gap-4 xl:grid-cols-3">
@@ -620,6 +682,13 @@ export function ClientsPage() {
         )}
       </div>
 
+      {permissionFeedback && (
+        <div className="mb-5 flex items-center justify-between rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-[13px] font-medium text-[#3C3C3C]">
+          <span>{permissionFeedback}</span>
+          <button type="button" onClick={() => setPermissionFeedback('')} className="text-[#F06B21] hover:text-[#D95B17]">OK</button>
+        </div>
+      )}
+
       <div className="mt-8 overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white">
         <div className="flex flex-col gap-3 border-b border-[#F2E8DC] p-5 xl:flex-row xl:items-center xl:justify-between">
           <div>
@@ -677,7 +746,7 @@ export function ClientsPage() {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && canCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_24px_80px_rgba(30,30,30,0.18)]">
             <div className="flex items-center justify-between border-b border-[#F2E8DC] px-6 py-5">
@@ -724,9 +793,11 @@ export function ClientsPage() {
                   <input className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.codePostal} onChange={e => setForm(f => ({ ...f, codePostal: e.target.value }))} />
                 </div>
               </div>
-              <button type="submit"
+              <button
+                type="submit"
+                disabled={isSaving}
                 className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all ${saved ? 'bg-[#1E8E3E] text-white' : 'bg-[#F06B21] text-white hover:bg-[#D95B17]'}`}>
-                {saved ? <><Check size={16} /> Client créé !</> : 'Créer le client'}
+                {saved ? <><Check size={16} /> Client cree !</> : isSaving ? 'Enregistrement...' : 'Creer le client'}
               </button>
             </form>
           </div>

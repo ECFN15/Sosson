@@ -37,6 +37,10 @@ type User @table {
 
 # Client final. Un client peut avoir plusieurs chantiers.
 type Client @table {
+  # Origine metier de la ligne:
+  # - "operationnel": client vivant du hub Sosson
+  # - "previsionnel": client cree par l'import historique Excel
+  origineImport: String! @default(value: "operationnel") @col(dataType: "varchar(32)")
   # Type de client : "particulier" | "professionnel" | "public"
   type: String! @col(dataType: "varchar(32)")
   nom: String! @col(dataType: "varchar(200)")
@@ -52,6 +56,10 @@ type Client @table {
 # Chantier : dossier opérationnel rattaché à un client.
 # Un chantier peut être affecté à un chef de chantier (User) — optionnel au démarrage.
 type Chantier @table {
+  # Origine metier de la ligne:
+  # - "operationnel": chantier vivant du hub Sosson
+  # - "previsionnel": chantier historique issu du classeur Excel
+  origineImport: String! @default(value: "operationnel") @col(dataType: "varchar(32)")
   client: Client!
   chefChantier: User
   nom: String! @col(dataType: "varchar(200)")
@@ -116,6 +124,7 @@ type DocumentAttache @table {
   storagePath: String! @col(dataType: "varchar(500)")
   mimeType: String @col(dataType: "varchar(120)")
   tailleBytes: Int
+  sha256: String @col(dataType: "varchar(64)")
   # Type : "facture" | "devis" | "plan" | "photo" | "attestation"
   #      | "compte_rendu" | "email_piece_jointe" | "import" | "autre"
   typeDocument: String! @col(dataType: "varchar(48)")
@@ -225,4 +234,290 @@ type PrevisionnelCellEdit @table {
   valueText: String @col(dataType: "varchar(255)")
   numericValue: Float @col(dataType: "numeric(14, 2)")
   dateModification: Timestamp! @default(expr: "request.time")
+}
+
+
+# =============================================================================
+# Emails, planning, analytics et rapports
+# =============================================================================
+# Outlook / Microsoft Graph reste la source externe des emails. SQL ne devient
+# pas une boite mail: il indexe seulement les conversations utiles, leurs liens
+# metier, les pieces jointes classees et les preuves d'export.
+
+
+# Conversation email indexee depuis Outlook/Graph et rattachee au metier.
+type EmailThread @table {
+  provider: String! @col(dataType: "varchar(32)")
+  externalThreadId: String! @col(dataType: "varchar(255)")
+  subject: String! @col(dataType: "varchar(255)")
+  # Statut: "non_lu" | "a_traiter" | "traite" | "archive"
+  statut: String! @col(dataType: "varchar(32)")
+  importance: String @col(dataType: "varchar(24)")
+  client: Client
+  chantier: Chantier
+  assignedTo: User
+  lastMessageAt: Timestamp!
+  participantsSummary: String @col(dataType: "varchar(500)")
+  messageCount: Int!
+  hasAttachments: Boolean!
+  dateCreation: Timestamp! @default(expr: "request.time")
+  dateModification: Timestamp! @default(expr: "request.time")
+}
+
+
+# Message email utile, indexe sous un thread. Les corps lourds restent externes
+# ou dans Storage via `bodyStoragePath`.
+type EmailMessage @table {
+  thread: EmailThread!
+  externalMessageId: String! @col(dataType: "varchar(255)")
+  direction: String! @col(dataType: "varchar(24)")
+  fromEmail: String @col(dataType: "varchar(254)")
+  fromName: String @col(dataType: "varchar(200)")
+  toSummary: String @col(dataType: "varchar(500)")
+  ccSummary: String @col(dataType: "varchar(500)")
+  subject: String @col(dataType: "varchar(255)")
+  bodyPreview: String
+  bodyStoragePath: String @col(dataType: "varchar(500)")
+  bodyHash: String @col(dataType: "varchar(64)")
+  sentAt: Timestamp
+  receivedAt: Timestamp!
+  isRead: Boolean!
+  hasAttachments: Boolean!
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Piece jointe email. Le fichier utile va dans Storage puis peut etre lie a un
+# DocumentAttache.
+type EmailAttachment @table {
+  message: EmailMessage!
+  document: DocumentAttache
+  externalAttachmentId: String! @col(dataType: "varchar(255)")
+  nomFichier: String! @col(dataType: "varchar(255)")
+  storagePath: String @col(dataType: "varchar(500)")
+  mimeType: String @col(dataType: "varchar(120)")
+  tailleBytes: Int
+  sha256: String @col(dataType: "varchar(64)")
+  statut: String! @col(dataType: "varchar(32)")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Evenement planning rattache optionnellement a un chantier.
+type PlanningEvent @table {
+  chantier: Chantier
+  titre: String! @col(dataType: "varchar(200)")
+  eventType: String! @col(dataType: "varchar(48)")
+  statut: String! @col(dataType: "varchar(32)")
+  startAt: Timestamp!
+  endAt: Timestamp!
+  location: String @col(dataType: "varchar(255)")
+  notes: String
+  createdBy: User
+  updatedBy: User
+  dateCreation: Timestamp! @default(expr: "request.time")
+  dateModification: Timestamp! @default(expr: "request.time")
+}
+
+
+# Affectation d'un utilisateur ou d'une equipe a un evenement planning.
+type PlanningAssignment @table {
+  event: PlanningEvent!
+  user: User
+  assignmentRole: String @col(dataType: "varchar(80)")
+  statut: String! @col(dataType: "varchar(32)")
+  notes: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Snapshot analytique reproductible pour dashboard, statistiques et rapports.
+type AnalyticsSnapshot @table {
+  environment: String! @col(dataType: "varchar(32)")
+  snapshotType: String! @col(dataType: "varchar(80)")
+  scopeType: String! @col(dataType: "varchar(80)")
+  scopeId: String @col(dataType: "varchar(120)")
+  periodStart: Date
+  periodEnd: Date
+  status: String! @col(dataType: "varchar(32)")
+  totalCaPrevision: Float @col(dataType: "numeric(14, 2)")
+  totalCaRealise: Float @col(dataType: "numeric(14, 2)")
+  totalFacturesTtc: Float @col(dataType: "numeric(14, 2)")
+  totalMarge: Float @col(dataType: "numeric(14, 2)")
+  payloadPath: String @col(dataType: "varchar(500)")
+  payloadHash: String @col(dataType: "varchar(64)")
+  sourceWatermark: String @col(dataType: "varchar(255)")
+  createdBy: User
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Rapport genere ou en cours de generation. Les exports lourds restent dans
+# Storage, SQL garde le statut, le perimetre et les preuves.
+type Rapport @table {
+  snapshot: AnalyticsSnapshot
+  author: User
+  client: Client
+  chantier: Chantier
+  titre: String! @col(dataType: "varchar(200)")
+  rapportType: String! @col(dataType: "varchar(80)")
+  statut: String! @col(dataType: "varchar(32)")
+  periodeDebut: Date
+  periodeFin: Date
+  format: String @col(dataType: "varchar(32)")
+  storagePath: String @col(dataType: "varchar(500)")
+  sha256: String @col(dataType: "varchar(64)")
+  summary: String
+  generatedAt: Timestamp
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# =============================================================================
+# Audit, checkpoints et imports
+# =============================================================================
+# Ces tables forment le premier socle de tracabilite durable.
+# Les operations exposees doivent rester append-only: creation et lecture, pas
+# d'update/delete depuis le front. Les gros logs et fichiers restent hors SQL
+# (Storage ou artefacts), SQL ne conserve que les metadonnees, chemins et hashes.
+
+
+# Evenement d'audit metier ou technique.
+type AuditEvent @table {
+  environment: String! @col(dataType: "varchar(32)")
+  eventType: String! @col(dataType: "varchar(80)")
+  severity: String! @col(dataType: "varchar(24)")
+  entityType: String @col(dataType: "varchar(80)")
+  entityId: String @col(dataType: "varchar(120)")
+  action: String! @col(dataType: "varchar(80)")
+  status: String! @col(dataType: "varchar(32)")
+  actorUid: String! @default(expr: "auth.uid") @col(dataType: "varchar(128)")
+  actorEmail: String @col(dataType: "varchar(254)")
+  source: String! @col(dataType: "varchar(80)")
+  message: String
+  evidencePath: String @col(dataType: "varchar(500)")
+  evidenceHash: String @col(dataType: "varchar(64)")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Execution d'un checkpoint local, sandbox ou production.
+type CheckpointRun @table {
+  environment: String! @col(dataType: "varchar(32)")
+  checkpointKey: String! @col(dataType: "varchar(80)")
+  title: String! @col(dataType: "varchar(160)")
+  status: String! @col(dataType: "varchar(32)")
+  startedAt: Timestamp! @default(expr: "request.time")
+  finishedAt: Timestamp
+  commitSha: String @col(dataType: "varchar(64)")
+  sourceBranch: String @col(dataType: "varchar(120)")
+  command: String @col(dataType: "varchar(500)")
+  actorUid: String! @default(expr: "auth.uid") @col(dataType: "varchar(128)")
+  actorEmail: String @col(dataType: "varchar(254)")
+  summary: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Etape detaillee d'un checkpoint.
+type CheckpointStep @table {
+  run: CheckpointRun!
+  stepKey: String! @col(dataType: "varchar(120)")
+  label: String! @col(dataType: "varchar(200)")
+  status: String! @col(dataType: "varchar(32)")
+  command: String @col(dataType: "varchar(500)")
+  exitCode: Int
+  durationMs: Int
+  startedAt: Timestamp
+  finishedAt: Timestamp
+  logPath: String @col(dataType: "varchar(500)")
+  logHash: String @col(dataType: "varchar(64)")
+  message: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Preuve ou artefact produit par un checkpoint.
+type CheckpointArtifact @table {
+  run: CheckpointRun!
+  step: CheckpointStep
+  artifactType: String! @col(dataType: "varchar(80)")
+  path: String! @col(dataType: "varchar(500)")
+  storagePath: String @col(dataType: "varchar(500)")
+  sha256: String @col(dataType: "varchar(64)")
+  sizeBytes: Int
+  mimeType: String @col(dataType: "varchar(120)")
+  description: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Decision humaine rattachee a un checkpoint.
+type CheckpointDecision @table {
+  run: CheckpointRun!
+  decisionType: String! @col(dataType: "varchar(80)")
+  status: String! @col(dataType: "varchar(32)")
+  decidedByUid: String! @default(expr: "auth.uid") @col(dataType: "varchar(128)")
+  decidedByEmail: String @col(dataType: "varchar(254)")
+  decisionText: String!
+  validationPhraseHash: String @col(dataType: "varchar(64)")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Execution d'import de donnees: Excel, seed local, seed sandbox ou autre source.
+type DataImportRun @table {
+  environment: String! @col(dataType: "varchar(32)")
+  importKind: String! @col(dataType: "varchar(80)")
+  sourceName: String! @col(dataType: "varchar(200)")
+  sourcePath: String @col(dataType: "varchar(500)")
+  sourceHash: String @col(dataType: "varchar(64)")
+  status: String! @col(dataType: "varchar(32)")
+  startedAt: Timestamp! @default(expr: "request.time")
+  finishedAt: Timestamp
+  rowCount: Int
+  insertedCount: Int
+  updatedCount: Int
+  skippedCount: Int
+  artifactPath: String @col(dataType: "varchar(500)")
+  artifactHash: String @col(dataType: "varchar(64)")
+  actorUid: String! @default(expr: "auth.uid") @col(dataType: "varchar(128)")
+  actorEmail: String @col(dataType: "varchar(254)")
+  notes: String
+  previsionnelBatch: PrevisionnelImportBatch
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Anomalie detectee pendant un import.
+type DataImportIssue @table {
+  run: DataImportRun!
+  severity: String! @col(dataType: "varchar(24)")
+  code: String! @col(dataType: "varchar(80)")
+  entityType: String @col(dataType: "varchar(80)")
+  entityKey: String @col(dataType: "varchar(200)")
+  sourceSheet: String @col(dataType: "varchar(32)")
+  sourceRow: Int
+  message: String!
+  resolutionStatus: String! @col(dataType: "varchar(32)")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Journal append-only des changements sur les entites metier.
+type EntityChangeLog @table {
+  environment: String! @col(dataType: "varchar(32)")
+  entityType: String! @col(dataType: "varchar(80)")
+  entityId: String! @col(dataType: "varchar(120)")
+  action: String! @col(dataType: "varchar(80)")
+  source: String! @col(dataType: "varchar(80)")
+  actorUid: String! @default(expr: "auth.uid") @col(dataType: "varchar(128)")
+  actorEmail: String @col(dataType: "varchar(254)")
+  beforeHash: String @col(dataType: "varchar(64)")
+  afterHash: String @col(dataType: "varchar(64)")
+  reason: String
+  auditEvent: AuditEvent
+  checkpointRun: CheckpointRun
+  dataImportRun: DataImportRun
+  dateCreation: Timestamp! @default(expr: "request.time")
 }

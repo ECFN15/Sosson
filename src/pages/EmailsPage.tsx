@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '@/lib/store'
+import { emails as seedEmails } from '@/data/emails'
 import type { Email } from '@/data/emails'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
 import {
   OUTLOOK_MAILBOX_ADDRESS,
 } from '@/lib/outlookMailKit'
+import {
+  createEmailMessageInSql,
+  createEmailThreadInSql,
+  loadEmailThreadsFromSql,
+  updateEmailThreadStatusAndLinksInSql,
+} from '@/features/email/emailSql'
 import type { LucideIcon } from 'lucide-react'
 import {
   AlertTriangle,
@@ -36,6 +44,8 @@ type MailFolder = 'inbox' | 'unread' | 'flagged' | 'sent' | 'drafts' | 'archive'
 type MailPriority = Email['priorite']
 type MailTag = Email['tag']
 type ComposeMode = 'new' | 'reply' | 'forward'
+type MailSource = 'sql' | 'outlook' | 'seed' | 'local'
+type EmailPanelSource = 'loading' | 'sql' | 'sql-empty' | 'outlook' | 'seed-fallback'
 
 const OUTLOOK_LOCAL_API = 'http://localhost:8787'
 const OUTLOOK_RETURN_TO_KEY = 'sosson.outlook.returnTo'
@@ -46,7 +56,11 @@ interface MailMessage extends Email {
   archived: boolean
   deleted: boolean
   attachments: Array<{ name: string; size: string; type: string }>
+  source: MailSource
+  sqlThreadId?: string
 }
+
+type SqlEmailThread = Awaited<ReturnType<typeof loadEmailThreadsFromSql>>[number]
 
 const FOLDER_LABELS: Record<MailFolder, string> = {
   inbox: 'Boite de reception',
@@ -96,6 +110,105 @@ const PRIORITY_LABELS: Record<MailPriority, string> = {
   haute: 'Haute',
   normale: 'Normale',
   faible: 'Faible',
+}
+
+const SOURCE_LABELS: Record<EmailPanelSource, string> = {
+  loading: 'SQL en lecture...',
+  sql: 'Index SQL',
+  'sql-empty': 'Index SQL vide',
+  outlook: 'Graph live',
+  'seed-fallback': 'Fallback local',
+}
+
+function isUuid(value?: string | null) {
+  return Boolean(value?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i))
+}
+
+function normalizeImportance(value?: string | null): MailPriority {
+  const normalized = value?.toLowerCase()
+  if (normalized === 'haute' || normalized === 'high' || normalized === 'important') return 'haute'
+  if (normalized === 'faible' || normalized === 'low') return 'faible'
+  return 'normale'
+}
+
+function inferTag(subject: string, hasAttachments = false): MailTag {
+  const normalized = subject.toLowerCase()
+  if (normalized.includes('facture')) return 'facture'
+  if (normalized.includes('devis')) return 'devis'
+  if (normalized.includes('chantier') || normalized.includes('travaux')) return 'chantier'
+  if (hasAttachments) return 'facture'
+  return 'client'
+}
+
+function mapSqlThreadStatusToFolder(status: string): MailFolder {
+  const normalized = status.toLowerCase()
+  if (normalized.includes('archive')) return 'archive'
+  if (normalized.includes('supprim') || normalized.includes('deleted')) return 'deleted'
+  if (normalized.includes('spam')) return 'spam'
+  return 'inbox'
+}
+
+function mapMessageUpdateToSqlStatus(update: Partial<MailMessage>) {
+  if (update.deleted) return 'supprime'
+  if (update.archived || update.folder === 'archive') return 'archive'
+  if (update.lu === true) return 'traite'
+  if (update.lu === false) return 'non_lu'
+  return null
+}
+
+function seedMessageToMailMessage(email: Email): MailMessage {
+  return {
+    ...email,
+    folder: 'inbox',
+    flagged: email.priorite === 'haute',
+    archived: false,
+    deleted: false,
+    attachments: email.tag === 'facture' || email.tag === 'devis'
+      ? [{ name: 'Piece jointe locale', size: 'Seed TS', type: 'fallback' }]
+      : [],
+    source: 'seed',
+  }
+}
+
+function outlookMessageToMailMessage(message: MailMessage): MailMessage {
+  return {
+    ...message,
+    source: 'outlook',
+    folder: message.folder ?? 'inbox',
+    flagged: Boolean(message.flagged),
+    archived: Boolean(message.archived),
+    deleted: Boolean(message.deleted),
+    attachments: message.attachments ?? [],
+  }
+}
+
+function sqlThreadToMailMessage(thread: SqlEmailThread): MailMessage {
+  const chantierId = thread.chantier?.id ?? ''
+  const clientId = thread.client?.id ?? thread.chantier?.client.id ?? ''
+  const folder = mapSqlThreadStatusToFolder(thread.statut)
+
+  return {
+    id: thread.id,
+    sqlThreadId: thread.id,
+    source: 'sql',
+    chantierId,
+    clientId,
+    expediteur: thread.participantsSummary ?? 'Thread email indexe SQL',
+    destinataire: OUTLOOK_MAILBOX_ADDRESS,
+    sujet: thread.subject,
+    extrait: `${thread.messageCount} message${thread.messageCount > 1 ? 's' : ''} indexe${thread.messageCount > 1 ? 's' : ''} dans SQL.`,
+    date: thread.lastMessageAt,
+    lu: thread.statut.toLowerCase() !== 'non_lu',
+    priorite: normalizeImportance(thread.importance),
+    tag: inferTag(thread.subject, thread.hasAttachments),
+    folder,
+    flagged: normalizeImportance(thread.importance) === 'haute',
+    archived: folder === 'archive',
+    deleted: folder === 'deleted',
+    attachments: thread.hasAttachments
+      ? [{ name: 'Pieces jointes indexees', size: 'Metadonnees SQL', type: 'SQL' }]
+      : [],
+  }
 }
 
 function splitSender(sender: string) {
@@ -382,8 +495,9 @@ function ComposePanel({
 }
 
 export function EmailsPage() {
-  const { chantiers, clients } = useApp()
-  const [messages, setMessages] = useState<MailMessage[]>([])
+  const { chantiers, clients, user } = useApp()
+  const [messages, setMessages] = useState<MailMessage[]>(() => seedEmails.map(seedMessageToMailMessage))
+  const [emailSource, setEmailSource] = useState<EmailPanelSource>('seed-fallback')
   const [activeFolder, setActiveFolder] = useState<MailFolder>('inbox')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState('')
@@ -394,6 +508,38 @@ export function EmailsPage() {
   const [outlookProfile, setOutlookProfile] = useState<{ mail?: string; userPrincipalName?: string; displayName?: string } | null>(null)
   const [outlookLoading, setOutlookLoading] = useState(false)
   const [outlookError, setOutlookError] = useState('')
+  const canUseEmailSql = isDataConnectEnabled && Boolean(user)
+  const effectiveEmailSource: EmailPanelSource = canUseEmailSql ? emailSource : 'seed-fallback'
+
+  useEffect(() => {
+    if (!canUseEmailSql) return
+
+    let mounted = true
+
+    async function loadSqlThreads() {
+      setEmailSource('loading')
+      try {
+        const threads = await loadEmailThreadsFromSql()
+        if (!mounted) return
+        const nextMessages = threads.map(sqlThreadToMailMessage)
+        setMessages(nextMessages)
+        setSelectedId(nextMessages[0]?.id ?? '')
+        setEmailSource(nextMessages.length ? 'sql' : 'sql-empty')
+      } catch (error) {
+        console.info('Index email SQL Connect indisponible, fallback local visible.', error)
+        if (!mounted) return
+        setMessages(seedEmails.map(seedMessageToMailMessage))
+        setSelectedId('')
+        setEmailSource('seed-fallback')
+      }
+    }
+
+    void loadSqlThreads()
+
+    return () => {
+      mounted = false
+    }
+  }, [canUseEmailSql])
 
   useEffect(() => {
     fetch(`${OUTLOOK_LOCAL_API}/api/outlook/status`)
@@ -455,11 +601,12 @@ export function EmailsPage() {
           return payload.messages as MailMessage[]
         }),
       )
-      const nextMessages = payloads.flat()
+      const nextMessages = payloads.flat().map(outlookMessageToMailMessage)
       setMessages(nextMessages)
       const preferred = getFolderMessages(nextMessages, activeFolder)[0] ?? nextMessages[0]
       setSelectedId(preferred?.id ?? '')
       setOutlookConnected(true)
+      setEmailSource('outlook')
       setToast(`${nextMessages.length} messages Outlook charges depuis Microsoft Graph.`)
     } catch (error) {
       setOutlookError(error instanceof Error ? error.message : String(error))
@@ -469,8 +616,31 @@ export function EmailsPage() {
     }
   }
 
-  function patchSelected(update: Partial<MailMessage>, feedback: string) {
+  async function patchSelected(update: Partial<MailMessage>, feedback: string) {
     if (!selectedMessage) return
+
+    if (selectedMessage.source === 'sql') {
+      const statut = mapMessageUpdateToSqlStatus(update)
+      if (!statut) {
+        setToast('Action locale uniquement: aucune mutation SQL disponible pour ce champ.')
+        return
+      }
+
+      try {
+        await updateEmailThreadStatusAndLinksInSql({
+          id: selectedMessage.sqlThreadId ?? selectedMessage.id,
+          statut,
+          clientId: isUuid(selectedMessage.clientId) ? selectedMessage.clientId : null,
+          chantierId: isUuid(selectedMessage.chantierId) ? selectedMessage.chantierId : null,
+          assignedToId: null,
+        })
+      } catch (error) {
+        console.info('Mise a jour email SQL refusee.', error)
+        setToast('Modification non enregistree: SQL Connect est indisponible.')
+        return
+      }
+    }
+
     setMessages(current => current.map(message => (message.id === selectedMessage.id ? { ...message, ...update } : message)))
     setToast(feedback)
   }
@@ -482,6 +652,43 @@ export function EmailsPage() {
   function openComposer(mode: ComposeMode) {
     setDraft(buildDraft(mode, selectedMessage))
     setComposeOpen(true)
+  }
+
+  async function createMailIndexInSql(message: MailMessage, status: string) {
+    const threadId = await createEmailThreadInSql({
+      provider: outlookConnected ? 'outlook-graph' : 'local-compose',
+      externalThreadId: message.id,
+      subject: message.sujet,
+      statut: status,
+      importance: message.priorite,
+      clientId: isUuid(message.clientId) ? message.clientId : null,
+      chantierId: isUuid(message.chantierId) ? message.chantierId : null,
+      assignedToId: null,
+      lastMessageAt: message.date,
+      participantsSummary: `${message.expediteur} -> ${message.destinataire}`,
+      messageCount: 1,
+      hasAttachments: message.attachments.length > 0,
+    })
+
+    await createEmailMessageInSql({
+      threadId,
+      externalMessageId: message.id,
+      direction: 'outbound',
+      fromEmail: OUTLOOK_MAILBOX_ADDRESS,
+      fromName: 'Sosson',
+      toSummary: message.destinataire,
+      ccSummary: null,
+      subject: message.sujet,
+      bodyPreview: message.extrait,
+      bodyStoragePath: null,
+      bodyHash: null,
+      sentAt: status === 'brouillon' ? null : message.date,
+      receivedAt: message.date,
+      isRead: true,
+      hasAttachments: message.attachments.length > 0,
+    })
+
+    return threadId
   }
 
   async function sendDraft() {
@@ -524,16 +731,35 @@ export function EmailsPage() {
       archived: false,
       deleted: false,
       attachments: [],
+      source: canUseEmailSql ? 'sql' : 'local',
+    }
+
+    let sqlIndexWarning = ''
+    if (canUseEmailSql) {
+      try {
+        const threadId = await createMailIndexInSql(sent, 'envoye')
+        sent.id = threadId
+        sent.sqlThreadId = threadId
+      } catch (error) {
+        console.info('Indexation SQL du message envoye impossible.', error)
+        sent.source = 'local'
+        sqlIndexWarning = outlookConnected
+          ? 'Message envoye via Graph, mais non indexe SQL.'
+          : 'Message local cree, mais non indexe SQL.'
+      }
     }
 
     setMessages(current => [sent, ...current])
     setComposeOpen(false)
     setActiveFolder('sent')
     setSelectedId(sent.id)
-    setToast(outlookConnected ? 'Message envoye via Microsoft Graph.' : 'Message envoye dans la simulation locale.')
+    if (sent.source === 'sql') setEmailSource('sql')
+    setToast(sqlIndexWarning || (sent.source === 'sql'
+      ? 'Message envoye et indexe SQL.'
+      : outlookConnected ? 'Message envoye via Microsoft Graph.' : 'Message envoye dans la simulation locale.'))
   }
 
-  function saveDraft() {
+  async function saveDraft() {
     const saved: MailMessage = {
       id: `draft-${Date.now()}`,
       chantierId: selectedMessage?.chantierId ?? 'chantier-1',
@@ -551,19 +777,73 @@ export function EmailsPage() {
       archived: false,
       deleted: false,
       attachments: [],
+      source: canUseEmailSql ? 'sql' : 'local',
     }
+
+    let sqlIndexWarning = ''
+    if (canUseEmailSql) {
+      try {
+        const threadId = await createMailIndexInSql(saved, 'brouillon')
+        saved.id = threadId
+        saved.sqlThreadId = threadId
+      } catch (error) {
+        console.info('Indexation SQL du brouillon impossible.', error)
+        saved.source = 'local'
+        sqlIndexWarning = 'Brouillon local cree, mais non indexe SQL.'
+      }
+    }
+
     setMessages(current => [saved, ...current])
     setComposeOpen(false)
     setActiveFolder('drafts')
     setSelectedId(saved.id)
-    setToast('Brouillon sauvegarde localement.')
+    if (saved.source === 'sql') setEmailSource('sql')
+    setToast(sqlIndexWarning || (saved.source === 'sql' ? 'Brouillon indexe SQL.' : 'Brouillon sauvegarde localement.'))
   }
 
-  function selectMessage(message: MailMessage) {
+  async function selectMessage(message: MailMessage) {
     setComposeOpen(false)
     setSelectedId(message.id)
     if (!message.lu) {
+      if (message.source === 'sql') {
+        try {
+          await updateEmailThreadStatusAndLinksInSql({
+            id: message.sqlThreadId ?? message.id,
+            statut: 'traite',
+            clientId: isUuid(message.clientId) ? message.clientId : null,
+            chantierId: isUuid(message.chantierId) ? message.chantierId : null,
+            assignedToId: null,
+          })
+        } catch (error) {
+          console.info('Marquage lu SQL impossible.', error)
+          setToast('Message non marque lu: SQL Connect est indisponible.')
+          return
+        }
+      }
       setMessages(current => current.map(item => (item.id === message.id ? { ...item, lu: true } : item)))
+    }
+  }
+
+  async function linkSelectedThread() {
+    if (!selectedMessage) return
+    if (selectedMessage.source !== 'sql') {
+      setToast('Rattachement local uniquement: cet email ne vient pas de l index SQL.')
+      return
+    }
+
+    try {
+      await updateEmailThreadStatusAndLinksInSql({
+        id: selectedMessage.sqlThreadId ?? selectedMessage.id,
+        statut: 'lie',
+        clientId: isUuid(selectedMessage.clientId) ? selectedMessage.clientId : null,
+        chantierId: isUuid(selectedMessage.chantierId) ? selectedMessage.chantierId : null,
+        assignedToId: null,
+      })
+      setMessages(current => current.map(message => (message.id === selectedMessage.id ? { ...message, lu: true } : message)))
+      setToast('Email rattache dans l index SQL.')
+    } catch (error) {
+      console.info('Rattachement email SQL impossible.', error)
+      setToast('Rattachement non enregistre: SQL Connect est indisponible.')
     }
   }
 
@@ -578,6 +858,9 @@ export function EmailsPage() {
           <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#3C3C3C]">
             <BellRing className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
             {unreadCount} non lus
+          </span>
+          <span className="inline-flex h-10 items-center rounded-[14px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#3C3C3C]">
+            Source: {SOURCE_LABELS[effectiveEmailSource]}
           </span>
           <button
             type="button"
@@ -624,7 +907,7 @@ export function EmailsPage() {
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <span className="rounded-[10px] bg-white/10 px-2 py-2">{outlookConnected ? 'Graph live' : 'A connecter'}</span>
+              <span className="rounded-[10px] bg-white/10 px-2 py-2">{SOURCE_LABELS[effectiveEmailSource]}</span>
               <span className="rounded-[10px] bg-white/10 px-2 py-2">{messages.length} mails</span>
             </div>
             {!outlookConnected && (
@@ -707,7 +990,7 @@ export function EmailsPage() {
                   key={message.id}
                   message={message}
                   selected={selectedMessage?.id === message.id}
-                  onSelect={() => selectMessage(message)}
+                  onSelect={() => void selectMessage(message)}
                   onToggleFlag={() => toggleFlag(message.id)}
                 />
               ))
@@ -745,15 +1028,15 @@ export function EmailsPage() {
               <Forward className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Transferer
             </button>
-            <button type="button" onClick={() => patchSelected({ lu: !selectedMessage?.lu }, selectedMessage?.lu ? 'Message marque non lu.' : 'Message marque lu.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+            <button type="button" onClick={() => void patchSelected({ lu: !selectedMessage?.lu }, selectedMessage?.lu ? 'Message marque non lu.' : 'Message marque lu.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
               {selectedMessage?.lu ? <Mail className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} /> : <MailOpen className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />}
               {selectedMessage?.lu ? 'Non lu' : 'Lu'}
             </button>
-            <button type="button" onClick={() => patchSelected({ archived: true, folder: 'archive' }, 'Message archive.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+            <button type="button" onClick={() => void patchSelected({ archived: true, folder: 'archive' }, 'Message archive.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
               <Archive className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Archiver
             </button>
-            <button type="button" onClick={() => patchSelected({ deleted: true, folder: 'deleted' }, 'Message deplace dans elements supprimes.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
+            <button type="button" onClick={() => void patchSelected({ deleted: true, folder: 'deleted' }, 'Message deplace dans elements supprimes.')} className="inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium text-[#3C3C3C] hover:bg-[#FAF6F2]">
               <Trash2 className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Supprimer
             </button>
@@ -812,7 +1095,7 @@ export function EmailsPage() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => setToast('Email lie au dossier suggere.')}
+                      onClick={() => void linkSelectedThread()}
                       className="inline-flex h-10 items-center justify-center rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]"
                     >
                       Lier au dossier

@@ -323,6 +323,7 @@ chunks(clientRows).forEach((chunk, index) => {
     output.push(
       '    {',
       `      id: ${gqlString(client.id)},`,
+      '      origineImport: "previsionnel",',
       `      type: ${gqlString(client.type)},`,
       `      nom: ${gqlString(client.nom)},`,
       '      email: null,',
@@ -358,6 +359,7 @@ chunks(chantierRows).forEach((chunk, chunkIndex) => {
     output.push(
       '    {',
       `      id: ${gqlString(chantier.id)},`,
+      '      origineImport: "previsionnel",',
       `      clientId: ${gqlString(chantier.clientId)},`,
       `      nom: ${gqlString(chantier.nom)},`,
       `      statut: ${gqlString(chantier.statut)},`,

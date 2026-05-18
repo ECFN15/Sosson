@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, CalendarDays, CheckCircle, Clock, HardHat, Search, TriangleAlert } from 'lucide-react'
-import type { StatutChantier, TendanceChantier } from '@/data/chantiers'
+import { ArrowRight, CalendarDays, Check, CheckCircle, Clock, HardHat, Search, TriangleAlert, WifiOff, X } from 'lucide-react'
+import type { Chantier, StatutChantier, TendanceChantier } from '@/data/chantiers'
 import type { PrevisionnelCategory, PrevisionnelLine } from '@/data/previsionnel'
 import { useApp } from '@/lib/store'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { canAccessPage } from '@/lib/accessControl'
 import { categoryColors, categoryLabels, euro } from '@/lib/previsionnelAnalytics'
 import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
+import { useOperationalData } from '@/features/operations/useOperationalData'
+import { createChantierInSql } from '@/features/operations/operationalAdapters'
 
 type ExerciseFilter = string | 'all'
 type CategoryFilter = PrevisionnelCategory | 'all'
@@ -64,9 +68,31 @@ function progressClass(progress: number, tendance: TendanceChantier) {
   return 'bg-[#1E1E1E]'
 }
 
+function createInitialChantierForm() {
+  const dateDebut = new Date()
+  const dateFinPrevue = new Date(dateDebut)
+  dateFinPrevue.setDate(dateDebut.getDate() + 30)
+
+  return {
+    clientId: '',
+    nom: '',
+    statut: 'en_attente' as StatutChantier,
+    dateDebut: dateDebut.toISOString().slice(0, 10),
+    dateFinPrevue: dateFinPrevue.toISOString().slice(0, 10),
+    budgetPrevisionnel: '',
+    adresse: '',
+    description: '',
+  }
+}
+
 export function ChantiersPage() {
-  const { chantiers, user, clients } = useApp()
+  const { chantiers, clients, source: operationalSource, isLoading: isOperationalLoading } = useOperationalData()
+  const { user, accessMatrix, addChantier } = useApp()
   const navigate = useNavigate()
+  const [showModal, setShowModal] = useState(false)
+  const [feedback, setFeedback] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [chantierQuery, setChantierQuery] = useState('')
   const [exerciseFilter, setExerciseFilter] = useState<ExerciseFilter>(latestExercise)
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
@@ -75,7 +101,10 @@ export function ChantiersPage() {
   const [chantierSort, setChantierSort] = useState<ChantierSort>('recent')
   const coverage = previsionnelDataCoverage()
 
-  const canCreate = user?.role === 'gerant' || user?.role === 'assistante'
+  const canCreate = canAccessPage(user?.role, 'chantiers', accessMatrix, 'create')
+  const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
+  const defaultClientId = clients[0]?.id ?? ''
+  const [form, setForm] = useState(() => createInitialChantierForm())
   const linesById = useMemo(() => new Map(operationalPrevisionnelLines.map(line => [line.id, line])), [])
   const clientsById = useMemo(() => new Map(clients.map(client => [client.id, client])), [clients])
 
@@ -152,6 +181,79 @@ export function ChantiersPage() {
   const invoiceSentCount = directoryRows.reduce((sum, row) => sum + row.invoiceSentCells, 0)
   const exerciseScopedLineCount = operationalPrevisionnelLines.filter(line => exerciseFilter === 'all' || line.exercise === exerciseFilter).length
 
+  async function handleCreateChantier(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!canCreate) {
+      setFeedback('Creation chantier non autorisee pour ce profil.')
+      return
+    }
+
+    const clientId = form.clientId || defaultClientId
+    const budget = Number(form.budgetPrevisionnel)
+    const chantierInput = {
+      clientId,
+      chefChantierId: user?.role === 'chef_chantier' ? user.id : null,
+      nom: form.nom.trim(),
+      statut: form.statut,
+      dateDebut: form.dateDebut,
+      dateFinPrevue: form.dateFinPrevue,
+      budgetPrevisionnel: budget,
+      description: form.description.trim() || null,
+      adresse: form.adresse.trim() || null,
+    }
+
+    if (!chantierInput.clientId || !chantierInput.nom || !Number.isFinite(budget)) {
+      setFeedback('Completez le client, le nom et le budget du chantier.')
+      return
+    }
+
+    const nextChantier: Chantier = {
+      id: `local-chantier-${Date.now()}`,
+      nom: chantierInput.nom,
+      clientId: chantierInput.clientId,
+      statut: chantierInput.statut,
+      dateDebut: chantierInput.dateDebut,
+      dateFin: null,
+      dateFinPrevue: chantierInput.dateFinPrevue,
+      budgetPrevisionnel: budget,
+      depensesEngagees: 0,
+      description: chantierInput.description ?? '',
+      adresse: chantierInput.adresse ?? '',
+      chefChantier: user?.role === 'chef_chantier' ? `${user.prenom} ${user.nom}` : '',
+      tendance: 'vert',
+      factureIds: [],
+      emailIds: [],
+    }
+
+    setIsSaving(true)
+    try {
+      if (canWriteSql) {
+        nextChantier.id = await createChantierInSql(chantierInput)
+        setFeedback('Chantier cree dans SQL Connect.')
+      } else {
+        setFeedback('Chantier ajoute localement. Ce fallback ne prouve pas une ecriture SQL.')
+      }
+
+      addChantier(nextChantier)
+      setSaved(true)
+      setTimeout(() => { setSaved(false); setShowModal(false) }, 1200)
+      setForm(current => ({
+        ...current,
+        clientId: '',
+        nom: '',
+        statut: 'en_attente',
+        budgetPrevisionnel: '',
+        adresse: '',
+        description: '',
+      }))
+    } catch (error) {
+      console.error(error)
+      setFeedback("Ecriture SQL Connect impossible. Aucun chantier local n'a ete cree.")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-full bg-[#FAF6F2] p-8">
       <div className="mb-8 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -162,12 +264,36 @@ export function ChantiersPage() {
           </p>
         </div>
         {canCreate && (
-          <button className="flex w-fit items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#D95B17]">
+          <button
+            type="button"
+            onClick={() => {
+              if (!form.clientId && defaultClientId) setForm(current => ({ ...current, clientId: defaultClientId }))
+              setShowModal(true)
+            }}
+            className="flex w-fit items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#D95B17]"
+          >
             <HardHat size={16} />
             Nouveau chantier
           </button>
         )}
       </div>
+
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#3C3C3C]">
+          {isOperationalLoading ? 'Chargement SQL...' : operationalSource === 'dataconnect' ? 'Source SQL Connect' : 'Source locale / Excel'}
+        </span>
+        <span className={`inline-flex h-10 items-center gap-2 rounded-[14px] border px-4 text-sm font-medium ${canWriteSql ? 'border-[#D7E7D9] bg-[#F7FBF7] text-[#1E8E3E]' : 'border-[#F2E8DC] bg-white text-[#D95B17]'}`}>
+          {!canWriteSql && <WifiOff className="h-4 w-4" strokeWidth={1.75} />}
+          {canWriteSql ? 'Creation SQL Connect' : 'Creation locale fallback'}
+        </span>
+      </div>
+
+      {feedback && (
+        <div className="mb-5 flex items-center justify-between rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-[13px] font-medium text-[#3C3C3C]">
+          <span>{feedback}</span>
+          <button type="button" onClick={() => setFeedback('')} className="text-[#F06B21] hover:text-[#D95B17]">OK</button>
+        </div>
+      )}
 
       <div className="mb-6 grid gap-4 xl:grid-cols-4">
         <div className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
@@ -426,6 +552,115 @@ export function ChantiersPage() {
           Les cellules jaunes indiquent une facture envoyée, pas un paiement encaissé.
         </p>
       </div>
+
+      {showModal && canCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-2xl rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_24px_80px_rgba(30,30,30,0.18)]">
+            <div className="flex items-center justify-between border-b border-[#F2E8DC] px-6 py-5">
+              <div>
+                <h2 className="font-semibold text-[#1E1E1E]">Nouveau chantier</h2>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                  {canWriteSql ? 'Creation dans SQL Connect.' : 'Creation locale fallback, non durable SQL.'}
+                </p>
+              </div>
+              <button type="button" onClick={() => setShowModal(false)} className="text-[#9CA3AF] hover:text-[#1E1E1E]">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleCreateChantier} className="space-y-4 p-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Client *</label>
+                  <select
+                    required
+                    value={form.clientId || defaultClientId}
+                    onChange={event => setForm(current => ({ ...current, clientId: event.target.value }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  >
+                    {clients.map(client => (
+                      <option key={client.id} value={client.id}>{client.nom}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Nom chantier *</label>
+                  <input
+                    required
+                    value={form.nom}
+                    onChange={event => setForm(current => ({ ...current, nom: event.target.value }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Statut</label>
+                  <select
+                    value={form.statut}
+                    onChange={event => setForm(current => ({ ...current, statut: event.target.value as StatutChantier }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  >
+                    <option value="en_attente">En attente</option>
+                    <option value="en_cours">En cours</option>
+                    <option value="cloture">Cloture</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Budget previsionnel *</label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.budgetPrevisionnel}
+                    onChange={event => setForm(current => ({ ...current, budgetPrevisionnel: event.target.value }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Date debut</label>
+                  <input
+                    type="date"
+                    value={form.dateDebut}
+                    onChange={event => setForm(current => ({ ...current, dateDebut: event.target.value }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Fin prevue</label>
+                  <input
+                    type="date"
+                    value={form.dateFinPrevue}
+                    onChange={event => setForm(current => ({ ...current, dateFinPrevue: event.target.value }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Adresse</label>
+                  <input
+                    value={form.adresse}
+                    onChange={event => setForm(current => ({ ...current, adresse: event.target.value }))}
+                    className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Description</label>
+                  <textarea
+                    value={form.description}
+                    onChange={event => setForm(current => ({ ...current, description: event.target.value }))}
+                    className="min-h-24 w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={isSaving || !clients.length}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all ${saved ? 'bg-[#1E8E3E] text-white' : 'bg-[#F06B21] text-white hover:bg-[#D95B17]'}`}
+              >
+                {saved ? <><Check size={16} /> Chantier cree !</> : isSaving ? 'Enregistrement...' : 'Creer le chantier'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

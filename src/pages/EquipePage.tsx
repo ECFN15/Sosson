@@ -18,9 +18,12 @@ import {
 import { roleLabels } from '@/data/users'
 import type { Role } from '@/data/users'
 import { useApp } from '@/lib/store'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
 import {
   accessCapabilities,
   appPages,
+  canAccessPage,
   defaultAccessMatrix,
 } from '@/lib/accessControl'
 import type { AccessCapability, PagePermissionKey } from '@/lib/accessControl'
@@ -40,6 +43,8 @@ import {
   themeOptions,
 } from '@/lib/teamDirectory'
 import type { LeavePeriod, LeaveType, MemberStatus, Team, TeamMember, TeamTheme } from '@/lib/teamDirectory'
+import { loadTeamProfilesFromSql } from '@/features/team/teamSql'
+import type { SqlTeamProfile } from '@/features/team/teamSql'
 
 const roles: Role[] = ['gerant', 'assistante', 'chef_chantier']
 
@@ -65,7 +70,7 @@ function statusClass(status: MemberStatus) {
 }
 
 export function EquipePage() {
-  const { accessMatrix, setAccessMatrix } = useApp()
+  const { user, accessMatrix, setAccessMatrix } = useApp()
   const [teams, setTeams] = useState<Team[]>(() => loadTeams())
   const [members, setMembers] = useState<TeamMember[]>(() => loadMembers())
   const [leaves, setLeaves] = useState<LeavePeriod[]>(() => loadLeaves())
@@ -102,6 +107,17 @@ export function EquipePage() {
     endDay: 5,
     note: '',
   })
+  const [permissionFeedback, setPermissionFeedback] = useState('')
+  const [sqlProfiles, setSqlProfiles] = useState<SqlTeamProfile[]>([])
+  const [sqlProfileStatus, setSqlProfileStatus] = useState<'idle' | 'loading' | 'sql' | 'unavailable'>('idle')
+  const [sqlProfileMessage, setSqlProfileMessage] = useState('Lecture SQL User non lancee.')
+  const canCreateEquipe = canAccessPage(user?.role, 'equipe', accessMatrix, 'create')
+  const canEditEquipe = canAccessPage(user?.role, 'equipe', accessMatrix, 'edit')
+  const canAdminEquipe = canAccessPage(user?.role, 'equipe', accessMatrix, 'admin')
+
+  function deny(message: string) {
+    setPermissionFeedback(message)
+  }
 
   useEffect(() => {
     saveCollection(TEAMS_STORAGE_KEY, teams)
@@ -114,6 +130,53 @@ export function EquipePage() {
   useEffect(() => {
     saveCollection(LEAVES_STORAGE_KEY, leaves)
   }, [leaves])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadProfiles() {
+      if (!isDataConnectEnabled || !user) {
+        setSqlProfileStatus('unavailable')
+        setSqlProfileMessage('Profils SQL non lus: Data Connect ou utilisateur absent. Les fiches equipe ci-dessous restent locales.')
+        return
+      }
+
+      setSqlProfileStatus('loading')
+      setSqlProfileMessage('Lecture des profils SQL User en cours.')
+
+      try {
+        const firebaseUser = await waitForFirebaseUser()
+        if (!firebaseUser) {
+          if (!isMounted) return
+          setSqlProfileStatus('unavailable')
+          setSqlProfileMessage('Profils SQL non lus: session Firebase absente.')
+          return
+        }
+
+        const profiles = await loadTeamProfilesFromSql()
+        if (!isMounted) return
+
+        setSqlProfiles(profiles)
+        setSqlProfileStatus('sql')
+        setSqlProfileMessage(
+          profiles.length > 0
+            ? `${profiles.length} profil(s) applicatif(s) lus depuis SQL User.`
+            : 'SQL User repond mais aucun profil applicatif provisionne.',
+        )
+      } catch (error) {
+        if (!isMounted) return
+        setSqlProfiles([])
+        setSqlProfileStatus('unavailable')
+        setSqlProfileMessage(`Profils SQL indisponibles: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+
+    void loadProfiles()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user])
 
   const selectedTeam = teams.find(team => team.id === selectedTeamId) ?? teams[0] ?? null
   const selectedTeamMembers = useMemo(
@@ -135,9 +198,10 @@ export function EquipePage() {
       { label: 'Equipes chantier', value: String(teams.filter(team => team.theme !== 'administratif').length), Icon: UsersRound },
       { label: 'Membres actifs', value: String(activeMembers), Icon: UserRound },
       { label: 'Conges poses', value: String(leaveCount), Icon: CalendarDays },
+      { label: 'Profils SQL User', value: sqlProfileStatus === 'sql' ? String(sqlProfiles.length) : 'N/A', Icon: ShieldCheck },
       { label: 'Pages controlees', value: String(controlledPages), Icon: ShieldCheck },
     ]
-  }, [accessMatrix, leaves.length, members, teams])
+  }, [accessMatrix, leaves.length, members, sqlProfileStatus, sqlProfiles.length, teams])
 
   const roleStats = useMemo(() => {
     const pages = appPages.length
@@ -152,6 +216,11 @@ export function EquipePage() {
   }
 
   function addTeam() {
+    if (!canCreateEquipe) {
+      deny('Creation equipe non autorisee pour ce profil.')
+      return
+    }
+
     const name = teamDraft.name.trim()
     if (!name) return
 
@@ -171,6 +240,11 @@ export function EquipePage() {
   }
 
   function deleteTeam(teamId: string) {
+    if (!canEditEquipe) {
+      deny('Suppression equipe non autorisee pour ce profil.')
+      return
+    }
+
     const deletedMemberIds = members.filter(member => member.teamId === teamId).map(member => member.id)
     const remainingTeams = teams.filter(team => team.id !== teamId)
     const nextTeam = selectedTeamId === teamId ? remainingTeams[0] : remainingTeams.find(team => team.id === selectedTeamId)
@@ -184,6 +258,11 @@ export function EquipePage() {
   }
 
   function addMember() {
+    if (!canCreateEquipe) {
+      deny('Creation membre non autorisee pour ce profil.')
+      return
+    }
+
     if (!selectedTeam) return
     const firstName = memberDraft.firstName.trim()
     const lastName = memberDraft.lastName.trim()
@@ -231,6 +310,11 @@ export function EquipePage() {
   }
 
   function deleteMember(memberId: string) {
+    if (!canEditEquipe) {
+      deny('Suppression membre non autorisee pour ce profil.')
+      return
+    }
+
     const remaining = members.filter(member => member.id !== memberId)
     setMembers(remaining)
     setLeaves(prev => prev.filter(leave => leave.memberId !== memberId))
@@ -238,10 +322,20 @@ export function EquipePage() {
   }
 
   function moveMemberToTeam(memberId: string, teamId: string) {
+    if (!canEditEquipe) {
+      deny('Modification membre non autorisee pour ce profil.')
+      return
+    }
+
     setMembers(prev => prev.map(member => (member.id === memberId ? { ...member, teamId } : member)))
   }
 
   function addLeave() {
+    if (!canEditEquipe) {
+      deny('Modification conges non autorisee pour ce profil.')
+      return
+    }
+
     if (!selectedMember) return
     const startDay = clampDay(leaveDraft.startDay)
     const endDay = Math.max(startDay, clampDay(leaveDraft.endDay))
@@ -261,10 +355,20 @@ export function EquipePage() {
   }
 
   function deleteLeave(leaveId: string) {
+    if (!canEditEquipe) {
+      deny('Suppression conges non autorisee pour ce profil.')
+      return
+    }
+
     setLeaves(prev => prev.filter(leave => leave.id !== leaveId))
   }
 
   function toggleCapability(role: Role, pageKey: PagePermissionKey, capability: AccessCapability) {
+    if (!canAdminEquipe) {
+      deny('Modification des droits non autorisee pour ce profil.')
+      return
+    }
+
     const nextState = !accessMatrix[role][pageKey][capability]
     const nextCapabilities = { ...accessMatrix[role][pageKey], [capability]: nextState }
 
@@ -302,14 +406,67 @@ export function EquipePage() {
         <button
           type="button"
           onClick={addTeam}
-          className="inline-flex h-10 w-fit items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17]"
+          disabled={!canCreateEquipe}
+          className="inline-flex h-10 w-fit items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Creer l'equipe
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      {permissionFeedback && (
+        <div className="mb-5 flex items-center justify-between rounded-[14px] border border-[#F2E8DC] bg-white px-4 py-3 text-[13px] font-medium text-[#3C3C3C]">
+          <span>{permissionFeedback}</span>
+          <button type="button" onClick={() => setPermissionFeedback('')} className="text-[#F06B21] hover:text-[#D95B17]">OK</button>
+        </div>
+      )}
+
+      <section className="mb-5 rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Profils applicatifs SQL</h2>
+              <span className={`rounded-[6px] px-2 py-1 text-[11px] font-semibold ${
+                sqlProfileStatus === 'sql'
+                  ? 'bg-[#E6F4EA] text-[#1E8E3E]'
+                  : sqlProfileStatus === 'loading'
+                    ? 'bg-[#FDEBDD] text-[#F06B21]'
+                    : 'bg-[#FAF6F2] text-[#6B6B6B]'
+              }`}>
+                {sqlProfileStatus === 'sql' ? 'SQL User' : sqlProfileStatus === 'loading' ? 'Lecture SQL' : 'Fallback local'}
+              </span>
+            </div>
+            <p className="mt-2 max-w-3xl text-[13px] leading-5 text-[#3C3C3C]">
+              {sqlProfileMessage} Les roles ne sont pas modifies depuis cette page: ils restent provisionnes par script admin avec de vrais UID Firebase Auth.
+            </p>
+          </div>
+          <div className="rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] px-4 py-3 text-[12px] text-[#6B6B6B]">
+            Equipes, membres, conges et matrice de droits restent en localStorage tant que les tables RH dediees ne sont pas ajoutees.
+          </div>
+        </div>
+        {sqlProfiles.length > 0 && (
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {sqlProfiles.slice(0, 4).map(profile => (
+              <div key={profile.id} className="rounded-[16px] border border-[#F2E8DC] bg-[#FAF6F2] p-3">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#1E1E1E] text-[11px] font-bold text-white">
+                    {profile.avatar}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{profile.prenom} {profile.nom}</p>
+                    <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{profile.email}</p>
+                    <p className="mt-2 text-[11px] font-semibold text-[#F06B21]">
+                      {profile.role ? roleLabels[profile.role] : profile.rawRole}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="grid gap-4 md:grid-cols-5">
         {stats.map(stat => {
           const Icon = stat.Icon
           return (
@@ -360,7 +517,8 @@ export function EquipePage() {
                         <button
                           type="button"
                           onClick={() => deleteTeam(team.id)}
-                          className="inline-flex h-8 items-center gap-2 rounded-[10px] px-2 text-[11px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]"
+                          disabled={!canEditEquipe}
+                          className="inline-flex h-8 items-center gap-2 rounded-[10px] px-2 text-[11px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2] disabled:cursor-not-allowed disabled:text-[#9CA3AF]"
                         >
                           <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
                           Supprimer equipe
@@ -489,7 +647,7 @@ export function EquipePage() {
               <textarea value={memberDraft.activeSites} onChange={event => setMemberDraft(prev => ({ ...prev, activeSites: event.target.value }))} placeholder="Chantiers suivis, separes par virgules" rows={2} className="resize-none rounded-[14px] border border-[#F2E8DC] px-3 py-2 text-[13px] outline-none focus:border-[#F06B21]" />
               <textarea value={memberDraft.responsibilities} onChange={event => setMemberDraft(prev => ({ ...prev, responsibilities: event.target.value }))} placeholder="Responsabilites separees par virgules" rows={2} className="resize-none rounded-[14px] border border-[#F2E8DC] px-3 py-2 text-[13px] outline-none focus:border-[#F06B21]" />
             </div>
-            <button type="button" onClick={addMember} disabled={!selectedTeam} className="mt-4 inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#1E1E1E] px-4 text-[13px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
+            <button type="button" onClick={addMember} disabled={!selectedTeam || !canCreateEquipe} className="mt-4 inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#1E1E1E] px-4 text-[13px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
               <Plus className="h-4 w-4" strokeWidth={2} />
               Ajouter a l'equipe
             </button>
@@ -523,7 +681,7 @@ export function EquipePage() {
                   <InfoLine label="Contrat" value={selectedMember.contract} />
                   <InfoLine label="Coefficient" value={selectedMember.coefficient} />
                   <InfoLine label="Salaire brut" value={formatSalary(selectedMember.salaryGrossMonthly)} />
-                  <select value={selectedMember.teamId} onChange={event => moveMemberToTeam(selectedMember.id, event.target.value)} className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] text-[#1E1E1E] outline-none focus:border-[#F06B21]">
+                  <select value={selectedMember.teamId} onChange={event => moveMemberToTeam(selectedMember.id, event.target.value)} disabled={!canEditEquipe} className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] text-[#1E1E1E] outline-none disabled:cursor-not-allowed disabled:bg-[#FAF6F2] disabled:text-[#9CA3AF] focus:border-[#F06B21]">
                     {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                   </select>
                 </div>
@@ -548,7 +706,7 @@ export function EquipePage() {
                     <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
                     Ouvrir profil
                   </Link>
-                  <button type="button" onClick={() => deleteMember(selectedMember.id)} className="inline-flex h-9 items-center gap-2 rounded-[12px] border border-[#FCA5A5] bg-white px-3 text-[12px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]">
+                  <button type="button" onClick={() => deleteMember(selectedMember.id)} disabled={!canEditEquipe} className="inline-flex h-9 items-center gap-2 rounded-[12px] border border-[#FCA5A5] bg-white px-3 text-[12px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2] disabled:cursor-not-allowed disabled:border-[#F2E8DC] disabled:text-[#9CA3AF]">
                     <Trash2 className="h-4 w-4" strokeWidth={1.75} />
                     Supprimer
                   </button>
@@ -577,7 +735,7 @@ export function EquipePage() {
                     <p className="text-[11px] font-semibold text-[#1E1E1E]">{month.slice(0, 3)}</p>
                     <div className="mt-1 space-y-1">
                       {monthLeaves.map(leave => (
-                        <button key={leave.id} type="button" onClick={() => deleteLeave(leave.id)} className="block w-full truncate rounded-[6px] bg-[#FDEBDD] px-1.5 py-1 text-left text-[10px] font-semibold text-[#F06B21]">
+                        <button key={leave.id} type="button" onClick={() => deleteLeave(leave.id)} disabled={!canEditEquipe} className="block w-full truncate rounded-[6px] bg-[#FDEBDD] px-1.5 py-1 text-left text-[10px] font-semibold text-[#F06B21] disabled:cursor-not-allowed disabled:bg-[#FAF6F2] disabled:text-[#9CA3AF]">
                           {leave.startDay}-{leave.endDay}
                         </button>
                       ))}
@@ -597,7 +755,7 @@ export function EquipePage() {
               <input value={leaveDraft.endDay} onChange={event => setLeaveDraft(prev => ({ ...prev, endDay: Number(event.target.value) }))} type="number" min="1" max="31" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
               <input value={leaveDraft.note} onChange={event => setLeaveDraft(prev => ({ ...prev, note: event.target.value }))} placeholder="Note" className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
             </div>
-            <button type="button" onClick={addLeave} disabled={!selectedMember} className="mt-3 inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
+            <button type="button" onClick={addLeave} disabled={!selectedMember || !canEditEquipe} className="mt-3 inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
               <Plus className="h-4 w-4" strokeWidth={2} />
               Poser conges
             </button>
@@ -611,7 +769,15 @@ export function EquipePage() {
             <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Droits et permissions</h2>
             <p className="mt-1 text-[12px] text-[#6B6B6B]">Les changements modifient la navigation et le garde d'acces du site.</p>
           </div>
-          <button type="button" onClick={() => setAccessMatrix(defaultAccessMatrix)} className="inline-flex h-9 w-fit items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] transition hover:bg-[#FAF6F2]">
+          <button
+            type="button"
+            onClick={() => {
+              if (canAdminEquipe) setAccessMatrix(defaultAccessMatrix)
+              else deny('Reinitialisation des droits non autorisee pour ce profil.')
+            }}
+            disabled={!canAdminEquipe}
+            className="inline-flex h-9 w-fit items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] transition hover:bg-[#FAF6F2] disabled:cursor-not-allowed disabled:text-[#9CA3AF]"
+          >
             <LockKeyhole className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
             Reinitialiser
           </button>
@@ -653,7 +819,7 @@ export function EquipePage() {
                   {accessCapabilities.map(capability => {
                     const active = accessMatrix[selectedRole][page.key][capability]
                     return (
-                      <button key={capability} type="button" onClick={() => toggleCapability(selectedRole, page.key, capability)} className={`h-8 rounded-[8px] text-[11px] font-semibold transition ${active ? 'bg-[#1E1E1E] text-white' : 'border border-[#F2E8DC] bg-white text-[#6B6B6B] hover:bg-[#FAF6F2]'}`} aria-pressed={active}>
+                      <button key={capability} type="button" onClick={() => toggleCapability(selectedRole, page.key, capability)} disabled={!canAdminEquipe} className={`h-8 rounded-[8px] text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${active ? 'bg-[#1E1E1E] text-white' : 'border border-[#F2E8DC] bg-white text-[#6B6B6B] hover:bg-[#FAF6F2]'}`} aria-pressed={active}>
                         {capabilityLabels[capability]}
                       </button>
                     )

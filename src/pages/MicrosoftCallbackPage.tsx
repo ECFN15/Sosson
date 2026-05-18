@@ -15,32 +15,50 @@ function getSafeReturnPath() {
   return '/emails?outlook=connected'
 }
 
+function getInitialCallbackState() {
+  const params = new URLSearchParams(window.location.search)
+  const code = params.get('code')
+  const state = params.get('state')
+  const error = params.get('error_description') ?? params.get('error')
+
+  if (error) {
+    return {
+      code: null,
+      state: null,
+      status: 'error' as const,
+      message: error,
+    }
+  }
+
+  if (!code || !state) {
+    return {
+      code: null,
+      state: null,
+      status: 'error' as const,
+      message: 'Callback Microsoft incomplet: code ou state manquant.',
+    }
+  }
+
+  return {
+    code,
+    state,
+    status: 'loading' as const,
+    message: 'Connexion Microsoft en cours...',
+  }
+}
+
 export function MicrosoftCallbackPage() {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [message, setMessage] = useState('Connexion Microsoft en cours...')
+  const [callbackState] = useState(getInitialCallbackState)
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(callbackState.status)
+  const [message, setMessage] = useState(callbackState.message)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
-    const state = params.get('state')
-    const error = params.get('error_description') ?? params.get('error')
-
-    if (error) {
-      setStatus('error')
-      setMessage(error)
-      return
-    }
-
-    if (!code || !state) {
-      setStatus('error')
-      setMessage('Callback Microsoft incomplet: code ou state manquant.')
-      return
-    }
+    if (!callbackState.code || !callbackState.state) return
 
     fetch(`${OUTLOOK_LOCAL_API}/api/outlook/exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, state }),
+      body: JSON.stringify({ code: callbackState.code, state: callbackState.state }),
     })
       .then(async response => {
         const payload = await response.json()
@@ -54,7 +72,7 @@ export function MicrosoftCallbackPage() {
         setStatus('error')
         setMessage(error instanceof Error ? error.message : String(error))
       })
-  }, [])
+  }, [callbackState.code, callbackState.state])
 
   const Icon = status === 'loading' ? Loader2 : status === 'success' ? CheckCircle2 : XCircle
 

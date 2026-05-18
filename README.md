@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# Sosson
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Hub operationnel interne mono-entreprise pour une PME francaise du batiment.
 
-Currently, two official plugins are available:
+La cible metier est Firebase SQL Connect / Cloud SQL PostgreSQL. Firebase Auth porte l'identite. Firestore et localStorage restent transitoires ou locaux et ne doivent pas devenir source d'autorisation ou de verite metier.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Lire d'abord
 
-## React Compiler
+1. `AGENTS.md` - reference operationnelle courte.
+2. `documentation.md` - porte d'entree documentation.
+3. `docs/00-index.md` - index maintenable.
+4. `docs/13-checkpoint-002-readiness.md` - preuves attendues checkpoint 002.
+5. `docs/15-checkpoint-002-sandbox-execution.md` - runbook humain pour actions sandbox reelles.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Commandes locales
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
+npm run checkpoint:002:local
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`checkpoint:002:local` ne deploie rien et ne lit pas la sandbox distante. Il enchaine la CI locale, l'audit des sources front hybrides, un dry-run de comptage Data Connect, un dry-run de seed sandbox archive sous `tmp/` et un dry-run de provisioning SQL `User`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## SQL Connect local
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Terminal 1:
+
+```bash
+npm run emulators:dataconnect
 ```
+
+Terminal 2:
+
+```bash
+npm run checkpoint:002:emulator
+```
+
+Cette commande ne touche pas la sandbox distante. Elle archive notamment `tmp/checkpoint-002/counts-local.json`, `tmp/checkpoint-002/operational-boundary-local.json`, `tmp/checkpoint-002/team-users-local.json`, `tmp/checkpoint-002/email-local.json`, `tmp/checkpoint-002/documents-local.json`, `tmp/checkpoint-002/planning-local.json`, `tmp/checkpoint-002/report-local.json`, `tmp/checkpoint-002/analytics-snapshot-local.json` et `tmp/checkpoint-002/checkpoint-audit-local.json`.
+
+Si l'etat local pglite est pollue par une verification RBAC precedente:
+
+```bash
+npm run reset:dataconnect:local -- --yes-local-reset
+```
+
+Ce reset supprime uniquement `dataconnect/.dataconnect/pgliteData` et refuse de s'executer si l'emulateur tourne encore.
+
+## Regles importantes
+
+- Ne jamais lancer `firebase init dataconnect`.
+- Ne jamais modifier a la main `src/dataconnect-generated/` ou `src/dataconnect-admin-generated/`.
+- Ne jamais deployer production tant que la sandbox n'est pas validee.
+- Ne jamais committer de secret, UID prive non anonymise, token ou preuve sandbox sensible.
+- Les actions sandbox reelles (`firebase deploy`, seed sandbox, provisioning SQL `User`, comptage distant) demandent une validation humaine explicite.
+
+## Etat production
+
+Production non prete. Les blocages principaux sont la validation sandbox reelle, les vrais profils SQL `User`, le comptage distant archive, les rules deployees/testees, le RBAC serveur verifie en sandbox, Storage produit et monitoring/backups.

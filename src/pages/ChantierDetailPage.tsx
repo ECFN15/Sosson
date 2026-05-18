@@ -50,6 +50,10 @@ import {
 import { emails, useApp } from '@/lib/store'
 import { categorieLabels } from '@/data/factures'
 import { getChantierCover, getChantierGallery } from '@/data/media'
+import { canAccessPage } from '@/lib/accessControl'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { updateChantierStatutInSql } from '@/features/operations/operationalAdapters'
+import { useOperationalData } from '@/features/operations/useOperationalData'
 import type { CategorieDepense } from '@/data/factures'
 import type { Chantier } from '@/data/chantiers'
 import type { Client } from '@/data/clients'
@@ -66,6 +70,12 @@ const DONUT_COLORS: Record<string, string> = {
 }
 
 const tabs = ['Vue d’ensemble', 'Documents', 'Factures', 'Emails', 'Planning', 'Rapports', 'Photos', 'Équipe', 'Infos chantier']
+
+const statusOptions: Array<{ value: Chantier['statut']; label: string }> = [
+  { value: 'en_attente', label: 'En attente' },
+  { value: 'en_cours', label: 'En cours' },
+  { value: 'cloture', label: 'Cloture' },
+]
 
 const lots = [
   { label: 'Gros œuvre', pct: 100, color: '#1E8E3E' },
@@ -142,6 +152,11 @@ function formatEuros(value: number) {
   return `${Math.round(value).toLocaleString('fr-FR')} €`
 }
 
+function percentOf(value: number, total: number) {
+  if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return 0
+  return Math.round((value / total) * 100)
+}
+
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset,0_14px_34px_rgba(30,30,30,0.045)] ${className}`}>
@@ -156,6 +171,21 @@ function LinkButton({ children }: { children: React.ReactNode }) {
       {children}
       <ArrowRight className="h-3.5 w-3.5 text-[#6B6B6B]" strokeWidth={1.75} />
     </button>
+  )
+}
+
+function SourcePill({ label, tone = 'local' }: { label: string; tone?: 'sql' | 'local' | 'static' }) {
+  const className =
+    tone === 'sql'
+      ? 'border-[#D8EBDD] bg-[#E6F4EA] text-[#1E8E3E]'
+      : tone === 'static'
+        ? 'border-[#F2E8DC] bg-[#FAF6F2] text-[#6B6B6B]'
+        : 'border-[#F2E8DC] bg-[#FDEBDD] text-[#D95B17]'
+
+  return (
+    <span className={`inline-flex items-center rounded-[8px] border px-2.5 py-1 text-[11px] font-semibold ${className}`}>
+      {label}
+    </span>
   )
 }
 
@@ -693,9 +723,21 @@ function MobileChantierView({ chantier, client, progress }: { chantier: Chantier
 export function ChantierDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { chantiers, factures, clients } = useApp()
+  const { user, accessMatrix, updateChantierStatus } = useApp()
+  const {
+    chantiers,
+    factures,
+    clients,
+    source: operationalSource,
+    isLoading: isOperationalLoading,
+    error: operationalError,
+    hasUnsyncedLocalChanges,
+  } = useOperationalData()
   const [showUploadHint, setShowUploadHint] = useState(false)
   const [activeDesktopTab, setActiveDesktopTab] = useState(tabs[0])
+  const [statusFeedback, setStatusFeedback] = useState('')
+  const [isStatusSaving, setIsStatusSaving] = useState(false)
+  const canEditChantier = canAccessPage(user?.role, 'chantiers', accessMatrix, 'edit')
 
   const chantier = chantiers.find(item => item.id === id)
 
@@ -723,13 +765,60 @@ export function ChantierDetailPage() {
   }
 
   const client = clients.find(item => item.id === chantier.clientId)
+  const currentChantier = chantier
   const chantierEmails = emails.filter(email => email.chantierId === chantier.id)
-  const progress = Math.min(Math.round((chantier.depensesEngagees / chantier.budgetPrevisionnel) * 100), 100)
-  const rawProgress = Math.round((chantier.depensesEngagees / chantier.budgetPrevisionnel) * 100)
+  const rawProgress = percentOf(chantier.depensesEngagees, chantier.budgetPrevisionnel)
+  const progress = Math.min(Math.max(rawProgress, 0), 100)
   const margin = chantier.budgetPrevisionnel - chantier.depensesEngagees
-  const marginPercent = Math.round((margin / chantier.budgetPrevisionnel) * 100)
+  const marginPercent = percentOf(margin, chantier.budgetPrevisionnel)
   const coverImage = getChantierCover(chantier.id)
   const galleryImages = getChantierGallery(chantier.id)
+  const isSqlSource = operationalSource === 'dataconnect'
+  const sourceLabel = isOperationalLoading
+    ? 'Chargement SQL'
+    : isSqlSource
+      ? 'SQL lu par le front'
+      : operationalSource === 'excel'
+        ? 'Fallback Excel/local visible'
+        : 'Seeds locaux visibles'
+  const sourceDetail = isSqlSource
+    ? "Le chantier et ses factures sont lus via Data Connect dans cette session. Ce n'est pas un comptage sandbox distant."
+    : "Le chantier et ses factures viennent d'un fallback front. Cela ne prouve aucune donnee presente en SQL sandbox."
+  const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
+
+  async function handleStatusChange(nextStatus: Chantier['statut']) {
+    if (nextStatus === currentChantier.statut || isStatusSaving) return
+
+    if (!canEditChantier) {
+      setStatusFeedback("Statut non modifie: votre role n'autorise pas l'edition des chantiers.")
+      return
+    }
+
+    const dateFin = nextStatus === 'cloture' ? new Date().toISOString().slice(0, 10) : null
+    setIsStatusSaving(true)
+    setStatusFeedback('')
+
+    try {
+      if (canWriteSql) {
+        if (currentChantier.id.startsWith('prev-chantier-') || currentChantier.id.startsWith('local-')) {
+          setStatusFeedback("Statut non modifie: ce chantier n'est pas une ligne operationnelle SQL.")
+          return
+        }
+
+        await updateChantierStatutInSql({ id: currentChantier.id, statut: nextStatus, dateFin })
+        updateChantierStatus(currentChantier.id, nextStatus, dateFin)
+        setStatusFeedback(`Statut SQL Connect mis a jour: ${statusOptions.find(option => option.value === nextStatus)?.label ?? nextStatus}.`)
+      } else {
+        updateChantierStatus(currentChantier.id, nextStatus, dateFin)
+        setStatusFeedback("Statut mis a jour en fallback local uniquement. Cela ne prouve pas une ecriture SQL ni une donnee sandbox.")
+      }
+    } catch (error) {
+      console.error(error)
+      setStatusFeedback("Le statut n'a pas pu etre enregistre en SQL. Aucun fallback local silencieux n'a ete applique.")
+    } finally {
+      setIsStatusSaving(false)
+    }
+  }
 
   const donutData = Object.entries(
     chantierFactures
@@ -837,6 +926,56 @@ export function ChantierDetailPage() {
               <span className="rounded-[6px] bg-[#FDEBDD] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">Onglet actif</span>
             </Card>
           )}
+          <Card className="p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <SourcePill label={sourceLabel} tone={isSqlSource ? 'sql' : 'local'} />
+              {hasUnsyncedLocalChanges && <SourcePill label="Fallback non verite SQL" tone="local" />}
+              {operationalError && <SourcePill label="SQL indisponible" tone="local" />}
+              <SourcePill label="Documents: exemples locaux" tone="static" />
+              <SourcePill label="Emails: seed local" tone="local" />
+              <SourcePill label="Planning: apercu statique" tone="static" />
+              <SourcePill label="Rapports: page dediee SQL" tone="sql" />
+            </div>
+            <p className="mt-2 text-[12px] text-[#6B6B6B]">
+              {sourceDetail} Les autres blocs restent indicatifs tant que leurs requetes SQL par chantier ne sont pas branchees ici.
+            </p>
+            {operationalError && (
+              <p className="mt-2 text-[12px] font-medium text-[#D95B17]">
+                Derniere erreur SQL: {operationalError}
+              </p>
+            )}
+          </Card>
+          <Card className="flex flex-col gap-4 p-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[13px] font-semibold text-[#1E1E1E]">Statut chantier</p>
+                <SourcePill label={canWriteSql ? 'Mutation SQL disponible' : 'Ecriture fallback local'} tone={canWriteSql ? 'sql' : 'local'} />
+              </div>
+              <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                Le changement de statut ecrit `UpdateChantierStatut` quand Data Connect est la source active. Sinon il reste local et visible comme fallback.
+              </p>
+              {statusFeedback && (
+                <p className="mt-2 text-[12px] font-medium text-[#D95B17]">{statusFeedback}</p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {statusOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => void handleStatusChange(option.value)}
+                  disabled={isStatusSaving || option.value === chantier.statut}
+                  className={`h-9 rounded-[12px] border px-3 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed ${
+                    option.value === chantier.statut
+                      ? 'border-[#F06B21] bg-[#FDEBDD] text-[#D95B17]'
+                      : 'border-[#F2E8DC] bg-white text-[#3C3C3C] hover:bg-[#FAF6F2]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </Card>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
             <KpiCard label="Avancement" value={`${progress}%`}>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
@@ -1048,6 +1187,7 @@ export function ChantierDetailPage() {
             <Card className="p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Derniers documents</h2>
+                <SourcePill label="local" tone="static" />
                 <LinkButton>Voir tous les documents</LinkButton>
               </div>
               <div className="mt-5 space-y-4">
@@ -1204,6 +1344,7 @@ export function ChantierDetailPage() {
           <Card className="p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Planning du chantier</h2>
+              <SourcePill label="apercu statique" tone="static" />
               <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#F2E8DC] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#6B6B6B]">
                 Semaine
                 <ChevronDown className="h-3 w-3" strokeWidth={1.75} />
@@ -1280,6 +1421,9 @@ export function ChantierDetailPage() {
               </div>
               <div>
                 <h2 className="text-[14px] font-semibold text-[#1E1E1E]">Vue IA chantier</h2>
+                <div className="mt-2">
+                  <SourcePill label="emails seed local" tone="local" />
+                </div>
                 <p className="mt-1 text-[12px] leading-5 text-[#6B6B6B]">
                   {chantierEmails.length} emails liés, {chantierFactures.length} factures suivies et marge à surveiller cette semaine.
                 </p>

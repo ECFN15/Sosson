@@ -1,0 +1,10 @@
+[
+  {
+    "uid": "firebase-auth-uid-to-replace",
+    "email": "prenom.nom@sosson.fr",
+    "nom": "Nom",
+    "prenom": "Prenom",
+    "role": "gerant",
+    "avatar": "PN"
+  }
+]

@@ -37,6 +37,20 @@ import {
   deployEverything,
 } from './runner.mjs';
 
+const PRODUCTION_DASHBOARD_FLAG = 'ALLOW_PRODUCTION_DASHBOARD';
+
+function isProductionDashboardEnabled() {
+  return process.env[PRODUCTION_DASHBOARD_FLAG] === 'true';
+}
+
+function blockProductionDashboardAction(scope) {
+  console.log('');
+  console.log(chalk.bgRed.white.bold('  PRODUCTION BLOQUEE  '));
+  console.log(chalk.red(`  ${scope} production est desactive dans ce dashboard.`));
+  console.log(chalk.gray(`  Production non prete: definir ${PRODUCTION_DASHBOARD_FLAG}=true seulement apres validation humaine explicite.`));
+  console.log('');
+}
+
 
 // ─────────────────────────────────────────────────────────────
 // HELPERS D'AFFICHAGE
@@ -108,6 +122,11 @@ async function runFullDeploy(envName) {
 
   // ── Double confirmation obligatoire pour la PRODUCTION ──
   if (isProd) {
+    if (!isProductionDashboardEnabled()) {
+      blockProductionDashboardAction('Le deploiement');
+      return;
+    }
+
     console.log('');
     console.log(chalk.bgRed.white.bold('  ⚠   DEPLOIEMENT PRODUCTION   ⚠  '));
     console.log('');
@@ -237,6 +256,11 @@ async function runFunctionsDeploy() {
 
   // Confirmation supplementaire pour la production
   if (envName === 'production') {
+    if (!isProductionDashboardEnabled()) {
+      blockProductionDashboardAction('Le deploiement Functions');
+      return;
+    }
+
     const { confirm } = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirm',
@@ -288,6 +312,11 @@ async function runRulesDeploy() {
   const env = ENVIRONMENTS[envName];
 
   if (envName === 'production') {
+    if (!isProductionDashboardEnabled()) {
+      blockProductionDashboardAction('Le deploiement Rules');
+      return;
+    }
+
     const { confirm } = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirm',
@@ -335,6 +364,11 @@ async function runDataConnectDeploy() {
   const env = ENVIRONMENTS[envName];
 
   if (envName === 'production') {
+    if (!isProductionDashboardEnabled()) {
+      blockProductionDashboardAction('Le deploiement SQL Connect');
+      return;
+    }
+
     const { confirm } = await inquirer.prompt([{
       type: 'confirm',
       name: 'confirm',
@@ -391,6 +425,11 @@ async function runEverythingDeploy() {
 
   // ── Double confirmation obligatoire pour la PRODUCTION ──
   if (isProd) {
+    if (!isProductionDashboardEnabled()) {
+      blockProductionDashboardAction('Le deploiement complet');
+      return;
+    }
+
     console.log('');
     console.log(chalk.bgRed.white.bold('  ⚠   DEPLOIEMENT COMPLET PRODUCTION   ⚠  '));
     console.log(chalk.red('  → Site + Functions + Rules Firestore/Storage vont partir en prod.'));

@@ -25,10 +25,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { listPrevisionnelExercises, listPrevisionnelLinesByExercise } from '@dataconnect/generated'
-import type { ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData } from '@dataconnect/generated'
 import { useApp } from '@/lib/store'
-import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
+import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { ENV } from '@/lib/firebase'
+import { loadAnalyticsSnapshotsFromSql } from '@/features/analytics/analyticsSql'
+import {
+  loadLatestPrevisionnelFromSql,
+  type SqlPrevisionnelExercise,
+  type SqlPrevisionnelLine as SqlPrevisionnelLineRow,
+} from '@/features/previsionnel/previsionnelSql'
 import {
   amountBase,
   categoryColors,
@@ -37,9 +42,19 @@ import {
   latestExercise,
 } from '@/lib/previsionnelAnalytics'
 import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
+import { useOperationalData } from '@/features/operations/useOperationalData'
 
-type SqlExercise = ListPrevisionnelExercisesData['previsionnelExercises'][number]
-type SqlPrevisionnelLine = ListPrevisionnelLinesByExerciseData['previsionnelLines'][number]
+type SqlExercise = SqlPrevisionnelExercise
+type SqlPrevisionnelLine = SqlPrevisionnelLineRow
+type AnalyticsSnapshotSummary = {
+  snapshotType: string
+  status: string
+  totalCaPrevision?: number | null
+  totalCaRealise?: number | null
+  payloadHash?: string | null
+  sourceWatermark?: string | null
+  dateCreation: string
+}
 
 type DashboardLine = {
   id: string
@@ -279,11 +294,46 @@ function GapBadge({ gap, rate }: { gap: number; rate: number }) {
 }
 
 export function DashboardPage() {
-  const { chantiers, factures, user, dataSource, isDataConnectLoading } = useApp()
+  const {
+    chantiers,
+    factures,
+    source: operationalSource,
+    isLoading: isOperationalLoading,
+  } = useOperationalData()
+  const { user } = useApp()
   const navigate = useNavigate()
   const [sqlStatus, setSqlStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback'>('idle')
   const [sqlExercises, setSqlExercises] = useState<SqlExercise[]>([])
   const [sqlLatestLines, setSqlLatestLines] = useState<SqlPrevisionnelLine[]>([])
+  const [analyticsStatus, setAnalyticsStatus] = useState<'idle' | 'loading' | 'ready' | 'empty' | 'fallback'>('idle')
+  const [latestAnalyticsSnapshot, setLatestAnalyticsSnapshot] = useState<AnalyticsSnapshotSummary | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadAnalyticsSnapshot() {
+      if (!isDataConnectEnabled || !user) {
+        if (mounted) setAnalyticsStatus('fallback')
+        return
+      }
+
+      setAnalyticsStatus('loading')
+      try {
+        const snapshots = await loadAnalyticsSnapshotsFromSql({ environment: ENV })
+        if (!mounted) return
+        setLatestAnalyticsSnapshot(snapshots[0] ?? null)
+        setAnalyticsStatus(snapshots.length ? 'ready' : 'empty')
+      } catch {
+        if (mounted) setAnalyticsStatus('fallback')
+      }
+    }
+
+    void loadAnalyticsSnapshot()
+
+    return () => {
+      mounted = false
+    }
+  }, [user])
 
   useEffect(() => {
     let mounted = true
@@ -296,15 +346,11 @@ export function DashboardPage() {
 
       setSqlStatus('loading')
       try {
-        const dc = getSossonDataConnect()
-        const exercisesResponse = await listPrevisionnelExercises(dc)
-        const exercises = exercisesResponse.data.previsionnelExercises
-        const latest = exercises[exercises.length - 1]
-        const linesResponse = latest ? await listPrevisionnelLinesByExercise(dc, { exerciseId: latest.id }) : null
+        const { exercises, lines } = await loadLatestPrevisionnelFromSql()
 
         if (!mounted) return
         setSqlExercises(exercises)
-        setSqlLatestLines(linesResponse?.data.previsionnelLines ?? [])
+        setSqlLatestLines(lines)
         setSqlStatus(exercises.length ? 'ready' : 'fallback')
       } catch {
         if (mounted) setSqlStatus('fallback')
@@ -322,7 +368,13 @@ export function DashboardPage() {
   const usesSql = sqlStatus === 'ready' && sqlExercises.length > 0
   const currentExercise = usesSql ? sqlExercises[sqlExercises.length - 1] : localLatest
   const currentExerciseLabel = currentExercise.exercise
-  const sourceLabel = usesSql ? 'SQL Connect' : dataSource === 'dataconnect' ? 'SQL Connect + Excel local' : 'Excel local'
+  const sourceLabel = usesSql
+    ? latestAnalyticsSnapshot
+      ? 'SQL Connect + snapshot'
+      : 'SQL Connect, calcul front'
+    : operationalSource === 'dataconnect'
+      ? 'SQL Connect + Excel local'
+      : 'Excel local'
   const coverage = previsionnelDataCoverage()
 
   const dashboardLines = usesSql ? linesFromSql(sqlLatestLines) : linesFromLocal(currentExerciseLabel)
@@ -421,7 +473,7 @@ export function DashboardPage() {
                 Source et controles
               </span>
               <span className="rounded-full bg-[#2A1A0D] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">
-                {sqlStatus === 'loading' || isDataConnectLoading ? 'Chargement' : sourceLabel}
+                {sqlStatus === 'loading' || isOperationalLoading ? 'Chargement' : sourceLabel}
               </span>
             </div>
             <div className="grid gap-3">
@@ -443,6 +495,14 @@ export function DashboardPage() {
                   value: fmtEuro(gapAmount),
                   meta: `${realizationRate}% de realisation sur ${currentExerciseLabel}`,
                   Icon: gapAmount >= 0 ? TrendingUp : AlertTriangle,
+                },
+                {
+                  label: 'Snapshot analytics SQL',
+                  value: analyticsStatus === 'loading' ? '...' : latestAnalyticsSnapshot ? 'Oui' : 'Non',
+                  meta: latestAnalyticsSnapshot
+                    ? `${latestAnalyticsSnapshot.snapshotType} - ${latestAnalyticsSnapshot.status}`
+                    : 'Calcul front depuis SQL/previsionnel, pas de snapshot fige',
+                  Icon: Database,
                 },
               ].map(item => {
                 const Icon = item.Icon

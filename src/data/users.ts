@@ -7,7 +7,7 @@ export interface User {
   email: string
   role: Role
   avatar: string
-  password: string
+  password?: string
 }
 
 export const roleLabels: Record<Role, string> = {

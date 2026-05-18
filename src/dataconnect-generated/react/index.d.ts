@@ -1,12 +1,9 @@
-import { UpsertCurrentUserData, UpsertCurrentUserVariables, CreateClientData, CreateClientVariables, UpdateClientData, UpdateClientVariables, CreateChantierData, CreateChantierVariables, UpdateChantierStatutData, UpdateChantierStatutVariables, CreateFactureData, CreateFactureVariables, SetFactureStatutData, SetFactureStatutVariables, CreateDocumentFolderData, CreateDocumentFolderVariables, CreateDocumentAttacheData, CreateDocumentAttacheVariables, UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables, CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables, UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables, UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables, LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables, UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables, GetCurrentUserData, ListClientsData, GetClientData, GetClientVariables, ListChantiersData, GetChantierData, GetChantierVariables, ListFacturesData, ListFacturesByStatutData, ListFacturesByStatutVariables, ListDocumentFoldersData, ListDocumentsAttachesData, ListDocumentsByChantierData, ListDocumentsByChantierVariables, ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables, SearchClientAliasesData, SearchClientAliasesVariables, ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables } from '../';
+import { CreateClientData, CreateClientVariables, UpdateClientData, UpdateClientVariables, CreateChantierData, CreateChantierVariables, UpdateChantierStatutData, UpdateChantierStatutVariables, CreateFactureData, CreateFactureVariables, SetFactureStatutData, SetFactureStatutVariables, CreateDocumentFolderData, CreateDocumentFolderVariables, CreateDocumentAttacheData, CreateDocumentAttacheVariables, UpdateDocumentAttacheLinksData, UpdateDocumentAttacheLinksVariables, CreatePrevisionnelImportBatchData, CreatePrevisionnelImportBatchVariables, UpdatePrevisionnelMonthlyAmountData, UpdatePrevisionnelMonthlyAmountVariables, UpdatePrevisionnelLineAmountsData, UpdatePrevisionnelLineAmountsVariables, LinkPrevisionnelLineToChantierData, LinkPrevisionnelLineToChantierVariables, UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables, CreateEmailThreadData, CreateEmailThreadVariables, UpdateEmailThreadStatusAndLinksData, UpdateEmailThreadStatusAndLinksVariables, CreateEmailMessageData, CreateEmailMessageVariables, CreateEmailAttachmentData, CreateEmailAttachmentVariables, CreatePlanningEventData, CreatePlanningEventVariables, UpdatePlanningEventStatusData, UpdatePlanningEventStatusVariables, UpdatePlanningEventDetailsData, UpdatePlanningEventDetailsVariables, CancelPlanningEventData, CancelPlanningEventVariables, CreatePlanningAssignmentData, CreatePlanningAssignmentVariables, UpdatePlanningAssignmentStatusData, UpdatePlanningAssignmentStatusVariables, CreateAnalyticsSnapshotData, CreateAnalyticsSnapshotVariables, CreateRapportData, CreateRapportVariables, MarkRapportGeneratedData, MarkRapportGeneratedVariables, CreateAuditEventData, CreateAuditEventVariables, CreateCheckpointRunData, CreateCheckpointRunVariables, CreateCheckpointStepData, CreateCheckpointStepVariables, CreateCheckpointArtifactData, CreateCheckpointArtifactVariables, CreateCheckpointDecisionData, CreateCheckpointDecisionVariables, CreateDataImportRunData, CreateDataImportRunVariables, CreateDataImportIssueData, CreateDataImportIssueVariables, CreateEntityChangeLogData, CreateEntityChangeLogVariables, GetCurrentUserData, ListUsersData, ListOperationalClientsData, GetClientData, GetClientVariables, ListOperationalChantiersData, GetChantierData, GetChantierVariables, ListFacturesData, ListFacturesByStatutData, ListFacturesByStatutVariables, ListDocumentFoldersData, ListDocumentsAttachesData, ListDocumentsByChantierData, ListDocumentsByChantierVariables, ListPrevisionnelExercisesData, ListPrevisionnelLinesByExerciseData, ListPrevisionnelLinesByExerciseVariables, SearchClientAliasesData, SearchClientAliasesVariables, ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables, ListEmailThreadsData, ListUnreadEmailThreadsData, GetEmailThreadData, GetEmailThreadVariables, ListPlanningEventsByPeriodData, ListPlanningEventsByPeriodVariables, ListPlanningEventsByChantierData, ListPlanningEventsByChantierVariables, ListAnalyticsSnapshotsData, ListAnalyticsSnapshotsVariables, GetAnalyticsSnapshotData, GetAnalyticsSnapshotVariables, ListRapportsData, GetRapportData, GetRapportVariables, ListRecentAuditEventsData, ListRecentAuditEventsVariables, ListEntityChangeLogsData, ListEntityChangeLogsVariables, ListCheckpointRunsData, ListCheckpointRunsVariables, GetCheckpointRunData, GetCheckpointRunVariables, ListDataImportRunsData, ListDataImportRunsVariables, GetDataImportRunData, GetDataImportRunVariables } from '../';
 import { UseDataConnectQueryResult, useDataConnectQueryOptions, UseDataConnectMutationResult, useDataConnectMutationOptions} from '@tanstack-query-firebase/react/data-connect';
 import { UseQueryResult, UseMutationResult} from '@tanstack/react-query';
 import { DataConnect } from 'firebase/data-connect';
 import { FirebaseError } from 'firebase/app';
 
-
-export function useUpsertCurrentUser(options?: useDataConnectMutationOptions<UpsertCurrentUserData, FirebaseError, UpsertCurrentUserVariables>): UseDataConnectMutationResult<UpsertCurrentUserData, UpsertCurrentUserVariables>;
-export function useUpsertCurrentUser(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertCurrentUserData, FirebaseError, UpsertCurrentUserVariables>): UseDataConnectMutationResult<UpsertCurrentUserData, UpsertCurrentUserVariables>;
 
 export function useCreateClient(options?: useDataConnectMutationOptions<CreateClientData, FirebaseError, CreateClientVariables>): UseDataConnectMutationResult<CreateClientData, CreateClientVariables>;
 export function useCreateClient(dc: DataConnect, options?: useDataConnectMutationOptions<CreateClientData, FirebaseError, CreateClientVariables>): UseDataConnectMutationResult<CreateClientData, CreateClientVariables>;
@@ -50,17 +47,83 @@ export function useLinkPrevisionnelLineToChantier(dc: DataConnect, options?: use
 export function useUpsertPrevisionnelCellEdit(options?: useDataConnectMutationOptions<UpsertPrevisionnelCellEditData, FirebaseError, UpsertPrevisionnelCellEditVariables>): UseDataConnectMutationResult<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
 export function useUpsertPrevisionnelCellEdit(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertPrevisionnelCellEditData, FirebaseError, UpsertPrevisionnelCellEditVariables>): UseDataConnectMutationResult<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
 
+export function useCreateEmailThread(options?: useDataConnectMutationOptions<CreateEmailThreadData, FirebaseError, CreateEmailThreadVariables>): UseDataConnectMutationResult<CreateEmailThreadData, CreateEmailThreadVariables>;
+export function useCreateEmailThread(dc: DataConnect, options?: useDataConnectMutationOptions<CreateEmailThreadData, FirebaseError, CreateEmailThreadVariables>): UseDataConnectMutationResult<CreateEmailThreadData, CreateEmailThreadVariables>;
+
+export function useUpdateEmailThreadStatusAndLinks(options?: useDataConnectMutationOptions<UpdateEmailThreadStatusAndLinksData, FirebaseError, UpdateEmailThreadStatusAndLinksVariables>): UseDataConnectMutationResult<UpdateEmailThreadStatusAndLinksData, UpdateEmailThreadStatusAndLinksVariables>;
+export function useUpdateEmailThreadStatusAndLinks(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateEmailThreadStatusAndLinksData, FirebaseError, UpdateEmailThreadStatusAndLinksVariables>): UseDataConnectMutationResult<UpdateEmailThreadStatusAndLinksData, UpdateEmailThreadStatusAndLinksVariables>;
+
+export function useCreateEmailMessage(options?: useDataConnectMutationOptions<CreateEmailMessageData, FirebaseError, CreateEmailMessageVariables>): UseDataConnectMutationResult<CreateEmailMessageData, CreateEmailMessageVariables>;
+export function useCreateEmailMessage(dc: DataConnect, options?: useDataConnectMutationOptions<CreateEmailMessageData, FirebaseError, CreateEmailMessageVariables>): UseDataConnectMutationResult<CreateEmailMessageData, CreateEmailMessageVariables>;
+
+export function useCreateEmailAttachment(options?: useDataConnectMutationOptions<CreateEmailAttachmentData, FirebaseError, CreateEmailAttachmentVariables>): UseDataConnectMutationResult<CreateEmailAttachmentData, CreateEmailAttachmentVariables>;
+export function useCreateEmailAttachment(dc: DataConnect, options?: useDataConnectMutationOptions<CreateEmailAttachmentData, FirebaseError, CreateEmailAttachmentVariables>): UseDataConnectMutationResult<CreateEmailAttachmentData, CreateEmailAttachmentVariables>;
+
+export function useCreatePlanningEvent(options?: useDataConnectMutationOptions<CreatePlanningEventData, FirebaseError, CreatePlanningEventVariables>): UseDataConnectMutationResult<CreatePlanningEventData, CreatePlanningEventVariables>;
+export function useCreatePlanningEvent(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePlanningEventData, FirebaseError, CreatePlanningEventVariables>): UseDataConnectMutationResult<CreatePlanningEventData, CreatePlanningEventVariables>;
+
+export function useUpdatePlanningEventStatus(options?: useDataConnectMutationOptions<UpdatePlanningEventStatusData, FirebaseError, UpdatePlanningEventStatusVariables>): UseDataConnectMutationResult<UpdatePlanningEventStatusData, UpdatePlanningEventStatusVariables>;
+export function useUpdatePlanningEventStatus(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePlanningEventStatusData, FirebaseError, UpdatePlanningEventStatusVariables>): UseDataConnectMutationResult<UpdatePlanningEventStatusData, UpdatePlanningEventStatusVariables>;
+
+export function useUpdatePlanningEventDetails(options?: useDataConnectMutationOptions<UpdatePlanningEventDetailsData, FirebaseError, UpdatePlanningEventDetailsVariables>): UseDataConnectMutationResult<UpdatePlanningEventDetailsData, UpdatePlanningEventDetailsVariables>;
+export function useUpdatePlanningEventDetails(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePlanningEventDetailsData, FirebaseError, UpdatePlanningEventDetailsVariables>): UseDataConnectMutationResult<UpdatePlanningEventDetailsData, UpdatePlanningEventDetailsVariables>;
+
+export function useCancelPlanningEvent(options?: useDataConnectMutationOptions<CancelPlanningEventData, FirebaseError, CancelPlanningEventVariables>): UseDataConnectMutationResult<CancelPlanningEventData, CancelPlanningEventVariables>;
+export function useCancelPlanningEvent(dc: DataConnect, options?: useDataConnectMutationOptions<CancelPlanningEventData, FirebaseError, CancelPlanningEventVariables>): UseDataConnectMutationResult<CancelPlanningEventData, CancelPlanningEventVariables>;
+
+export function useCreatePlanningAssignment(options?: useDataConnectMutationOptions<CreatePlanningAssignmentData, FirebaseError, CreatePlanningAssignmentVariables>): UseDataConnectMutationResult<CreatePlanningAssignmentData, CreatePlanningAssignmentVariables>;
+export function useCreatePlanningAssignment(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePlanningAssignmentData, FirebaseError, CreatePlanningAssignmentVariables>): UseDataConnectMutationResult<CreatePlanningAssignmentData, CreatePlanningAssignmentVariables>;
+
+export function useUpdatePlanningAssignmentStatus(options?: useDataConnectMutationOptions<UpdatePlanningAssignmentStatusData, FirebaseError, UpdatePlanningAssignmentStatusVariables>): UseDataConnectMutationResult<UpdatePlanningAssignmentStatusData, UpdatePlanningAssignmentStatusVariables>;
+export function useUpdatePlanningAssignmentStatus(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePlanningAssignmentStatusData, FirebaseError, UpdatePlanningAssignmentStatusVariables>): UseDataConnectMutationResult<UpdatePlanningAssignmentStatusData, UpdatePlanningAssignmentStatusVariables>;
+
+export function useCreateAnalyticsSnapshot(options?: useDataConnectMutationOptions<CreateAnalyticsSnapshotData, FirebaseError, CreateAnalyticsSnapshotVariables>): UseDataConnectMutationResult<CreateAnalyticsSnapshotData, CreateAnalyticsSnapshotVariables>;
+export function useCreateAnalyticsSnapshot(dc: DataConnect, options?: useDataConnectMutationOptions<CreateAnalyticsSnapshotData, FirebaseError, CreateAnalyticsSnapshotVariables>): UseDataConnectMutationResult<CreateAnalyticsSnapshotData, CreateAnalyticsSnapshotVariables>;
+
+export function useCreateRapport(options?: useDataConnectMutationOptions<CreateRapportData, FirebaseError, CreateRapportVariables>): UseDataConnectMutationResult<CreateRapportData, CreateRapportVariables>;
+export function useCreateRapport(dc: DataConnect, options?: useDataConnectMutationOptions<CreateRapportData, FirebaseError, CreateRapportVariables>): UseDataConnectMutationResult<CreateRapportData, CreateRapportVariables>;
+
+export function useMarkRapportGenerated(options?: useDataConnectMutationOptions<MarkRapportGeneratedData, FirebaseError, MarkRapportGeneratedVariables>): UseDataConnectMutationResult<MarkRapportGeneratedData, MarkRapportGeneratedVariables>;
+export function useMarkRapportGenerated(dc: DataConnect, options?: useDataConnectMutationOptions<MarkRapportGeneratedData, FirebaseError, MarkRapportGeneratedVariables>): UseDataConnectMutationResult<MarkRapportGeneratedData, MarkRapportGeneratedVariables>;
+
+export function useCreateAuditEvent(options?: useDataConnectMutationOptions<CreateAuditEventData, FirebaseError, CreateAuditEventVariables>): UseDataConnectMutationResult<CreateAuditEventData, CreateAuditEventVariables>;
+export function useCreateAuditEvent(dc: DataConnect, options?: useDataConnectMutationOptions<CreateAuditEventData, FirebaseError, CreateAuditEventVariables>): UseDataConnectMutationResult<CreateAuditEventData, CreateAuditEventVariables>;
+
+export function useCreateCheckpointRun(options?: useDataConnectMutationOptions<CreateCheckpointRunData, FirebaseError, CreateCheckpointRunVariables>): UseDataConnectMutationResult<CreateCheckpointRunData, CreateCheckpointRunVariables>;
+export function useCreateCheckpointRun(dc: DataConnect, options?: useDataConnectMutationOptions<CreateCheckpointRunData, FirebaseError, CreateCheckpointRunVariables>): UseDataConnectMutationResult<CreateCheckpointRunData, CreateCheckpointRunVariables>;
+
+export function useCreateCheckpointStep(options?: useDataConnectMutationOptions<CreateCheckpointStepData, FirebaseError, CreateCheckpointStepVariables>): UseDataConnectMutationResult<CreateCheckpointStepData, CreateCheckpointStepVariables>;
+export function useCreateCheckpointStep(dc: DataConnect, options?: useDataConnectMutationOptions<CreateCheckpointStepData, FirebaseError, CreateCheckpointStepVariables>): UseDataConnectMutationResult<CreateCheckpointStepData, CreateCheckpointStepVariables>;
+
+export function useCreateCheckpointArtifact(options?: useDataConnectMutationOptions<CreateCheckpointArtifactData, FirebaseError, CreateCheckpointArtifactVariables>): UseDataConnectMutationResult<CreateCheckpointArtifactData, CreateCheckpointArtifactVariables>;
+export function useCreateCheckpointArtifact(dc: DataConnect, options?: useDataConnectMutationOptions<CreateCheckpointArtifactData, FirebaseError, CreateCheckpointArtifactVariables>): UseDataConnectMutationResult<CreateCheckpointArtifactData, CreateCheckpointArtifactVariables>;
+
+export function useCreateCheckpointDecision(options?: useDataConnectMutationOptions<CreateCheckpointDecisionData, FirebaseError, CreateCheckpointDecisionVariables>): UseDataConnectMutationResult<CreateCheckpointDecisionData, CreateCheckpointDecisionVariables>;
+export function useCreateCheckpointDecision(dc: DataConnect, options?: useDataConnectMutationOptions<CreateCheckpointDecisionData, FirebaseError, CreateCheckpointDecisionVariables>): UseDataConnectMutationResult<CreateCheckpointDecisionData, CreateCheckpointDecisionVariables>;
+
+export function useCreateDataImportRun(options?: useDataConnectMutationOptions<CreateDataImportRunData, FirebaseError, CreateDataImportRunVariables>): UseDataConnectMutationResult<CreateDataImportRunData, CreateDataImportRunVariables>;
+export function useCreateDataImportRun(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDataImportRunData, FirebaseError, CreateDataImportRunVariables>): UseDataConnectMutationResult<CreateDataImportRunData, CreateDataImportRunVariables>;
+
+export function useCreateDataImportIssue(options?: useDataConnectMutationOptions<CreateDataImportIssueData, FirebaseError, CreateDataImportIssueVariables>): UseDataConnectMutationResult<CreateDataImportIssueData, CreateDataImportIssueVariables>;
+export function useCreateDataImportIssue(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDataImportIssueData, FirebaseError, CreateDataImportIssueVariables>): UseDataConnectMutationResult<CreateDataImportIssueData, CreateDataImportIssueVariables>;
+
+export function useCreateEntityChangeLog(options?: useDataConnectMutationOptions<CreateEntityChangeLogData, FirebaseError, CreateEntityChangeLogVariables>): UseDataConnectMutationResult<CreateEntityChangeLogData, CreateEntityChangeLogVariables>;
+export function useCreateEntityChangeLog(dc: DataConnect, options?: useDataConnectMutationOptions<CreateEntityChangeLogData, FirebaseError, CreateEntityChangeLogVariables>): UseDataConnectMutationResult<CreateEntityChangeLogData, CreateEntityChangeLogVariables>;
+
 export function useGetCurrentUser(options?: useDataConnectQueryOptions<GetCurrentUserData>): UseDataConnectQueryResult<GetCurrentUserData, undefined>;
 export function useGetCurrentUser(dc: DataConnect, options?: useDataConnectQueryOptions<GetCurrentUserData>): UseDataConnectQueryResult<GetCurrentUserData, undefined>;
 
-export function useListClients(options?: useDataConnectQueryOptions<ListClientsData>): UseDataConnectQueryResult<ListClientsData, undefined>;
-export function useListClients(dc: DataConnect, options?: useDataConnectQueryOptions<ListClientsData>): UseDataConnectQueryResult<ListClientsData, undefined>;
+export function useListUsers(options?: useDataConnectQueryOptions<ListUsersData>): UseDataConnectQueryResult<ListUsersData, undefined>;
+export function useListUsers(dc: DataConnect, options?: useDataConnectQueryOptions<ListUsersData>): UseDataConnectQueryResult<ListUsersData, undefined>;
+
+export function useListOperationalClients(options?: useDataConnectQueryOptions<ListOperationalClientsData>): UseDataConnectQueryResult<ListOperationalClientsData, undefined>;
+export function useListOperationalClients(dc: DataConnect, options?: useDataConnectQueryOptions<ListOperationalClientsData>): UseDataConnectQueryResult<ListOperationalClientsData, undefined>;
 
 export function useGetClient(vars: GetClientVariables, options?: useDataConnectQueryOptions<GetClientData>): UseDataConnectQueryResult<GetClientData, GetClientVariables>;
 export function useGetClient(dc: DataConnect, vars: GetClientVariables, options?: useDataConnectQueryOptions<GetClientData>): UseDataConnectQueryResult<GetClientData, GetClientVariables>;
 
-export function useListChantiers(options?: useDataConnectQueryOptions<ListChantiersData>): UseDataConnectQueryResult<ListChantiersData, undefined>;
-export function useListChantiers(dc: DataConnect, options?: useDataConnectQueryOptions<ListChantiersData>): UseDataConnectQueryResult<ListChantiersData, undefined>;
+export function useListOperationalChantiers(options?: useDataConnectQueryOptions<ListOperationalChantiersData>): UseDataConnectQueryResult<ListOperationalChantiersData, undefined>;
+export function useListOperationalChantiers(dc: DataConnect, options?: useDataConnectQueryOptions<ListOperationalChantiersData>): UseDataConnectQueryResult<ListOperationalChantiersData, undefined>;
 
 export function useGetChantier(vars: GetChantierVariables, options?: useDataConnectQueryOptions<GetChantierData>): UseDataConnectQueryResult<GetChantierData, GetChantierVariables>;
 export function useGetChantier(dc: DataConnect, vars: GetChantierVariables, options?: useDataConnectQueryOptions<GetChantierData>): UseDataConnectQueryResult<GetChantierData, GetChantierVariables>;
@@ -91,3 +154,48 @@ export function useSearchClientAliases(dc: DataConnect, vars: SearchClientAliase
 
 export function useListPrevisionnelCellEdits(vars: ListPrevisionnelCellEditsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelCellEditsData>): UseDataConnectQueryResult<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
 export function useListPrevisionnelCellEdits(dc: DataConnect, vars: ListPrevisionnelCellEditsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelCellEditsData>): UseDataConnectQueryResult<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
+
+export function useListEmailThreads(options?: useDataConnectQueryOptions<ListEmailThreadsData>): UseDataConnectQueryResult<ListEmailThreadsData, undefined>;
+export function useListEmailThreads(dc: DataConnect, options?: useDataConnectQueryOptions<ListEmailThreadsData>): UseDataConnectQueryResult<ListEmailThreadsData, undefined>;
+
+export function useListUnreadEmailThreads(options?: useDataConnectQueryOptions<ListUnreadEmailThreadsData>): UseDataConnectQueryResult<ListUnreadEmailThreadsData, undefined>;
+export function useListUnreadEmailThreads(dc: DataConnect, options?: useDataConnectQueryOptions<ListUnreadEmailThreadsData>): UseDataConnectQueryResult<ListUnreadEmailThreadsData, undefined>;
+
+export function useGetEmailThread(vars: GetEmailThreadVariables, options?: useDataConnectQueryOptions<GetEmailThreadData>): UseDataConnectQueryResult<GetEmailThreadData, GetEmailThreadVariables>;
+export function useGetEmailThread(dc: DataConnect, vars: GetEmailThreadVariables, options?: useDataConnectQueryOptions<GetEmailThreadData>): UseDataConnectQueryResult<GetEmailThreadData, GetEmailThreadVariables>;
+
+export function useListPlanningEventsByPeriod(vars: ListPlanningEventsByPeriodVariables, options?: useDataConnectQueryOptions<ListPlanningEventsByPeriodData>): UseDataConnectQueryResult<ListPlanningEventsByPeriodData, ListPlanningEventsByPeriodVariables>;
+export function useListPlanningEventsByPeriod(dc: DataConnect, vars: ListPlanningEventsByPeriodVariables, options?: useDataConnectQueryOptions<ListPlanningEventsByPeriodData>): UseDataConnectQueryResult<ListPlanningEventsByPeriodData, ListPlanningEventsByPeriodVariables>;
+
+export function useListPlanningEventsByChantier(vars: ListPlanningEventsByChantierVariables, options?: useDataConnectQueryOptions<ListPlanningEventsByChantierData>): UseDataConnectQueryResult<ListPlanningEventsByChantierData, ListPlanningEventsByChantierVariables>;
+export function useListPlanningEventsByChantier(dc: DataConnect, vars: ListPlanningEventsByChantierVariables, options?: useDataConnectQueryOptions<ListPlanningEventsByChantierData>): UseDataConnectQueryResult<ListPlanningEventsByChantierData, ListPlanningEventsByChantierVariables>;
+
+export function useListAnalyticsSnapshots(vars: ListAnalyticsSnapshotsVariables, options?: useDataConnectQueryOptions<ListAnalyticsSnapshotsData>): UseDataConnectQueryResult<ListAnalyticsSnapshotsData, ListAnalyticsSnapshotsVariables>;
+export function useListAnalyticsSnapshots(dc: DataConnect, vars: ListAnalyticsSnapshotsVariables, options?: useDataConnectQueryOptions<ListAnalyticsSnapshotsData>): UseDataConnectQueryResult<ListAnalyticsSnapshotsData, ListAnalyticsSnapshotsVariables>;
+
+export function useGetAnalyticsSnapshot(vars: GetAnalyticsSnapshotVariables, options?: useDataConnectQueryOptions<GetAnalyticsSnapshotData>): UseDataConnectQueryResult<GetAnalyticsSnapshotData, GetAnalyticsSnapshotVariables>;
+export function useGetAnalyticsSnapshot(dc: DataConnect, vars: GetAnalyticsSnapshotVariables, options?: useDataConnectQueryOptions<GetAnalyticsSnapshotData>): UseDataConnectQueryResult<GetAnalyticsSnapshotData, GetAnalyticsSnapshotVariables>;
+
+export function useListRapports(options?: useDataConnectQueryOptions<ListRapportsData>): UseDataConnectQueryResult<ListRapportsData, undefined>;
+export function useListRapports(dc: DataConnect, options?: useDataConnectQueryOptions<ListRapportsData>): UseDataConnectQueryResult<ListRapportsData, undefined>;
+
+export function useGetRapport(vars: GetRapportVariables, options?: useDataConnectQueryOptions<GetRapportData>): UseDataConnectQueryResult<GetRapportData, GetRapportVariables>;
+export function useGetRapport(dc: DataConnect, vars: GetRapportVariables, options?: useDataConnectQueryOptions<GetRapportData>): UseDataConnectQueryResult<GetRapportData, GetRapportVariables>;
+
+export function useListRecentAuditEvents(vars: ListRecentAuditEventsVariables, options?: useDataConnectQueryOptions<ListRecentAuditEventsData>): UseDataConnectQueryResult<ListRecentAuditEventsData, ListRecentAuditEventsVariables>;
+export function useListRecentAuditEvents(dc: DataConnect, vars: ListRecentAuditEventsVariables, options?: useDataConnectQueryOptions<ListRecentAuditEventsData>): UseDataConnectQueryResult<ListRecentAuditEventsData, ListRecentAuditEventsVariables>;
+
+export function useListEntityChangeLogs(vars: ListEntityChangeLogsVariables, options?: useDataConnectQueryOptions<ListEntityChangeLogsData>): UseDataConnectQueryResult<ListEntityChangeLogsData, ListEntityChangeLogsVariables>;
+export function useListEntityChangeLogs(dc: DataConnect, vars: ListEntityChangeLogsVariables, options?: useDataConnectQueryOptions<ListEntityChangeLogsData>): UseDataConnectQueryResult<ListEntityChangeLogsData, ListEntityChangeLogsVariables>;
+
+export function useListCheckpointRuns(vars: ListCheckpointRunsVariables, options?: useDataConnectQueryOptions<ListCheckpointRunsData>): UseDataConnectQueryResult<ListCheckpointRunsData, ListCheckpointRunsVariables>;
+export function useListCheckpointRuns(dc: DataConnect, vars: ListCheckpointRunsVariables, options?: useDataConnectQueryOptions<ListCheckpointRunsData>): UseDataConnectQueryResult<ListCheckpointRunsData, ListCheckpointRunsVariables>;
+
+export function useGetCheckpointRun(vars: GetCheckpointRunVariables, options?: useDataConnectQueryOptions<GetCheckpointRunData>): UseDataConnectQueryResult<GetCheckpointRunData, GetCheckpointRunVariables>;
+export function useGetCheckpointRun(dc: DataConnect, vars: GetCheckpointRunVariables, options?: useDataConnectQueryOptions<GetCheckpointRunData>): UseDataConnectQueryResult<GetCheckpointRunData, GetCheckpointRunVariables>;
+
+export function useListDataImportRuns(vars: ListDataImportRunsVariables, options?: useDataConnectQueryOptions<ListDataImportRunsData>): UseDataConnectQueryResult<ListDataImportRunsData, ListDataImportRunsVariables>;
+export function useListDataImportRuns(dc: DataConnect, vars: ListDataImportRunsVariables, options?: useDataConnectQueryOptions<ListDataImportRunsData>): UseDataConnectQueryResult<ListDataImportRunsData, ListDataImportRunsVariables>;
+
+export function useGetDataImportRun(vars: GetDataImportRunVariables, options?: useDataConnectQueryOptions<GetDataImportRunData>): UseDataConnectQueryResult<GetDataImportRunData, GetDataImportRunVariables>;
+export function useGetDataImportRun(dc: DataConnect, vars: GetDataImportRunVariables, options?: useDataConnectQueryOptions<GetDataImportRunData>): UseDataConnectQueryResult<GetDataImportRunData, GetDataImportRunVariables>;
