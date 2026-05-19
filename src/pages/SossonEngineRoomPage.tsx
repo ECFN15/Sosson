@@ -90,6 +90,18 @@ const initialProbe: ProbeState = {
   previsionnel: null,
 }
 
+const lifecycleDecisionQuestions = [
+  'Fiche client/prospect au premier contact: nom, prenom, adresse, telephone, type chantier cible, souhaits et notes',
+  'Client possible sans chantier; creation combinee client + chantier quand le projet est clair',
+  'Domaine Devis separe avec statuts devis_demande, devis_envoye, devis_signe',
+  'Factures fournisseur saisies pendant chantier par plusieurs roles',
+  'Toute facture fournisseur importee est definitive et impacte dashboard/statistiques',
+  'Previsionnel Excel semi-operationnel, a rapprocher/promouvoir vers operationnel',
+  'Statuts chantier: prospect, devis_a_faire, devis_envoye, signe, en_preparation, en_cours, en_pause, termine, cloture, annule',
+  'KPI gerant: budget, depenses, marge, retard, productivite salarie',
+  'Moteur live: visualisation base + diagramme metier + explorateur client/chantier/facture/devis',
+] as const
+
 function StatusPill({ role, children }: { role: StatusRole; children: React.ReactNode }) {
   return (
     <span className="engine-pill" data-role={role}>
@@ -148,6 +160,9 @@ function PageTile({ page }: { page: PageTruth }) {
       <p>{page.detail}</p>
       <footer>
         <code>{page.route}</code>
+        <Link className="engine-page-link" to={page.route}>
+          Ouvrir
+        </Link>
         <small>{page.evidence}</small>
       </footer>
     </article>
@@ -219,11 +234,28 @@ function formatError(error: unknown) {
   return String(error)
 }
 
+function formatEuros(value: number) {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function sourceBadgeForId(id: string, isSqlSource: boolean) {
+  if (id.startsWith('prev-')) return { label: 'Previsionnel Excel', role: 'info' as StatusRole }
+  return isSqlSource
+    ? { label: 'Operationnel SQL', role: 'success' as StatusRole }
+    : { label: 'Operationnel fallback', role: 'warning' as StatusRole }
+}
+
 export function SossonEngineRoomPage() {
   const { operationalDataState, isDataConnectLoading, user } = useApp()
   const [probe, setProbe] = useState<ProbeState>(initialProbe)
   const [selectedTableKey, setSelectedTableKey] = useState('client')
   const [tableFilter, setTableFilter] = useState('')
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+  const [selectedChantierId, setSelectedChantierId] = useState<string | null>(null)
 
   const refreshSqlProbe = useCallback(async () => {
     if (!isDataConnectEnabled) {
@@ -322,7 +354,7 @@ export function SossonEngineRoomPage() {
       },
       {
         title: 'Tables operationnelles',
-        subtitle: `${operationalDataState.data.clients.length} clients, ${operationalDataState.data.chantiers.length} chantiers, ${operationalDataState.data.factures.length} factures`,
+        subtitle: `${operationalDataState.data.clients.length} clients, ${operationalDataState.data.chantiers.length} chantiers, ${operationalDataState.data.devis.length} devis, ${operationalDataState.data.factures.length} factures`,
         role: sourceRole,
         Icon: Database,
       },
@@ -423,6 +455,7 @@ export function SossonEngineRoomPage() {
   const tableCatalog: DataTableCatalog[] = useMemo(() => {
     const clients = operationalDataState.data.clients
     const chantiers = operationalDataState.data.chantiers
+    const devis = operationalDataState.data.devis
     const factures = operationalDataState.data.factures
     const sourceIsSql = operationalDataState.source === 'dataconnect'
     const sourceLabel = sourceIsSql ? 'lignes SQL lues par le front' : `lignes visibles depuis ${dataSourceLabels[operationalDataState.source]}`
@@ -458,14 +491,16 @@ export function SossonEngineRoomPage() {
         truth: `Table donneur d'ordre. Les listes operationnelles SQL filtrent origineImport = "operationnel"; ici ${sourceLabel}.`,
         countLabel: `${clients.length} visibles`,
         countRole: sourceIsSql ? 'success' : 'warning',
-        columns: ['origineImport varchar(32)', 'type varchar(32)', 'nom varchar(200)', 'email varchar(254)', 'telephone', 'ville', 'codePostal', 'dateCreation'],
-        relations: ['Client 1..N Chantier', 'Client 1..N ClientAlias', 'Client 1..N PrevisionnelLine', 'Client 1..N DocumentAttache'],
+        columns: ['origineImport varchar(32)', 'type varchar(32)', 'nom varchar(200)', 'prenom', 'typeChantierCible', 'souhaits', 'notes', 'dateCreation'],
+        relations: ['Client 1..N Devis', 'Client 1..N Chantier', 'Client 1..N ClientAlias', 'Client 1..N PrevisionnelLine', 'Client 1..N DocumentAttache'],
         usedBy: ['ListOperationalClients', 'ClientsPage', 'DashboardPage', 'ChantiersPage'],
         sampleRows: clients.slice(0, 6).map(client => ({
           id: client.id,
           nom: client.nom,
+          prenom: client.prenom ?? null,
           type: client.type,
           ville: client.ville,
+          cible: client.typeChantierCible ?? null,
           chantiers: client.chantierIds.length,
         })),
         sqlShape: 'clients(where: { origineImport: { eq: "operationnel" } }, orderBy: { nom: ASC }, limit: 1000)',
@@ -478,8 +513,8 @@ export function SossonEngineRoomPage() {
         truth: `Dossier operationnel rattache a un client. depensesEngagees et tendance sont calculees dans l adapter depuis les factures; ici ${sourceLabel}.`,
         countLabel: `${chantiers.length} visibles`,
         countRole: sourceIsSql ? 'success' : 'warning',
-        columns: ['origineImport varchar(32)', 'clientId UUID', 'chefChantierId String', 'nom', 'statut', 'dateDebut', 'dateFinPrevue', 'budgetPrevisionnel'],
-        relations: ['Chantier N..1 Client', 'Chantier 0..N Facture', 'Chantier 0..N DocumentAttache', 'Chantier 0..N PrevisionnelLine'],
+        columns: ['origineImport varchar(32)', 'clientId UUID', 'chefChantierId String', 'nom', 'statut metier', 'dateDebut', 'dateFinPrevue', 'budgetPrevisionnel'],
+        relations: ['Chantier N..1 Client', 'Chantier 0..N Devis', 'Chantier 0..N Facture', 'Chantier 0..N DocumentAttache', 'Chantier 0..N PrevisionnelLine'],
         usedBy: ['ListOperationalChantiers', 'ChantiersPage', 'FacturesPage', 'DocumentsPage'],
         sampleRows: chantiers.slice(0, 6).map(chantier => ({
           id: chantier.id,
@@ -492,15 +527,36 @@ export function SossonEngineRoomPage() {
         sqlShape: 'chantiers(where: { origineImport: { eq: "operationnel" } }, orderBy: { dateDebut: DESC }, limit: 1200)',
       },
       {
+        key: 'devis',
+        name: 'Devis',
+        kind: 'core',
+        storage: 'PostgreSQL via SQL Connect',
+        truth: 'Objet metier entre la demande client/prospect et le chantier confirme. Un devis peut exister sans chantier tant que le projet n est pas signe.',
+        countLabel: `${devis.length} visibles`,
+        countRole: sourceIsSql ? 'success' : 'warning',
+        columns: ['clientId UUID', 'chantierId UUID nullable', 'numeroDevis', 'titre', 'statut', 'montantTTC', 'dateDemande', 'dateEnvoi', 'dateSignature'],
+        relations: ['Devis N..1 Client', 'Devis 0..1 Chantier', 'DocumentAttache 0..N Devis'],
+        usedBy: ['ListDevis', 'CreateDevis', 'Moteur live', 'futur parcours devis'],
+        sampleRows: devis.slice(0, 6).map(item => ({
+          id: item.id,
+          numero: item.numeroDevis,
+          statut: item.statut,
+          clientId: item.clientId,
+          chantierId: item.chantierId ?? null,
+          montantTTC: item.montantTTC ?? null,
+        })),
+        sqlShape: 'deviss(orderBy: { dateCreation: DESC }, limit: 1000) { id numeroDevis statut client { id nom } chantier { id nom statut } }',
+      },
+      {
         key: 'facture',
         name: 'Facture',
         kind: 'core',
         storage: 'PostgreSQL via SQL Connect; ajout local possible si SQL indisponible',
-        truth: `Facture fournisseur rattachee a un chantier. ListFactures ne filtre pas origineImport directement; elle suit la relation chantier.`,
+        truth: 'Facture fournisseur definitive rattachee a un chantier. Toute facture importee impacte dashboard/statistiques, avec categorie/poste de cout.',
         countLabel: `${factures.length} visibles`,
         countRole: sourceIsSql ? 'success' : 'warning',
         columns: ['chantierId UUID', 'fournisseur', 'numeroFacture', 'montantHT numeric', 'tva numeric', 'montantTTC numeric', 'date', 'categorie', 'statut'],
-        relations: ['Facture N..1 Chantier', 'Facture 0..N DocumentAttache'],
+        relations: ['Facture N..1 Chantier', 'Facture 0..N DocumentAttache', 'Facture impacte les KPI budget/depenses/marge'],
         usedBy: ['ListFactures', 'FacturesPage', 'DashboardPage', 'ChantierDetailPage'],
         sampleRows: factures.slice(0, 6).map(facture => ({
           id: facture.id,
@@ -534,7 +590,7 @@ export function SossonEngineRoomPage() {
         countLabel: probe.documents ? `${probe.documents.attaches} SQL` : 'pas interroge ici',
         countRole: probe.documents ? 'info' : 'warning',
         columns: ['folderId', 'clientId', 'chantierId', 'factureId', 'nomFichier', 'storagePath', 'mimeType', 'tailleBytes', 'typeDocument', 'statut', 'source'],
-        relations: ['DocumentAttache N..0/1 Client', 'DocumentAttache N..0/1 Chantier', 'DocumentAttache N..0/1 Facture'],
+        relations: ['DocumentAttache N..0/1 Client', 'DocumentAttache N..0/1 Chantier', 'DocumentAttache N..0/1 Devis', 'DocumentAttache N..0/1 Facture'],
         usedBy: ['DocumentsPage', 'CreateDocumentAttache', 'UpdateDocumentAttacheLinks'],
         sampleRows: probe.documents?.sample ?? [],
         sqlShape: 'documentAttaches(orderBy: { dateCreation: DESC }, limit: 1000) { storagePath folder client chantier facture }',
@@ -619,10 +675,11 @@ export function SossonEngineRoomPage() {
         countRole: 'warning',
         columns: ['CheckpointRun', 'CheckpointStep', 'CheckpointArtifact', 'CheckpointDecision', 'DataImportRun', 'AuditEvent', 'AnalyticsSnapshot', 'tmp/checkpoint-002/*.json'],
         relations: ['CheckpointRun -> steps/artifacts/decisions', 'DataImportRun -> issues', 'EntityChangeLog -> audit/checkpoint/import'],
-        usedBy: ['npm run checkpoint:002:local', 'npm run checkpoint:002:emulator', 'npm run verify:operational-boundary:dataconnect', 'npm run snapshot:analytics:dataconnect', 'npm run verify:checkpoint-audit:dataconnect'],
+        usedBy: ['npm run checkpoint:002:local', 'npm run checkpoint:002:emulator', 'npm run verify:operational-boundary:dataconnect', 'npm run verify:operational-lifecycle:dataconnect', 'npm run snapshot:analytics:dataconnect', 'npm run verify:checkpoint-audit:dataconnect'],
         sampleRows: [
           { artifact: 'seed_data.gql', form: 'GraphQL mutation', mutates: 'local ou sandbox seulement si action reelle validee' },
           { artifact: 'previsionnel_seed/*.gql', form: '113 chunks GraphQL', mutates: 'local ou sandbox seulement si action reelle validee' },
+          { artifact: 'tmp/checkpoint-002/operational-lifecycle-local.json', form: 'preuve client -> chantier -> facture', mutates: 'local-emulator' },
           { artifact: 'tmp/checkpoint-002/*.json', form: 'preuves ignorees git', mutates: 'non' },
         ],
         sqlShape: 'ListCheckpointRuns / GetCheckpointRun / ListDataImportRuns / ListRecentAuditEvents',
@@ -654,9 +711,36 @@ export function SossonEngineRoomPage() {
   }, [tableCatalog, tableFilter])
 
   const sqlMode = shouldUseDataConnectEmulator ? 'Emulateur local en dev sandbox' : 'Service Firebase SQL Connect'
+  const sourceIsSql = operationalDataState.source === 'dataconnect'
+  const selectedClient =
+    operationalDataState.data.clients.find(client => client.id === selectedClientId) ??
+    operationalDataState.data.clients[0]
+  const selectedClientChantiers = selectedClient
+    ? operationalDataState.data.chantiers.filter(chantier => chantier.clientId === selectedClient.id)
+    : []
+  const selectedChantier =
+    selectedClientChantiers.find(chantier => chantier.id === selectedChantierId) ??
+    selectedClientChantiers[0]
+  const selectedChantierFactures = selectedChantier
+    ? operationalDataState.data.factures.filter(facture => facture.chantierId === selectedChantier.id)
+    : []
+  const selectedClientDevis = selectedClient
+    ? operationalDataState.data.devis.filter(devis => devis.clientId === selectedClient.id)
+    : []
+  const selectedChantierDevis = selectedChantier
+    ? operationalDataState.data.devis.filter(devis => devis.chantierId === selectedChantier.id)
+    : []
+  const selectedClientFactures = selectedClientChantiers.length
+    ? operationalDataState.data.factures.filter(facture => selectedClientChantiers.some(chantier => chantier.id === facture.chantierId))
+    : []
+  const selectedClientBudget = selectedClientChantiers.reduce((sum, chantier) => sum + chantier.budgetPrevisionnel, 0)
+  const selectedClientDepenses = selectedClientFactures.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const selectedClientSource = selectedClient ? sourceBadgeForId(selectedClient.id, sourceIsSql) : { label: 'Aucun client', role: 'neutral' as StatusRole }
+  const selectedChantierSource = selectedChantier ? sourceBadgeForId(selectedChantier.id, sourceIsSql) : { label: 'Aucun chantier', role: 'neutral' as StatusRole }
   const totalOperationalRows =
     operationalDataState.data.clients.length +
     operationalDataState.data.chantiers.length +
+    operationalDataState.data.devis.length +
     operationalDataState.data.factures.length
   const liveScore = [
     operationalDataState.source === 'dataconnect',
@@ -691,8 +775,8 @@ export function SossonEngineRoomPage() {
             <StatusPill role={sourceRole}>Source operationnelle: {dataSourceLabels[operationalDataState.source]}</StatusPill>
             <h1>Le moteur vivant de Sosson.</h1>
             <p>
-              Cette page montre ce que le front sait vraiment lire maintenant: les tables operationnelles, les flux SQL Connect,
-              les fallbacks locaux et les pieces encore a valider en sandbox.
+              Cette page montre ce que le front sait vraiment lire maintenant: clients/prospects, devis, chantiers, factures,
+              les flux SQL Connect, les fallbacks locaux et les pieces encore a valider en sandbox.
             </p>
           </div>
 
@@ -740,6 +824,173 @@ export function SossonEngineRoomPage() {
             </div>
           </section>
         ) : null}
+
+        <section className="engine-explorer" aria-label="Explorateur metier client chantier devis facture">
+          <div className="engine-section-head engine-section-head-row">
+            <div>
+              <span>Explorateur metier</span>
+              <h2>Client / devis / chantiers / factures</h2>
+            </div>
+            <p>
+              Selectionne un client ou un chantier pour voir les liens utiles au gerant: devis demandes/signes, chantiers et factures. Les badges indiquent ce qui vient de SQL,
+              du previsionnel Excel ou d'un fallback visible.
+            </p>
+          </div>
+
+          <div className="engine-explorer-grid">
+            <aside className="engine-picker-panel">
+              <div className="engine-picker-head">
+                <span>Clients visibles</span>
+                <StatusPill role={sourceRole}>{dataSourceLabels[operationalDataState.source]}</StatusPill>
+              </div>
+              <div className="engine-picker-list">
+                {operationalDataState.data.clients.slice(0, 8).map(client => {
+                  const badge = sourceBadgeForId(client.id, sourceIsSql)
+                  const chantiersCount = operationalDataState.data.chantiers.filter(chantier => chantier.clientId === client.id).length
+                  const devisCount = operationalDataState.data.devis.filter(devis => devis.clientId === client.id).length
+                  return (
+                    <button
+                      key={client.id}
+                      type="button"
+                      className="engine-picker-row"
+                      data-selected={selectedClient?.id === client.id}
+                      onClick={() => {
+                        setSelectedClientId(client.id)
+                        setSelectedChantierId(null)
+                      }}
+                    >
+                      <span>
+                        <strong>{client.nom}</strong>
+                        <small>{client.ville || client.type} - {devisCount} devis - {chantiersCount} chantier{chantiersCount > 1 ? 's' : ''}</small>
+                      </span>
+                      <StatusPill role={badge.role}>{badge.label}</StatusPill>
+                    </button>
+                  )
+                })}
+                {!operationalDataState.data.clients.length ? (
+                  <div className="engine-empty-state">
+                    <CircleDashed size={18} strokeWidth={1.9} />
+                    Aucun client charge dans le store operationnel.
+                  </div>
+                ) : null}
+              </div>
+            </aside>
+
+            <section className="engine-inspector-panel">
+              <div className="engine-inspector-head">
+                <div>
+                  <span>Client selectionne</span>
+                  <h3>{selectedClient?.nom ?? 'Aucun client'}</h3>
+                </div>
+                <StatusPill role={selectedClientSource.role}>{selectedClientSource.label}</StatusPill>
+              </div>
+
+              <div className="engine-inspector-metrics">
+                <MetricCard label="Chantiers" value={String(selectedClientChantiers.length)} detail="lies au client charge" role={selectedClientSource.role} />
+                <MetricCard label="Devis" value={String(selectedClientDevis.length)} detail="demandes/envoyes/signes" role={selectedClientSource.role} />
+                <MetricCard label="Factures" value={String(selectedClientFactures.length)} detail="via ses chantiers" role={selectedClientSource.role} />
+                <MetricCard label="Budget" value={formatEuros(selectedClientBudget)} detail="somme chantiers visibles" role="neutral" />
+                <MetricCard label="Depenses" value={formatEuros(selectedClientDepenses)} detail="somme factures visibles" role="warning" />
+              </div>
+
+              <div className="engine-relation-board">
+                <div className="engine-relation-column">
+                  <div className="engine-relation-head">
+                    <strong>Chantiers rattaches</strong>
+                    <small>{selectedClientChantiers.length} visible{selectedClientChantiers.length > 1 ? 's' : ''}</small>
+                  </div>
+                  <div className="engine-relation-list">
+                    {selectedClientChantiers.map(chantier => {
+                      const badge = sourceBadgeForId(chantier.id, sourceIsSql)
+                      const factureCount = operationalDataState.data.factures.filter(facture => facture.chantierId === chantier.id).length
+                      return (
+                        <button
+                          key={chantier.id}
+                          type="button"
+                          className="engine-relation-row"
+                          data-selected={selectedChantier?.id === chantier.id}
+                          onClick={() => setSelectedChantierId(chantier.id)}
+                        >
+                          <span>
+                            <strong>{chantier.nom}</strong>
+                            <small>{chantier.statut} - {factureCount} facture{factureCount > 1 ? 's' : ''}</small>
+                          </span>
+                          <StatusPill role={badge.role}>{badge.label}</StatusPill>
+                        </button>
+                      )
+                    })}
+                    {!selectedClientChantiers.length ? (
+                      <div className="engine-empty-state">
+                        <CircleDashed size={18} strokeWidth={1.9} />
+                        Aucun chantier charge pour ce client.
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="engine-relation-column">
+                  <div className="engine-relation-head">
+                    <span>
+                      <strong>Devis rattaches</strong>
+                      <small>{selectedChantier ? `${selectedChantierDevis.length} pour le chantier` : `${selectedClientDevis.length} pour le client`}</small>
+                    </span>
+                    <StatusPill role={sourceRole}>Devis SQL</StatusPill>
+                  </div>
+                  <div className="engine-relation-list">
+                    {(selectedChantier ? selectedChantierDevis : selectedClientDevis).map(devis => (
+                      <div key={devis.id} className="engine-facture-row">
+                        <span>
+                          <strong>{devis.numeroDevis}</strong>
+                          <small>{devis.statut} - {devis.chantierId ? 'chantier lie' : 'sans chantier'}</small>
+                        </span>
+                        <strong>{devis.montantTTC ? formatEuros(devis.montantTTC) : 'A chiffrer'}</strong>
+                      </div>
+                    ))}
+                    {!(selectedChantier ? selectedChantierDevis : selectedClientDevis).length ? (
+                      <div className="engine-empty-state">
+                        <CircleDashed size={18} strokeWidth={1.9} />
+                        Aucun devis charge pour cette selection.
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="engine-relation-column">
+                  <div className="engine-relation-head">
+                    <span>
+                      <strong>Factures du chantier</strong>
+                      <small>{selectedChantier?.nom ?? 'aucun chantier'}</small>
+                    </span>
+                    <StatusPill role={selectedChantierSource.role}>{selectedChantierSource.label}</StatusPill>
+                  </div>
+                  <div className="engine-relation-list">
+                    {selectedChantierFactures.map(facture => (
+                      <div key={facture.id} className="engine-facture-row">
+                        <span>
+                          <strong>{facture.numeroFacture}</strong>
+                          <small>{facture.fournisseur} - {facture.statut}</small>
+                        </span>
+                        <strong>{formatEuros(facture.montantTTC)}</strong>
+                      </div>
+                    ))}
+                    {!selectedChantierFactures.length ? (
+                      <div className="engine-empty-state">
+                        <CircleDashed size={18} strokeWidth={1.9} />
+                        Aucune facture chargee pour ce chantier.
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="engine-inspector-actions">
+                {selectedClient ? <Link to={`/clients/${selectedClient.id}`}>Ouvrir fiche client</Link> : <span>Aucun client</span>}
+                {selectedChantier ? <Link to={`/chantiers/${selectedChantier.id}`}>Ouvrir fiche chantier</Link> : <span>Aucun chantier</span>}
+                <StatusPill role="warning">Sandbox distante non prouvee ici</StatusPill>
+              </div>
+            </section>
+          </div>
+        </section>
 
         <section className="engine-console" aria-label="Console schema et tables Sosson">
           <aside className="engine-console-rail">
@@ -867,6 +1118,7 @@ export function SossonEngineRoomPage() {
             <div className="engine-metrics">
               <MetricCard label="Clients" value={String(operationalDataState.data.clients.length)} detail="Store operationnel" role={sourceRole} />
               <MetricCard label="Chantiers" value={String(operationalDataState.data.chantiers.length)} detail="Store operationnel" role={sourceRole} />
+              <MetricCard label="Devis" value={String(operationalDataState.data.devis.length)} detail="Store operationnel" role={sourceRole} />
               <MetricCard label="Factures" value={String(operationalDataState.data.factures.length)} detail="Store operationnel" role={sourceRole} />
               <MetricCard
                 label="Documents SQL"
@@ -916,11 +1168,20 @@ export function SossonEngineRoomPage() {
             <ul className="engine-audit-list">
               <li>
                 <CheckCircle2 size={18} />
-                Les compteurs clients/chantiers/factures viennent de `operationalDataState`.
+                Les compteurs clients/devis/chantiers/factures viennent de `operationalDataState`.
               </li>
               <li>
                 <CheckCircle2 size={18} />
                 Les documents et le previsionnel sont tentes via les adapters SQL existants.
+              </li>
+              <li>
+                <CheckCircle2 size={18} />
+                Le parcours prospect/client, devis, chantier et factures a maintenant une preuve locale dediee:
+                `tmp/checkpoint-002/operational-lifecycle-local.json`.
+              </li>
+              <li>
+                <AlertTriangle size={18} />
+                La fiche `docs/17-operational-lifecycle-scenario.md` contient les 9 decisions metier a respecter avant sandbox.
               </li>
               <li>
                 <AlertTriangle size={18} />
@@ -931,6 +1192,29 @@ export function SossonEngineRoomPage() {
                 Cette page ne prouve pas le deploy production et ne lance aucune mutation.
               </li>
             </ul>
+          </div>
+
+          <div className="engine-panel">
+            <div className="engine-section-head">
+              <span>Decision metier</span>
+              <h2>Decisions qui cadrent la sandbox</h2>
+              <p>
+                Ces decisions viennent de la side conversation metier et remplacent l ancien parcours technique simple client, chantier, facture.
+              </p>
+            </div>
+            <div className="engine-decision-stack">
+              {lifecycleDecisionQuestions.map((question, index) => (
+                <div key={question} className="engine-decision-row">
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{question}</strong>
+                  <StatusPill role="success">Valide</StatusPill>
+                </div>
+              ))}
+            </div>
+            <div className="engine-inspector-actions engine-decision-actions">
+              <Link to="/documentation">Ouvrir documentation</Link>
+              <StatusPill role="success">check:operational-lifecycle-decisions attendu OK</StatusPill>
+            </div>
           </div>
 
           <div className="engine-panel">
@@ -1428,6 +1712,224 @@ const engineRoomCss = `
   line-height: 1.55;
 }
 
+.engine-explorer {
+  display: grid;
+  gap: var(--engine-s-5);
+  border: 1px solid var(--engine-line-strong);
+  border-radius: var(--engine-radius-panel);
+  background: var(--engine-surface);
+  padding: var(--engine-s-6);
+  box-shadow: 0 18px 44px rgba(30, 30, 30, .06);
+}
+
+.engine-explorer-grid {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: var(--engine-s-5);
+}
+
+.engine-picker-panel,
+.engine-inspector-panel {
+  min-width: 0;
+  border: 1px solid var(--engine-line);
+  border-radius: 18px;
+  background: #FFFCF8;
+}
+
+.engine-picker-panel {
+  display: flex;
+  max-height: 620px;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.engine-picker-head,
+.engine-inspector-head,
+.engine-relation-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--engine-s-3);
+  border-bottom: 1px solid var(--engine-line);
+}
+
+.engine-picker-head,
+.engine-inspector-head {
+  padding: var(--engine-s-4);
+}
+
+.engine-picker-head span,
+.engine-inspector-head span {
+  color: var(--engine-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.engine-inspector-head h3 {
+  margin: 5px 0 0;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.engine-picker-list,
+.engine-relation-list {
+  display: grid;
+  gap: 8px;
+  overflow-y: auto;
+  padding: var(--engine-s-3);
+}
+
+.engine-picker-row,
+.engine-relation-row,
+.engine-facture-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--engine-s-3);
+  border: 1px solid var(--engine-line);
+  border-radius: 14px;
+  background: var(--engine-surface);
+  color: var(--engine-ink);
+  padding: var(--engine-s-3);
+}
+
+.engine-picker-row,
+.engine-relation-row {
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 140ms var(--engine-ease), background 140ms var(--engine-ease), transform 140ms var(--engine-ease);
+}
+
+.engine-picker-row:hover,
+.engine-relation-row:hover {
+  border-color: rgba(240, 107, 33, .42);
+  background: #FFF8F2;
+  transform: translateY(-1px);
+}
+
+.engine-picker-row[data-selected='true'],
+.engine-relation-row[data-selected='true'] {
+  border-color: var(--engine-action);
+  background: var(--engine-action-soft);
+}
+
+.engine-picker-row strong,
+.engine-relation-row strong,
+.engine-facture-row strong {
+  display: block;
+  overflow: hidden;
+  color: var(--engine-ink);
+  font-size: 13px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.engine-picker-row small,
+.engine-relation-row small,
+.engine-facture-row small {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--engine-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.engine-picker-row > span:first-child,
+.engine-relation-row > span:first-child,
+.engine-facture-row > span:first-child,
+.engine-relation-head > span:first-child {
+  min-width: 0;
+}
+
+.engine-inspector-panel {
+  display: grid;
+  align-content: start;
+  overflow: hidden;
+}
+
+.engine-inspector-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--engine-s-3);
+  padding: var(--engine-s-4);
+}
+
+.engine-relation-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--engine-s-4);
+  padding: 0 var(--engine-s-4) var(--engine-s-4);
+}
+
+.engine-relation-column {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--engine-line);
+  border-radius: 16px;
+  background: var(--engine-surface);
+}
+
+.engine-relation-head {
+  padding: var(--engine-s-3);
+}
+
+.engine-relation-head strong {
+  font-size: 13px;
+}
+
+.engine-relation-head small {
+  max-width: 220px;
+  overflow: hidden;
+  color: var(--engine-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.engine-facture-row {
+  cursor: default;
+}
+
+.engine-facture-row > strong {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.engine-inspector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--engine-s-3);
+  border-top: 1px solid var(--engine-line);
+  padding: var(--engine-s-4);
+}
+
+.engine-inspector-actions a,
+.engine-inspector-actions > span:not(.engine-pill) {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  border: 1px solid var(--engine-line-strong);
+  border-radius: 12px;
+  background: var(--engine-surface);
+  color: var(--engine-ink);
+  padding: 0 var(--engine-s-3);
+  font-size: 12px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.engine-inspector-actions a:hover {
+  border-color: var(--engine-action);
+  color: #D95B17;
+}
+
 .engine-console {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
@@ -1791,6 +2293,7 @@ const engineRoomCss = `
   gap: var(--engine-s-2);
 }
 
+.engine-page-link,
 .engine-page-tile code {
   width: max-content;
   max-width: 100%;
@@ -1801,6 +2304,16 @@ const engineRoomCss = `
   color: var(--engine-ink);
   font-size: 11px;
   font-weight: 850;
+}
+
+.engine-page-link {
+  text-decoration: none;
+  background: var(--engine-action-soft);
+  color: var(--engine-action);
+}
+
+.engine-page-link:hover {
+  background: #FDEBDD;
 }
 
 .engine-page-tile small {
@@ -1815,7 +2328,8 @@ const engineRoomCss = `
 }
 
 .engine-audit-list,
-.engine-proof-stack {
+.engine-proof-stack,
+.engine-decision-stack {
   display: grid;
   gap: var(--engine-s-3);
   margin: 0;
@@ -1853,6 +2367,43 @@ const engineRoomCss = `
 .engine-proof[data-role='warning'] { background: var(--engine-warning-bg); }
 .engine-proof[data-role='info'] { background: var(--engine-info-bg); }
 
+.engine-decision-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--engine-s-3);
+  border: 1px solid var(--engine-line);
+  border-radius: 16px;
+  background: var(--engine-warning-bg);
+  padding: var(--engine-s-3);
+}
+
+.engine-decision-row > span:first-child {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--engine-warning-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.engine-decision-row strong {
+  min-width: 0;
+  color: var(--engine-ink);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.engine-decision-actions {
+  margin-top: var(--engine-s-4);
+  border: 0;
+  padding: 0;
+}
+
 .engine-proof strong,
 .engine-proof small {
   display: block;
@@ -1873,6 +2424,8 @@ const engineRoomCss = `
 @media (prefers-reduced-motion: reduce) {
   .engine-back,
   .engine-refresh,
+  .engine-picker-row,
+  .engine-relation-row,
   .engine-node,
   .engine-page-tile {
     transition-duration: .01ms !important;
@@ -1884,6 +2437,8 @@ const engineRoomCss = `
   .engine-hero-grid,
   .engine-grid,
   .engine-section-head-row,
+  .engine-explorer-grid,
+  .engine-relation-board,
   .engine-console,
   .engine-console-toolbar,
   .engine-schema-grid {
@@ -1900,6 +2455,7 @@ const engineRoomCss = `
   }
 
   .engine-page-grid,
+  .engine-inspector-metrics,
   .engine-flow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1939,6 +2495,8 @@ const engineRoomCss = `
 
   .engine-progress,
   .engine-page-grid,
+  .engine-inspector-metrics,
+  .engine-relation-board,
   .engine-flow {
     grid-template-columns: 1fr;
   }

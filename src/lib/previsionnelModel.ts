@@ -57,7 +57,7 @@ function addMonths(date: string, months: number) {
 }
 
 function chantierStatus(line: PrevisionnelLine): StatutChantier {
-  if (line.exercise === '2025-26') return line.realizedTotal > 0 ? 'en_cours' : 'en_attente'
+  if (line.exercise === '2025-26') return line.realizedTotal > 0 ? 'en_cours' : 'devis_a_faire'
   return 'cloture'
 }
 

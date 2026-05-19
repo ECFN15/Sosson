@@ -48,11 +48,15 @@ query ListOperationalClients
     id
     type
     nom
+    prenom
     email
     telephone
     adresse
     ville
     codePostal
+    typeChantierCible
+    souhaits
+    notes
     dateCreation
   }
 }
@@ -66,12 +70,27 @@ query GetClient($id: UUID!)
     id
     type
     nom
+    prenom
     email
     telephone
     adresse
     ville
     codePostal
+    typeChantierCible
+    souhaits
+    notes
     dateCreation
+    devis: deviss_on_client(orderBy: { dateCreation: DESC }, limit: 100) {
+      id
+      numeroDevis
+      titre
+      statut
+      montantTTC
+      dateDemande
+      dateEnvoi
+      dateSignature
+      chantier { id nom statut }
+    }
     chantiers: chantiers_on_client(orderBy: { dateDebut: DESC }) {
       id
       nom
@@ -124,13 +143,30 @@ query GetChantier($id: UUID!)
       id
       nom
       type
+      prenom
       email
       telephone
       adresse
       ville
       codePostal
+      typeChantierCible
+      souhaits
+      notes
     }
     chefChantier { id nom prenom email avatar }
+    devis: deviss_on_chantier(orderBy: { dateCreation: DESC }, limit: 100) {
+      id
+      numeroDevis
+      titre
+      statut
+      montantHT
+      tva
+      montantTTC
+      dateDemande
+      dateEnvoi
+      dateSignature
+      client { id nom type }
+    }
     factures: factures_on_chantier(orderBy: { date: DESC }) {
       id
       fournisseur
@@ -146,6 +182,79 @@ query GetChantier($id: UUID!)
   }
 }
 
+
+# ---------- Devis ------------------------------------------------------------
+
+query ListDevis
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared quote access while fine-grained RBAC is still enforced in the application layer."
+  ) {
+  deviss(orderBy: { dateCreation: DESC }, limit: 1000) {
+    id
+    numeroDevis
+    titre
+    statut
+    montantHT
+    tva
+    montantTTC
+    dateDemande
+    dateEnvoi
+    dateSignature
+    typeChantierCible
+    description
+    dateCreation
+    dateModification
+    client { id nom prenom type ville }
+    chantier { id nom statut client { id nom type } }
+  }
+}
+
+query ListDevisByClient($clientId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared quote access for a client."
+  ) {
+  deviss(where: { clientId: { eq: $clientId } }, orderBy: { dateCreation: DESC }, limit: 300) {
+    id
+    numeroDevis
+    titre
+    statut
+    montantHT
+    tva
+    montantTTC
+    dateDemande
+    dateEnvoi
+    dateSignature
+    typeChantierCible
+    description
+    client { id nom prenom type }
+    chantier { id nom statut }
+  }
+}
+
+query ListDevisByChantier($chantierId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff need shared quote access for a chantier."
+  ) {
+  deviss(where: { chantierId: { eq: $chantierId } }, orderBy: { dateCreation: DESC }, limit: 300) {
+    id
+    numeroDevis
+    titre
+    statut
+    montantHT
+    tva
+    montantTTC
+    dateDemande
+    dateEnvoi
+    dateSignature
+    typeChantierCible
+    description
+    client { id nom prenom type }
+    chantier { id nom statut }
+  }
+}
 
 # ---------- Factures ---------------------------------------------------------
 
@@ -236,6 +345,14 @@ query ListDocumentsAttaches
       statut
       client { id nom type }
     }
+    devis {
+      id
+      numeroDevis
+      titre
+      statut
+      client { id nom type }
+      chantier { id nom statut }
+    }
     facture {
       id
       fournisseur
@@ -273,6 +390,7 @@ query ListDocumentsByChantier($chantierId: UUID!)
     folder { id nom slug }
     client { id nom type }
     chantier { id nom statut client { id nom type } }
+    devis { id numeroDevis titre statut client { id nom type } chantier { id nom statut } }
     facture { id fournisseur numeroFacture montantTTC date statut }
   }
 }

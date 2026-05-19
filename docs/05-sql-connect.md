@@ -175,6 +175,9 @@ Exemples:
 - `GetClient`
 - `ListOperationalChantiers`
 - `GetChantier`
+- `ListDevis`
+- `ListDevisByClient`
+- `ListDevisByChantier`
 - `ListFactures`
 - `ListDocumentsAttaches`
 - `ListPrevisionnelExercises`
@@ -199,6 +202,8 @@ Exemples:
 - `UpdateClient`
 - `CreateChantier`
 - `UpdateChantierStatut`
+- `CreateDevis`
+- `UpdateDevisStatut`
 - `CreateFacture`
 - `SetFactureStatut`
 - `CreateDocumentAttache`
@@ -324,7 +329,7 @@ Champs:
 - `client`: lien obligatoire vers `Client`.
 - `chefChantier`: lien optionnel vers `User`.
 - `nom`
-- `statut`: en cours / cloture / en attente.
+- `statut`: `prospect`, `devis_a_faire`, `devis_envoye`, `signe`, `en_preparation`, `en_cours`, `en_pause`, `termine`, `cloture`, `annule`.
 - `dateDebut`
 - `dateFinPrevue`
 - `dateFin`
@@ -337,10 +342,27 @@ Relations:
 ```text
 Chantier N -> 1 Client
 Chantier N -> 0/1 User
+Chantier 1 -> N Devis
 Chantier 1 -> N Facture
 Chantier 1 -> N DocumentAttache
 Chantier 0/1 -> N PrevisionnelLine
 ```
+
+### `Devis`
+
+Represent le pont metier entre la demande client/prospect et le chantier confirme.
+
+Champs:
+
+- `client`: lien obligatoire vers `Client`.
+- `chantier`: lien optionnel vers `Chantier`.
+- `numeroDevis`
+- `titre`
+- `statut`: `devis_demande`, `devis_envoye`, `devis_signe`.
+- `montantHT`, `tva`, `montantTTC`
+- `dateDemande`, `dateEnvoi`, `dateSignature`
+- `typeChantierCible`
+- `description`
 
 ### `Facture`
 
@@ -355,13 +377,14 @@ Champs:
 - `tva`
 - `montantTTC`
 - `date`
-- `categorie`
+- `categorie`: poste de cout (`bois_materiaux`, `electricite`, `materiaux`, `sous_traitance`, etc.).
 - `statut`: validee / en_attente / rejetee.
 - `description`
 
 Important:
 
 Le `montantTTC` est stocke en dur, pas recalcule automatiquement. C'est volontaire: on veut garder le montant reel facture par le fournisseur.
+Metier: une facture fournisseur importee est definitive et impacte Dashboard/Statistiques; le statut sert au classement, pas a exclure le montant.
 
 ## 7. Documents
 
@@ -823,6 +846,8 @@ Commandes:
 npm run emulators:dataconnect
 npm run seed:dataconnect
 npm run verify:dataconnect
+npm run verify:operational-lifecycle:dataconnect
+npm run check:operational-lifecycle-proof
 ```
 
 Pour le checkpoint 002 local, utiliser plutot l'orchestrateur complet avec deux terminaux:
@@ -835,7 +860,7 @@ npm run emulators:dataconnect
 npm run checkpoint:002:emulator
 ```
 
-Cette commande injecte les seeds localement, verifie les listes operationnelles et le previsionnel, prouve que le seed previsionnel ne remonte pas dans les listes operationnelles, modifie puis restaure un statut chantier via `UpdateChantierStatut`, modifie puis restaure un client via `UpdateClient`, cree et relit un profil SQL `User` local via `ListUsers`, cree et relit des traces email/planning/rapport SQL locales, archive un comptage local propre sous `tmp/checkpoint-002/counts-local.json`, cree un `AnalyticsSnapshot` SQL local avant les donnees documents/RBAC de test, cree et relit une preuve documents SQL locale avec `sha256` et lien facture, lance la verification RBAC locale, puis ecrit et relit la trace checkpoint/audit SQL.
+Cette commande injecte les seeds localement, verifie les listes operationnelles et le previsionnel, prouve que le seed previsionnel ne remonte pas dans les listes operationnelles, modifie puis restaure un statut chantier via `UpdateChantierStatut`, modifie puis restaure un client via `UpdateClient`, cree et relit un profil SQL `User` local via `ListUsers`, cree et relit des traces email/planning/rapport SQL locales, archive un comptage local propre sous `tmp/checkpoint-002/counts-local.json`, cree un `AnalyticsSnapshot` SQL local avant les donnees documents/RBAC de test, cree et relit une preuve factures SQL locale, cree et relit un cycle complet client operationnel -> chantier -> factures SQL local, cree et relit une preuve documents SQL locale avec `sha256` et lien facture, lance la verification RBAC locale, puis ecrit et relit la trace checkpoint/audit SQL.
 
 Preuves locales attendues:
 
@@ -845,6 +870,8 @@ Preuves locales attendues:
 - `tmp/checkpoint-002/client-update-local.json`: client seed modifie puis restaure via `UpdateClient`.
 - `tmp/checkpoint-002/previsionnel-edits-local.json`: montant mensuel seed modifie/restaure via `UpdatePrevisionnelMonthlyAmount` et cellule de preuve ecrite via `UpsertPrevisionnelCellEdit`.
 - `tmp/checkpoint-002/factures-local.json`: facture locale creee via `CreateFacture`, puis statut modifie via `SetFactureStatut`.
+- `tmp/checkpoint-002/operational-lifecycle-local.json`: profil `User` local autorise, prospect sans chantier, devis demande sans chantier, client operationnel, chantier rattache, devis signe et factures fournisseur definitives/categorisees crees puis relus; preuve que `origineImport` reste `operationnel` et que les lignes previsionnelles ne remontent pas comme operationnelles.
+- `npm run check:operational-lifecycle-proof`: relecture automatique de cette preuve locale; echoue si la preuve indique une action sandbox/production, un lien client/devis/chantier/facture incoherent, une facture sans categorie/poste impactant ou une fuite `prev-*` dans l'operationnel.
 - `tmp/checkpoint-002/team-users-local.json`: profil SQL `User` local cree puis relu via `ListUsers`.
 - `tmp/checkpoint-002/email-local.json`: fil, message et piece jointe email metadata crees puis relus.
 - `tmp/checkpoint-002/documents-local.json`: dossier document et metadata fichier crees puis relus avec `storagePath`, `tailleBytes` et `sha256`.
@@ -1137,7 +1164,8 @@ Matrice serveur locale:
 |---|---|
 | Clients | `gerant`, `assistante` |
 | Chantiers | `gerant`, `assistante`, `chef_chantier` |
-| Factures | `gerant`, `assistante` |
+| Devis | `gerant`, `assistante` |
+| Factures | `gerant`, `assistante`, `chef_chantier` |
 | Documents | `gerant`, `assistante`, `chef_chantier` |
 | Previsionnel editable/import | `gerant`, `assistante` |
 

@@ -58,6 +58,30 @@ export function updateChantierStatut(dcOrVars, vars) {
   return executeMutation(updateChantierStatutRef(dcInstance, inputVars));
 }
 
+export const createDevisRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateDevis', inputVars);
+}
+createDevisRef.operationName = 'CreateDevis';
+
+export function createDevis(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createDevisRef(dcInstance, inputVars));
+}
+
+export const updateDevisStatutRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateDevisStatut', inputVars);
+}
+updateDevisStatutRef.operationName = 'UpdateDevisStatut';
+
+export function updateDevisStatut(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateDevisStatutRef(dcInstance, inputVars));
+}
+
 export const createFactureRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
@@ -506,6 +530,45 @@ export function getChantier(dcOrVars, varsOrOptions, options) {
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(getChantierRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+
+export const listDevisRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListDevis');
+}
+listDevisRef.operationName = 'ListDevis';
+
+export function listDevis(dcOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listDevisRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+
+export const listDevisByClientRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListDevisByClient', inputVars);
+}
+listDevisByClientRef.operationName = 'ListDevisByClient';
+
+export function listDevisByClient(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listDevisByClientRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+
+export const listDevisByChantierRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListDevisByChantier', inputVars);
+}
+listDevisByChantierRef.operationName = 'ListDevisByChantier';
+
+export function listDevisByChantier(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listDevisByChantierRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 
 export const listFacturesRef = (dc) => {

@@ -5,6 +5,7 @@
 #   - User      : utilisateur interne (lié à Firebase Auth via auth.uid)
 #   - Client    : client final (donneur d'ordre)
 #   - Chantier  : dossier opérationnel rattaché à un client
+#   - Devis     : objet entre demande client/prospect et chantier confirme
 #   - Facture   : facture fournisseur rattachée à un chantier
 #
 # Les champs dérivés (dépenses engagées d'un chantier, tendance budget, etc.)
@@ -35,7 +36,7 @@ type User @table {
 }
 
 
-# Client final. Un client peut avoir plusieurs chantiers.
+# Client final ou prospect. Un client peut exister avant tout chantier confirme.
 type Client @table {
   # Origine metier de la ligne:
   # - "operationnel": client vivant du hub Sosson
@@ -44,11 +45,15 @@ type Client @table {
   # Type de client : "particulier" | "professionnel" | "public"
   type: String! @col(dataType: "varchar(32)")
   nom: String! @col(dataType: "varchar(200)")
+  prenom: String @col(dataType: "varchar(120)")
   email: String @col(dataType: "varchar(254)")
   telephone: String @col(dataType: "varchar(32)")
   adresse: String @col(dataType: "varchar(255)")
   ville: String @col(dataType: "varchar(120)")
   codePostal: String @col(dataType: "varchar(16)")
+  typeChantierCible: String @col(dataType: "varchar(120)")
+  souhaits: String
+  notes: String
   dateCreation: Timestamp! @default(expr: "request.time")
 }
 
@@ -63,7 +68,9 @@ type Chantier @table {
   client: Client!
   chefChantier: User
   nom: String! @col(dataType: "varchar(200)")
-  # Statut : "en_cours" | "cloture" | "en_attente"
+  # Statut : "prospect" | "devis_a_faire" | "devis_envoye" | "signe"
+  #        | "en_preparation" | "en_cours" | "en_pause" | "termine"
+  #        | "cloture" | "annule"
   statut: String! @col(dataType: "varchar(32)")
   dateDebut: Date!
   dateFinPrevue: Date!
@@ -76,9 +83,33 @@ type Chantier @table {
 }
 
 
-# Facture fournisseur rattachée à un chantier.
-# Le montant TTC est stocké en dur (cohérence comptable) et non recalculé depuis HT/TVA,
-# pour rester aligné avec ce que le fournisseur a réellement facturé.
+# Devis: objet metier entre la demande client/prospect et le chantier confirme.
+# Un devis est toujours rattache au client et peut etre rattache a un chantier
+# quand le projet est suffisamment clair ou signe.
+type Devis @table {
+  client: Client!
+  chantier: Chantier
+  numeroDevis: String! @col(dataType: "varchar(64)")
+  titre: String! @col(dataType: "varchar(200)")
+  # Statut : "devis_demande" | "devis_envoye" | "devis_signe"
+  statut: String! @col(dataType: "varchar(32)")
+  montantHT: Float @col(dataType: "numeric(12, 2)")
+  # Taux de TVA en pourcentage (ex : 20.0, 10.0, 5.5)
+  tva: Float @col(dataType: "numeric(5, 2)")
+  montantTTC: Float @col(dataType: "numeric(12, 2)")
+  dateDemande: Date!
+  dateEnvoi: Date
+  dateSignature: Date
+  typeChantierCible: String @col(dataType: "varchar(120)")
+  description: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+  dateModification: Timestamp! @default(expr: "request.time")
+}
+
+
+# Facture fournisseur rattachee a un chantier.
+# Le montant TTC est stocke en dur (coherence comptable) et non recalcule depuis HT/TVA,
+# pour rester aligne avec ce que le fournisseur a reellement facture.
 type Facture @table {
   chantier: Chantier!
   fournisseur: String! @col(dataType: "varchar(200)")
@@ -88,11 +119,13 @@ type Facture @table {
   tva: Float! @col(dataType: "numeric(5, 2)")
   montantTTC: Float! @col(dataType: "numeric(12, 2)")
   date: Date!
-  # Catégorie : "bois_materiaux" | "quincaillerie" | "sous_traitance"
-  #           | "carburant" | "location_materiel" | "plomberie"
-  #           | "electricite" | "peinture"
+  # Categorie/poste de cout: "bois_materiaux" | "electricite" | "materiaux"
+  #           | "quincaillerie" | "sous_traitance" | "carburant"
+  #           | "location_materiel" | "plomberie" | "peinture" | "autre"
   categorie: String! @col(dataType: "varchar(48)")
-  # Statut : "validee" | "en_attente" | "rejetee"
+  # Statut de classement: "validee" | "en_attente" | "rejetee".
+  # Metier: une facture fournisseur importee est definitive et impacte les
+  # chiffres dashboard/statistiques, quel que soit ce statut de classement.
   statut: String! @col(dataType: "varchar(16)")
   description: String
   dateCreation: Timestamp! @default(expr: "request.time")
@@ -119,6 +152,7 @@ type DocumentAttache @table {
   folder: DocumentFolder
   client: Client
   chantier: Chantier
+  devis: Devis
   facture: Facture
   nomFichier: String! @col(dataType: "varchar(255)")
   storagePath: String! @col(dataType: "varchar(500)")

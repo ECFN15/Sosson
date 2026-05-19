@@ -8,6 +8,7 @@ export function useOperationalData() {
     clients: data.clients,
     chantiers: data.chantiers,
     factures: data.factures,
+    devis: data.devis,
     status,
     source,
     error,

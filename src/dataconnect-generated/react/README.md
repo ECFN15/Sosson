@@ -23,6 +23,9 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*GetClient*](#getclient)
   - [*ListOperationalChantiers*](#listoperationalchantiers)
   - [*GetChantier*](#getchantier)
+  - [*ListDevis*](#listdevis)
+  - [*ListDevisByClient*](#listdevisbyclient)
+  - [*ListDevisByChantier*](#listdevisbychantier)
   - [*ListFactures*](#listfactures)
   - [*ListFacturesByStatut*](#listfacturesbystatut)
   - [*ListDocumentFolders*](#listdocumentfolders)
@@ -52,6 +55,8 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*UpdateClient*](#updateclient)
   - [*CreateChantier*](#createchantier)
   - [*UpdateChantierStatut*](#updatechantierstatut)
+  - [*CreateDevis*](#createdevis)
+  - [*UpdateDevisStatut*](#updatedevisstatut)
   - [*CreateFacture*](#createfacture)
   - [*SetFactureStatut*](#setfacturestatut)
   - [*CreateDocumentFolder*](#createdocumentfolder)
@@ -352,11 +357,15 @@ export interface ListOperationalClientsData {
     id: UUIDString;
     type: string;
     nom: string;
+    prenom?: string | null;
     email?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     ville?: string | null;
     codePostal?: string | null;
+    typeChantierCible?: string | null;
+    souhaits?: string | null;
+    notes?: string | null;
     dateCreation: TimestampString;
   } & Client_Key)[];
 }
@@ -437,20 +446,39 @@ export interface GetClientData {
     id: UUIDString;
     type: string;
     nom: string;
+    prenom?: string | null;
     email?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     ville?: string | null;
     codePostal?: string | null;
+    typeChantierCible?: string | null;
+    souhaits?: string | null;
+    notes?: string | null;
     dateCreation: TimestampString;
-    chantiers: ({
+    devis: ({
       id: UUIDString;
-      nom: string;
+      numeroDevis: string;
+      titre: string;
       statut: string;
-      dateDebut: DateString;
-      dateFinPrevue: DateString;
-      budgetPrevisionnel: number;
-    } & Chantier_Key)[];
+      montantTTC?: number | null;
+      dateDemande: DateString;
+      dateEnvoi?: DateString | null;
+      dateSignature?: DateString | null;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+    } & Devis_Key)[];
+      chantiers: ({
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        dateDebut: DateString;
+        dateFinPrevue: DateString;
+        budgetPrevisionnel: number;
+      } & Chantier_Key)[];
   } & Client_Key;
 }
 ```
@@ -637,11 +665,15 @@ export interface GetChantierData {
       id: UUIDString;
       nom: string;
       type: string;
+      prenom?: string | null;
       email?: string | null;
       telephone?: string | null;
       adresse?: string | null;
       ville?: string | null;
       codePostal?: string | null;
+      typeChantierCible?: string | null;
+      souhaits?: string | null;
+      notes?: string | null;
     } & Client_Key;
       chefChantier?: {
         id: string;
@@ -650,18 +682,35 @@ export interface GetChantierData {
         email: string;
         avatar?: string | null;
       } & User_Key;
-        factures: ({
+        devis: ({
           id: UUIDString;
-          fournisseur: string;
-          numeroFacture: string;
-          montantHT: number;
-          tva: number;
-          montantTTC: number;
-          date: DateString;
-          categorie: string;
+          numeroDevis: string;
+          titre: string;
           statut: string;
-          description?: string | null;
-        } & Facture_Key)[];
+          montantHT?: number | null;
+          tva?: number | null;
+          montantTTC?: number | null;
+          dateDemande: DateString;
+          dateEnvoi?: DateString | null;
+          dateSignature?: DateString | null;
+          client: {
+            id: UUIDString;
+            nom: string;
+            type: string;
+          } & Client_Key;
+        } & Devis_Key)[];
+          factures: ({
+            id: UUIDString;
+            fournisseur: string;
+            numeroFacture: string;
+            montantHT: number;
+            tva: number;
+            montantTTC: number;
+            date: DateString;
+            categorie: string;
+            statut: string;
+            description?: string | null;
+          } & Facture_Key)[];
   } & Chantier_Key;
 }
 ```
@@ -712,6 +761,319 @@ export default function GetChantierComponent() {
   // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
   if (query.isSuccess) {
     console.log(query.data.chantier);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListDevis
+You can execute the `ListDevis` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListDevis(dc: DataConnect, options?: useDataConnectQueryOptions<ListDevisData>): UseDataConnectQueryResult<ListDevisData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListDevis(options?: useDataConnectQueryOptions<ListDevisData>): UseDataConnectQueryResult<ListDevisData, undefined>;
+```
+
+### Variables
+The `ListDevis` Query has no variables.
+### Return Type
+Recall that calling the `ListDevis` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListDevis` Query is of type `ListDevisData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListDevisData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    dateCreation: TimestampString;
+    dateModification: TimestampString;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+      ville?: string | null;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+          type: string;
+        } & Client_Key;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListDevis`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useListDevis } from '@dataconnect/generated/react'
+
+export default function ListDevisComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListDevis();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListDevis(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDevis(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDevis(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.deviss);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListDevisByClient
+You can execute the `ListDevisByClient` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListDevisByClient(dc: DataConnect, vars: ListDevisByClientVariables, options?: useDataConnectQueryOptions<ListDevisByClientData>): UseDataConnectQueryResult<ListDevisByClientData, ListDevisByClientVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListDevisByClient(vars: ListDevisByClientVariables, options?: useDataConnectQueryOptions<ListDevisByClientData>): UseDataConnectQueryResult<ListDevisByClientData, ListDevisByClientVariables>;
+```
+
+### Variables
+The `ListDevisByClient` Query requires an argument of type `ListDevisByClientVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListDevisByClientVariables {
+  clientId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `ListDevisByClient` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListDevisByClient` Query is of type `ListDevisByClientData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListDevisByClientData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListDevisByClient`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListDevisByClientVariables } from '@dataconnect/generated';
+import { useListDevisByClient } from '@dataconnect/generated/react'
+
+export default function ListDevisByClientComponent() {
+  // The `useListDevisByClient` Query hook requires an argument of type `ListDevisByClientVariables`:
+  const listDevisByClientVars: ListDevisByClientVariables = {
+    clientId: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListDevisByClient(listDevisByClientVars);
+  // Variables can be defined inline as well.
+  const query = useListDevisByClient({ clientId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListDevisByClient(dataConnect, listDevisByClientVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDevisByClient(listDevisByClientVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDevisByClient(dataConnect, listDevisByClientVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.deviss);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListDevisByChantier
+You can execute the `ListDevisByChantier` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListDevisByChantier(dc: DataConnect, vars: ListDevisByChantierVariables, options?: useDataConnectQueryOptions<ListDevisByChantierData>): UseDataConnectQueryResult<ListDevisByChantierData, ListDevisByChantierVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListDevisByChantier(vars: ListDevisByChantierVariables, options?: useDataConnectQueryOptions<ListDevisByChantierData>): UseDataConnectQueryResult<ListDevisByChantierData, ListDevisByChantierVariables>;
+```
+
+### Variables
+The `ListDevisByChantier` Query requires an argument of type `ListDevisByChantierVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListDevisByChantierVariables {
+  chantierId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `ListDevisByChantier` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListDevisByChantier` Query is of type `ListDevisByChantierData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListDevisByChantierData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListDevisByChantier`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListDevisByChantierVariables } from '@dataconnect/generated';
+import { useListDevisByChantier } from '@dataconnect/generated/react'
+
+export default function ListDevisByChantierComponent() {
+  // The `useListDevisByChantier` Query hook requires an argument of type `ListDevisByChantierVariables`:
+  const listDevisByChantierVars: ListDevisByChantierVariables = {
+    chantierId: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListDevisByChantier(listDevisByChantierVars);
+  // Variables can be defined inline as well.
+  const query = useListDevisByChantier({ chantierId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListDevisByChantier(dataConnect, listDevisByChantierVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDevisByChantier(listDevisByChantierVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListDevisByChantier(dataConnect, listDevisByChantierVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.deviss);
   }
   return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -1048,23 +1410,39 @@ export interface ListDocumentsAttachesData {
             type: string;
           } & Client_Key;
         } & Chantier_Key;
-          facture?: {
+          devis?: {
             id: UUIDString;
-            fournisseur: string;
-            numeroFacture: string;
-            montantTTC: number;
-            date: DateString;
+            numeroDevis: string;
+            titre: string;
             statut: string;
-            chantier: {
+            client: {
               id: UUIDString;
               nom: string;
-              client: {
+              type: string;
+            } & Client_Key;
+              chantier?: {
                 id: UUIDString;
                 nom: string;
-                type: string;
-              } & Client_Key;
-            } & Chantier_Key;
-          } & Facture_Key;
+                statut: string;
+              } & Chantier_Key;
+          } & Devis_Key;
+            facture?: {
+              id: UUIDString;
+              fournisseur: string;
+              numeroFacture: string;
+              montantTTC: number;
+              date: DateString;
+              statut: string;
+              chantier: {
+                id: UUIDString;
+                nom: string;
+                client: {
+                  id: UUIDString;
+                  nom: string;
+                  type: string;
+                } & Client_Key;
+              } & Chantier_Key;
+            } & Facture_Key;
   } & DocumentAttache_Key)[];
 }
 ```
@@ -1173,14 +1551,30 @@ export interface ListDocumentsByChantierData {
             type: string;
           } & Client_Key;
         } & Chantier_Key;
-          facture?: {
+          devis?: {
             id: UUIDString;
-            fournisseur: string;
-            numeroFacture: string;
-            montantTTC: number;
-            date: DateString;
+            numeroDevis: string;
+            titre: string;
             statut: string;
-          } & Facture_Key;
+            client: {
+              id: UUIDString;
+              nom: string;
+              type: string;
+            } & Client_Key;
+              chantier?: {
+                id: UUIDString;
+                nom: string;
+                statut: string;
+              } & Chantier_Key;
+          } & Devis_Key;
+            facture?: {
+              id: UUIDString;
+              fournisseur: string;
+              numeroFacture: string;
+              montantTTC: number;
+              date: DateString;
+              statut: string;
+            } & Facture_Key;
   } & DocumentAttache_Key)[];
 }
 ```
@@ -3396,11 +3790,15 @@ The `CreateClient` Mutation requires an argument of type `CreateClientVariables`
 export interface CreateClientVariables {
   type: string;
   nom: string;
+  prenom?: string | null;
   email?: string | null;
   telephone?: string | null;
   adresse?: string | null;
   ville?: string | null;
   codePostal?: string | null;
+  typeChantierCible?: string | null;
+  souhaits?: string | null;
+  notes?: string | null;
 }
 ```
 ### Return Type
@@ -3454,15 +3852,19 @@ export default function CreateClientComponent() {
   const createClientVars: CreateClientVariables = {
     type: ..., 
     nom: ..., 
+    prenom: ..., // optional
     email: ..., // optional
     telephone: ..., // optional
     adresse: ..., // optional
     ville: ..., // optional
     codePostal: ..., // optional
+    typeChantierCible: ..., // optional
+    souhaits: ..., // optional
+    notes: ..., // optional
   };
   mutation.mutate(createClientVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ type: ..., nom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., });
+  mutation.mutate({ type: ..., nom: ..., prenom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., typeChantierCible: ..., souhaits: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -3506,11 +3908,15 @@ export interface UpdateClientVariables {
   id: UUIDString;
   type?: string | null;
   nom?: string | null;
+  prenom?: string | null;
   email?: string | null;
   telephone?: string | null;
   adresse?: string | null;
   ville?: string | null;
   codePostal?: string | null;
+  typeChantierCible?: string | null;
+  souhaits?: string | null;
+  notes?: string | null;
 }
 ```
 ### Return Type
@@ -3565,15 +3971,19 @@ export default function UpdateClientComponent() {
     id: ..., 
     type: ..., // optional
     nom: ..., // optional
+    prenom: ..., // optional
     email: ..., // optional
     telephone: ..., // optional
     adresse: ..., // optional
     ville: ..., // optional
     codePostal: ..., // optional
+    typeChantierCible: ..., // optional
+    souhaits: ..., // optional
+    notes: ..., // optional
   };
   mutation.mutate(updateClientVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ id: ..., type: ..., nom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., });
+  mutation.mutate({ id: ..., type: ..., nom: ..., prenom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., typeChantierCible: ..., souhaits: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -3808,6 +4218,230 @@ export default function UpdateChantierStatutComponent() {
   if (mutation.isSuccess) {
     console.log(mutation.data.query);
     console.log(mutation.data.chantier_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateDevis
+You can execute the `CreateDevis` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateDevis(options?: useDataConnectMutationOptions<CreateDevisData, FirebaseError, CreateDevisVariables>): UseDataConnectMutationResult<CreateDevisData, CreateDevisVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateDevis(dc: DataConnect, options?: useDataConnectMutationOptions<CreateDevisData, FirebaseError, CreateDevisVariables>): UseDataConnectMutationResult<CreateDevisData, CreateDevisVariables>;
+```
+
+### Variables
+The `CreateDevis` Mutation requires an argument of type `CreateDevisVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateDevisVariables {
+  clientId: UUIDString;
+  chantierId?: UUIDString | null;
+  numeroDevis: string;
+  titre: string;
+  statut: string;
+  montantHT?: number | null;
+  tva?: number | null;
+  montantTTC?: number | null;
+  dateDemande: DateString;
+  dateEnvoi?: DateString | null;
+  dateSignature?: DateString | null;
+  typeChantierCible?: string | null;
+  description?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateDevis` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateDevis` Mutation is of type `CreateDevisData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateDevisData {
+  query?: {
+  };
+    devis_insert: Devis_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateDevis`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateDevisVariables } from '@dataconnect/generated';
+import { useCreateDevis } from '@dataconnect/generated/react'
+
+export default function CreateDevisComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateDevis();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateDevis(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateDevis(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateDevis(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateDevis` Mutation requires an argument of type `CreateDevisVariables`:
+  const createDevisVars: CreateDevisVariables = {
+    clientId: ..., 
+    chantierId: ..., // optional
+    numeroDevis: ..., 
+    titre: ..., 
+    statut: ..., 
+    montantHT: ..., // optional
+    tva: ..., // optional
+    montantTTC: ..., // optional
+    dateDemande: ..., 
+    dateEnvoi: ..., // optional
+    dateSignature: ..., // optional
+    typeChantierCible: ..., // optional
+    description: ..., // optional
+  };
+  mutation.mutate(createDevisVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ clientId: ..., chantierId: ..., numeroDevis: ..., titre: ..., statut: ..., montantHT: ..., tva: ..., montantTTC: ..., dateDemande: ..., dateEnvoi: ..., dateSignature: ..., typeChantierCible: ..., description: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createDevisVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.devis_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateDevisStatut
+You can execute the `UpdateDevisStatut` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateDevisStatut(options?: useDataConnectMutationOptions<UpdateDevisStatutData, FirebaseError, UpdateDevisStatutVariables>): UseDataConnectMutationResult<UpdateDevisStatutData, UpdateDevisStatutVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateDevisStatut(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateDevisStatutData, FirebaseError, UpdateDevisStatutVariables>): UseDataConnectMutationResult<UpdateDevisStatutData, UpdateDevisStatutVariables>;
+```
+
+### Variables
+The `UpdateDevisStatut` Mutation requires an argument of type `UpdateDevisStatutVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateDevisStatutVariables {
+  id: UUIDString;
+  statut: string;
+  dateEnvoi?: DateString | null;
+  dateSignature?: DateString | null;
+}
+```
+### Return Type
+Recall that calling the `UpdateDevisStatut` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateDevisStatut` Mutation is of type `UpdateDevisStatutData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateDevisStatutData {
+  query?: {
+  };
+    devis_update?: Devis_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateDevisStatut`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateDevisStatutVariables } from '@dataconnect/generated';
+import { useUpdateDevisStatut } from '@dataconnect/generated/react'
+
+export default function UpdateDevisStatutComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateDevisStatut();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateDevisStatut(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateDevisStatut(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateDevisStatut(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateDevisStatut` Mutation requires an argument of type `UpdateDevisStatutVariables`:
+  const updateDevisStatutVars: UpdateDevisStatutVariables = {
+    id: ..., 
+    statut: ..., 
+    dateEnvoi: ..., // optional
+    dateSignature: ..., // optional
+  };
+  mutation.mutate(updateDevisStatutVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., statut: ..., dateEnvoi: ..., dateSignature: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateDevisStatutVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.devis_update);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -4152,6 +4786,7 @@ export interface CreateDocumentAttacheVariables {
   folderId?: UUIDString | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
+  devisId?: UUIDString | null;
   factureId?: UUIDString | null;
   nomFichier: string;
   storagePath: string;
@@ -4217,6 +4852,7 @@ export default function CreateDocumentAttacheComponent() {
     folderId: ..., // optional
     clientId: ..., // optional
     chantierId: ..., // optional
+    devisId: ..., // optional
     factureId: ..., // optional
     nomFichier: ..., 
     storagePath: ..., 
@@ -4231,7 +4867,7 @@ export default function CreateDocumentAttacheComponent() {
   };
   mutation.mutate(createDocumentAttacheVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ folderId: ..., clientId: ..., chantierId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., sha256: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
+  mutation.mutate({ folderId: ..., clientId: ..., chantierId: ..., devisId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., sha256: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -4276,6 +4912,7 @@ export interface UpdateDocumentAttacheLinksVariables {
   folderId?: UUIDString | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
+  devisId?: UUIDString | null;
   factureId?: UUIDString | null;
   statut?: string | null;
   typeDocument?: string | null;
@@ -4334,13 +4971,14 @@ export default function UpdateDocumentAttacheLinksComponent() {
     folderId: ..., // optional
     clientId: ..., // optional
     chantierId: ..., // optional
+    devisId: ..., // optional
     factureId: ..., // optional
     statut: ..., // optional
     typeDocument: ..., // optional
   };
   mutation.mutate(updateDocumentAttacheLinksVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ id: ..., folderId: ..., clientId: ..., chantierId: ..., factureId: ..., statut: ..., typeDocument: ..., });
+  mutation.mutate({ id: ..., folderId: ..., clientId: ..., chantierId: ..., devisId: ..., factureId: ..., statut: ..., typeDocument: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {

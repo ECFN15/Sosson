@@ -53,7 +53,11 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/outlook/status') {
-      sendJson(res, 200, { connected: Boolean(tokenSet?.access_token), profile: profile ? publicProfile(profile) : null })
+      sendJson(res, 200, {
+        connected: Boolean(tokenSet?.access_token),
+        profile: profile ? publicProfile(profile) : null,
+        mailbox: env.MICROSOFT_MAILBOX || null,
+      })
       return
     }
 

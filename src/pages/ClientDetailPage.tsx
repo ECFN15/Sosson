@@ -44,15 +44,28 @@ const typeStyle: Record<Client['type'], string> = {
 const clientTypeOptions = Object.keys(typeLabel) as Client['type'][]
 
 const chantierStatus: Record<StatutChantier, { label: string; className: string }> = {
+  prospect: { label: 'Prospect', className: 'bg-[#FAF6F2] text-[#6B6B6B]' },
+  devis_a_faire: { label: 'Devis a faire', className: 'bg-[#FDEBDD] text-[#D95B17]' },
+  devis_envoye: { label: 'Devis envoye', className: 'bg-[#F1E6D6] text-[#A45A2C]' },
+  signe: { label: 'Signe', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
+  en_preparation: { label: 'En preparation', className: 'bg-[#FAF6F2] text-[#3C3C3C]' },
   en_cours: { label: 'En cours', className: 'bg-[#FDEBDD] text-[#F06B21]' },
-  en_attente: { label: 'En attente', className: 'bg-[#FAF6F2] text-[#6B6B6B]' },
+  en_pause: { label: 'En pause', className: 'bg-[#FAF6F2] text-[#6B6B6B]' },
+  termine: { label: 'Termine', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
   cloture: { label: 'Clôturé', className: 'bg-[#F1E6D6] text-[#3C3C3C]' },
+  annule: { label: 'Annule', className: 'bg-[#FEE2E2] text-[#DC2626]' },
 }
 
 const tendencyStatus: Record<TendanceChantier, { label: string; className: string }> = {
   vert: { label: 'Budget maîtrisé', className: 'bg-[#FAF6F2] text-[#3C3C3C]' },
   orange: { label: 'Surveillance', className: 'bg-[#FDEBDD] text-[#F06B21]' },
   rouge: { label: 'Risque marge', className: 'bg-[#FEE2E2] text-[#DC2626]' },
+}
+
+const factureStatus: Record<string, { label: string; className: string }> = {
+  validee: { label: 'Validee', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
+  en_attente: { label: 'En attente', className: 'bg-[#FDEBDD] text-[#D95B17]' },
+  rejetee: { label: 'Rejetee', className: 'bg-[#FEE2E2] text-[#DC2626]' },
 }
 
 function formatDate(value?: string | null) {
@@ -70,6 +83,13 @@ function amountBase(line?: PrevisionnelLine | null, fallback = 0) {
 function chantierLineId(chantierId?: string | null) {
   if (!chantierId?.startsWith('prev-chantier-')) return null
   return `prev-${chantierId.replace(/^prev-chantier-/, '')}`
+}
+
+function chantierSourceLabel(chantierId: string, isSqlSource: boolean) {
+  if (chantierId.startsWith('prev-chantier-')) return { label: 'Previsionnel Excel', tone: 'static' as const }
+  return isSqlSource
+    ? { label: 'Operationnel SQL', tone: 'sql' as const }
+    : { label: 'Operationnel local', tone: 'local' as const }
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -156,6 +176,7 @@ export function ClientDetailPage() {
   const {
     clients,
     chantiers,
+    factures,
     source: operationalSource,
     isLoading: isOperationalLoading,
     error: operationalError,
@@ -176,6 +197,11 @@ export function ClientDetailPage() {
     () => chantiers.filter(chantier => chantier.clientId === id),
     [chantiers, id],
   )
+  const clientFactures = useMemo(() => {
+    const chantierIds = new Set(clientChantiers.map(chantier => chantier.id))
+    return factures.filter(facture => chantierIds.has(facture.chantierId))
+  }, [clientChantiers, factures])
+  const clientFacturesTotal = clientFactures.reduce((sum, facture) => sum + facture.montantTTC, 0)
   const clientLines = useMemo(
     () => clientChantiers
       .map(chantier => previsionnelByLineId.get(chantierLineId(chantier.id) ?? ''))
@@ -303,6 +329,9 @@ export function ClientDetailPage() {
             <span className="rounded-full bg-[#FAF6F2] px-2.5 py-1 text-[12px] font-semibold text-[#6B6B6B]">
               {clientLines.length} ligne{clientLines.length > 1 ? 's' : ''} previsionnel
             </span>
+            <span className="rounded-full bg-[#FAF6F2] px-2.5 py-1 text-[12px] font-semibold text-[#6B6B6B]">
+              {clientFactures.length} facture{clientFactures.length > 1 ? 's' : ''} rattachee{clientFactures.length > 1 ? 's' : ''}
+            </span>
           </div>
           <p className="mt-2 max-w-2xl text-sm text-[#6B6B6B]">
             Fiche consolidant la source operationnelle chargee et les lignes previsionnelles Excel rattachees quand elles existent.
@@ -361,6 +390,12 @@ export function ClientDetailPage() {
                   <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${chantierStatus[selectedChantier.statut].className}`}>
                     {chantierStatus[selectedChantier.statut].label}
                   </span>
+                )}
+                {selectedChantier && (
+                  <SourcePill
+                    label={chantierSourceLabel(selectedChantier.id, isSqlSource).label}
+                    tone={chantierSourceLabel(selectedChantier.id, isSqlSource).tone}
+                  />
                 )}
               </div>
             </div>
@@ -585,6 +620,7 @@ export function ClientDetailPage() {
             <div className="mt-4 space-y-3">
               {clientChantiers.map(chantier => {
                 const line = previsionnelByLineId.get(chantierLineId(chantier.id) ?? '')
+                const source = chantierSourceLabel(chantier.id, isSqlSource)
                 return (
                   <button
                     key={chantier.id}
@@ -600,11 +636,66 @@ export function ClientDetailPage() {
                       <p className="mt-1 text-[11px] text-[#6B6B6B]">
                         {line ? `${line.exercise} · ${categoryLabels[line.category]} · ligne ${line.sourceRow}` : `Début ${formatDate(chantier.dateDebut)}`}
                       </p>
+                      <div className="mt-2">
+                        <SourcePill label={source.label} tone={source.tone} />
+                      </div>
                     </div>
                     <ArrowRight className="mt-1 h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
                   </button>
                 )
               })}
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Factures rattachees</h2>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                  Factures retrouvees via les chantiers charges pour ce client.
+                </p>
+              </div>
+              <SourcePill label={isSqlSource ? 'Via chantiers SQL' : 'Via fallback visible'} tone={isSqlSource ? 'sql' : 'local'} />
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-[14px] bg-[#FAF6F2] p-3">
+                <p className="text-[12px] text-[#6B6B6B]">Nombre</p>
+                <p className="mt-1 text-[18px] font-semibold text-[#1E1E1E]">{clientFactures.length}</p>
+              </div>
+              <div className="rounded-[14px] bg-[#FAF6F2] p-3">
+                <p className="text-[12px] text-[#6B6B6B]">Total TTC</p>
+                <p className="mt-1 text-[18px] font-semibold text-[#1E1E1E]">{euro(clientFacturesTotal)}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {clientFactures.slice(0, 5).map(facture => {
+                const chantier = clientChantiers.find(item => item.id === facture.chantierId)
+                const status = factureStatus[facture.statut] ?? factureStatus.en_attente
+                return (
+                  <div key={facture.id} className="rounded-[14px] border border-[#F2E8DC] bg-white p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{facture.numeroFacture}</p>
+                        <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{facture.fournisseur}</p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${status.className}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[12px]">
+                      <span className="truncate text-[#6B6B6B]">{chantier?.nom ?? 'Chantier non charge'}</span>
+                      <span className="shrink-0 font-semibold text-[#1E1E1E]">{euro(facture.montantTTC)}</span>
+                    </div>
+                  </div>
+                )
+              })}
+              {clientFactures.length === 0 && (
+                <p className="rounded-[14px] bg-[#FAF6F2] p-4 text-[13px] text-[#6B6B6B]">
+                  Aucune facture rattachee aux chantiers charges pour ce client.
+                </p>
+              )}
             </div>
           </Card>
 

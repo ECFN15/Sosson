@@ -412,6 +412,11 @@ export function DashboardPage() {
     .slice(0, 5)
   const facturesEnAttente = factures.filter(facture => facture.statut === 'en_attente')
   const totalFacturesEnAttente = facturesEnAttente.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const totalFacturesImportees = factures.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const operationalFacturesSourceLabel =
+    operationalSource === 'dataconnect' ? 'issues de SQL Connect' : 'issues du fallback local/Excel'
+  const operationalSummaryLabel =
+    operationalSource === 'dataconnect' ? 'source operationnelle SQL' : 'source operationnelle fallback'
   const alertCount = topGaps.filter(line => line.gap < 0).length + invoiceSentLines.length
 
   const dateStr = new Date().toLocaleDateString('fr-FR', {
@@ -551,7 +556,7 @@ export function DashboardPage() {
         <KpiCard
           label="Chantiers en cours"
           value={chantiersCourants.length.toString()}
-          detail={`${chantiersPlanifies.length} dossiers non clotures visibles`}
+          detail={`${chantiersPlanifies.length} dossiers non clotures visibles - ${operationalSummaryLabel}`}
           icon={HardHat}
         />
       </div>
@@ -811,8 +816,9 @@ export function DashboardPage() {
             <div>
               <p className="text-[13px] font-semibold text-[#1E1E1E]">Factures fournisseurs a qualifier</p>
               <p className="mt-1 text-[12px] text-[#6B6B6B]">
-                {facturesEnAttente.length} facture{facturesEnAttente.length > 1 ? 's' : ''} issue
-                {facturesEnAttente.length > 1 ? 's' : ''} de SQL Connect, pour {fmtEuro(totalFacturesEnAttente)}.
+                {facturesEnAttente.length} facture{facturesEnAttente.length > 1 ? 's' : ''} {operationalFacturesSourceLabel},
+                pour {fmtEuro(totalFacturesEnAttente)}. Toutes les factures fournisseur importees impactent deja le dashboard:
+                {' '}{fmtEuro(totalFacturesImportees)} au total.
               </p>
             </div>
             <button

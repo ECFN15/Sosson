@@ -1,23 +1,51 @@
-import { createChantier, createClient, listFactures, listOperationalChantiers, listOperationalClients, updateChantierStatut, updateClient } from '@dataconnect/generated'
+import {
+  createChantier,
+  createClient,
+  createDevis,
+  listDevis,
+  listFactures,
+  listOperationalChantiers,
+  listOperationalClients,
+  updateChantierStatut,
+  updateClient,
+  updateDevisStatut,
+} from '@dataconnect/generated'
 import type {
   CreateChantierVariables,
   CreateClientVariables,
+  CreateDevisVariables,
+  ListDevisData,
   ListFacturesData,
   ListOperationalChantiersData,
   ListOperationalClientsData,
   UpdateChantierStatutVariables,
   UpdateClientVariables,
+  UpdateDevisStatutVariables,
 } from '@dataconnect/generated'
 import type { CategorieDepense, Facture, StatutFacture } from '@/data/factures'
 import type { Chantier, StatutChantier, TendanceChantier } from '@/data/chantiers'
 import type { Client } from '@/data/clients'
+import type { Devis, StatutDevis } from '@/data/devis'
 import { getSossonDataConnect } from '@/lib/dataconnect'
 
 const clientTypes: Client['type'][] = ['particulier', 'professionnel', 'public']
-const chantierStatuses: StatutChantier[] = ['en_cours', 'cloture', 'en_attente']
+const chantierStatuses: StatutChantier[] = [
+  'prospect',
+  'devis_a_faire',
+  'devis_envoye',
+  'signe',
+  'en_preparation',
+  'en_cours',
+  'en_pause',
+  'termine',
+  'cloture',
+  'annule',
+]
+const devisStatuses: StatutDevis[] = ['devis_demande', 'devis_envoye', 'devis_signe']
 const factureStatuses: StatutFacture[] = ['validee', 'en_attente', 'rejetee']
 const factureCategories: CategorieDepense[] = [
   'bois_materiaux',
+  'materiaux',
   'quincaillerie',
   'sous_traitance',
   'carburant',
@@ -25,6 +53,7 @@ const factureCategories: CategorieDepense[] = [
   'plomberie',
   'electricite',
   'peinture',
+  'autre',
 ]
 
 function asClientType(value: string): Client['type'] {
@@ -32,7 +61,11 @@ function asClientType(value: string): Client['type'] {
 }
 
 function asStatutChantier(value: string): StatutChantier {
-  return chantierStatuses.includes(value as StatutChantier) ? (value as StatutChantier) : 'en_attente'
+  return chantierStatuses.includes(value as StatutChantier) ? (value as StatutChantier) : 'prospect'
+}
+
+function asStatutDevis(value: string): StatutDevis {
+  return devisStatuses.includes(value as StatutDevis) ? (value as StatutDevis) : 'devis_demande'
 }
 
 function asStatutFacture(value: string): StatutFacture {
@@ -71,6 +104,26 @@ export function mapFacturesFromSql(rows: ListFacturesData['factures']): Facture[
   }))
 }
 
+export function mapDevisFromSql(rows: ListDevisData['deviss']): Devis[] {
+  return rows.map(row => ({
+    id: row.id,
+    clientId: row.client.id,
+    chantierId: row.chantier?.id ?? null,
+    numeroDevis: row.numeroDevis,
+    titre: row.titre,
+    statut: asStatutDevis(row.statut),
+    montantHT: row.montantHT ?? null,
+    tva: row.tva ?? null,
+    montantTTC: row.montantTTC ?? null,
+    dateDemande: row.dateDemande,
+    dateEnvoi: row.dateEnvoi ?? null,
+    dateSignature: row.dateSignature ?? null,
+    typeChantierCible: row.typeChantierCible ?? null,
+    description: row.description ?? '',
+    dateCreation: compactDate(row.dateCreation),
+  }))
+}
+
 export function mapChantiersFromSql(rows: ListOperationalChantiersData['chantiers'], factures: Facture[]): Chantier[] {
   return rows.map(row => {
     const chantierFactures = factures.filter(facture => facture.chantierId === row.id)
@@ -100,12 +153,16 @@ export function mapClientsFromSql(rows: ListOperationalClientsData['clients'], c
   return rows.map(row => ({
     id: row.id,
     nom: row.nom,
+    prenom: row.prenom ?? '',
     type: asClientType(row.type),
     email: row.email ?? '',
     telephone: row.telephone ?? '',
     adresse: row.adresse ?? '',
     ville: row.ville ?? '',
     codePostal: row.codePostal ?? '',
+    typeChantierCible: row.typeChantierCible ?? '',
+    souhaits: row.souhaits ?? '',
+    notes: row.notes ?? '',
     dateCreation: compactDate(row.dateCreation),
     chantierIds: chantiers.filter(chantier => chantier.clientId === row.id).map(chantier => chantier.id),
   }))
@@ -113,24 +170,27 @@ export function mapClientsFromSql(rows: ListOperationalClientsData['clients'], c
 
 export async function loadOperationalDataFromSql() {
   const dc = getSossonDataConnect()
-  const [clientsResponse, chantiersResponse, facturesResponse] = await Promise.all([
+  const [clientsResponse, chantiersResponse, facturesResponse, devisResponse] = await Promise.all([
     listOperationalClients(dc),
     listOperationalChantiers(dc),
     listFactures(dc),
+    listDevis(dc),
   ])
 
   const hasData =
     clientsResponse.data.clients.length > 0 ||
     chantiersResponse.data.chantiers.length > 0 ||
-    facturesResponse.data.factures.length > 0
+    facturesResponse.data.factures.length > 0 ||
+    devisResponse.data.deviss.length > 0
 
   if (!hasData) return null
 
   const factures = mapFacturesFromSql(facturesResponse.data.factures)
+  const devis = mapDevisFromSql(devisResponse.data.deviss)
   const chantiers = mapChantiersFromSql(chantiersResponse.data.chantiers, factures)
   const clients = mapClientsFromSql(clientsResponse.data.clients, chantiers)
 
-  return { clients, chantiers, factures }
+  return { clients, chantiers, factures, devis }
 }
 
 export async function createClientInSql(input: CreateClientVariables) {
@@ -155,4 +215,16 @@ export async function updateChantierStatutInSql(input: UpdateChantierStatutVaria
   const dc = getSossonDataConnect()
   const response = await updateChantierStatut(dc, input)
   return response.data.chantier_update?.id ?? input.id
+}
+
+export async function createDevisInSql(input: CreateDevisVariables) {
+  const dc = getSossonDataConnect()
+  const response = await createDevis(dc, input)
+  return response.data.devis_insert.id
+}
+
+export async function updateDevisStatutInSql(input: UpdateDevisStatutVariables) {
+  const dc = getSossonDataConnect()
+  const response = await updateDevisStatut(dc, input)
+  return response.data.devis_update?.id ?? input.id
 }

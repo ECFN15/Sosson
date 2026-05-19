@@ -210,11 +210,15 @@ export interface CreateClientData {
 export interface CreateClientVariables {
   type: string;
   nom: string;
+  prenom?: string | null;
   email?: string | null;
   telephone?: string | null;
   adresse?: string | null;
   ville?: string | null;
   codePostal?: string | null;
+  typeChantierCible?: string | null;
+  souhaits?: string | null;
+  notes?: string | null;
 }
 
 export interface CreateDataImportIssueData {
@@ -260,6 +264,28 @@ export interface CreateDataImportRunVariables {
   previsionnelBatchId?: UUIDString | null;
 }
 
+export interface CreateDevisData {
+  query?: {
+  };
+    devis_insert: Devis_Key;
+}
+
+export interface CreateDevisVariables {
+  clientId: UUIDString;
+  chantierId?: UUIDString | null;
+  numeroDevis: string;
+  titre: string;
+  statut: string;
+  montantHT?: number | null;
+  tva?: number | null;
+  montantTTC?: number | null;
+  dateDemande: DateString;
+  dateEnvoi?: DateString | null;
+  dateSignature?: DateString | null;
+  typeChantierCible?: string | null;
+  description?: string | null;
+}
+
 export interface CreateDocumentAttacheData {
   query?: {
   };
@@ -270,6 +296,7 @@ export interface CreateDocumentAttacheVariables {
   folderId?: UUIDString | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
+  devisId?: UUIDString | null;
   factureId?: UUIDString | null;
   nomFichier: string;
   storagePath: string;
@@ -480,6 +507,11 @@ export interface DataImportRun_Key {
   __typename?: 'DataImportRun_Key';
 }
 
+export interface Devis_Key {
+  id: UUIDString;
+  __typename?: 'Devis_Key';
+}
+
 export interface DocumentAttache_Key {
   id: UUIDString;
   __typename?: 'DocumentAttache_Key';
@@ -572,11 +604,15 @@ export interface GetChantierData {
       id: UUIDString;
       nom: string;
       type: string;
+      prenom?: string | null;
       email?: string | null;
       telephone?: string | null;
       adresse?: string | null;
       ville?: string | null;
       codePostal?: string | null;
+      typeChantierCible?: string | null;
+      souhaits?: string | null;
+      notes?: string | null;
     } & Client_Key;
       chefChantier?: {
         id: string;
@@ -585,18 +621,35 @@ export interface GetChantierData {
         email: string;
         avatar?: string | null;
       } & User_Key;
-        factures: ({
+        devis: ({
           id: UUIDString;
-          fournisseur: string;
-          numeroFacture: string;
-          montantHT: number;
-          tva: number;
-          montantTTC: number;
-          date: DateString;
-          categorie: string;
+          numeroDevis: string;
+          titre: string;
           statut: string;
-          description?: string | null;
-        } & Facture_Key)[];
+          montantHT?: number | null;
+          tva?: number | null;
+          montantTTC?: number | null;
+          dateDemande: DateString;
+          dateEnvoi?: DateString | null;
+          dateSignature?: DateString | null;
+          client: {
+            id: UUIDString;
+            nom: string;
+            type: string;
+          } & Client_Key;
+        } & Devis_Key)[];
+          factures: ({
+            id: UUIDString;
+            fournisseur: string;
+            numeroFacture: string;
+            montantHT: number;
+            tva: number;
+            montantTTC: number;
+            date: DateString;
+            categorie: string;
+            statut: string;
+            description?: string | null;
+          } & Facture_Key)[];
   } & Chantier_Key;
 }
 
@@ -674,20 +727,39 @@ export interface GetClientData {
     id: UUIDString;
     type: string;
     nom: string;
+    prenom?: string | null;
     email?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     ville?: string | null;
     codePostal?: string | null;
+    typeChantierCible?: string | null;
+    souhaits?: string | null;
+    notes?: string | null;
     dateCreation: TimestampString;
-    chantiers: ({
+    devis: ({
       id: UUIDString;
-      nom: string;
+      numeroDevis: string;
+      titre: string;
       statut: string;
-      dateDebut: DateString;
-      dateFinPrevue: DateString;
-      budgetPrevisionnel: number;
-    } & Chantier_Key)[];
+      montantTTC?: number | null;
+      dateDemande: DateString;
+      dateEnvoi?: DateString | null;
+      dateSignature?: DateString | null;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+    } & Devis_Key)[];
+      chantiers: ({
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        dateDebut: DateString;
+        dateFinPrevue: DateString;
+        budgetPrevisionnel: number;
+      } & Chantier_Key)[];
   } & Client_Key;
 }
 
@@ -989,6 +1061,106 @@ export interface ListDataImportRunsVariables {
   environment: string;
 }
 
+export interface ListDevisByChantierData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+
+export interface ListDevisByChantierVariables {
+  chantierId: UUIDString;
+}
+
+export interface ListDevisByClientData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+
+export interface ListDevisByClientVariables {
+  clientId: UUIDString;
+}
+
+export interface ListDevisData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    dateCreation: TimestampString;
+    dateModification: TimestampString;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+      ville?: string | null;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+          type: string;
+        } & Client_Key;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+
 export interface ListDocumentFoldersData {
   documentFolders: ({
     id: UUIDString;
@@ -1053,23 +1225,39 @@ export interface ListDocumentsAttachesData {
             type: string;
           } & Client_Key;
         } & Chantier_Key;
-          facture?: {
+          devis?: {
             id: UUIDString;
-            fournisseur: string;
-            numeroFacture: string;
-            montantTTC: number;
-            date: DateString;
+            numeroDevis: string;
+            titre: string;
             statut: string;
-            chantier: {
+            client: {
               id: UUIDString;
               nom: string;
-              client: {
+              type: string;
+            } & Client_Key;
+              chantier?: {
                 id: UUIDString;
                 nom: string;
-                type: string;
-              } & Client_Key;
-            } & Chantier_Key;
-          } & Facture_Key;
+                statut: string;
+              } & Chantier_Key;
+          } & Devis_Key;
+            facture?: {
+              id: UUIDString;
+              fournisseur: string;
+              numeroFacture: string;
+              montantTTC: number;
+              date: DateString;
+              statut: string;
+              chantier: {
+                id: UUIDString;
+                nom: string;
+                client: {
+                  id: UUIDString;
+                  nom: string;
+                  type: string;
+                } & Client_Key;
+              } & Chantier_Key;
+            } & Facture_Key;
   } & DocumentAttache_Key)[];
 }
 
@@ -1107,14 +1295,30 @@ export interface ListDocumentsByChantierData {
             type: string;
           } & Client_Key;
         } & Chantier_Key;
-          facture?: {
+          devis?: {
             id: UUIDString;
-            fournisseur: string;
-            numeroFacture: string;
-            montantTTC: number;
-            date: DateString;
+            numeroDevis: string;
+            titre: string;
             statut: string;
-          } & Facture_Key;
+            client: {
+              id: UUIDString;
+              nom: string;
+              type: string;
+            } & Client_Key;
+              chantier?: {
+                id: UUIDString;
+                nom: string;
+                statut: string;
+              } & Chantier_Key;
+          } & Devis_Key;
+            facture?: {
+              id: UUIDString;
+              fournisseur: string;
+              numeroFacture: string;
+              montantTTC: number;
+              date: DateString;
+              statut: string;
+            } & Facture_Key;
   } & DocumentAttache_Key)[];
 }
 
@@ -1273,11 +1477,15 @@ export interface ListOperationalClientsData {
     id: UUIDString;
     type: string;
     nom: string;
+    prenom?: string | null;
     email?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     ville?: string | null;
     codePostal?: string | null;
+    typeChantierCible?: string | null;
+    souhaits?: string | null;
+    notes?: string | null;
     dateCreation: TimestampString;
   } & Client_Key)[];
 }
@@ -1676,11 +1884,28 @@ export interface UpdateClientVariables {
   id: UUIDString;
   type?: string | null;
   nom?: string | null;
+  prenom?: string | null;
   email?: string | null;
   telephone?: string | null;
   adresse?: string | null;
   ville?: string | null;
   codePostal?: string | null;
+  typeChantierCible?: string | null;
+  souhaits?: string | null;
+  notes?: string | null;
+}
+
+export interface UpdateDevisStatutData {
+  query?: {
+  };
+    devis_update?: Devis_Key | null;
+}
+
+export interface UpdateDevisStatutVariables {
+  id: UUIDString;
+  statut: string;
+  dateEnvoi?: DateString | null;
+  dateSignature?: DateString | null;
 }
 
 export interface UpdateDocumentAttacheLinksData {
@@ -1694,6 +1919,7 @@ export interface UpdateDocumentAttacheLinksVariables {
   folderId?: UUIDString | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
+  devisId?: UUIDString | null;
   factureId?: UUIDString | null;
   statut?: string | null;
   typeDocument?: string | null;
@@ -1826,6 +2052,16 @@ export function createChantier(vars: CreateChantierVariables, options?: Operatio
 export function updateChantierStatut(dc: DataConnect, vars: UpdateChantierStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateChantierStatutData>>;
 /** Generated Node Admin SDK operation action function for the 'UpdateChantierStatut' Mutation. Allow users to pass in custom DataConnect instances. */
 export function updateChantierStatut(vars: UpdateChantierStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateChantierStatutData>>;
+
+/** Generated Node Admin SDK operation action function for the 'CreateDevis' Mutation. Allow users to execute without passing in DataConnect. */
+export function createDevis(dc: DataConnect, vars: CreateDevisVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateDevisData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateDevis' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createDevis(vars: CreateDevisVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateDevisData>>;
+
+/** Generated Node Admin SDK operation action function for the 'UpdateDevisStatut' Mutation. Allow users to execute without passing in DataConnect. */
+export function updateDevisStatut(dc: DataConnect, vars: UpdateDevisStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateDevisStatutData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdateDevisStatut' Mutation. Allow users to pass in custom DataConnect instances. */
+export function updateDevisStatut(vars: UpdateDevisStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateDevisStatutData>>;
 
 /** Generated Node Admin SDK operation action function for the 'CreateFacture' Mutation. Allow users to execute without passing in DataConnect. */
 export function createFacture(dc: DataConnect, vars: CreateFactureVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateFactureData>>;
@@ -2011,6 +2247,21 @@ export function listOperationalChantiers(options?: OperationOptions): Promise<Ex
 export function getChantier(dc: DataConnect, vars: GetChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetChantierData>>;
 /** Generated Node Admin SDK operation action function for the 'GetChantier' Query. Allow users to pass in custom DataConnect instances. */
 export function getChantier(vars: GetChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetChantierData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDevis' Query. Allow users to execute without passing in DataConnect. */
+export function listDevis(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDevis' Query. Allow users to pass in custom DataConnect instances. */
+export function listDevis(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDevisByClient' Query. Allow users to execute without passing in DataConnect. */
+export function listDevisByClient(dc: DataConnect, vars: ListDevisByClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByClientData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDevisByClient' Query. Allow users to pass in custom DataConnect instances. */
+export function listDevisByClient(vars: ListDevisByClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByClientData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDevisByChantier' Query. Allow users to execute without passing in DataConnect. */
+export function listDevisByChantier(dc: DataConnect, vars: ListDevisByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDevisByChantier' Query. Allow users to pass in custom DataConnect instances. */
+export function listDevisByChantier(vars: ListDevisByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByChantierData>>;
 
 /** Generated Node Admin SDK operation action function for the 'ListFactures' Query. Allow users to execute without passing in DataConnect. */
 export function listFactures(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesData>>;

@@ -22,9 +22,16 @@ const latestExercise = exerciseOptions[exerciseOptions.length - 1] ?? 'all'
 const categoryOptions = Object.keys(categoryLabels) as PrevisionnelCategory[]
 const statusOptions: Array<{ key: StatusFilter; label: string }> = [
   { key: 'all', label: 'Tous statuts' },
+  { key: 'prospect', label: 'Prospect' },
+  { key: 'devis_a_faire', label: 'Devis a faire' },
+  { key: 'devis_envoye', label: 'Devis envoye' },
+  { key: 'signe', label: 'Signe' },
+  { key: 'en_preparation', label: 'En preparation' },
   { key: 'en_cours', label: 'En cours' },
-  { key: 'en_attente', label: 'En attente' },
+  { key: 'en_pause', label: 'En pause' },
+  { key: 'termine', label: 'Termine' },
   { key: 'cloture', label: 'Clôturé' },
+  { key: 'annule', label: 'Annule' },
 ]
 const tendanceOptions: Array<{ key: TendanceFilter; label: string }> = [
   { key: 'all', label: 'Tous risques' },
@@ -51,9 +58,16 @@ function formatDate(value?: string | null) {
 }
 
 function statusMeta(statut: StatutChantier) {
+  if (statut === 'prospect') return { label: 'Prospect', className: 'bg-[#FAF6F2] text-[#6B6B6B]', Icon: Clock }
+  if (statut === 'devis_a_faire') return { label: 'Devis a faire', className: 'bg-[#FDEBDD] text-[#D95B17]', Icon: Clock }
+  if (statut === 'devis_envoye') return { label: 'Devis envoye', className: 'bg-[#F1E6D6] text-[#A45A2C]', Icon: Clock }
+  if (statut === 'signe') return { label: 'Signe', className: 'bg-[#E6F4EA] text-[#1E8E3E]', Icon: CheckCircle }
+  if (statut === 'en_preparation') return { label: 'En preparation', className: 'bg-[#FAF6F2] text-[#3C3C3C]', Icon: CalendarDays }
   if (statut === 'en_cours') return { label: 'En cours', className: 'bg-[#FDEBDD] text-[#F06B21]', Icon: Clock }
+  if (statut === 'en_pause') return { label: 'En pause', className: 'bg-[#FAF6F2] text-[#6B6B6B]', Icon: Clock }
+  if (statut === 'termine') return { label: 'Termine', className: 'bg-[#E6F4EA] text-[#1E8E3E]', Icon: CheckCircle }
   if (statut === 'cloture') return { label: 'Clôturé', className: 'bg-[#F1E6D6] text-[#3C3C3C]', Icon: CheckCircle }
-  return { label: 'En attente', className: 'bg-[#FAF6F2] text-[#6B6B6B]', Icon: Clock }
+  return { label: 'Annule', className: 'bg-[#FEE2E2] text-[#DC2626]', Icon: TriangleAlert }
 }
 
 function tendencyMeta(tendance: TendanceChantier) {
@@ -76,7 +90,7 @@ function createInitialChantierForm() {
   return {
     clientId: '',
     nom: '',
-    statut: 'en_attente' as StatutChantier,
+    statut: 'devis_a_faire' as StatutChantier,
     dateDebut: dateDebut.toISOString().slice(0, 10),
     dateFinPrevue: dateFinPrevue.toISOString().slice(0, 10),
     budgetPrevisionnel: '',
@@ -241,7 +255,7 @@ export function ChantiersPage() {
         ...current,
         clientId: '',
         nom: '',
-        statut: 'en_attente',
+        statut: 'devis_a_faire',
         budgetPrevisionnel: '',
         adresse: '',
         description: '',
@@ -284,7 +298,7 @@ export function ChantiersPage() {
         </span>
         <span className={`inline-flex h-10 items-center gap-2 rounded-[14px] border px-4 text-sm font-medium ${canWriteSql ? 'border-[#D7E7D9] bg-[#F7FBF7] text-[#1E8E3E]' : 'border-[#F2E8DC] bg-white text-[#D95B17]'}`}>
           {!canWriteSql && <WifiOff className="h-4 w-4" strokeWidth={1.75} />}
-          {canWriteSql ? 'Creation SQL Connect' : 'Creation locale fallback'}
+          {canWriteSql ? 'Creation SQL Connect' : 'Creation locale hors SQL'}
         </span>
       </div>
 
@@ -560,7 +574,7 @@ export function ChantiersPage() {
               <div>
                 <h2 className="font-semibold text-[#1E1E1E]">Nouveau chantier</h2>
                 <p className="mt-1 text-[12px] text-[#6B6B6B]">
-                  {canWriteSql ? 'Creation dans SQL Connect.' : 'Creation locale fallback, non durable SQL.'}
+                  {canWriteSql ? 'Creation dans SQL Connect.' : 'Creation locale hors SQL, non durable.'}
                 </p>
               </div>
               <button type="button" onClick={() => setShowModal(false)} className="text-[#9CA3AF] hover:text-[#1E1E1E]">
@@ -598,9 +612,9 @@ export function ChantiersPage() {
                     onChange={event => setForm(current => ({ ...current, statut: event.target.value as StatutChantier }))}
                     className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
                   >
-                    <option value="en_attente">En attente</option>
-                    <option value="en_cours">En cours</option>
-                    <option value="cloture">Cloture</option>
+                    {statusOptions.filter(option => option.key !== 'all').map(option => (
+                      <option key={option.key} value={option.key}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

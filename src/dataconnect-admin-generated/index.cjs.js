@@ -35,6 +35,20 @@ function updateChantierStatut(dcOrVarsOrOptions, varsOrOptions, options) {
 }
 exports.updateChantierStatut = updateChantierStatut;
 
+function createDevis(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('CreateDevis', inputVars, inputOpts);
+}
+exports.createDevis = createDevis;
+
+function updateDevisStatut(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('UpdateDevisStatut', inputVars, inputOpts);
+}
+exports.updateDevisStatut = updateDevisStatut;
+
 function createFacture(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
@@ -293,6 +307,27 @@ function getChantier(dcOrVarsOrOptions, varsOrOptions, options) {
   return dcInstance.executeQuery('GetChantier', inputVars, inputOpts);
 }
 exports.getChantier = getChantier;
+
+function listDevis(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDevis', undefined, inputOpts);
+}
+exports.listDevis = listDevis;
+
+function listDevisByClient(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDevisByClient', inputVars, inputOpts);
+}
+exports.listDevisByClient = listDevisByClient;
+
+function listDevisByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDevisByChantier', inputVars, inputOpts);
+}
+exports.listDevisByChantier = listDevisByChantier;
 
 function listFactures(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);

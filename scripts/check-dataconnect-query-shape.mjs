@@ -49,6 +49,7 @@ const broadListLimits = new Map([
   ['ListUsers', 100],
   ['ListOperationalClients', 1000],
   ['ListOperationalChantiers', 1200],
+  ['ListDevis', 1000],
   ['ListFactures', 1000],
   ['ListDocumentFolders', 500],
   ['ListDocumentsAttaches', 1000],

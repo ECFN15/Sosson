@@ -1,7 +1,7 @@
 # 08 - Quality checks
 
 > Statut: draft  
-> Derniere revision: 2026-05-17  
+> Derniere revision: 2026-05-18
 > Portee: controles techniques et smoke tests.
 
 ## Commandes de base
@@ -25,12 +25,17 @@
 | `npm run check:firebase-rules` | Verifie que Firestore/Storage restent en deny par defaut et refuse les ouvertures globales simples. | Ajoute post-audit. |
 | `npm run check:production-guard` | Verifie que `package.json` et les workflows ne contiennent aucun deploy production automatise, `firebase init dataconnect` ou commande destructive distante evidente; seule l'exception locale bornee `reset:dataconnect:local` est autorisee. | Ajoute post-audit. |
 | `npm run check:sandbox-guardrails` | Verifie que les scripts sandbox refusent le fichier exemple de profils avant toute lecture/mutation distante, que le seed sandbox bloque sans validation explicite, que les preuves sandbox hors `tmp/` sont refusees, que le comptage sandbox exige profils connus + preuve archivee, que le reset local Data Connect refuse sans confirmation, que les artefacts locaux sensibles restent ignores par git, que les sorties profils sont masquees et que les scripts ne regressent pas vers des UID/emails bruts. | Ajoute post-audit. |
+| `npm run check:operational-lifecycle-readiness` | Verifie que la fiche `docs/17-operational-lifecycle-scenario.md`, la readiness, le runbook sandbox, l'audit de completion, Moteur live et `ci:sandbox` gardent le verrou metier du cycle nouveau client -> chantier -> factures. | Ajoute apres preuve lifecycle locale. |
+| `npm run check:operational-lifecycle-proof` | Relit `tmp/checkpoint-002/operational-lifecycle-local.json` et verifie que la preuve emulateur contient un client operationnel, un chantier rattache, des factures rattachees, aucune action sandbox/production et aucune fuite previsionnelle operationnelle. A lancer apres `npm run checkpoint:002:emulator`; volontairement hors `ci:sandbox` car il depend d'un artefact `tmp/`. | Ajoute apres preuve lifecycle locale. |
+| `npm run check:operational-lifecycle-decisions` | Echoue volontairement tant que les 9 reponses metier de `docs/17-operational-lifecycle-scenario.md` contiennent encore `A completer`; a lancer avant toute demande de validation sandbox, pas dans `ci:sandbox`. | Ajoute apres preuve lifecycle locale. |
+| `npm run update:operational-lifecycle-decisions` | Applique localement les 9 reponses metier depuis un JSON ou un texte numerote fourni sous `tmp/`; accepte `--template`, `--text-template`, `--output=tmp/...` et `--dry-run`. Ne touche ni SQL Connect ni sandbox. | Ajoute pour debloquer proprement la fiche metier. |
 | `npm run check:doc-entrypoints` | Verifie que `README.md`, `documentation.md`, `AGENTS.md`, `docs/00-index.md` et `docs/06-integrations.md` restent orientes vers checkpoint 002, que `/documentation` garde ses 8 chapitres structures sans recharger le gros seed previsionnel, et que le README ne revient pas au template Vite generique. | Ajoute post-audit. |
 | `npm run check:doc-links` | Verifie que les liens Markdown locaux vers des fichiers `.md` existent dans `README.md`, `documentation.md`, `AGENTS.md` et `docs/`, et que les fichiers Markdown directs de `docs/` restent references dans `docs/00-index.md`. | Ajoute post-audit. |
 | `npm run check:page-dataconnect-imports` | Refuse les imports directs `@dataconnect/generated` dans `src/pages`. | Ajoute post-audit. |
 | `npm run check:generated-clean` | Echoue si les SDKs SQL Connect generes sont modifies sans regeneration controlee. | Ajoute post-audit. |
 | `npm run audit:frontend-sources` | Cartographie imports seeds, usages applicatifs `localStorage`, Firestore et imports SQL directs dans les pages; accepte `--output=tmp/...` pour archiver une preuve JSON. | Ajoute post-audit, non bloquant. |
-| `npm run ci:sandbox` | Enchaine lint, tests previsionnel, documents, access-control, data-state, checks secrets/auth/Firestore/UI/Documents/Data Connect/rules/production/sandbox guardrails/doc/adapters/SDK, puis build sandbox. | Ajoute post-audit. |
+| `npm run audit:operational-lifecycle-completion` | Produit `tmp/checkpoint-002/operational-lifecycle-completion-audit.json`, un audit non bloquant du mapping objectif -> preuves -> blocages pour le cycle nouveau client operationnel. Le verdict reste `not-ready` tant que les 9 reponses metier sont absentes. | Ajoute apres audit de reprise. |
+| `npm run ci:sandbox` | Enchaine lint, tests previsionnel, documents, access-control, data-state, checks secrets/auth/Firestore/UI/Documents/Data Connect/rules/production/sandbox guardrails/lifecycle/doc/adapters/SDK, puis build sandbox. | Ajoute post-audit. |
 | `npm run checkpoint:002:local` | Lance `ci:sandbox`, l'audit sources front archivable, le dry-run comptage archivable, le dry-run seed sandbox et le dry-run provisioning SQL User. | Ajoute post-audit. |
 | `npm run checkpoint:002:emulator` | Avec l'emulateur Data Connect deja lance, enchaine seed operationnel, seed previsionnel, verifications operationnel/previsionnel, garde frontiere operationnel/previsionnel, preuve statut chantier SQL, preuve edition client SQL, lecture `ListUsers`, preuves email/planning/rapport SQL, comptage local propre, snapshot analytics SQL, preuve edition previsionnel SQL, preuve factures SQL, preuve documents SQL avec hash et lien facture, verification RBAC, puis trace SQL checkpoint/audit locale. | Ajoute post-audit. |
 | `npm run verify:operational-boundary:dataconnect` | En emulateur, verifie que les listes `ListOperationalClients` et `ListOperationalChantiers` restent strictement sur le seed operationnel apres injection du previsionnel. | Ajoute post-audit. |
@@ -94,6 +99,7 @@ npm run check:dataconnect-client-surface
 npm run check:firebase-rules
 npm run check:production-guard
 npm run check:sandbox-guardrails
+npm run check:operational-lifecycle-readiness
 npm run check:doc-entrypoints
 npm run check:doc-links
 npm run check:page-dataconnect-imports

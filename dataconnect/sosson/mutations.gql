@@ -12,11 +12,15 @@
 mutation CreateClient(
   $type: String!
   $nom: String!
+  $prenom: String
   $email: String
   $telephone: String
   $adresse: String
   $ville: String
   $codePostal: String
+  $typeChantierCible: String
+  $souhaits: String
+  $notes: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app for a single company; authenticated staff create clients from trusted UI flows and the transaction checks the SQL User role."
@@ -29,11 +33,15 @@ mutation CreateClient(
   client_insert(data: {
     type: $type
     nom: $nom
+    prenom: $prenom
     email: $email
     telephone: $telephone
     adresse: $adresse
     ville: $ville
     codePostal: $codePostal
+    typeChantierCible: $typeChantierCible
+    souhaits: $souhaits
+    notes: $notes
   })
 }
 
@@ -41,11 +49,15 @@ mutation UpdateClient(
   $id: UUID!
   $type: String
   $nom: String
+  $prenom: String
   $email: String
   $telephone: String
   $adresse: String
   $ville: String
   $codePostal: String
+  $typeChantierCible: String
+  $souhaits: String
+  $notes: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app for a single company; authenticated staff update clients from trusted UI flows and the transaction checks the SQL User role."
@@ -58,11 +70,15 @@ mutation UpdateClient(
   client_update(id: $id, data: {
     type: $type
     nom: $nom
+    prenom: $prenom
     email: $email
     telephone: $telephone
     adresse: $adresse
     ville: $ville
     codePostal: $codePostal
+    typeChantierCible: $typeChantierCible
+    souhaits: $souhaits
+    notes: $notes
   })
 }
 
@@ -121,6 +137,71 @@ mutation UpdateChantierStatut(
 }
 
 
+# ---------- Devis ------------------------------------------------------------
+
+mutation CreateDevis(
+  $clientId: UUID!
+  $chantierId: UUID
+  $numeroDevis: String!
+  $titre: String!
+  $statut: String!
+  $montantHT: Float
+  $tva: Float
+  $montantTTC: Float
+  $dateDemande: Date!
+  $dateEnvoi: Date
+  $dateSignature: Date
+  $typeChantierCible: String
+  $description: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff create quotes from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer un devis.")
+    }
+  }
+  devis_insert(data: {
+    clientId: $clientId
+    chantierId: $chantierId
+    numeroDevis: $numeroDevis
+    titre: $titre
+    statut: $statut
+    montantHT: $montantHT
+    tva: $tva
+    montantTTC: $montantTTC
+    dateDemande: $dateDemande
+    dateEnvoi: $dateEnvoi
+    dateSignature: $dateSignature
+    typeChantierCible: $typeChantierCible
+    description: $description
+  })
+}
+
+mutation UpdateDevisStatut(
+  $id: UUID!
+  $statut: String!
+  $dateEnvoi: Date
+  $dateSignature: Date
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff update quote status from trusted UI flows and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour modifier un devis.")
+    }
+  }
+  devis_update(id: $id, data: {
+    statut: $statut
+    dateEnvoi: $dateEnvoi
+    dateSignature: $dateSignature
+    dateModification_expr: "request.time"
+  })
+}
+
+
 # ---------- Factures ---------------------------------------------------------
 
 mutation CreateFacture(
@@ -140,7 +221,7 @@ mutation CreateFacture(
 ) @transaction {
   query {
     currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
-      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour creer une facture.")
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer une facture.")
     }
   }
   facture_insert(data: {
@@ -164,7 +245,7 @@ mutation SetFactureStatut($id: UUID!, $statut: String!)
   ) @transaction {
   query {
     currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
-      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour modifier une facture.")
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour modifier une facture.")
     }
   }
   facture_update(id: $id, data: { statut: $statut })
@@ -203,6 +284,7 @@ mutation CreateDocumentAttache(
   $folderId: UUID
   $clientId: UUID
   $chantierId: UUID
+  $devisId: UUID
   $factureId: UUID
   $nomFichier: String!
   $storagePath: String!
@@ -227,6 +309,7 @@ mutation CreateDocumentAttache(
     folderId: $folderId
     clientId: $clientId
     chantierId: $chantierId
+    devisId: $devisId
     factureId: $factureId
     nomFichier: $nomFichier
     storagePath: $storagePath
@@ -246,6 +329,7 @@ mutation UpdateDocumentAttacheLinks(
   $folderId: UUID
   $clientId: UUID
   $chantierId: UUID
+  $devisId: UUID
   $factureId: UUID
   $statut: String
   $typeDocument: String
@@ -262,6 +346,7 @@ mutation UpdateDocumentAttacheLinks(
     folderId: $folderId
     clientId: $clientId
     chantierId: $chantierId
+    devisId: $devisId
     factureId: $factureId
     statut: $statut
     typeDocument: $typeDocument

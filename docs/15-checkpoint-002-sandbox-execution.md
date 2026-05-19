@@ -1,7 +1,7 @@
 # 15 - Execution sandbox checkpoint 002
 
 > Statut: gabarit d'execution humaine
-> Derniere revision: 2026-05-17
+> Derniere revision: 2026-05-18
 > Portee: ordre d'execution et preuves a collecter pour valider la sandbox distante.
 
 ## Principe
@@ -71,6 +71,20 @@ npm run reset:dataconnect:local -- --yes-local-reset
 ```
 
 Ne pas confondre ce reset local avec une action sandbox: il ne doit supprimer que `dataconnect/.dataconnect/pgliteData`.
+
+## Preflight metier obligatoire
+
+Avant toute demande de validation sandbox, completer `docs/17-operational-lifecycle-scenario.md`.
+
+Gate:
+
+- les 9 reponses metier du cycle `nouveau client -> chantier -> factures` sont renseignees;
+- `npm run check:operational-lifecycle-decisions` retourne OK;
+- le script `verify:operational-lifecycle:dataconnect` a ete ajuste si ces reponses changent le parcours;
+- `npm run checkpoint:002:emulator` est relance sur base locale propre apres ajustement;
+- Dashboard, Statistiques, Clients, Chantiers, Factures et Moteur live ne presentent pas un fallback comme une preuve SQL.
+
+Sans ce preflight metier, rester en local/dry-run meme si les checks techniques sont verts.
 
 ## Validation humaine
 

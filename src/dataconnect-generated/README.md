@@ -16,6 +16,9 @@ This README will guide you through the process of using the generated JavaScript
   - [*GetClient*](#getclient)
   - [*ListOperationalChantiers*](#listoperationalchantiers)
   - [*GetChantier*](#getchantier)
+  - [*ListDevis*](#listdevis)
+  - [*ListDevisByClient*](#listdevisbyclient)
+  - [*ListDevisByChantier*](#listdevisbychantier)
   - [*ListFactures*](#listfactures)
   - [*ListFacturesByStatut*](#listfacturesbystatut)
   - [*ListDocumentFolders*](#listdocumentfolders)
@@ -45,6 +48,8 @@ This README will guide you through the process of using the generated JavaScript
   - [*UpdateClient*](#updateclient)
   - [*CreateChantier*](#createchantier)
   - [*UpdateChantierStatut*](#updatechantierstatut)
+  - [*CreateDevis*](#createdevis)
+  - [*UpdateDevisStatut*](#updatedevisstatut)
   - [*CreateFacture*](#createfacture)
   - [*SetFactureStatut*](#setfacturestatut)
   - [*CreateDocumentFolder*](#createdocumentfolder)
@@ -360,11 +365,15 @@ export interface ListOperationalClientsData {
     id: UUIDString;
     type: string;
     nom: string;
+    prenom?: string | null;
     email?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     ville?: string | null;
     codePostal?: string | null;
+    typeChantierCible?: string | null;
+    souhaits?: string | null;
+    notes?: string | null;
     dateCreation: TimestampString;
   } & Client_Key)[];
 }
@@ -467,20 +476,39 @@ export interface GetClientData {
     id: UUIDString;
     type: string;
     nom: string;
+    prenom?: string | null;
     email?: string | null;
     telephone?: string | null;
     adresse?: string | null;
     ville?: string | null;
     codePostal?: string | null;
+    typeChantierCible?: string | null;
+    souhaits?: string | null;
+    notes?: string | null;
     dateCreation: TimestampString;
-    chantiers: ({
+    devis: ({
       id: UUIDString;
-      nom: string;
+      numeroDevis: string;
+      titre: string;
       statut: string;
-      dateDebut: DateString;
-      dateFinPrevue: DateString;
-      budgetPrevisionnel: number;
-    } & Chantier_Key)[];
+      montantTTC?: number | null;
+      dateDemande: DateString;
+      dateEnvoi?: DateString | null;
+      dateSignature?: DateString | null;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+    } & Devis_Key)[];
+      chantiers: ({
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        dateDebut: DateString;
+        dateFinPrevue: DateString;
+        budgetPrevisionnel: number;
+      } & Chantier_Key)[];
   } & Client_Key;
 }
 ```
@@ -716,11 +744,15 @@ export interface GetChantierData {
       id: UUIDString;
       nom: string;
       type: string;
+      prenom?: string | null;
       email?: string | null;
       telephone?: string | null;
       adresse?: string | null;
       ville?: string | null;
       codePostal?: string | null;
+      typeChantierCible?: string | null;
+      souhaits?: string | null;
+      notes?: string | null;
     } & Client_Key;
       chefChantier?: {
         id: string;
@@ -729,18 +761,35 @@ export interface GetChantierData {
         email: string;
         avatar?: string | null;
       } & User_Key;
-        factures: ({
+        devis: ({
           id: UUIDString;
-          fournisseur: string;
-          numeroFacture: string;
-          montantHT: number;
-          tva: number;
-          montantTTC: number;
-          date: DateString;
-          categorie: string;
+          numeroDevis: string;
+          titre: string;
           statut: string;
-          description?: string | null;
-        } & Facture_Key)[];
+          montantHT?: number | null;
+          tva?: number | null;
+          montantTTC?: number | null;
+          dateDemande: DateString;
+          dateEnvoi?: DateString | null;
+          dateSignature?: DateString | null;
+          client: {
+            id: UUIDString;
+            nom: string;
+            type: string;
+          } & Client_Key;
+        } & Devis_Key)[];
+          factures: ({
+            id: UUIDString;
+            fournisseur: string;
+            numeroFacture: string;
+            montantHT: number;
+            tva: number;
+            montantTTC: number;
+            date: DateString;
+            categorie: string;
+            statut: string;
+            description?: string | null;
+          } & Facture_Key)[];
   } & Chantier_Key;
 }
 ```
@@ -804,6 +853,395 @@ console.log(data.chantier);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.chantier);
+});
+```
+
+## ListDevis
+You can execute the `ListDevis` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+listDevis(options?: ExecuteQueryOptions): QueryPromise<ListDevisData, undefined>;
+
+interface ListDevisRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListDevisData, undefined>;
+}
+export const listDevisRef: ListDevisRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+listDevis(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListDevisData, undefined>;
+
+interface ListDevisRef {
+  ...
+  (dc: DataConnect): QueryRef<ListDevisData, undefined>;
+}
+export const listDevisRef: ListDevisRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the listDevisRef:
+```typescript
+const name = listDevisRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `ListDevis` query has no variables.
+### Return Type
+Recall that executing the `ListDevis` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `ListDevisData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface ListDevisData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    dateCreation: TimestampString;
+    dateModification: TimestampString;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+      ville?: string | null;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+          type: string;
+        } & Client_Key;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+```
+### Using `ListDevis`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, listDevis } from '@dataconnect/generated';
+
+
+// Call the `listDevis()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await listDevis();
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await listDevis(dataConnect);
+
+console.log(data.deviss);
+
+// Or, you can use the `Promise` API.
+listDevis().then((response) => {
+  const data = response.data;
+  console.log(data.deviss);
+});
+```
+
+### Using `ListDevis`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, listDevisRef } from '@dataconnect/generated';
+
+
+// Call the `listDevisRef()` function to get a reference to the query.
+const ref = listDevisRef();
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = listDevisRef(dataConnect);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.deviss);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.deviss);
+});
+```
+
+## ListDevisByClient
+You can execute the `ListDevisByClient` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+listDevisByClient(vars: ListDevisByClientVariables, options?: ExecuteQueryOptions): QueryPromise<ListDevisByClientData, ListDevisByClientVariables>;
+
+interface ListDevisByClientRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListDevisByClientVariables): QueryRef<ListDevisByClientData, ListDevisByClientVariables>;
+}
+export const listDevisByClientRef: ListDevisByClientRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+listDevisByClient(dc: DataConnect, vars: ListDevisByClientVariables, options?: ExecuteQueryOptions): QueryPromise<ListDevisByClientData, ListDevisByClientVariables>;
+
+interface ListDevisByClientRef {
+  ...
+  (dc: DataConnect, vars: ListDevisByClientVariables): QueryRef<ListDevisByClientData, ListDevisByClientVariables>;
+}
+export const listDevisByClientRef: ListDevisByClientRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the listDevisByClientRef:
+```typescript
+const name = listDevisByClientRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `ListDevisByClient` query requires an argument of type `ListDevisByClientVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface ListDevisByClientVariables {
+  clientId: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `ListDevisByClient` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `ListDevisByClientData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface ListDevisByClientData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+```
+### Using `ListDevisByClient`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, listDevisByClient, ListDevisByClientVariables } from '@dataconnect/generated';
+
+// The `ListDevisByClient` query requires an argument of type `ListDevisByClientVariables`:
+const listDevisByClientVars: ListDevisByClientVariables = {
+  clientId: ..., 
+};
+
+// Call the `listDevisByClient()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await listDevisByClient(listDevisByClientVars);
+// Variables can be defined inline as well.
+const { data } = await listDevisByClient({ clientId: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await listDevisByClient(dataConnect, listDevisByClientVars);
+
+console.log(data.deviss);
+
+// Or, you can use the `Promise` API.
+listDevisByClient(listDevisByClientVars).then((response) => {
+  const data = response.data;
+  console.log(data.deviss);
+});
+```
+
+### Using `ListDevisByClient`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, listDevisByClientRef, ListDevisByClientVariables } from '@dataconnect/generated';
+
+// The `ListDevisByClient` query requires an argument of type `ListDevisByClientVariables`:
+const listDevisByClientVars: ListDevisByClientVariables = {
+  clientId: ..., 
+};
+
+// Call the `listDevisByClientRef()` function to get a reference to the query.
+const ref = listDevisByClientRef(listDevisByClientVars);
+// Variables can be defined inline as well.
+const ref = listDevisByClientRef({ clientId: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = listDevisByClientRef(dataConnect, listDevisByClientVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.deviss);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.deviss);
+});
+```
+
+## ListDevisByChantier
+You can execute the `ListDevisByChantier` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+listDevisByChantier(vars: ListDevisByChantierVariables, options?: ExecuteQueryOptions): QueryPromise<ListDevisByChantierData, ListDevisByChantierVariables>;
+
+interface ListDevisByChantierRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListDevisByChantierVariables): QueryRef<ListDevisByChantierData, ListDevisByChantierVariables>;
+}
+export const listDevisByChantierRef: ListDevisByChantierRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+listDevisByChantier(dc: DataConnect, vars: ListDevisByChantierVariables, options?: ExecuteQueryOptions): QueryPromise<ListDevisByChantierData, ListDevisByChantierVariables>;
+
+interface ListDevisByChantierRef {
+  ...
+  (dc: DataConnect, vars: ListDevisByChantierVariables): QueryRef<ListDevisByChantierData, ListDevisByChantierVariables>;
+}
+export const listDevisByChantierRef: ListDevisByChantierRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the listDevisByChantierRef:
+```typescript
+const name = listDevisByChantierRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `ListDevisByChantier` query requires an argument of type `ListDevisByChantierVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface ListDevisByChantierVariables {
+  chantierId: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `ListDevisByChantier` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `ListDevisByChantierData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface ListDevisByChantierData {
+  deviss: ({
+    id: UUIDString;
+    numeroDevis: string;
+    titre: string;
+    statut: string;
+    montantHT?: number | null;
+    tva?: number | null;
+    montantTTC?: number | null;
+    dateDemande: DateString;
+    dateEnvoi?: DateString | null;
+    dateSignature?: DateString | null;
+    typeChantierCible?: string | null;
+    description?: string | null;
+    client: {
+      id: UUIDString;
+      nom: string;
+      prenom?: string | null;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+      } & Chantier_Key;
+  } & Devis_Key)[];
+}
+```
+### Using `ListDevisByChantier`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, listDevisByChantier, ListDevisByChantierVariables } from '@dataconnect/generated';
+
+// The `ListDevisByChantier` query requires an argument of type `ListDevisByChantierVariables`:
+const listDevisByChantierVars: ListDevisByChantierVariables = {
+  chantierId: ..., 
+};
+
+// Call the `listDevisByChantier()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await listDevisByChantier(listDevisByChantierVars);
+// Variables can be defined inline as well.
+const { data } = await listDevisByChantier({ chantierId: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await listDevisByChantier(dataConnect, listDevisByChantierVars);
+
+console.log(data.deviss);
+
+// Or, you can use the `Promise` API.
+listDevisByChantier(listDevisByChantierVars).then((response) => {
+  const data = response.data;
+  console.log(data.deviss);
+});
+```
+
+### Using `ListDevisByChantier`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, listDevisByChantierRef, ListDevisByChantierVariables } from '@dataconnect/generated';
+
+// The `ListDevisByChantier` query requires an argument of type `ListDevisByChantierVariables`:
+const listDevisByChantierVars: ListDevisByChantierVariables = {
+  chantierId: ..., 
+};
+
+// Call the `listDevisByChantierRef()` function to get a reference to the query.
+const ref = listDevisByChantierRef(listDevisByChantierVars);
+// Variables can be defined inline as well.
+const ref = listDevisByChantierRef({ chantierId: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = listDevisByChantierRef(dataConnect, listDevisByChantierVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.deviss);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.deviss);
 });
 ```
 
@@ -1225,23 +1663,39 @@ export interface ListDocumentsAttachesData {
             type: string;
           } & Client_Key;
         } & Chantier_Key;
-          facture?: {
+          devis?: {
             id: UUIDString;
-            fournisseur: string;
-            numeroFacture: string;
-            montantTTC: number;
-            date: DateString;
+            numeroDevis: string;
+            titre: string;
             statut: string;
-            chantier: {
+            client: {
               id: UUIDString;
               nom: string;
-              client: {
+              type: string;
+            } & Client_Key;
+              chantier?: {
                 id: UUIDString;
                 nom: string;
-                type: string;
-              } & Client_Key;
-            } & Chantier_Key;
-          } & Facture_Key;
+                statut: string;
+              } & Chantier_Key;
+          } & Devis_Key;
+            facture?: {
+              id: UUIDString;
+              fournisseur: string;
+              numeroFacture: string;
+              montantTTC: number;
+              date: DateString;
+              statut: string;
+              chantier: {
+                id: UUIDString;
+                nom: string;
+                client: {
+                  id: UUIDString;
+                  nom: string;
+                  type: string;
+                } & Client_Key;
+              } & Chantier_Key;
+            } & Facture_Key;
   } & DocumentAttache_Key)[];
 }
 ```
@@ -1372,14 +1826,30 @@ export interface ListDocumentsByChantierData {
             type: string;
           } & Client_Key;
         } & Chantier_Key;
-          facture?: {
+          devis?: {
             id: UUIDString;
-            fournisseur: string;
-            numeroFacture: string;
-            montantTTC: number;
-            date: DateString;
+            numeroDevis: string;
+            titre: string;
             statut: string;
-          } & Facture_Key;
+            client: {
+              id: UUIDString;
+              nom: string;
+              type: string;
+            } & Client_Key;
+              chantier?: {
+                id: UUIDString;
+                nom: string;
+                statut: string;
+              } & Chantier_Key;
+          } & Devis_Key;
+            facture?: {
+              id: UUIDString;
+              fournisseur: string;
+              numeroFacture: string;
+              montantTTC: number;
+              date: DateString;
+              statut: string;
+            } & Facture_Key;
   } & DocumentAttache_Key)[];
 }
 ```
@@ -4111,11 +4581,15 @@ The `CreateClient` mutation requires an argument of type `CreateClientVariables`
 export interface CreateClientVariables {
   type: string;
   nom: string;
+  prenom?: string | null;
   email?: string | null;
   telephone?: string | null;
   adresse?: string | null;
   ville?: string | null;
   codePostal?: string | null;
+  typeChantierCible?: string | null;
+  souhaits?: string | null;
+  notes?: string | null;
 }
 ```
 ### Return Type
@@ -4139,18 +4613,22 @@ import { connectorConfig, createClient, CreateClientVariables } from '@dataconne
 const createClientVars: CreateClientVariables = {
   type: ..., 
   nom: ..., 
+  prenom: ..., // optional
   email: ..., // optional
   telephone: ..., // optional
   adresse: ..., // optional
   ville: ..., // optional
   codePostal: ..., // optional
+  typeChantierCible: ..., // optional
+  souhaits: ..., // optional
+  notes: ..., // optional
 };
 
 // Call the `createClient()` function to execute the mutation.
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await createClient(createClientVars);
 // Variables can be defined inline as well.
-const { data } = await createClient({ type: ..., nom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., });
+const { data } = await createClient({ type: ..., nom: ..., prenom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., typeChantierCible: ..., souhaits: ..., notes: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -4177,17 +4655,21 @@ import { connectorConfig, createClientRef, CreateClientVariables } from '@dataco
 const createClientVars: CreateClientVariables = {
   type: ..., 
   nom: ..., 
+  prenom: ..., // optional
   email: ..., // optional
   telephone: ..., // optional
   adresse: ..., // optional
   ville: ..., // optional
   codePostal: ..., // optional
+  typeChantierCible: ..., // optional
+  souhaits: ..., // optional
+  notes: ..., // optional
 };
 
 // Call the `createClientRef()` function to get a reference to the mutation.
 const ref = createClientRef(createClientVars);
 // Variables can be defined inline as well.
-const ref = createClientRef({ type: ..., nom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., });
+const ref = createClientRef({ type: ..., nom: ..., prenom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., typeChantierCible: ..., souhaits: ..., notes: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -4245,11 +4727,15 @@ export interface UpdateClientVariables {
   id: UUIDString;
   type?: string | null;
   nom?: string | null;
+  prenom?: string | null;
   email?: string | null;
   telephone?: string | null;
   adresse?: string | null;
   ville?: string | null;
   codePostal?: string | null;
+  typeChantierCible?: string | null;
+  souhaits?: string | null;
+  notes?: string | null;
 }
 ```
 ### Return Type
@@ -4274,18 +4760,22 @@ const updateClientVars: UpdateClientVariables = {
   id: ..., 
   type: ..., // optional
   nom: ..., // optional
+  prenom: ..., // optional
   email: ..., // optional
   telephone: ..., // optional
   adresse: ..., // optional
   ville: ..., // optional
   codePostal: ..., // optional
+  typeChantierCible: ..., // optional
+  souhaits: ..., // optional
+  notes: ..., // optional
 };
 
 // Call the `updateClient()` function to execute the mutation.
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await updateClient(updateClientVars);
 // Variables can be defined inline as well.
-const { data } = await updateClient({ id: ..., type: ..., nom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., });
+const { data } = await updateClient({ id: ..., type: ..., nom: ..., prenom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., typeChantierCible: ..., souhaits: ..., notes: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -4313,17 +4803,21 @@ const updateClientVars: UpdateClientVariables = {
   id: ..., 
   type: ..., // optional
   nom: ..., // optional
+  prenom: ..., // optional
   email: ..., // optional
   telephone: ..., // optional
   adresse: ..., // optional
   ville: ..., // optional
   codePostal: ..., // optional
+  typeChantierCible: ..., // optional
+  souhaits: ..., // optional
+  notes: ..., // optional
 };
 
 // Call the `updateClientRef()` function to get a reference to the mutation.
 const ref = updateClientRef(updateClientVars);
 // Variables can be defined inline as well.
-const ref = updateClientRef({ id: ..., type: ..., nom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., });
+const ref = updateClientRef({ id: ..., type: ..., nom: ..., prenom: ..., email: ..., telephone: ..., adresse: ..., ville: ..., codePostal: ..., typeChantierCible: ..., souhaits: ..., notes: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -4601,6 +5095,281 @@ executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.query);
   console.log(data.chantier_update);
+});
+```
+
+## CreateDevis
+You can execute the `CreateDevis` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+createDevis(vars: CreateDevisVariables): MutationPromise<CreateDevisData, CreateDevisVariables>;
+
+interface CreateDevisRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateDevisVariables): MutationRef<CreateDevisData, CreateDevisVariables>;
+}
+export const createDevisRef: CreateDevisRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+createDevis(dc: DataConnect, vars: CreateDevisVariables): MutationPromise<CreateDevisData, CreateDevisVariables>;
+
+interface CreateDevisRef {
+  ...
+  (dc: DataConnect, vars: CreateDevisVariables): MutationRef<CreateDevisData, CreateDevisVariables>;
+}
+export const createDevisRef: CreateDevisRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the createDevisRef:
+```typescript
+const name = createDevisRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `CreateDevis` mutation requires an argument of type `CreateDevisVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface CreateDevisVariables {
+  clientId: UUIDString;
+  chantierId?: UUIDString | null;
+  numeroDevis: string;
+  titre: string;
+  statut: string;
+  montantHT?: number | null;
+  tva?: number | null;
+  montantTTC?: number | null;
+  dateDemande: DateString;
+  dateEnvoi?: DateString | null;
+  dateSignature?: DateString | null;
+  typeChantierCible?: string | null;
+  description?: string | null;
+}
+```
+### Return Type
+Recall that executing the `CreateDevis` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `CreateDevisData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface CreateDevisData {
+  query?: {
+  };
+    devis_insert: Devis_Key;
+}
+```
+### Using `CreateDevis`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, createDevis, CreateDevisVariables } from '@dataconnect/generated';
+
+// The `CreateDevis` mutation requires an argument of type `CreateDevisVariables`:
+const createDevisVars: CreateDevisVariables = {
+  clientId: ..., 
+  chantierId: ..., // optional
+  numeroDevis: ..., 
+  titre: ..., 
+  statut: ..., 
+  montantHT: ..., // optional
+  tva: ..., // optional
+  montantTTC: ..., // optional
+  dateDemande: ..., 
+  dateEnvoi: ..., // optional
+  dateSignature: ..., // optional
+  typeChantierCible: ..., // optional
+  description: ..., // optional
+};
+
+// Call the `createDevis()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await createDevis(createDevisVars);
+// Variables can be defined inline as well.
+const { data } = await createDevis({ clientId: ..., chantierId: ..., numeroDevis: ..., titre: ..., statut: ..., montantHT: ..., tva: ..., montantTTC: ..., dateDemande: ..., dateEnvoi: ..., dateSignature: ..., typeChantierCible: ..., description: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await createDevis(dataConnect, createDevisVars);
+
+console.log(data.query);
+console.log(data.devis_insert);
+
+// Or, you can use the `Promise` API.
+createDevis(createDevisVars).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.devis_insert);
+});
+```
+
+### Using `CreateDevis`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, createDevisRef, CreateDevisVariables } from '@dataconnect/generated';
+
+// The `CreateDevis` mutation requires an argument of type `CreateDevisVariables`:
+const createDevisVars: CreateDevisVariables = {
+  clientId: ..., 
+  chantierId: ..., // optional
+  numeroDevis: ..., 
+  titre: ..., 
+  statut: ..., 
+  montantHT: ..., // optional
+  tva: ..., // optional
+  montantTTC: ..., // optional
+  dateDemande: ..., 
+  dateEnvoi: ..., // optional
+  dateSignature: ..., // optional
+  typeChantierCible: ..., // optional
+  description: ..., // optional
+};
+
+// Call the `createDevisRef()` function to get a reference to the mutation.
+const ref = createDevisRef(createDevisVars);
+// Variables can be defined inline as well.
+const ref = createDevisRef({ clientId: ..., chantierId: ..., numeroDevis: ..., titre: ..., statut: ..., montantHT: ..., tva: ..., montantTTC: ..., dateDemande: ..., dateEnvoi: ..., dateSignature: ..., typeChantierCible: ..., description: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = createDevisRef(dataConnect, createDevisVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.query);
+console.log(data.devis_insert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.devis_insert);
+});
+```
+
+## UpdateDevisStatut
+You can execute the `UpdateDevisStatut` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+updateDevisStatut(vars: UpdateDevisStatutVariables): MutationPromise<UpdateDevisStatutData, UpdateDevisStatutVariables>;
+
+interface UpdateDevisStatutRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateDevisStatutVariables): MutationRef<UpdateDevisStatutData, UpdateDevisStatutVariables>;
+}
+export const updateDevisStatutRef: UpdateDevisStatutRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+updateDevisStatut(dc: DataConnect, vars: UpdateDevisStatutVariables): MutationPromise<UpdateDevisStatutData, UpdateDevisStatutVariables>;
+
+interface UpdateDevisStatutRef {
+  ...
+  (dc: DataConnect, vars: UpdateDevisStatutVariables): MutationRef<UpdateDevisStatutData, UpdateDevisStatutVariables>;
+}
+export const updateDevisStatutRef: UpdateDevisStatutRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the updateDevisStatutRef:
+```typescript
+const name = updateDevisStatutRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `UpdateDevisStatut` mutation requires an argument of type `UpdateDevisStatutVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface UpdateDevisStatutVariables {
+  id: UUIDString;
+  statut: string;
+  dateEnvoi?: DateString | null;
+  dateSignature?: DateString | null;
+}
+```
+### Return Type
+Recall that executing the `UpdateDevisStatut` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `UpdateDevisStatutData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface UpdateDevisStatutData {
+  query?: {
+  };
+    devis_update?: Devis_Key | null;
+}
+```
+### Using `UpdateDevisStatut`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, updateDevisStatut, UpdateDevisStatutVariables } from '@dataconnect/generated';
+
+// The `UpdateDevisStatut` mutation requires an argument of type `UpdateDevisStatutVariables`:
+const updateDevisStatutVars: UpdateDevisStatutVariables = {
+  id: ..., 
+  statut: ..., 
+  dateEnvoi: ..., // optional
+  dateSignature: ..., // optional
+};
+
+// Call the `updateDevisStatut()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await updateDevisStatut(updateDevisStatutVars);
+// Variables can be defined inline as well.
+const { data } = await updateDevisStatut({ id: ..., statut: ..., dateEnvoi: ..., dateSignature: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await updateDevisStatut(dataConnect, updateDevisStatutVars);
+
+console.log(data.query);
+console.log(data.devis_update);
+
+// Or, you can use the `Promise` API.
+updateDevisStatut(updateDevisStatutVars).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.devis_update);
+});
+```
+
+### Using `UpdateDevisStatut`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, updateDevisStatutRef, UpdateDevisStatutVariables } from '@dataconnect/generated';
+
+// The `UpdateDevisStatut` mutation requires an argument of type `UpdateDevisStatutVariables`:
+const updateDevisStatutVars: UpdateDevisStatutVariables = {
+  id: ..., 
+  statut: ..., 
+  dateEnvoi: ..., // optional
+  dateSignature: ..., // optional
+};
+
+// Call the `updateDevisStatutRef()` function to get a reference to the mutation.
+const ref = updateDevisStatutRef(updateDevisStatutVars);
+// Variables can be defined inline as well.
+const ref = updateDevisStatutRef({ id: ..., statut: ..., dateEnvoi: ..., dateSignature: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = updateDevisStatutRef(dataConnect, updateDevisStatutVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.query);
+console.log(data.devis_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.devis_update);
 });
 ```
 
@@ -5031,6 +5800,7 @@ export interface CreateDocumentAttacheVariables {
   folderId?: UUIDString | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
+  devisId?: UUIDString | null;
   factureId?: UUIDString | null;
   nomFichier: string;
   storagePath: string;
@@ -5066,6 +5836,7 @@ const createDocumentAttacheVars: CreateDocumentAttacheVariables = {
   folderId: ..., // optional
   clientId: ..., // optional
   chantierId: ..., // optional
+  devisId: ..., // optional
   factureId: ..., // optional
   nomFichier: ..., 
   storagePath: ..., 
@@ -5083,7 +5854,7 @@ const createDocumentAttacheVars: CreateDocumentAttacheVariables = {
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await createDocumentAttache(createDocumentAttacheVars);
 // Variables can be defined inline as well.
-const { data } = await createDocumentAttache({ folderId: ..., clientId: ..., chantierId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., sha256: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
+const { data } = await createDocumentAttache({ folderId: ..., clientId: ..., chantierId: ..., devisId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., sha256: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -5111,6 +5882,7 @@ const createDocumentAttacheVars: CreateDocumentAttacheVariables = {
   folderId: ..., // optional
   clientId: ..., // optional
   chantierId: ..., // optional
+  devisId: ..., // optional
   factureId: ..., // optional
   nomFichier: ..., 
   storagePath: ..., 
@@ -5127,7 +5899,7 @@ const createDocumentAttacheVars: CreateDocumentAttacheVariables = {
 // Call the `createDocumentAttacheRef()` function to get a reference to the mutation.
 const ref = createDocumentAttacheRef(createDocumentAttacheVars);
 // Variables can be defined inline as well.
-const ref = createDocumentAttacheRef({ folderId: ..., clientId: ..., chantierId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., sha256: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
+const ref = createDocumentAttacheRef({ folderId: ..., clientId: ..., chantierId: ..., devisId: ..., factureId: ..., nomFichier: ..., storagePath: ..., mimeType: ..., tailleBytes: ..., sha256: ..., typeDocument: ..., statut: ..., source: ..., description: ..., dateDocument: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -5186,6 +5958,7 @@ export interface UpdateDocumentAttacheLinksVariables {
   folderId?: UUIDString | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
+  devisId?: UUIDString | null;
   factureId?: UUIDString | null;
   statut?: string | null;
   typeDocument?: string | null;
@@ -5214,6 +5987,7 @@ const updateDocumentAttacheLinksVars: UpdateDocumentAttacheLinksVariables = {
   folderId: ..., // optional
   clientId: ..., // optional
   chantierId: ..., // optional
+  devisId: ..., // optional
   factureId: ..., // optional
   statut: ..., // optional
   typeDocument: ..., // optional
@@ -5223,7 +5997,7 @@ const updateDocumentAttacheLinksVars: UpdateDocumentAttacheLinksVariables = {
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await updateDocumentAttacheLinks(updateDocumentAttacheLinksVars);
 // Variables can be defined inline as well.
-const { data } = await updateDocumentAttacheLinks({ id: ..., folderId: ..., clientId: ..., chantierId: ..., factureId: ..., statut: ..., typeDocument: ..., });
+const { data } = await updateDocumentAttacheLinks({ id: ..., folderId: ..., clientId: ..., chantierId: ..., devisId: ..., factureId: ..., statut: ..., typeDocument: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -5252,6 +6026,7 @@ const updateDocumentAttacheLinksVars: UpdateDocumentAttacheLinksVariables = {
   folderId: ..., // optional
   clientId: ..., // optional
   chantierId: ..., // optional
+  devisId: ..., // optional
   factureId: ..., // optional
   statut: ..., // optional
   typeDocument: ..., // optional
@@ -5260,7 +6035,7 @@ const updateDocumentAttacheLinksVars: UpdateDocumentAttacheLinksVariables = {
 // Call the `updateDocumentAttacheLinksRef()` function to get a reference to the mutation.
 const ref = updateDocumentAttacheLinksRef(updateDocumentAttacheLinksVars);
 // Variables can be defined inline as well.
-const ref = updateDocumentAttacheLinksRef({ id: ..., folderId: ..., clientId: ..., chantierId: ..., factureId: ..., statut: ..., typeDocument: ..., });
+const ref = updateDocumentAttacheLinksRef({ id: ..., folderId: ..., clientId: ..., chantierId: ..., devisId: ..., factureId: ..., statut: ..., typeDocument: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);

@@ -127,6 +127,7 @@ npm run dev
 npm run dev:prod
 npm run build:sandbox
 npm run build:prod
+npm run check:operational-lifecycle-readiness
 ```
 
 ---
@@ -190,11 +191,12 @@ le schema existe, mais le seed n'a pas encore ete charge.
 
 ### Schema metier courant
 
-Le schema SQL Connect de Sosson modelise 4 entites metier principales :
+Le schema SQL Connect de Sosson modelise 5 entites metier principales :
 
 - `User` : utilisateur interne lie a Firebase Auth
-- `Client` : client final, avec `origineImport` (`operationnel` ou `previsionnel`)
+- `Client` : client final ou prospect, avec `origineImport` (`operationnel` ou `previsionnel`)
 - `Chantier` : dossier operationnel rattache a un client, avec `origineImport` (`operationnel` ou `previsionnel`)
+- `Devis` : devis demande/envoye/signe rattache au client et optionnellement au chantier confirme
 - `Facture` : facture fournisseur rattachee a un chantier
 
 Les champs derives comme les depenses agregees, la marge ou la tendance budgetaire ne sont pas stockes en dur dans la base principale : ils se calculent a partir des relations et des donnees de factures.
@@ -445,10 +447,15 @@ npm run dashboard
 
 ```bash
 npm run checkpoint:002:local
+npm run check:operational-lifecycle-readiness
+npm run check:operational-lifecycle-proof
+npm run check:operational-lifecycle-decisions
+npm run update:operational-lifecycle-decisions -- --file=tmp/checkpoint-002/answers.json --dry-run
 npm run emulators:dataconnect
 npm run checkpoint:002:emulator
 npm run verify:previsionnel-edits:dataconnect
 npm run verify:operational-boundary:dataconnect
+npm run verify:operational-lifecycle:dataconnect
 npm run verify:team-users:dataconnect
 npm run verify:chantier-status:dataconnect
 npm run verify:client-update:dataconnect
@@ -467,9 +474,14 @@ firebase dataconnect:sdk:generate
 
 Notes :
 - `checkpoint:002:local` ne touche pas la sandbox distante.
-- `checkpoint:002:emulator` demande l'emulateur Data Connect deja lance dans un autre terminal; il enchaine maintenant les seeds, verifications, frontiere operationnel/previsionnel, preuve statut chantier SQL, preuve edition client SQL, lecture `ListUsers`, preuves email/planning/rapport SQL locales, comptage local propre, snapshot analytics SQL local, preuve edition previsionnel SQL locale, preuve factures SQL locale, preuve documents SQL locale, RBAC local et trace SQL checkpoint/audit locale.
+- `check:operational-lifecycle-readiness` verifie que la fiche metier `docs/17-operational-lifecycle-scenario.md`, la readiness, le runbook sandbox, l'audit de completion, Moteur live et `ci:sandbox` gardent le verrou metier du cycle client/prospect -> devis -> chantier -> factures.
+- `check:operational-lifecycle-proof` relit `tmp/checkpoint-002/operational-lifecycle-local.json` apres `checkpoint:002:emulator` et verifie automatiquement le prospect sans chantier, le devis demande, le client operationnel, le chantier rattache, le devis signe, les factures definitives/categorisees, l'absence d'action sandbox/production et l'absence de fuite previsionnelle operationnelle.
+- `check:operational-lifecycle-decisions` verifie les 9 reponses metier de `docs/17-operational-lifecycle-scenario.md`; il sert de gate manuel avant sandbox et n'est pas lance par `ci:sandbox`.
+- `update:operational-lifecycle-decisions` applique localement les 9 reponses metier depuis un JSON sous `tmp/`; utiliser `--dry-run` avant modification reelle. Il ne touche ni SQL Connect ni sandbox.
+- `checkpoint:002:emulator` demande l'emulateur Data Connect deja lance dans un autre terminal; il enchaine maintenant les seeds, verifications, frontiere operationnel/previsionnel, preuve statut chantier SQL, preuve edition client SQL, lecture `ListUsers`, preuves email/planning/rapport SQL locales, comptage local propre, snapshot analytics SQL local, preuve edition previsionnel SQL locale, preuve factures SQL locale, preuve lifecycle client/devis/chantier/factures SQL locale, preuve documents SQL locale, RBAC local et trace SQL checkpoint/audit locale.
 - `verify:previsionnel-edits:dataconnect` modifie puis restaure un montant mensuel previsionnel seed via `UpdatePrevisionnelMonthlyAmount`, puis upsert une cellule de preuve via `UpsertPrevisionnelCellEdit`; il ne touche pas la sandbox.
 - `verify:operational-boundary:dataconnect` verifie en emulateur que le seed previsionnel ne remonte pas dans les listes operationnelles.
+- `verify:operational-lifecycle:dataconnect` cree en emulateur un profil `User` local autorise, un prospect sans chantier, un devis demande, un client operationnel, un chantier rattache, un devis signe et des factures definitives/categorisees; il relit les listes operationnelles, verifie `origineImport: "operationnel"` et archive `tmp/checkpoint-002/operational-lifecycle-local.json`; il ne touche pas la sandbox.
 - `verify:team-users:dataconnect` cree puis relit un profil `User` local via `ListUsers`; il ne provisionne rien en sandbox.
 - `verify:chantier-status:dataconnect` modifie puis restaure le statut d'un chantier seed local via `UpdateChantierStatut`; il ne touche pas la sandbox.
 - `verify:client-update:dataconnect` modifie puis restaure un client seed local via `UpdateClient`; il ne touche pas la sandbox.

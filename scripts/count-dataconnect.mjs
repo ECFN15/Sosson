@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto'
 import {
   connectorConfig,
   getCurrentUser,
+  listDevis,
   listDocumentFolders,
   listDocumentsAttaches,
   listFactures,
@@ -161,6 +162,7 @@ const [
   clientsResponse,
   chantiersResponse,
   facturesResponse,
+  devisResponse,
   foldersResponse,
   documentsResponse,
   exercisesResponse,
@@ -168,6 +170,7 @@ const [
   listOperationalClients(dc),
   listOperationalChantiers(dc),
   listFactures(dc),
+  listDevis(dc),
   listDocumentFolders(dc),
   listDocumentsAttaches(dc),
   listPrevisionnelExercises(dc),
@@ -227,6 +230,7 @@ const counts = {
     clients: clientsResponse.data.clients.length,
     chantiers: chantiersResponse.data.chantiers.length,
     factures: facturesResponse.data.factures.length,
+    devis: devisResponse.data.deviss.length,
   },
   documents: {
     folders: foldersResponse.data.documentFolders.length,

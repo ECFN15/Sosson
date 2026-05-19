@@ -6,6 +6,7 @@ import { chantiers as seedChantiers } from '@/data/chantiers'
 import type { Chantier } from '@/data/chantiers'
 import { clients as seedClients } from '@/data/clients'
 import type { Client } from '@/data/clients'
+import type { Devis } from '@/data/devis'
 import { emails as seedEmails } from '@/data/emails'
 import { getCurrentUser, isFirebaseConfigured, onAuthChange } from '@/lib/auth'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
@@ -23,6 +24,7 @@ interface OperationalDataset {
   clients: Client[]
   chantiers: Chantier[]
   factures: Facture[]
+  devis: Devis[]
 }
 
 interface AppState {
@@ -30,6 +32,7 @@ interface AppState {
   clients: Client[]
   chantiers: Chantier[]
   factures: Facture[]
+  devis: Devis[]
   dataSource: DataSource
   operationalDataState: DomainDataState<OperationalDataset>
   isDataConnectLoading: boolean
@@ -61,6 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [clientsList, setClientsList] = useState<Client[]>(initialClients)
   const [chantiersList, setChantiersList] = useState<Chantier[]>(initialChantiers)
   const [facturesList, setFacturesList] = useState<Facture[]>(initialFactures)
+  const [devisList, setDevisList] = useState<Devis[]>([])
   const [dataSource, setDataSource] = useState<DataSource>(initialDataSource)
   const [isDataConnectLoading, setIsDataConnectLoading] = useState(false)
   const [accessMatrix, setAccessMatrixState] = useState<AccessMatrix>(() => loadAccessMatrix())
@@ -69,15 +73,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clients: clientsList,
       chantiers: chantiersList,
       factures: facturesList,
+      devis: devisList,
     }
-    const hasData = clientsList.length > 0 || chantiersList.length > 0 || facturesList.length > 0
+    const hasData = clientsList.length > 0 || chantiersList.length > 0 || facturesList.length > 0 || devisList.length > 0
 
     return buildDomainDataState({
       data,
       source: dataSource,
       status: isDataConnectLoading ? 'loading' : hasData ? 'ready' : 'empty',
     })
-  }, [chantiersList, clientsList, dataSource, facturesList, isDataConnectLoading])
+  }, [chantiersList, clientsList, dataSource, devisList, facturesList, isDataConnectLoading])
 
   function setAccessMatrix(matrix: AccessMatrix) {
     const normalized = normalizeAccessMatrix(matrix)
@@ -109,6 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!isMounted || !loaded) return
 
         setFacturesList(loaded.factures)
+        setDevisList(loaded.devis)
         setChantiersList(loaded.chantiers)
         setClientsList(loaded.clients)
         setDataSource('dataconnect')
@@ -196,6 +202,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         clients: clientsList,
         chantiers: chantiersList,
         factures: facturesList,
+        devis: devisList,
         dataSource,
         operationalDataState,
         isDataConnectLoading,

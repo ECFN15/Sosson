@@ -93,6 +93,15 @@ const commands = [
     ],
   },
   {
+    label: 'Verification cycle operationnel client chantier facture SQL local',
+    args: [
+      'run',
+      'verify:operational-lifecycle:dataconnect',
+      '--',
+      '--output=tmp/checkpoint-002/operational-lifecycle-local.json',
+    ],
+  },
+  {
     label: 'Verification documents SQL local',
     args: ['run', 'verify:documents:dataconnect'],
   },
@@ -129,6 +138,7 @@ async function validateCleanLocalCounts() {
     clients: counts.operationalTables?.clients,
     chantiers: counts.operationalTables?.chantiers,
     factures: counts.operationalTables?.factures,
+    devis: counts.operationalTables?.devis,
     documentFolders: counts.documents?.folders,
     documentAttaches: counts.documents?.attaches,
     previsionnelExercises: counts.previsionnel?.exercises,
@@ -139,6 +149,7 @@ async function validateCleanLocalCounts() {
     clients: 3,
     chantiers: 4,
     factures: 12,
+    devis: 0,
     documentFolders: 0,
     documentAttaches: 0,
     previsionnelExercises: 13,
@@ -171,4 +182,4 @@ for (const item of commands) {
 }
 
 console.log('\nVerification checkpoint 002 emulateur OK.')
-console.log('Preuves locales ecrites dans tmp/checkpoint-002/counts-local.json, tmp/checkpoint-002/operational-boundary-local.json, tmp/checkpoint-002/chantier-status-local.json, tmp/checkpoint-002/client-update-local.json, tmp/checkpoint-002/team-users-local.json, tmp/checkpoint-002/email-local.json, tmp/checkpoint-002/previsionnel-edits-local.json, tmp/checkpoint-002/factures-local.json, tmp/checkpoint-002/documents-local.json, tmp/checkpoint-002/planning-local.json, tmp/checkpoint-002/report-local.json, tmp/checkpoint-002/analytics-snapshot-local.json et tmp/checkpoint-002/checkpoint-audit-local.json.')
+console.log('Preuves locales ecrites dans tmp/checkpoint-002/counts-local.json, tmp/checkpoint-002/operational-boundary-local.json, tmp/checkpoint-002/chantier-status-local.json, tmp/checkpoint-002/client-update-local.json, tmp/checkpoint-002/team-users-local.json, tmp/checkpoint-002/email-local.json, tmp/checkpoint-002/previsionnel-edits-local.json, tmp/checkpoint-002/factures-local.json, tmp/checkpoint-002/operational-lifecycle-local.json, tmp/checkpoint-002/documents-local.json, tmp/checkpoint-002/planning-local.json, tmp/checkpoint-002/report-local.json, tmp/checkpoint-002/analytics-snapshot-local.json et tmp/checkpoint-002/checkpoint-audit-local.json.')

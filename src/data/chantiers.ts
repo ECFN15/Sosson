@@ -1,4 +1,14 @@
-export type StatutChantier = 'en_cours' | 'cloture' | 'en_attente'
+export type StatutChantier =
+  | 'prospect'
+  | 'devis_a_faire'
+  | 'devis_envoye'
+  | 'signe'
+  | 'en_preparation'
+  | 'en_cours'
+  | 'en_pause'
+  | 'termine'
+  | 'cloture'
+  | 'annule'
 export type TendanceChantier = 'vert' | 'orange' | 'rouge'
 
 export interface Chantier {

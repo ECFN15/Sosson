@@ -1,7 +1,7 @@
 # 14 - Audit de completion objectif global
 
 > Statut: vivant  
-> Derniere revision: 2026-05-17  
+> Derniere revision: 2026-05-18
 > Portee: mapping exigence utilisateur -> artefact -> preuve -> manque.
 
 ## Objectif audite
@@ -14,6 +14,52 @@ Objectif **non complet**.
 
 Les patchs locaux, la documentation et les checks statiques sont largement en place. La sandbox distante n'est pas encore prouvee: seed reel, comptage distant, profils SQL `User`, rules deployees/testees, RBAC serveur deja durci localement, Storage produit et monitoring restent a valider ou implementer.
 
+## Audit objectif 2026-05-18 - cycle nouveau client operationnel
+
+Objectif audite: amener Sosson plus pres d'un vrai outil metier SQL en validant localement le scenario `client/prospect -> devis -> chantier -> factures`, en clarifiant Dashboard/Statistiques/fallbacks et en preparant la visualisation Moteur live. Toute action sandbox reelle et production est exclue.
+
+Verdict: **non complet pour validation sandbox metier**.
+
+Le parcours SQL local est prouve techniquement, mais les 9 reponses metier restent manquantes. La decision correcte est donc: pret techniquement en local, pas encore pret a demander validation sandbox.
+
+### Audit strict de reprise - 2026-05-18
+
+Controle de completion effectue apres reprise de contexte:
+
+| Point controle | Preuve inspectee | Resultat |
+|---|---|---|
+| Artefact lifecycle local existe | `tmp/checkpoint-002/operational-lifecycle-local.json` | OK: `mode: "local-emulator"`, `sandboxTouched: false`, `productionTouched: false`, liens client/chantier/factures valides. |
+| Artefact lifecycle local valide automatiquement | `npm run check:operational-lifecycle-proof` | OK attendu apres `checkpoint:002:emulator`: le check relit la preuve JSON, bloque une preuve sans client/chantier/factures SQL locaux, une fuite previsionnelle ou un marqueur sandbox/production. |
+| Audit completion local machine-readable | `npm run audit:operational-lifecycle-completion`, `tmp/checkpoint-002/operational-lifecycle-completion-audit.json` | Produit un verdict non bloquant `not-ready` tant que les 9 decisions metier ne sont pas renseignees. |
+| SDKs generes non modifies | `git status --short src/dataconnect-generated src/dataconnect-admin-generated`, `npm run check:generated-clean` | OK: aucun diff dans les SDKs generes; check vert. |
+| Check de readiness lifecycle | `npm run check:operational-lifecycle-readiness` | OK: docs, preuve locale, Moteur live et preflight sandbox relies. |
+| Preflight local apres evolutions UI | `npm run checkpoint:002:local` | OK: CI sandbox locale, audit sources front, dry-run comptage Data Connect, dry-run seed sandbox et dry-run provisioning SQL User. Aucune action sandbox reelle. |
+| Decisions metier obligatoires | `npm run check:operational-lifecycle-decisions`, `docs/17-operational-lifecycle-scenario.md` | Les 9 decisions sont renseignees: prospect sans chantier, domaine Devis, factures definitives impactantes, statuts chantier et Moteur live type Access. |
+| Application controlee des reponses metier | `npm run update:operational-lifecycle-decisions -- --template`, `npm run update:operational-lifecycle-decisions -- --file=tmp/checkpoint-002/answers.json --dry-run` | Outil local disponible pour appliquer les 9 reponses dans `docs/17-operational-lifecycle-scenario.md` sans toucher SQL Connect ni sandbox. |
+| Panneau decisions dans Moteur live | `scripts/check-operational-lifecycle-readiness.mjs`, `src/pages/SossonEngineRoomPage.tsx` | OK: le check verrouille `lifecycleDecisionQuestions`, `Decisions qui cadrent la sandbox` et le rappel `check:operational-lifecycle-decisions attendu OK`. |
+| Checkpoint emulateur complet apres lot UI/docs | `npm run reset:dataconnect:local -- --yes-local-reset`, `npm run checkpoint:002:emulator`, preuves `tmp/checkpoint-002/*.json` | OK: base pglite locale resetee, seed operationnel + previsionnel, verifications boundary/statut/client/team/email/planning/reports/counts/analytics/previsionnel/factures/lifecycle/documents/RBAC/audit vertes. Premier essai seed a echoue en 503 pendant la configuration initiale de l emulateur, relance OK apres configuration. |
+| Couverture par proxy | `checkpoint:002:emulator`, `ci:sandbox`, `checkpoint:002:local` | Utile mais insuffisant pour completion: ces commandes prouvent le local technique, pas les decisions metier reelles. |
+
+Conclusion d'audit: les 9 reponses metier sont renseignees; ne pas demander validation sandbox tant que le lifecycle local avec Devis, prospect sans chantier et factures definitives/categorisees n'a pas ete relance et valide par `checkpoint:002:emulator`.
+
+| Exigence utilisateur | Artefacts / preuves actuelles | Etat | Manque |
+|---|---|---|---|
+| Lire les docs obligatoires | `AGENTS.md`, `documentation.md`, `docs/00-index.md`, `docs/05-sql-connect.md`, `docs/12-ai-agent-roadmap.md`, `docs/13-checkpoint-002-readiness.md`. | OK | Aucune. |
+| Ne travailler que local/emulateur/dry-run | `tmp/checkpoint-002/operational-lifecycle-local.json` indique `mode: "local-emulator"`, `sandboxTouched: false`, `productionTouched: false`; aucune commande sandbox reelle lancee. | OK local | Validation humaine requise avant toute action sandbox. |
+| Poser les questions workflow metier avant codage | Decisions conservees dans `docs/17-operational-lifecycle-scenario.md` et referencees dans `docs/13-checkpoint-002-readiness.md`. | OK | Relancer les preuves locales apres changement metier. |
+| Verifier que les decisions metier sont renseignees avant sandbox | `npm run check:operational-lifecycle-decisions` valide `docs/17`; ce check est volontairement hors `ci:sandbox`. | OK attendu | Relancer le checkpoint emulateur avec le parcours Devis. |
+| Script local lifecycle | `scripts/verify-operational-lifecycle-dataconnect-local.mjs`, script npm `verify:operational-lifecycle:dataconnect`, integration `scripts/checkpoint-002-emulator.mjs`. | OK local | Adapter le scenario si les reponses metier changent le flux. |
+| Preuve JSON lisible | `tmp/checkpoint-002/operational-lifecycle-local.json`: user local autorise, prospect sans chantier, devis demande, client `operationnel`, chantier rattache, devis signe, factures definitives/categorisees, checks tous vrais. | OK apres relance emulateur | Preuve sandbox interdite tant que validation humaine absente. |
+| Separation operationnel / previsionnel | Preuve lifecycle + `tmp/checkpoint-002/operational-boundary-local.json`: aucun `prev-client-*` / `prev-chantier-*` dans les listes operationnelles. | OK local | Verification sandbox apres validation humaine. |
+| Dashboard / Statistiques ne masquent pas les fallbacks | `src/pages/DashboardPage.tsx` et `src/pages/StatistiquesPage.tsx` affichent source SQL Connect ou fallback local/Excel. | OK local | Regle metier des statuts de factures impactants a confirmer. |
+| Front creation client / chantier / facture sans fallback silencieux | `ClientsPage`, `ChantiersPage`, `FacturesPage`: libelles `hors SQL`; erreur SQL = aucune creation locale silencieuse en mode SQL. | OK local | Confirmer UX finale apres decisions metier. |
+| Fiche client: liens chantiers/factures lisibles | `ClientDetailPage`: chantiers du client badges `Operationnel SQL` / `Operationnel local` / `Previsionnel Excel`, bloc factures rattachees via les chantiers charges avec source SQL/fallback visible. | OK local | Rattachements documents/emails/planning par client a enrichir plus tard dans Moteur live ou fiches detaillees. |
+| Fiche chantier: factures rattachees lisibles | `ChantierDetailPage`: bloc factures rattachees au chantier avec source SQL/fallback, nombre, total TTC visible, total valide et alerte sur les factures en attente. | OK local | Regle definitive des factures impactant les KPI dashboard/statistiques toujours a confirmer. |
+| Moteur live utile non purement technique | `SossonEngineRoomPage`: catalogue tables/relations, filtres, badges source, liens `Ouvrir`, explorateur client -> devis -> chantiers -> factures avec KPI et navigation vers les fiches, panneau visible des 9 decisions metier validees, mention de la preuve lifecycle et de la fiche metier. | OK maquette fonctionnelle | Documents/emails/planning/rapports/audit a relier plus finement dans l'inspecteur. |
+| Validation locale generale | `lint`, `check:operational-lifecycle-readiness`, `check:operational-lifecycle-proof`, `check:doc-entrypoints`, `check:doc-links`, `check:generated-clean`, `check:ui-capabilities`, `check:page-dataconnect-imports`, `check:dataconnect-client-surface`, `build:sandbox`, `checkpoint:002:local`, `checkpoint:002:emulator` executes OK; build garde le warning chunks connu. | OK local | A relancer apres toute reponse metier qui modifie le flux. |
+| Aucun SDK genere modifie a la main | `npm run check:generated-clean` OK. | OK | A maintenir si schema/operations changent. |
+| Livrable decision finale | Docs 13, 14 et 17 convergent: pas encore pret a demander validation sandbox metier. | OK | Reponses metier puis nouvelle validation locale. |
+
 ## Checklist prompt -> artefacts
 
 | Exigence | Artefacts / preuves actuelles | Etat | Manque pour completion |
@@ -25,7 +71,7 @@ Les patchs locaux, la documentation et les checks statiques sont largement en pl
 | Travailler sandbox/local | Tous les scripts dangereux distants sont en dry-run ou gardes par variables `ALLOW_SANDBOX_*`; `check:sandbox-guardrails` prouve que les fichiers exemples sont refuses avant lecture/mutation sandbox, que le seed sandbox bloque sans validation, que les preuves sandbox hors `tmp/` sont refusees, que le comptage sandbox exige `--user-profiles` + `--output`, que le reset local Data Connect refuse sans confirmation, et que les artefacts locaux sensibles restent ignores par git. | OK local | Validation humaine pour toute lecture/mutation sandbox distante. |
 | Ne jamais mettre de secret front/doc | `npm run check:front-secrets` OK; le check couvre `AGENTS.md`, `README.md`, `documentation.md`, `src`, `docs`, `scripts`, workflows et env publics. | OK local | Garder le check CI. |
 | Ne pas supprimer de donnees reelles | Aucun script destructif distant execute; `npm run check:production-guard` refuse les commandes destructives evidentes dans `package.json` et workflows, sauf le reset local borne de l'emulateur `reset:dataconnect:local`. | OK local | Validation humaine avant action distante. |
-| Patchs lisibles/testables | `npm run checkpoint:002:local` OK le 2026-05-17 14:44 +02:00, incluant `npm run ci:sandbox` OK. | OK local | Review humaine recommandee vu le volume. |
+| Patchs lisibles/testables | `npm run checkpoint:002:local` OK le 2026-05-18, incluant `npm run ci:sandbox` OK avec `check:operational-lifecycle-readiness`. | OK local | Review humaine recommandee vu le volume. |
 | Documenter actions risquees | `docs/10-runbooks.md`, `docs/13-checkpoint-002-readiness.md`, `docs/15-checkpoint-002-sandbox-execution.md`. | OK local | Ajouter sorties reelles apres execution sandbox. |
 | Demander validation pour deploy/mutation sandbox | Commandes sandbox reelles listees comme "validation humaine" dans `docs/13` et detaillees dans le gabarit `docs/15`. | OK local | Validation humaine effective. |
 
@@ -61,7 +107,7 @@ Dernier etat observe:
 npm run checkpoint:002:local
 ```
 
-OK le 2026-05-17 14:44 +02:00. Ce preflight regroupe la CI locale sandbox, l'audit des sources front hybrides, le comptage Data Connect en dry-run, le seed sandbox en dry-run archive sous `tmp/checkpoint-002/seed-sandbox-dry-run.json` et le provisioning SQL `User` en dry-run. Il ne valide pas la sandbox distante.
+OK le 2026-05-18. Ce preflight regroupe la CI locale sandbox, l'audit des sources front hybrides, le comptage Data Connect en dry-run, le seed sandbox en dry-run archive sous `tmp/checkpoint-002/seed-sandbox-dry-run.json` et le provisioning SQL `User` en dry-run. Il ne valide pas la sandbox distante.
 
 ### Commandes et recherches explicitement demandees
 
@@ -105,6 +151,7 @@ OK avec:
 - `npm run check:firebase-rules`
 - `npm run check:production-guard`
 - `npm run check:sandbox-guardrails`
+- `npm run check:operational-lifecycle-readiness`
 - `npm run check:doc-entrypoints`
 - `npm run check:doc-links`
 - `npm run check:page-dataconnect-imports`

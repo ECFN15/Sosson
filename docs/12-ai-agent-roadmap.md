@@ -25,7 +25,7 @@ Objectif: fermer le checkpoint 001 sans supposer que la sandbox distante est dej
 | Item | Etat au 2026-05-16 | Owner responsable | Preuve attendue checkpoint 002 |
 |---|---|---|---|
 | Validation sandbox reelle | Preparee, non executee dans ce lot sans validation humaine. | Agent QA/CI + humain Firebase | Logs `firebase deploy --only firestore:rules,storage,dataconnect --project sosson-sandbox` ou commande equivalente validee humainement. |
-| Etat chiffre base distante | Non confirme. Les chiffres connus de seed sont locaux/generes. | Agent Data / SQL Connect | Comptage sandbox par table: `User`, `Client`, `Chantier`, `Facture`, tables previsionnelles, documents. |
+| Etat chiffre base distante | Non confirme. Les chiffres connus de seed sont locaux/generes. | Agent Data / SQL Connect | Comptage sandbox par table: `User`, `Client`, `Chantier`, `Devis`, `Facture`, tables previsionnelles, documents. |
 | Seed sandbox reel | Seed repo documente, injection sandbox non confirmee. | Agent Data / SQL Connect | Runbook execute + verification sandbox des volumes attendus. |
 | Decisions ouvertes | Liste maintenue dans ce document et checkpoint 001. | Lead produit + Agent Architecture | ADR ou section decision pour operationnel vs previsionnel, Graph email, RBAC. |
 | Risques temporairement acceptes | RBAC SQL implemente localement mais non prouve sandbox, Storage produit non branche, Firestore profil transitoire, localStorage brouillons. | Agent Securite | Risques cites avec mitigation et gate de sortie. |

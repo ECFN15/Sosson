@@ -35,6 +35,7 @@ const tabs: Array<{ key: FactureTab; label: string }> = [
 
 const categories: CategorieDepense[] = [
   'bois_materiaux',
+  'materiaux',
   'quincaillerie',
   'sous_traitance',
   'carburant',
@@ -42,6 +43,7 @@ const categories: CategorieDepense[] = [
   'plomberie',
   'electricite',
   'peinture',
+  'autre',
 ]
 
 const statusMeta: Record<StatutFacture, { label: string; className: string; icon: typeof Clock3 }> = {
@@ -112,7 +114,7 @@ export function FacturesPage() {
   const chantierFilter = searchParams.get('chantierId') ?? ''
   const factureParam = searchParams.get('factureId') ?? ''
   const initialTab: FactureTab =
-    statusParam === 'validee' || statusParam === 'en_attente' || statusParam === 'rejetee' ? statusParam : 'en_attente'
+    statusParam === 'validee' || statusParam === 'en_attente' || statusParam === 'rejetee' ? statusParam : 'toutes'
   const [activeTab, setActiveTab] = useState<FactureTab>(initialTab)
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState(factureParam || factures[0]?.id || '')
@@ -180,6 +182,7 @@ export function FacturesPage() {
     return scopedFactures.reduce(
       (acc, facture) => {
         acc.counts[facture.statut] += 1
+        acc.imported += facture.montantTTC
         if (facture.statut === 'validee') acc.validated += facture.montantTTC
         if (facture.statut === 'en_attente') acc.pending += facture.montantTTC
         return acc
@@ -187,6 +190,7 @@ export function FacturesPage() {
       {
         validated: 0,
         pending: 0,
+        imported: 0,
         counts: { validee: 0, en_attente: 0, rejetee: 0 } as Record<StatutFacture, number>,
       },
     )
@@ -289,7 +293,7 @@ export function FacturesPage() {
       montantTTC,
       date: form.date,
       categorie: form.categorie,
-      statut: 'en_attente',
+      statut: 'validee',
       description: form.description.trim(),
     }
 
@@ -306,10 +310,10 @@ export function FacturesPage() {
             setFeedback('Facture creee dans SQL Connect, mais metadata document non enregistree. Fichier Storage toujours a finaliser.')
           }
         } else {
-          setFeedback('Facture creee dans SQL Connect et ajoutee a la file de traitement.')
+          setFeedback('Facture fournisseur creee dans SQL Connect. Elle est definitive et impacte directement les chiffres.')
         }
       } else {
-        setFeedback('Facture ajoutee localement. SQL Connect reprendra le relais quand la source sera active.')
+        setFeedback("Facture ajoutee localement hors SQL. Ce fallback ne prouve pas une ecriture SQL et n'est pas synchronise automatiquement.")
       }
 
       addFacture(nextFacture)
@@ -369,7 +373,7 @@ export function FacturesPage() {
               Controle financier
             </span>
             <span className="inline-flex rounded-full border border-[#3C3C3C] bg-[#242424] px-3 py-1 text-[11px] font-semibold text-[#C9C9C9]">
-              {canWriteSql ? 'Ecriture SQL Connect' : 'Fallback local'}
+              {canWriteSql ? 'Ecriture SQL Connect' : 'Fallback local hors SQL'}
             </span>
           </div>
           <h1 className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-white">Factures fournisseurs</h1>
@@ -382,7 +386,7 @@ export function FacturesPage() {
           {!canWriteSql && (
             <span className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#D95B17]">
               <WifiOff className="h-4 w-4" strokeWidth={1.75} />
-              Fallback local
+              Fallback local hors SQL
             </span>
           )}
         </div>
@@ -405,9 +409,9 @@ export function FacturesPage() {
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <Card className="p-5">
-          <p className="text-[12px] font-medium text-[#6B6B6B]">A traiter</p>
-          <p className="mt-3 text-[24px] font-semibold text-[#1E1E1E]">{totals.counts.en_attente}</p>
-          <p className="mt-2 text-[12px] text-[#6B6B6B]">{formatEuros(totals.pending)} en attente de validation.</p>
+          <p className="text-[12px] font-medium text-[#6B6B6B]">Impact dashboard</p>
+          <p className="mt-3 text-[24px] font-semibold text-[#1E1E1E]">{formatEuros(totals.imported)}</p>
+          <p className="mt-2 text-[12px] text-[#6B6B6B]">Toutes les factures fournisseur importees impactent les chiffres.</p>
         </Card>
         <Card className="p-5">
           <p className="text-[12px] font-medium text-[#6B6B6B]">Validees</p>
@@ -618,7 +622,7 @@ export function FacturesPage() {
                 <textarea value={form.description} onChange={event => setForm(current => ({ ...current, description: event.target.value }))} className="mt-1 h-20 w-full resize-none rounded-[10px] border border-[#F2E8DC] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" />
               </label>
               <button type="submit" disabled={isSaving || chantiers.length === 0} className="h-11 w-full rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:opacity-60">
-                {isSaving ? 'Enregistrement...' : canWriteSql ? 'Creer dans SQL Connect' : 'Ajouter au fallback local'}
+                {isSaving ? 'Enregistrement...' : canWriteSql ? 'Creer dans SQL Connect' : 'Ajouter localement hors SQL'}
               </button>
             </form>
           </Card>

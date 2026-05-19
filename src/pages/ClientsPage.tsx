@@ -58,7 +58,8 @@ export function ClientsPage() {
   const [portfolioQuery, setPortfolioQuery] = useState('')
   const [form, setForm] = useState({
     nom: '', type: 'particulier' as Client['type'],
-    email: '', telephone: '', adresse: '', ville: '', codePostal: '',
+    prenom: '', email: '', telephone: '', adresse: '', ville: '', codePostal: '',
+    typeChantierCible: '', souhaits: '', notes: '',
   })
   const [saved, setSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -372,11 +373,15 @@ export function ClientsPage() {
     const clientInput = {
       type: form.type,
       nom: form.nom.trim(),
+      prenom: form.prenom.trim() || null,
       email: form.email.trim() || null,
       telephone: form.telephone.trim() || null,
       adresse: form.adresse.trim() || null,
       ville: form.ville.trim() || null,
       codePostal: form.codePostal.trim() || null,
+      typeChantierCible: form.typeChantierCible.trim() || null,
+      souhaits: form.souhaits.trim() || null,
+      notes: form.notes.trim() || null,
     }
 
     if (!clientInput.nom) {
@@ -388,11 +393,15 @@ export function ClientsPage() {
       id: `local-client-${Date.now()}`,
       type: form.type,
       nom: clientInput.nom,
+      prenom: clientInput.prenom ?? '',
       email: clientInput.email ?? '',
       telephone: clientInput.telephone ?? '',
       adresse: clientInput.adresse ?? '',
       ville: clientInput.ville ?? '',
       codePostal: clientInput.codePostal ?? '',
+      typeChantierCible: clientInput.typeChantierCible ?? '',
+      souhaits: clientInput.souhaits ?? '',
+      notes: clientInput.notes ?? '',
       dateCreation: new Date().toISOString().split('T')[0],
       chantierIds: [],
     }
@@ -409,7 +418,19 @@ export function ClientsPage() {
       addClient(newClient)
       setSaved(true)
       setTimeout(() => { setSaved(false); setShowModal(false) }, 1200)
-      setForm({ nom: '', type: 'particulier', email: '', telephone: '', adresse: '', ville: '', codePostal: '' })
+      setForm({
+        nom: '',
+        prenom: '',
+        type: 'particulier',
+        email: '',
+        telephone: '',
+        adresse: '',
+        ville: '',
+        codePostal: '',
+        typeChantierCible: '',
+        souhaits: '',
+        notes: '',
+      })
     } catch (error) {
       console.error(error)
       setPermissionFeedback("Ecriture SQL Connect impossible. Aucun client local n'a ete cree.")
@@ -442,7 +463,7 @@ export function ClientsPage() {
         </span>
         <span className={`inline-flex h-10 items-center gap-2 rounded-[14px] border px-4 text-sm font-medium ${canWriteSql ? 'border-[#D7E7D9] bg-[#F7FBF7] text-[#1E8E3E]' : 'border-[#F2E8DC] bg-white text-[#D95B17]'}`}>
           {!canWriteSql && <WifiOff className="h-4 w-4" strokeWidth={1.75} />}
-          {canWriteSql ? 'Creation SQL Connect' : 'Creation locale fallback'}
+          {canWriteSql ? 'Creation SQL Connect' : 'Creation locale hors SQL'}
         </span>
       </div>
 
@@ -748,18 +769,22 @@ export function ClientsPage() {
 
       {showModal && canCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_24px_80px_rgba(30,30,30,0.18)]">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-[20px] border border-[#F2E8DC] bg-white shadow-[0_24px_80px_rgba(30,30,30,0.18)]">
             <div className="flex items-center justify-between border-b border-[#F2E8DC] px-6 py-5">
               <h2 className="font-semibold text-[#1E1E1E]">Nouveau client</h2>
               <button onClick={() => setShowModal(false)} className="text-[#9CA3AF] hover:text-[#1E1E1E]">
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleCreate} className="p-6 space-y-4">
+            <form onSubmit={handleCreate} className="max-h-[calc(90vh-76px)] space-y-4 overflow-y-auto p-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+                <div>
                   <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Nom / Raison sociale *</label>
                   <input required className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.nom} onChange={e => setForm(f => ({ ...f, nom: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Prenom contact</label>
+                  <input className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.prenom} onChange={e => setForm(f => ({ ...f, prenom: e.target.value }))} />
                 </div>
                 <div className="col-span-2">
                   <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Type</label>
@@ -791,6 +816,18 @@ export function ClientsPage() {
                 <div>
                   <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Code postal</label>
                   <input className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.codePostal} onChange={e => setForm(f => ({ ...f, codePostal: e.target.value }))} />
+                </div>
+                <div className="col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Type de chantier cible</label>
+                  <input className="w-full rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.typeChantierCible} onChange={e => setForm(f => ({ ...f, typeChantierCible: e.target.value }))} />
+                </div>
+                <div className="col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Souhaits / demande</label>
+                  <textarea rows={3} className="w-full resize-none rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.souhaits} onChange={e => setForm(f => ({ ...f, souhaits: e.target.value }))} />
+                </div>
+                <div className="col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-[#6B6B6B]">Notes libres</label>
+                  <textarea rows={3} className="w-full resize-none rounded-xl border border-[#F2E8DC] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
                 </div>
               </div>
               <button

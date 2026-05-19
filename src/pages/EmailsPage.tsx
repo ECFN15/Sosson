@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '@/lib/store'
 import { emails as seedEmails } from '@/data/emails'
 import type { Email } from '@/data/emails'
@@ -45,7 +45,8 @@ type MailPriority = Email['priorite']
 type MailTag = Email['tag']
 type ComposeMode = 'new' | 'reply' | 'forward'
 type MailSource = 'sql' | 'outlook' | 'seed' | 'local'
-type EmailPanelSource = 'loading' | 'sql' | 'sql-empty' | 'outlook' | 'seed-fallback'
+type EmailPanelSource = 'loading' | 'sql' | 'sql-empty' | 'outlook' | 'outlook-error' | 'seed-fallback'
+type OutlookProfile = { mail?: string; userPrincipalName?: string; displayName?: string }
 
 const OUTLOOK_LOCAL_API = 'http://localhost:8787'
 const OUTLOOK_RETURN_TO_KEY = 'sosson.outlook.returnTo'
@@ -113,10 +114,11 @@ const PRIORITY_LABELS: Record<MailPriority, string> = {
 }
 
 const SOURCE_LABELS: Record<EmailPanelSource, string> = {
-  loading: 'SQL en lecture...',
+  loading: 'Chargement...',
   sql: 'Index SQL',
   'sql-empty': 'Index SQL vide',
   outlook: 'Graph live',
+  'outlook-error': 'Graph indisponible',
   'seed-fallback': 'Fallback local',
 }
 
@@ -505,14 +507,16 @@ export function EmailsPage() {
   const [composeOpen, setComposeOpen] = useState(false)
   const [draft, setDraft] = useState(() => buildDraft('new'))
   const [outlookConnected, setOutlookConnected] = useState(false)
-  const [outlookProfile, setOutlookProfile] = useState<{ mail?: string; userPrincipalName?: string; displayName?: string } | null>(null)
+  const [outlookProfile, setOutlookProfile] = useState<OutlookProfile | null>(null)
+  const [outlookConfiguredMailbox, setOutlookConfiguredMailbox] = useState('')
   const [outlookLoading, setOutlookLoading] = useState(false)
   const [outlookError, setOutlookError] = useState('')
+  const preferOutlookRef = useRef(false)
   const canUseEmailSql = isDataConnectEnabled && Boolean(user)
-  const effectiveEmailSource: EmailPanelSource = canUseEmailSql ? emailSource : 'seed-fallback'
+  const effectiveEmailSource: EmailPanelSource = emailSource
 
   useEffect(() => {
-    if (!canUseEmailSql) return
+    if (!canUseEmailSql || outlookConnected || preferOutlookRef.current) return
 
     let mounted = true
 
@@ -520,14 +524,14 @@ export function EmailsPage() {
       setEmailSource('loading')
       try {
         const threads = await loadEmailThreadsFromSql()
-        if (!mounted) return
+        if (!mounted || preferOutlookRef.current) return
         const nextMessages = threads.map(sqlThreadToMailMessage)
         setMessages(nextMessages)
         setSelectedId(nextMessages[0]?.id ?? '')
         setEmailSource(nextMessages.length ? 'sql' : 'sql-empty')
       } catch (error) {
         console.info('Index email SQL Connect indisponible, fallback local visible.', error)
-        if (!mounted) return
+        if (!mounted || preferOutlookRef.current) return
         setMessages(seedEmails.map(seedMessageToMailMessage))
         setSelectedId('')
         setEmailSource('seed-fallback')
@@ -539,18 +543,21 @@ export function EmailsPage() {
     return () => {
       mounted = false
     }
-  }, [canUseEmailSql])
+  }, [canUseEmailSql, outlookConnected])
 
   useEffect(() => {
     fetch(`${OUTLOOK_LOCAL_API}/api/outlook/status`)
       .then(async response => {
         const payload = await response.json()
         if (!response.ok) throw new Error(payload.error ?? 'Serveur Outlook local indisponible')
+        if (payload.connected) preferOutlookRef.current = true
         setOutlookConnected(Boolean(payload.connected))
         setOutlookProfile(payload.profile ?? null)
+        setOutlookConfiguredMailbox(payload.mailbox ?? '')
         if (payload.connected) void refreshOutlookSnapshot()
       })
       .catch(() => {
+        preferOutlookRef.current = false
         setOutlookConnected(false)
         setOutlookError('Serveur Outlook local non demarre. Lance npm run outlook:local.')
       })
@@ -570,10 +577,26 @@ export function EmailsPage() {
   const selectedChantier = selectedMessage ? chantiers.find(chantier => chantier.id === selectedMessage.chantierId) : undefined
   const selectedClient = selectedMessage ? clients.find(client => client.id === selectedMessage.clientId) : undefined
   const confidence = selectedMessage?.priorite === 'haute' ? 92 : selectedMessage?.tag === 'facture' ? 83 : 74
+  const activeMailboxAddress = outlookProfile?.mail ?? outlookProfile?.userPrincipalName ?? outlookConfiguredMailbox
+  const mailboxLabel = activeMailboxAddress || 'Compte Microsoft a connecter'
+  const outlookActionLabel = outlookConnected
+    ? effectiveEmailSource === 'outlook' ? 'Synchroniser Graph' : 'Charger les mails Graph'
+    : 'Connecter la boite dev'
+  const emptyMailboxTitle = effectiveEmailSource === 'loading'
+    ? 'Chargement Microsoft Graph...'
+    : effectiveEmailSource === 'outlook-error'
+      ? 'Microsoft Graph indisponible'
+      : outlookConnected ? 'Aucun message Graph' : 'Boite dev non connectee'
+  const emptyMailboxHint = effectiveEmailSource === 'loading'
+    ? `Lecture de ${mailboxLabel}.`
+    : effectiveEmailSource === 'outlook-error'
+      ? 'Reconnecte la boite dev ou verifie le serveur local Outlook.'
+      : outlookConnected ? 'Change de dossier ou retire le filtre de recherche.' : 'Lance le serveur local puis connecte ton compte Microsoft.'
 
   async function connectOutlook() {
     setOutlookLoading(true)
     setOutlookError('')
+    preferOutlookRef.current = true
     try {
       const response = await fetch(`${OUTLOOK_LOCAL_API}/api/outlook/auth-url`)
       const payload = await response.json()
@@ -581,6 +604,7 @@ export function EmailsPage() {
       localStorage.setItem(OUTLOOK_RETURN_TO_KEY, `${window.location.pathname}${window.location.search}`)
       window.location.href = payload.url
     } catch (error) {
+      preferOutlookRef.current = false
       setOutlookError(error instanceof Error ? error.message : String(error))
       setToast('Serveur Outlook local indisponible. Lance npm run outlook:local dans un terminal.')
     } finally {
@@ -591,6 +615,10 @@ export function EmailsPage() {
   async function refreshOutlookSnapshot() {
     setOutlookLoading(true)
     setOutlookError('')
+    preferOutlookRef.current = true
+    setEmailSource('loading')
+    setMessages([])
+    setSelectedId('')
     try {
       const folders: Array<'inbox' | 'sent' | 'drafts'> = ['inbox', 'sent', 'drafts']
       const payloads = await Promise.all(
@@ -609,6 +637,9 @@ export function EmailsPage() {
       setEmailSource('outlook')
       setToast(`${nextMessages.length} messages Outlook charges depuis Microsoft Graph.`)
     } catch (error) {
+      setMessages([])
+      setSelectedId('')
+      setEmailSource('outlook-error')
       setOutlookError(error instanceof Error ? error.message : String(error))
       setToast(error instanceof Error ? error.message : 'Synchronisation Outlook impossible.')
     } finally {
@@ -674,7 +705,7 @@ export function EmailsPage() {
       threadId,
       externalMessageId: message.id,
       direction: 'outbound',
-      fromEmail: OUTLOOK_MAILBOX_ADDRESS,
+      fromEmail: activeMailboxAddress || OUTLOOK_MAILBOX_ADDRESS,
       fromName: 'Sosson',
       toSummary: message.destinataire,
       ccSummary: null,
@@ -718,7 +749,7 @@ export function EmailsPage() {
       id: `sent-${Date.now()}`,
       chantierId: selectedMessage?.chantierId ?? 'chantier-1',
       clientId: selectedMessage?.clientId ?? 'client-1',
-      expediteur: OUTLOOK_MAILBOX_ADDRESS,
+      expediteur: activeMailboxAddress || OUTLOOK_MAILBOX_ADDRESS,
       destinataire: trimmedTo,
       sujet: trimmedSubject,
       extrait: draft.body.trim() || 'Message envoye depuis Sosson.',
@@ -764,7 +795,7 @@ export function EmailsPage() {
       id: `draft-${Date.now()}`,
       chantierId: selectedMessage?.chantierId ?? 'chantier-1',
       clientId: selectedMessage?.clientId ?? 'client-1',
-      expediteur: OUTLOOK_MAILBOX_ADDRESS,
+      expediteur: activeMailboxAddress || OUTLOOK_MAILBOX_ADDRESS,
       destinataire: draft.to || 'Destinataire a renseigner',
       sujet: draft.subject || '(brouillon sans objet)',
       extrait: draft.body || 'Brouillon en cours.',
@@ -865,14 +896,14 @@ export function EmailsPage() {
           <button
             type="button"
             onClick={() => {
-              if (outlookConnected) void refreshOutlookSnapshot()
+              if (outlookConnected && effectiveEmailSource !== 'outlook-error') void refreshOutlookSnapshot()
               else void connectOutlook()
             }}
             disabled={outlookLoading}
             className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#F9F7F3]"
           >
             <RefreshCcw className={outlookLoading ? 'h-4 w-4 animate-spin text-[#6B6B6B]' : 'h-4 w-4 text-[#6B6B6B]'} strokeWidth={1.75} />
-            {outlookConnected ? 'Synchroniser' : 'Connecter Outlook'}
+            {outlookActionLabel}
           </button>
           <button
             type="button"
@@ -902,7 +933,7 @@ export function EmailsPage() {
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{outlookConnected ? 'Outlook connecte' : 'Outlook local'}</p>
                 <p className="truncate text-xs text-white/65">
-                  {outlookProfile?.mail ?? outlookProfile?.userPrincipalName ?? OUTLOOK_MAILBOX_ADDRESS}
+                  {mailboxLabel}
                 </p>
               </div>
             </div>
@@ -916,7 +947,7 @@ export function EmailsPage() {
                 onClick={connectOutlook}
                 className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-[12px] bg-[#F06B21] text-sm font-semibold text-white hover:bg-[#D95B17]"
               >
-                Connecter mes mails
+                Connecter la boite dev
               </button>
             )}
           </div>
@@ -998,18 +1029,18 @@ export function EmailsPage() {
               <div className="flex h-full min-h-[320px] flex-col items-center justify-center px-8 text-center">
                 <MailCheck className="h-10 w-10 text-[#C8B8A7]" strokeWidth={1.5} />
                 <p className="mt-3 text-sm font-semibold text-[#1E1E1E]">
-                  {outlookConnected ? 'Aucun message' : 'Tes mails Outlook ne sont pas encore charges'}
+                  {emptyMailboxTitle}
                 </p>
                 <p className="mt-1 text-sm text-[#6B6B6B]">
-                  {outlookConnected ? 'Change de dossier ou retire le filtre de recherche.' : 'Lance le serveur local puis connecte ton compte Microsoft.'}
+                  {emptyMailboxHint}
                 </p>
-                {!outlookConnected && (
+                {(!outlookConnected || effectiveEmailSource === 'outlook-error') && (
                   <button
                     type="button"
                     onClick={connectOutlook}
                     className="mt-4 inline-flex h-10 items-center justify-center rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white hover:bg-[#D95B17]"
                   >
-                    Connecter Outlook
+                    Connecter la boite dev
                   </button>
                 )}
                 {outlookError && <p className="mt-3 max-w-[280px] text-xs leading-5 text-[#B42318]">{outlookError}</p>}

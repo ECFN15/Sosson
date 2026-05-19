@@ -72,10 +72,23 @@ const DONUT_COLORS: Record<string, string> = {
 const tabs = ['Vue d’ensemble', 'Documents', 'Factures', 'Emails', 'Planning', 'Rapports', 'Photos', 'Équipe', 'Infos chantier']
 
 const statusOptions: Array<{ value: Chantier['statut']; label: string }> = [
-  { value: 'en_attente', label: 'En attente' },
+  { value: 'prospect', label: 'Prospect' },
+  { value: 'devis_a_faire', label: 'Devis a faire' },
+  { value: 'devis_envoye', label: 'Devis envoye' },
+  { value: 'signe', label: 'Signe' },
+  { value: 'en_preparation', label: 'En preparation' },
   { value: 'en_cours', label: 'En cours' },
+  { value: 'en_pause', label: 'En pause' },
+  { value: 'termine', label: 'Termine' },
   { value: 'cloture', label: 'Cloture' },
+  { value: 'annule', label: 'Annule' },
 ]
+
+const factureStatusStyle = {
+  validee: { label: 'Validee', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
+  en_attente: { label: 'En attente', className: 'bg-[#FDEBDD] text-[#D95B17]' },
+  rejetee: { label: 'Rejetee', className: 'bg-[#FEE2E2] text-[#DC2626]' },
+} as const
 
 const lots = [
   { label: 'Gros œuvre', pct: 100, color: '#1E8E3E' },
@@ -771,6 +784,11 @@ export function ChantierDetailPage() {
   const progress = Math.min(Math.max(rawProgress, 0), 100)
   const margin = chantier.budgetPrevisionnel - chantier.depensesEngagees
   const marginPercent = percentOf(margin, chantier.budgetPrevisionnel)
+  const factureTotal = chantierFactures.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const factureValidatedTotal = chantierFactures
+    .filter(facture => facture.statut === 'validee')
+    .reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const facturePendingCount = chantierFactures.filter(facture => facture.statut === 'en_attente').length
   const coverImage = getChantierCover(chantier.id)
   const galleryImages = getChantierGallery(chantier.id)
   const isSqlSource = operationalSource === 'dataconnect'
@@ -1089,6 +1107,67 @@ export function ChantierDetailPage() {
               </div>
             </Card>
           </div>
+
+          <Card className="p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Factures rattachees au chantier</h2>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                  Liste issue des factures chargees pour ce chantier. La regle metier des factures impactant les KPI reste a confirmer.
+                </p>
+              </div>
+              <SourcePill label={isSqlSource ? 'Factures SQL lues' : 'Factures fallback visibles'} tone={isSqlSource ? 'sql' : 'local'} />
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {[
+                ['Nombre', `${chantierFactures.length}`],
+                ['Total TTC visible', formatEuros(factureTotal)],
+                ['Validees TTC', formatEuros(factureValidatedTotal)],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-[14px] bg-[#FAF6F2] p-3">
+                  <p className="text-[12px] text-[#6B6B6B]">{label}</p>
+                  <p className="mt-1 text-[18px] font-semibold text-[#1E1E1E]">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-[14px] border border-[#F2E8DC]">
+              <div className="grid grid-cols-[minmax(0,1fr)_130px_110px_110px] gap-3 bg-[#FAF6F2] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">
+                <span>Facture</span>
+                <span>Fournisseur</span>
+                <span>Statut</span>
+                <span className="text-right">TTC</span>
+              </div>
+              <div className="divide-y divide-[#F2E8DC] bg-white">
+                {chantierFactures.slice(0, 8).map(facture => {
+                  const status = factureStatusStyle[facture.statut] ?? factureStatusStyle.en_attente
+                  return (
+                    <div key={facture.id} className="grid grid-cols-[minmax(0,1fr)_130px_110px_110px] items-center gap-3 px-4 py-3 text-[13px]">
+                      <span className="min-w-0">
+                        <strong className="block truncate text-[#1E1E1E]">{facture.numeroFacture}</strong>
+                        <small className="mt-1 block truncate text-[11px] text-[#6B6B6B]">{facture.description || 'Description non renseignee'}</small>
+                      </span>
+                      <span className="truncate text-[#3C3C3C]">{facture.fournisseur}</span>
+                      <span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold ${status.className}`}>{status.label}</span>
+                      <span className="text-right font-semibold text-[#1E1E1E]">{formatEuros(facture.montantTTC)}</span>
+                    </div>
+                  )
+                })}
+                {chantierFactures.length === 0 && (
+                  <p className="px-4 py-6 text-center text-sm text-[#6B6B6B]">
+                    Aucune facture chargee pour ce chantier.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {facturePendingCount > 0 && (
+              <p className="mt-3 text-[12px] font-medium text-[#D95B17]">
+                {facturePendingCount} facture{facturePendingCount > 1 ? 's' : ''} en attente: ne pas les compter comme validees sans decision metier.
+              </p>
+            )}
+          </Card>
 
           <div className="grid gap-5 2xl:grid-cols-[1fr_1.35fr_0.9fr]">
             <Card className="p-5">

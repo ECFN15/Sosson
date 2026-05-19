@@ -1,7 +1,7 @@
 # 00 - Index documentation Sosson
 
 > Statut: stable  
-> Derniere revision: 2026-05-17  
+> Derniere revision: 2026-05-18
 > Portee: point d'entree maintenable pour la documentation projet.
 
 ## Lecture rapide
@@ -31,6 +31,7 @@ Sosson est un hub operationnel interne mono-entreprise pour une PME francaise du
 | [14 - Audit completion objectif global](14-objective-completion-audit.md) | Mapping exigence -> artefact -> preuve -> manque pour eviter une fausse cloture. |
 | [15 - Execution sandbox checkpoint 002](15-checkpoint-002-sandbox-execution.md) | Gabarit d'execution humaine des actions sandbox reelles et preuves a collecter. |
 | [16 - Audit SQL reel et architecture cible](16-sql-architecture-target-audit.md) | Audit du schema reel, mapping front, cible SQL durable, checkpoints et migration. |
+| [17 - Scenario nouveau client operationnel](17-operational-lifecycle-scenario.md) | Decisions metier et criteres avant validation sandbox du cycle client/prospect -> devis -> chantier -> factures. |
 | [99 - Glossaire](99-glossary.md) | Vocabulaire partage. |
 
 ## Documentation visible dans l'app

@@ -4,8 +4,10 @@ import {
   Calculator,
   Database,
   Euro,
+  HardHat,
   LineChart as LineChartIcon,
   PieChart as PieChartIcon,
+  ReceiptText,
   TrendingDown,
   TrendingUp,
   Users,
@@ -46,6 +48,7 @@ import {
   type SqlPrevisionnelLine as SqlPrevisionnelLineRow,
 } from '@/features/previsionnel/previsionnelSql'
 import { useApp } from '@/lib/store'
+import { useOperationalData } from '@/features/operations/useOperationalData'
 import { operationalPrevisionnelLines, previsionnelDataCoverage } from '@/lib/previsionnelModel'
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -177,6 +180,12 @@ function lotDataFromSql(lines: SqlPrevisionnelLine[], limit = 9) {
 
 export function StatistiquesPage() {
   const { user } = useApp()
+  const {
+    chantiers,
+    factures,
+    source: operationalSource,
+    isLoading: isOperationalLoading,
+  } = useOperationalData()
   const [sqlStatus, setSqlStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback'>('idle')
   const [sqlExercises, setSqlExercises] = useState<SqlExercise[]>([])
   const [sqlLatestLines, setSqlLatestLines] = useState<SqlPrevisionnelLine[]>([])
@@ -270,6 +279,19 @@ export function StatistiquesPage() {
   const chantierCount = usesSql ? sqlExercises.reduce((sum, exercise) => sum + exercise.chantierCount, 0) : coverage.operationalLines
   const latestLabel = usesSql ? sqlExercises[sqlExercises.length - 1]?.sheet : latest.sheet
   const previousLabel = usesSql ? sqlExercises[sqlExercises.length - 2]?.sheet : previous.sheet
+  const operationalSourceLabel = isOperationalLoading
+    ? 'Chargement operationnel'
+    : operationalSource === 'dataconnect'
+      ? 'Operationnel SQL Connect'
+      : 'Operationnel fallback local/Excel'
+  const operationalSourceDetail =
+    operationalSource === 'dataconnect'
+      ? 'clients, chantiers et factures lus via Data Connect dans cette session'
+      : 'clients, chantiers et factures visibles depuis le fallback, pas une preuve SQL'
+  const openOperationalChantiers = chantiers.filter(chantier => chantier.statut !== 'cloture').length
+  const pendingFactures = factures.filter(facture => facture.statut === 'en_attente')
+  const pendingFacturesTotal = pendingFactures.reduce((sum, facture) => sum + facture.montantTTC, 0)
+  const importedFacturesTotal = factures.reduce((sum, facture) => sum + facture.montantTTC, 0)
 
   return (
     <div className="min-h-full bg-[#FAF6F2] p-6 xl:p-8">
@@ -289,10 +311,14 @@ export function StatistiquesPage() {
             <span className="rounded-full border border-[#F2E8DC] bg-white px-3 py-1 text-[12px] font-semibold text-[#6B6B6B]">
               {snapshotLabel}
             </span>
+            <span className="rounded-full border border-[#F2E8DC] bg-white px-3 py-1 text-[12px] font-semibold text-[#6B6B6B]">
+              {operationalSourceLabel}
+            </span>
           </div>
           <h1 className="text-[30px] font-bold leading-tight text-[#1E1E1E]">Statistiques</h1>
           <p className="mt-2 max-w-3xl text-sm text-[#6B6B6B]">
             Tableau d’analyse façon direction financière : croissance, écarts, concentration clients, répartition par corps d’état et fiabilité prévu/réalisé.
+            La synthèse opérationnelle indique séparément si les chantiers et factures viennent de SQL ou du fallback.
           </p>
         </div>
       </div>
@@ -302,6 +328,33 @@ export function StatistiquesPage() {
         <StatCard label="Année la plus faible" value={years.lowestYear.exercise} detail={euro(years.lowestYear.value)} icon={TrendingDown} />
         <StatCard label="Croissance récente" value={percent(latestGrowth)} detail={`${latestLabel} vs ${previousLabel}`} icon={LineChartIcon} />
         <StatCard label="Moyenne annuelle" value={euro(averageAnnual)} detail={`${trend.length} exercices consolidés`} icon={Database} />
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-4">
+        <StatCard
+          label="Chantiers opérationnels"
+          value={openOperationalChantiers.toLocaleString('fr-FR')}
+          detail={operationalSourceDetail}
+          icon={HardHat}
+        />
+        <StatCard
+          label="Factures fournisseurs"
+          value={factures.length.toLocaleString('fr-FR')}
+          detail={operationalSourceDetail}
+          icon={ReceiptText}
+        />
+        <StatCard
+          label="Factures importees"
+          value={euro(importedFacturesTotal)}
+          detail="Toutes les factures fournisseur visibles impactent les chiffres"
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="Factures à traiter"
+          value={euro(pendingFacturesTotal)}
+          detail={`${pendingFactures.length} facture${pendingFactures.length > 1 ? 's' : ''} en attente`}
+          icon={ReceiptText}
+        />
       </div>
 
       <div className="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1.35fr)_420px]">

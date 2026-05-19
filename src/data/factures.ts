@@ -1,6 +1,7 @@
 export type StatutFacture = 'validee' | 'en_attente' | 'rejetee'
 export type CategorieDepense =
   | 'bois_materiaux'
+  | 'materiaux'
   | 'quincaillerie'
   | 'sous_traitance'
   | 'carburant'
@@ -8,9 +9,11 @@ export type CategorieDepense =
   | 'plomberie'
   | 'electricite'
   | 'peinture'
+  | 'autre'
 
 export const categorieLabels: Record<CategorieDepense, string> = {
   bois_materiaux: 'Bois & matériaux',
+  materiaux: 'Materiaux',
   quincaillerie: 'Quincaillerie',
   sous_traitance: 'Sous-traitance',
   carburant: 'Carburant',
@@ -18,10 +21,12 @@ export const categorieLabels: Record<CategorieDepense, string> = {
   plomberie: 'Finitions bois',
   electricite: 'Lots techniques',
   peinture: 'Bardage',
+  autre: 'Autre',
 }
 
 export const categorieColors: Record<CategorieDepense, string> = {
   bois_materiaux: '#F06B21',
+  materiaux: '#D8B898',
   quincaillerie: '#8A5A2F',
   sous_traitance: '#2F2F2F',
   carburant: '#D8B898',
@@ -29,6 +34,7 @@ export const categorieColors: Record<CategorieDepense, string> = {
   plomberie: '#C79A72',
   electricite: '#6B6B6B',
   peinture: '#FFE3CC',
+  autre: '#F2E8DC',
 }
 
 export interface Facture {
