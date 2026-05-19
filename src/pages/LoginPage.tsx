@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Building2, CalendarDays, HardHat, ReceiptText, ShieldCheck } from 'lucide-react'
 import { isLocalAuthFallbackEnabled, login } from '@/lib/auth'
 import { useApp } from '@/lib/store'
@@ -14,9 +14,17 @@ const previewRows = [
 
 const devAccessUser = users.find(user => user.role === 'gerant') ?? users[0]
 
+function getSafeReturnPath(value: unknown) {
+  if (typeof value !== 'string') return '/dashboard'
+  if (!value.startsWith('/') || value.startsWith('//') || value.startsWith('/login')) return '/dashboard'
+  return value
+}
+
 export function LoginPage() {
   const { setUser } = useApp()
   const navigate = useNavigate()
+  const location = useLocation()
+  const returnPath = getSafeReturnPath((location.state as { from?: unknown } | null)?.from)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -26,7 +34,7 @@ export function LoginPage() {
     const user = await login(email, password)
     if (user) {
       setUser(user)
-      navigate('/dashboard')
+      navigate(returnPath)
     } else {
       setError('Email ou mot de passe incorrect')
     }
@@ -40,7 +48,7 @@ export function LoginPage() {
     const user = await login(devAccessUser.email, 'demo')
     if (user) {
       setUser(user)
-      navigate('/dashboard')
+      navigate(returnPath)
     } else {
       setError("Echec de l'acces dev")
     }

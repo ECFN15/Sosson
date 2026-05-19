@@ -99,6 +99,13 @@ export function onAuthChange(callback: (user: User | null) => void) {
       else localStorage.removeItem(AUTH_KEY)
       callback(profile)
     } else {
+      if (isLocalAuthFallbackEnabled) {
+        const localProfile = getCurrentUser()
+        if (localProfile) {
+          callback(localProfile)
+          return
+        }
+      }
       localStorage.removeItem(AUTH_KEY)
       callback(null)
     }

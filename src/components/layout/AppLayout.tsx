@@ -28,7 +28,9 @@ export function AppLayout() {
     )
   }
 
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
+  }
   if (!canAccessPath(user.role, location.pathname, accessMatrix)) {
     return <Navigate to="/dashboard" replace />
   }

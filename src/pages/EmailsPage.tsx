@@ -26,6 +26,7 @@ import {
   Mail,
   MailCheck,
   MailOpen,
+  LogOut,
   MoreHorizontal,
   Paperclip,
   Plus,
@@ -45,7 +46,7 @@ type MailPriority = Email['priorite']
 type MailTag = Email['tag']
 type ComposeMode = 'new' | 'reply' | 'forward'
 type MailSource = 'sql' | 'outlook' | 'seed' | 'local'
-type EmailPanelSource = 'loading' | 'sql' | 'sql-empty' | 'outlook' | 'outlook-error' | 'seed-fallback'
+type EmailPanelSource = 'loading' | 'sql' | 'sql-empty' | 'outlook' | 'outlook-error' | 'outlook-disconnected' | 'seed-fallback'
 type OutlookProfile = { mail?: string; userPrincipalName?: string; displayName?: string }
 
 const OUTLOOK_LOCAL_API = 'http://localhost:8787'
@@ -119,6 +120,7 @@ const SOURCE_LABELS: Record<EmailPanelSource, string> = {
   'sql-empty': 'Index SQL vide',
   outlook: 'Graph live',
   'outlook-error': 'Graph indisponible',
+  'outlook-disconnected': 'Graph deconnecte',
   'seed-fallback': 'Fallback local',
 }
 
@@ -554,7 +556,14 @@ export function EmailsPage() {
         setOutlookConnected(Boolean(payload.connected))
         setOutlookProfile(payload.profile ?? null)
         setOutlookConfiguredMailbox(payload.mailbox ?? '')
-        if (payload.connected) void refreshOutlookSnapshot()
+        if (payload.connected) {
+          void refreshOutlookSnapshot()
+        } else if (payload.mailbox) {
+          preferOutlookRef.current = true
+          setMessages([])
+          setSelectedId('')
+          setEmailSource('outlook-disconnected')
+        }
       })
       .catch(() => {
         preferOutlookRef.current = false
@@ -578,7 +587,7 @@ export function EmailsPage() {
   const selectedClient = selectedMessage ? clients.find(client => client.id === selectedMessage.clientId) : undefined
   const confidence = selectedMessage?.priorite === 'haute' ? 92 : selectedMessage?.tag === 'facture' ? 83 : 74
   const activeMailboxAddress = outlookProfile?.mail ?? outlookProfile?.userPrincipalName ?? outlookConfiguredMailbox
-  const mailboxLabel = activeMailboxAddress || 'Compte Microsoft a connecter'
+  const mailboxLabel = outlookConnected && activeMailboxAddress ? activeMailboxAddress : 'Compte Microsoft a connecter'
   const outlookActionLabel = outlookConnected
     ? effectiveEmailSource === 'outlook' ? 'Synchroniser Graph' : 'Charger les mails Graph'
     : 'Connecter la boite dev'
@@ -586,11 +595,15 @@ export function EmailsPage() {
     ? 'Chargement Microsoft Graph...'
     : effectiveEmailSource === 'outlook-error'
       ? 'Microsoft Graph indisponible'
+      : effectiveEmailSource === 'outlook-disconnected'
+        ? 'Boite dev deconnectee'
       : outlookConnected ? 'Aucun message Graph' : 'Boite dev non connectee'
   const emptyMailboxHint = effectiveEmailSource === 'loading'
     ? `Lecture de ${mailboxLabel}.`
     : effectiveEmailSource === 'outlook-error'
       ? 'Reconnecte la boite dev ou verifie le serveur local Outlook.'
+      : effectiveEmailSource === 'outlook-disconnected'
+        ? 'Clique sur Connecter la boite dev pour relancer le flux Microsoft.'
       : outlookConnected ? 'Change de dossier ou retire le filtre de recherche.' : 'Lance le serveur local puis connecte ton compte Microsoft.'
 
   async function connectOutlook() {
@@ -642,6 +655,31 @@ export function EmailsPage() {
       setEmailSource('outlook-error')
       setOutlookError(error instanceof Error ? error.message : String(error))
       setToast(error instanceof Error ? error.message : 'Synchronisation Outlook impossible.')
+    } finally {
+      setOutlookLoading(false)
+    }
+  }
+
+  async function disconnectOutlook() {
+    setOutlookLoading(true)
+    setOutlookError('')
+    try {
+      const response = await fetch(`${OUTLOOK_LOCAL_API}/api/outlook/disconnect`, { method: 'POST' })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? 'Deconnexion Outlook refusee')
+
+      preferOutlookRef.current = true
+      setOutlookConnected(false)
+      setOutlookProfile(null)
+      setOutlookConfiguredMailbox(payload.mailbox ?? outlookConfiguredMailbox)
+      setMessages([])
+      setSelectedId('')
+      setActiveFolder('inbox')
+      setEmailSource('outlook-disconnected')
+      setToast('Boite dev Microsoft Graph deconnectee.')
+    } catch (error) {
+      setOutlookError(error instanceof Error ? error.message : String(error))
+      setToast(error instanceof Error ? error.message : 'Deconnexion Outlook impossible.')
     } finally {
       setOutlookLoading(false)
     }
@@ -905,6 +943,17 @@ export function EmailsPage() {
             <RefreshCcw className={outlookLoading ? 'h-4 w-4 animate-spin text-[#6B6B6B]' : 'h-4 w-4 text-[#6B6B6B]'} strokeWidth={1.75} />
             {outlookActionLabel}
           </button>
+          {outlookConnected && (
+            <button
+              type="button"
+              onClick={() => void disconnectOutlook()}
+              disabled={outlookLoading}
+              className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#B42318] hover:bg-[#FFF4F2]"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={1.75} />
+              Deconnecter mail
+            </button>
+          )}
           <button
             type="button"
             onClick={() => openComposer('new')}
@@ -941,13 +990,22 @@ export function EmailsPage() {
               <span className="rounded-[10px] bg-white/10 px-2 py-2">{SOURCE_LABELS[effectiveEmailSource]}</span>
               <span className="rounded-[10px] bg-white/10 px-2 py-2">{messages.length} mails</span>
             </div>
-            {!outlookConnected && (
+            {!outlookConnected ? (
               <button
                 type="button"
                 onClick={connectOutlook}
                 className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-[12px] bg-[#F06B21] text-sm font-semibold text-white hover:bg-[#D95B17]"
               >
                 Connecter la boite dev
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void disconnectOutlook()}
+                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] bg-white/10 text-sm font-semibold text-white hover:bg-white/15"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.75} />
+                Deconnecter mail
               </button>
             )}
           </div>

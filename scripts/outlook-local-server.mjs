@@ -61,6 +61,14 @@ const server = createServer(async (req, res) => {
       return
     }
 
+    if (req.method === 'POST' && url.pathname === '/api/outlook/disconnect') {
+      expectedState = ''
+      tokenSet = null
+      profile = null
+      sendJson(res, 200, { ok: true, connected: false, mailbox: env.MICROSOFT_MAILBOX || null })
+      return
+    }
+
     if (req.method === 'GET' && url.pathname === '/api/outlook/messages') {
       await ensureToken()
       const folder = url.searchParams.get('folder') ?? 'inbox'

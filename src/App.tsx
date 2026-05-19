@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AppProvider } from '@/lib/store'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/LoginPage'
@@ -49,9 +49,10 @@ function RouteLoading() {
 
 function FullscreenProtectedRoute({ children }: { children: ReactNode }) {
   const { authInitializing, user } = useApp()
+  const location = useLocation()
 
   if (authInitializing) return <RouteLoading />
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
 
   return children
 }
