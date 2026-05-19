@@ -15,6 +15,7 @@ import { loadDocumentsSqlData } from '@/features/documents/documentSql'
 import { loadLatestPrevisionnelFromSql } from '@/features/previsionnel/previsionnelSql'
 import { dataSourceLabels } from '@/features/dataState'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
 import { useApp } from '@/lib/store'
 import type { Client } from '@/data/clients'
 import type { Chantier } from '@/data/chantiers'
@@ -535,7 +536,7 @@ function ClientDetailModal({
 }
 
 export function SossonEngineRoomPage() {
-  const { operationalDataState, user } = useApp()
+  const { operationalDataState, user, authInitializing } = useApp()
   const workbenchViewportRef = useRef<HTMLDivElement | null>(null)
   const [probe, setProbe] = useState<ProbeState>(initialProbe)
   const [selectedTableKey, setSelectedTableKey] = useState('client')
@@ -557,9 +558,17 @@ export function SossonEngineRoomPage() {
       return
     }
 
+    if (!user || authInitializing) {
+      setProbe(initialProbe)
+      return
+    }
+
     const startedAt = performance.now()
     setProbe(prev => ({ ...prev, status: 'loading', error: null }))
     try {
+      const firebaseUser = await waitForFirebaseUser(3000)
+      if (!firebaseUser) throw new Error('Session Firebase Auth absente pour interroger Data Connect.')
+
       const [documents, previsionnel] = await Promise.all([
         loadDocumentsSqlData(),
         loadLatestPrevisionnelFromSql(),
@@ -612,7 +621,7 @@ export function SossonEngineRoomPage() {
         durationMs: Math.round(performance.now() - startedAt),
       })
     }
-  }, [])
+  }, [authInitializing, user])
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {

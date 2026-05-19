@@ -100,7 +100,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!isDataConnectEnabled || !user) return
+    if (!isDataConnectEnabled || !user || authInitializing) return
 
     let isMounted = true
 
@@ -130,7 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false
     }
-  }, [user])
+  }, [authInitializing, user])
 
   function addClient(client: Client) {
     setClientsList(prev => [...prev, client])

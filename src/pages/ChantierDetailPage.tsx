@@ -6,25 +6,19 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
-  Check,
-  ChevronDown,
   ChevronRight,
+  Check,
+  CircleDot,
   ClipboardCheck,
-  Euro,
   ExternalLink,
   FileText,
-  HardHat,
   Mail,
   MapPin,
-  MoreHorizontal,
-  Pencil,
   Plus,
   ReceiptText,
   Share2,
   Upload,
   UserRound,
-  UsersRound,
-  WifiOff,
 } from 'lucide-react'
 import { canAccessPage } from '@/lib/accessControl'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
@@ -71,6 +65,17 @@ const statusStyle: Record<Chantier['statut'], string> = {
   cloture: 'bg-[#F1E6D6] text-[#3C3C3C]',
   annule: 'bg-[#FEE2E2] text-[#DC2626]',
 }
+
+const statusTimelineValues: Chantier['statut'][] = [
+  'prospect',
+  'devis_a_faire',
+  'devis_envoye',
+  'signe',
+  'en_preparation',
+  'en_cours',
+  'termine',
+  'cloture',
+]
 
 const factureStatusStyle = {
   validee: { label: 'Validee', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
@@ -243,7 +248,6 @@ export function ChantierDetailPage() {
     error: operationalError,
     hasUnsyncedLocalChanges,
   } = useOperationalData()
-  const [showUploadHint, setShowUploadHint] = useState(false)
   const [statusFeedback, setStatusFeedback] = useState('')
   const [isStatusSaving, setIsStatusSaving] = useState(false)
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
@@ -270,8 +274,6 @@ export function ChantierDetailPage() {
 
   useEffect(() => {
     if (!canReadSqlModules || !chantier?.id) {
-      setDocuments([])
-      setDocumentError('')
       return
     }
 
@@ -300,8 +302,6 @@ export function ChantierDetailPage() {
 
   useEffect(() => {
     if (!canReadSqlModules) {
-      setEmailThreads([])
-      setEmailError('')
       return
     }
 
@@ -330,16 +330,15 @@ export function ChantierDetailPage() {
 
   useEffect(() => {
     if (!canReadSqlModules || !chantier?.id) {
-      setPlanningEvents([])
-      setPlanningError('')
       return
     }
 
     let isMounted = true
+    const chantierId = chantier.id
 
     async function loadPlanning() {
       try {
-        const rows = await loadPlanningEventsByChantierFromSql({ chantierId: chantier.id })
+        const rows = await loadPlanningEventsByChantierFromSql({ chantierId })
         if (!isMounted) return
         setPlanningEvents(rows.filter(event => event.statut !== 'cancelled'))
         setPlanningError('')
@@ -402,23 +401,34 @@ export function ChantierDetailPage() {
       : "Le chantier vient des seeds locaux. Ces donnees ne prouvent pas l'etat sandbox."
   const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
   const sourceTone = isSqlSource ? 'sql' : operationalSource === 'excel' ? 'static' : 'local'
+  const currentTimelineIndex = chantier.statut === 'en_pause'
+    ? statusTimelineValues.indexOf('en_cours')
+    : statusTimelineValues.indexOf(chantier.statut)
+  const hasExceptionalStatus = chantier.statut === 'en_pause' || chantier.statut === 'annule'
+  const statusTimeline = statusTimelineValues.map(value => ({ value, label: statusLabel[value] }))
 
+  const moduleDocuments = canReadSqlModules ? documents : []
+  const moduleEmailThreads = canReadSqlModules ? emailThreads : []
+  const modulePlanningEvents = canReadSqlModules ? planningEvents : []
+  const visibleDocumentError = canReadSqlModules ? documentError : ''
+  const visibleEmailError = canReadSqlModules ? emailError : ''
+  const visiblePlanningError = canReadSqlModules ? planningError : ''
   const chantierDocuments = sortByDateDesc(
-    documents.filter(document =>
+    moduleDocuments.filter(document =>
       document.chantierId === chantier.id ||
       chantierFactures.some(facture => facture.id === document.factureId),
     ),
   )
   const chantierEmailThreads = sortByDateDesc(
-    emailThreads
+    moduleEmailThreads
       .filter(thread => thread.chantier?.id === chantier.id)
       .map(thread => ({
         ...thread,
         date: thread.lastMessageAt,
       })),
   )
-  const planningRows = [...planningEvents].sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
-  const upcomingPlanningRows = planningRows.filter(event => new Date(event.endAt).getTime() >= Date.now())
+  const planningRows = [...modulePlanningEvents].sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+  const upcomingPlanningRows = planningRows
 
   const assignedPeople = new Map<string, { name: string; role: string }>()
   if (chantier.chefChantier.trim()) {
@@ -616,9 +626,9 @@ export function ChantierDetailPage() {
             <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
               {sourceDetail} Les modules equipe, planning, echeances, documents, emails et activite ne s'affichent que si une donnee reliee au chantier existe.
             </p>
-            {(operationalError || documentError || emailError || planningError) && (
+            {(operationalError || visibleDocumentError || visibleEmailError || visiblePlanningError) && (
               <p className="mt-2 text-[12px] font-medium text-[#D95B17]">
-                {[operationalError, documentError, emailError, planningError].filter(Boolean).join(' - ')}
+                {[operationalError, visibleDocumentError, visibleEmailError, visiblePlanningError].filter(Boolean).join(' - ')}
               </p>
             )}
           </Card>
@@ -650,6 +660,60 @@ export function ChantierDetailPage() {
                   {option.label}
                 </button>
               ))}
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Progression statut</h2>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">Statut courant: {statusLabel[chantier.statut]}</p>
+              </div>
+              {hasExceptionalStatus && (
+                <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${statusStyle[chantier.statut]}`}>
+                  {statusLabel[chantier.statut]}
+                </span>
+              )}
+            </div>
+            <div className="overflow-x-auto pb-2">
+              <div className="grid min-w-[920px] items-start" style={{ gridTemplateColumns: `repeat(${statusTimeline.length}, minmax(0, 1fr))` }}>
+                {statusTimeline.map((step, index) => {
+                  const isDone = !hasExceptionalStatus && currentTimelineIndex >= 0 && index < currentTimelineIndex
+                  const isActive = currentTimelineIndex >= 0 && index === currentTimelineIndex
+                  const isFuture = currentTimelineIndex < 0 || index > currentTimelineIndex
+                  const nextStep = statusTimeline[index + 1]
+                  const segmentClass = isDone
+                    ? 'bg-[#1E8E3E]'
+                    : isActive && !hasExceptionalStatus
+                      ? 'bg-[#F06B21]'
+                      : 'bg-[#EADBC8]'
+                  const dotClass = isDone
+                    ? 'bg-[#1E8E3E] text-white'
+                    : isActive
+                      ? hasExceptionalStatus
+                        ? 'bg-[#FDEBDD] text-[#F06B21]'
+                        : 'bg-[#F06B21] text-white'
+                      : 'bg-[#EADBC8] text-white'
+
+                  return (
+                    <div key={step.value} className="relative flex flex-col items-center text-center">
+                      {nextStep && <span className={`absolute left-1/2 top-[15px] z-0 h-0.5 w-full ${segmentClass}`} />}
+                      <div className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full ${dotClass}`}>
+                        {isDone ? <Check className="h-4 w-4" strokeWidth={2.4} /> : isActive ? <CircleDot className="h-4 w-4" strokeWidth={2.3} /> : <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+                      </div>
+                      <p className={`mt-3 max-w-[110px] text-[11px] font-medium leading-tight ${isActive ? 'text-[#1E1E1E]' : isFuture ? 'text-[#6B6B6B]' : 'text-[#3C3C3C]'}`}>
+                        {step.label}
+                      </p>
+                      {step.value === 'en_cours' && formatDate(chantier.dateDebut) && (
+                        <p className="mt-1 text-[10px] text-[#6B6B6B]">Debut {formatDate(chantier.dateDebut)}</p>
+                      )}
+                      {step.value === 'cloture' && formatDate(chantier.dateFin) && (
+                        <p className="mt-1 text-[10px] text-[#6B6B6B]">Fin {formatDate(chantier.dateFin)}</p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </Card>
 
@@ -971,26 +1035,7 @@ export function ChantierDetailPage() {
               <IconAction icon={CalendarDays} to="/planning">
                 Ouvrir le planning
               </IconAction>
-              <button
-                type="button"
-                onClick={() => setShowUploadHint(value => !value)}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]"
-              >
-                <MoreHorizontal className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                Etat des raccordements
-              </button>
             </div>
-            {showUploadHint && (
-              <div className="mt-4 rounded-[14px] border border-dashed border-[#EADBC8] bg-[#FAF6F2] p-4">
-                <p className="text-[12px] font-semibold text-[#1E1E1E]">Raccordements actifs sur cette fiche</p>
-                <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#6B6B6B]">
-                  <li>Factures: store operationnel par chantierId.</li>
-                  <li>Documents: SQL DocumentAttache par chantierId ou factureId.</li>
-                  <li>Emails: SQL EmailThread par chantierId.</li>
-                  <li>Planning/equipe: SQL PlanningEvent et assignments par chantierId.</li>
-                </ul>
-              </div>
-            )}
           </Card>
 
           {teamRows.length > 0 && (
@@ -1047,18 +1092,6 @@ export function ChantierDetailPage() {
               </div>
             </Card>
           )}
-
-          <Card className="p-5">
-            <div className="flex items-start gap-3">
-              <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-[#F06B21]" strokeWidth={1.75} />
-              <div>
-                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Modules sans source</h2>
-                <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
-                  Photos, notes terrain, indicateurs qualite/securite/heures, timeline de lots et meteo ne sont plus affiches ici tant qu'aucune table ou import ne les alimente.
-                </p>
-              </div>
-            </div>
-          </Card>
         </aside>
       </div>
     </div>

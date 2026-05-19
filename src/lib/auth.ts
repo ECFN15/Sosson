@@ -1,11 +1,12 @@
 import {
   signInWithEmailAndPassword,
+  signInWithCustomToken,
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth'
 import type { User as FirebaseUser } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db, ENV } from '@/lib/firebase'
+import { auth, db, ENV, shouldUseAuthEmulator } from '@/lib/firebase'
 import { users } from '@/data/users'
 import type { User } from '@/data/users'
 import { fetchCurrentSqlUserProfile } from '@/features/auth/sqlUserProfile'
@@ -23,7 +24,64 @@ function persistUser(profile: User) {
   return safeProfile
 }
 
+function base64UrlJson(value: Record<string, unknown>) {
+  return btoa(JSON.stringify(value))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '')
+}
+
+function createAuthEmulatorCustomToken(user: User) {
+  const now = Math.floor(Date.now() / 1000)
+  const serviceAccount = 'sosson-local-auth-emulator@sosson-sandbox.iam.gserviceaccount.com'
+
+  return [
+    base64UrlJson({ alg: 'none', typ: 'JWT' }),
+    base64UrlJson({
+      iss: serviceAccount,
+      sub: serviceAccount,
+      aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+      iat: now,
+      exp: now + 60 * 60,
+      uid: user.id,
+      claims: {
+        email: user.email,
+        email_verified: true,
+      },
+    }),
+    '',
+  ].join('.')
+}
+
+async function loginWithLocalAuthEmulator(seedUser: User): Promise<User | null> {
+  const cred = await signInWithCustomToken(auth, createAuthEmulatorCustomToken(seedUser))
+  const profile = await getUserProfile(cred.user)
+  return persistUser(profile ?? seedUser)
+}
+
+export async function ensureLocalAuthEmulatorSession(localProfile: User): Promise<User | null> {
+  if (!isLocalAuthFallbackEnabled || !shouldUseAuthEmulator) return localProfile
+
+  if (auth.currentUser?.uid === localProfile.id) {
+    const profile = await getUserProfile(auth.currentUser)
+    return persistUser(profile ?? localProfile)
+  }
+
+  return loginWithLocalAuthEmulator(localProfile)
+}
+
 export async function login(email: string, password: string): Promise<User | null> {
+  if (isLocalAuthFallbackEnabled && shouldUseAuthEmulator) {
+    const seedUser = users.find(u => u.email === email && u.password === password)
+    if (seedUser) {
+      try {
+        return await loginWithLocalAuthEmulator(seedUser)
+      } catch (error) {
+        console.info('Connexion Auth emulator refusee, fallback local transitoire.', error)
+      }
+    }
+  }
+
   if (isFirebaseConfigured) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
@@ -102,6 +160,17 @@ export function onAuthChange(callback: (user: User | null) => void) {
       if (isLocalAuthFallbackEnabled) {
         const localProfile = getCurrentUser()
         if (localProfile) {
+          if (shouldUseAuthEmulator) {
+            try {
+              const profile = await ensureLocalAuthEmulatorSession(localProfile)
+              callback(profile)
+            } catch (error) {
+              console.info('Session Auth emulator locale indisponible.', error)
+              callback(localProfile)
+            }
+            return
+          }
+
           callback(localProfile)
           return
         }

@@ -14,6 +14,32 @@ const filePath = fileArg?.slice('--file='.length) || 'dataconnect/user_profiles.
 const dryRun = args.has('--dry-run')
 const sandbox = args.has('--sandbox')
 const yesSandbox = args.has('--yes-sandbox')
+const defaultLocalProfiles = [
+  {
+    uid: 'user-1',
+    email: 'patrick@sosson.fr',
+    nom: 'Sosson',
+    prenom: 'Patrick',
+    role: 'gerant',
+    avatar: 'PS',
+  },
+  {
+    uid: 'user-2',
+    email: 'claire@sosson.fr',
+    nom: 'Morel',
+    prenom: 'Claire',
+    role: 'assistante',
+    avatar: 'CM',
+  },
+  {
+    uid: 'user-3',
+    email: 'romain@sosson.fr',
+    nom: 'Faure',
+    prenom: 'Romain',
+    role: 'chef_chantier',
+    avatar: 'RF',
+  },
+]
 
 function isPlaceholderProfile(profile) {
   return (
@@ -78,7 +104,16 @@ function assertProfile(value, index) {
 }
 
 async function loadProfiles() {
-  const content = await readFile(filePath, 'utf8')
+  let content
+  try {
+    content = await readFile(filePath, 'utf8')
+  } catch (error) {
+    if (!sandbox && error?.code === 'ENOENT') {
+      console.log(`Fichier ${filePath} absent: utilisation des profils dev locaux par defaut.`)
+      return defaultLocalProfiles.map(assertProfile)
+    }
+    throw error
+  }
   const parsed = JSON.parse(content)
   if (!Array.isArray(parsed)) throw new Error('Le fichier de profils doit contenir un tableau JSON.')
   return parsed.map(assertProfile)

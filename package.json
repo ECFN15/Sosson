@@ -10,7 +10,7 @@
     "build:prod": "tsc -b && vite build --mode production",
     "dashboard": "node deploy/dashboard.mjs",
     "dev:sql": "node scripts/dev-sql-local.mjs",
-    "emulators:dataconnect": "npx -y firebase-tools@latest emulators:start --only dataconnect",
+    "emulators:dataconnect": "npx -y firebase-tools@latest emulators:start --only auth,dataconnect",
     "seed:previsionnel:generate": "node scripts/generate-previsionnel-seed.mjs",
     "seed:dataconnect": "node scripts/seed-dataconnect-local.mjs",
     "seed:previsionnel:dataconnect": "node scripts/seed-previsionnel-dataconnect-local.mjs",
