@@ -1,75 +1,46 @@
-import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
-  Bell,
   CalendarDays,
-  Camera,
   Check,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
-  CircleDot,
   ClipboardCheck,
   Euro,
+  ExternalLink,
   FileText,
-  FileSpreadsheet,
   HardHat,
-  Home,
-  Keyboard,
-  ListChecks,
   Mail,
-  Menu,
-  MessageSquare,
   MapPin,
-  Mic,
   MoreHorizontal,
   Pencil,
   Plus,
   ReceiptText,
   Share2,
-  ShieldCheck,
-  Sparkles,
-  Sun,
   Upload,
+  UserRound,
   UsersRound,
   WifiOff,
 } from 'lucide-react'
-import {
-  Area,
-  AreaChart,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-import { emails, useApp } from '@/lib/store'
-import { categorieLabels } from '@/data/factures'
-import { getChantierCover, getChantierGallery } from '@/data/media'
 import { canAccessPage } from '@/lib/accessControl'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
+import { useApp } from '@/lib/store'
+import { categorieLabels } from '@/data/factures'
+import { operationalPrevisionnelLines } from '@/lib/previsionnelModel'
+import { categoryLabels as previsionnelCategoryLabels } from '@/lib/previsionnelAnalytics'
 import { updateChantierStatutInSql } from '@/features/operations/operationalAdapters'
 import { useOperationalData } from '@/features/operations/useOperationalData'
+import { loadDocumentsSqlData } from '@/features/documents/documentSql'
+import { loadEmailThreadsFromSql } from '@/features/email/emailSql'
+import { loadPlanningEventsByChantierFromSql } from '@/features/planning/planningSql'
 import type { CategorieDepense } from '@/data/factures'
 import type { Chantier } from '@/data/chantiers'
-import type { Client } from '@/data/clients'
-
-const DONUT_COLORS: Record<string, string> = {
-  bois_materiaux: '#F06B21',
-  sous_traitance: '#1E1E1E',
-  quincaillerie: '#A45A2C',
-  carburant: '#C8B18C',
-  location_materiel: '#EADBC8',
-  plomberie: '#F89A62',
-  electricite: '#6B6B6B',
-  peinture: '#3C3C3C',
-}
-
-const tabs = ['Vue d’ensemble', 'Documents', 'Factures', 'Emails', 'Planning', 'Rapports', 'Photos', 'Équipe', 'Infos chantier']
+import type { DocumentRecord } from '@/features/documents/documentTypes'
+import type { PrevisionnelLine } from '@/data/previsionnel'
 
 const statusOptions: Array<{ value: Chantier['statut']; label: string }> = [
   { value: 'prospect', label: 'Prospect' },
@@ -84,85 +55,69 @@ const statusOptions: Array<{ value: Chantier['statut']; label: string }> = [
   { value: 'annule', label: 'Annule' },
 ]
 
+const statusLabel: Record<Chantier['statut'], string> = Object.fromEntries(
+  statusOptions.map(option => [option.value, option.label]),
+) as Record<Chantier['statut'], string>
+
+const statusStyle: Record<Chantier['statut'], string> = {
+  prospect: 'bg-[#FAF6F2] text-[#6B6B6B]',
+  devis_a_faire: 'bg-[#FDEBDD] text-[#D95B17]',
+  devis_envoye: 'bg-[#F1E6D6] text-[#A45A2C]',
+  signe: 'bg-[#E6F4EA] text-[#1E8E3E]',
+  en_preparation: 'bg-[#FAF6F2] text-[#3C3C3C]',
+  en_cours: 'bg-[#FDEBDD] text-[#F06B21]',
+  en_pause: 'bg-[#FAF6F2] text-[#6B6B6B]',
+  termine: 'bg-[#E6F4EA] text-[#1E8E3E]',
+  cloture: 'bg-[#F1E6D6] text-[#3C3C3C]',
+  annule: 'bg-[#FEE2E2] text-[#DC2626]',
+}
+
 const factureStatusStyle = {
   validee: { label: 'Validee', className: 'bg-[#E6F4EA] text-[#1E8E3E]' },
   en_attente: { label: 'En attente', className: 'bg-[#FDEBDD] text-[#D95B17]' },
   rejetee: { label: 'Rejetee', className: 'bg-[#FEE2E2] text-[#DC2626]' },
 } as const
 
-const lots = [
-  { label: 'Gros œuvre', pct: 100, color: '#1E8E3E' },
-  { label: 'Charpente', pct: 75, color: '#1E8E3E' },
-  { label: 'Isolation', pct: 60, color: '#F06B21' },
-  { label: 'Bardage', pct: 40, color: '#F06B21' },
-  { label: 'Menuiseries', pct: 0, color: '#D7D0C8' },
-]
+const categoryColor: Record<CategorieDepense, string> = {
+  bois_materiaux: '#F06B21',
+  materiaux: '#D8B898',
+  quincaillerie: '#8A5A2F',
+  sous_traitance: '#2F2F2F',
+  carburant: '#D8B898',
+  location_materiel: '#F89A62',
+  plomberie: '#C79A72',
+  electricite: '#6B6B6B',
+  peinture: '#FFE3CC',
+  autre: '#F2E8DC',
+}
 
-const timeline = [
-  { label: 'Devis signé', date: '10/12/2025', status: 'done' },
-  { label: 'Préparation', date: '15/12/2025', status: 'done' },
-  { label: 'Démarrage chantier', date: '12/01/2026', status: 'done' },
-  { label: 'Fondations', date: '28/01/2026', status: 'done' },
-  { label: 'Élévation murs', date: '15/02/2026', status: 'done' },
-  { label: 'Charpente', date: '10/03/2026', status: 'active' },
-  { label: 'Isolation', date: '25/03/2026', status: 'active' },
-  { label: 'Bardage', date: '15/04/2026', status: 'todo' },
-  { label: 'Menuiseries', date: '05/05/2026', status: 'todo' },
-  { label: 'Livraison', date: 'Mai 2026', status: 'todo' },
-] as const
+type SqlEmailThread = Awaited<ReturnType<typeof loadEmailThreadsFromSql>>[number]
+type SqlPlanningEvent = Awaited<ReturnType<typeof loadPlanningEventsByChantierFromSql>>[number]
 
-const activities = [
-  { icon: ReceiptText, bg: '#E6F4EA', color: '#1E8E3E', title: 'Facture validée – Bois & Matériaux', sub: '842,50 € – Catégorie : Bois', time: 'Il y a 10 min' },
-  { icon: Camera, bg: '#E6F4EA', color: '#1E8E3E', title: 'Compte-rendu ajouté par Paul Martin', sub: 'Avancement fondations + photos (3)', time: 'Il y a 45 min' },
-  { icon: Mail, bg: '#FAF6F2', color: '#1E1E1E', title: 'Email reçu – Demande de devis extension', sub: 'Leroy Construction', time: 'Il y a 1 h' },
-  { icon: FileText, bg: '#FAF6F2', color: '#1E1E1E', title: 'Devis envoyé – Extension bois 20m²', sub: 'Devis n° DEV-2026-0158', time: 'Il y a 2 h' },
-  { icon: CheckCircle2, bg: '#E6F4EA', color: '#1E8E3E', title: 'Paiement fournisseur enregistré', sub: 'Bois & Matériaux – 1 250,00 €', time: 'Il y a 1 j' },
-]
-
-const documents = [
-  { name: 'Plan_Masse_V2.pdf', type: 'PDF – 1.2 Mo', time: 'Il y a 2 h', color: '#DC2626' },
-  { name: 'Devis_EXTENSION_BOIS.pdf', type: 'PDF – 890 Ko', time: 'Il y a 5 h', color: '#DC2626' },
-  { name: 'Facture_Bois_Materiaux.pdf', type: 'PDF – 1.1 Mo', time: 'Hier', color: '#1E8E3E' },
-  { name: 'Plan_Fondations.dwg', type: 'DWG – 2.5 Mo', time: 'Hier', color: '#6B91B5' },
-  { name: 'Attestation_RT2020.pdf', type: 'PDF – 560 Ko', time: 'Il y a 2 j', color: '#6B91B5' },
-]
-
-const deadlines = [
-  { day: '23', month: 'AVR.', title: 'Livraison matériaux', sub: '23 avril 2026 à 10:30' },
-  { day: '05', month: 'MAI', title: 'Réunion de chantier', sub: '5 mai 2026 à 09:00' },
-  { day: '15', month: 'MAI', title: 'Contrôle isolation', sub: '15 mai 2026 à 14:00' },
-]
-
-const team = [
-  { name: 'Jean Dupont', role: 'Conducteur de travaux', tag: 'Responsable', tagClass: 'bg-[#E6F4EA] text-[#1E8E3E]' },
-  { name: 'Paul Martin', role: 'Chef d’équipe', tag: 'Terrain', tagClass: 'bg-[#DCE9F2] text-[#3C3C3C]' },
-  { name: 'Lucas Bernard', role: 'Charpentier', tag: 'Terrain', tagClass: 'bg-[#DCE9F2] text-[#3C3C3C]' },
-  { name: 'Sophie Leroy', role: 'Assistante de gestion', tag: 'Bureau', tagClass: 'bg-[#FEF3C7] text-[#B45309]' },
-]
-
-const indicators = [
-  { label: 'Délai', value: 'J-32', sub: 'vs planning', chip: '+2 jours' },
-  { label: 'Qualité', value: '100%', sub: 'Réserves levées' },
-  { label: 'Sécurité', value: '0', sub: 'Incident' },
-  { label: 'Heures effectuées', value: '320 h', sub: 'vs prévision 350 h', chip: '-8%' },
-  { label: 'Heures à venir', value: '180 h', sub: 'Prévisionnelles' },
-]
-
-const budgetCurve = [
-  { month: 'Janv.', real: 0, target: 0 },
-  { month: 'Fév.', real: 21000, target: 24000 },
-  { month: 'Mars', real: 42000, target: 45000 },
-  { month: 'Avr.', real: 64000, target: 68000 },
-  { month: 'Mai', real: 79000, target: 90000 },
-  { month: 'Juin', real: 103000, target: 113000 },
-  { month: 'Juil.', real: 118000, target: 130000 },
-  { month: 'Août', real: 137000, target: 141000 },
-  { month: 'Sept.', real: 140000, target: 143000 },
-  { month: 'Oct.', real: 145000, target: 148000 },
-]
+type ActivityItem = {
+  id: string
+  title: string
+  detail: string
+  date: string
+  icon: typeof ReceiptText
+}
 
 function formatEuros(value: number) {
-  return `${Math.round(value).toLocaleString('fr-FR')} €`
+  return `${Math.round(value).toLocaleString('fr-FR')} EUR`
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
 function percentOf(value: number, total: number) {
@@ -170,20 +125,25 @@ function percentOf(value: number, total: number) {
   return Math.round((value / total) * 100)
 }
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function chantierLineId(chantierId?: string | null) {
+  if (!chantierId?.startsWith('prev-chantier-')) return null
+  return `prev-${chantierId.replace(/^prev-chantier-/, '')}`
+}
+
+function isSqlCompatibleId(id?: string | null) {
+  return Boolean(id) && !id?.startsWith('prev-') && !id?.startsWith('local-')
+}
+
+function amountBase(line?: PrevisionnelLine | null, fallback = 0) {
+  if (!line) return fallback
+  return line.caPrevision || line.caContrat || line.plannedTotal || line.realizedTotal
+}
+
+function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <section className={`rounded-[20px] border border-[#EADBC8] bg-white shadow-[0_1px_0_rgba(255,255,255,.9)_inset,0_14px_34px_rgba(30,30,30,0.045)] ${className}`}>
       {children}
     </section>
-  )
-}
-
-function LinkButton({ children }: { children: React.ReactNode }) {
-  return (
-    <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] px-1 py-1 text-[12px] font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
-      {children}
-      <ArrowRight className="h-3.5 w-3.5 text-[#6B6B6B]" strokeWidth={1.75} />
-    </button>
   )
 }
 
@@ -202,535 +162,72 @@ function SourcePill({ label, tone = 'local' }: { label: string; tone?: 'sql' | '
   )
 }
 
-function ProjectPhoto({ src }: { src: string }) {
+function LinkButton({ children, to }: { children: ReactNode; to: string }) {
   return (
-    <div className="relative h-full min-h-[220px] overflow-hidden rounded-[14px] border border-[#F2E8DC] bg-[#EADBC8]">
-      <img src={src} alt="Photo du chantier" className="h-full w-full object-cover" loading="lazy" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#1E1E1E]/18 via-transparent to-transparent" />
-    </div>
+    <Link to={to} className="inline-flex items-center gap-1.5 rounded-[10px] px-1 py-1 text-[12px] font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+      {children}
+      <ArrowRight className="h-3.5 w-3.5 text-[#6B6B6B]" strokeWidth={1.75} />
+    </Link>
   )
 }
 
-function PhotoTile({ src }: { src: string }) {
+function IconAction({
+  icon: Icon,
+  children,
+  to,
+}: {
+  icon: typeof Plus
+  children: ReactNode
+  to: string
+}) {
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-[12px] border border-[#F2E8DC] bg-[#EADBC8]">
-      <img src={src} alt="Photo récente du chantier" className="h-full w-full object-cover" loading="lazy" />
-    </div>
+    <Link to={to} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+      <Icon className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+      {children}
+    </Link>
   )
 }
 
 function KpiCard({
   label,
   value,
-  sub,
+  detail,
   children,
 }: {
   label: string
   value: string
-  sub?: string
-  children?: React.ReactNode
+  detail?: string
+  children?: ReactNode
 }) {
   return (
     <Card className="min-h-[126px] p-5">
       <p className="text-[12px] font-medium text-[#3C3C3C]">{label}</p>
       <div className="mt-3 text-[24px] font-bold leading-none tracking-tight text-[#1E1E1E]">{value}</div>
       {children}
-      {sub && <p className="mt-3 text-[11px] text-[#6B6B6B]">{sub}</p>}
+      {detail && <p className="mt-3 text-[11px] text-[#6B6B6B]">{detail}</p>}
     </Card>
   )
 }
 
-type MobileTab = 'report' | 'photos' | 'activity'
-
-const mobileTabs: Array<{ key: MobileTab; label: string }> = [
-  { key: 'report', label: 'Compte-rendu' },
-  { key: 'photos', label: 'Photos (12)' },
-  { key: 'activity', label: 'Activité' },
-]
-
-const mobileCrew = [
-  { initials: 'JD', name: 'Jean Dupont', role: 'Conducteur de travaux' },
-  { initials: 'LB', name: 'Lucas Bernard', role: 'Charpentier' },
-  { initials: 'PM', name: 'Paul Martin', role: "Chef d'équipe" },
-]
-
-const mobileSteps = [
-  { label: 'Début bardage', date: '22 avril 2026' },
-  { label: 'Livraison linteaux', date: '22 avril 2026' },
-  { label: 'Réunion client', date: '25 avril 2026' },
-]
-
-const mobileActivity = [
-  {
-    kind: 'report',
-    title: 'Compte-rendu ajouté',
-    author: 'Jean Dupont',
-    time: "Aujourd'hui à 14:30",
-    text: "Pose de l'ossature terminée. Début du bardage demain matin. Prévoir livraison linteaux.",
-    action: 'Voir le compte-rendu',
-  },
-  {
-    kind: 'photos',
-    title: '4 photos ajoutées',
-    author: 'Lucas Bernard',
-    time: "Aujourd'hui à 11:15",
-    action: 'Voir les photos',
-  },
-  {
-    kind: 'document',
-    title: 'Document ajouté',
-    author: 'Paul Martin',
-    time: 'Hier à 16:45',
-    text: 'Plan_Masse_V2.pdf',
-    action: 'Voir le document',
-  },
-  {
-    kind: 'progress',
-    title: 'Avancement mis à jour',
-    author: 'Jean Dupont',
-    time: 'Hier à 16:30',
-    action: "Voir l'historique",
-  },
-  {
-    kind: 'comment',
-    title: 'Commentaire',
-    author: 'Sophie Leroy',
-    time: 'Hier à 15:20',
-    text: 'Pensez à vérifier la livraison des menuiseries.',
-    action: 'Voir le commentaire',
-  },
-]
-
-function MobileCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function EmptyNotice({ children }: { children: ReactNode }) {
   return (
-    <section className={`rounded-[16px] border border-[#F2E8DC] bg-white ${className}`}>
+    <p className="rounded-[14px] bg-[#FAF6F2] p-4 text-[13px] leading-5 text-[#6B6B6B]">
       {children}
-    </section>
+    </p>
   )
 }
 
-function MobilePhotoTile({ src, small = false }: { src: string; small?: boolean }) {
-  return (
-    <div className={`relative overflow-hidden rounded-[12px] border border-[#F2E8DC] bg-[#EADBC8] ${small ? 'aspect-square' : 'aspect-square'}`}>
-      <img src={src} alt="Photo terrain du chantier" className="h-full w-full object-cover" loading="lazy" />
-    </div>
-  )
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join('')
 }
 
-function MobileHeader({ chantier, active, onTabChange }: { chantier: Chantier; active: MobileTab; onTabChange: (tab: MobileTab) => void }) {
-  return (
-    <header className={`${active === 'report' ? 'bg-[#1E1E1E] text-white' : 'bg-white text-[#1E1E1E]'} sticky top-0 z-30 border-b border-[#F2E8DC]`}>
-      <div className="flex h-14 items-center gap-3 px-4">
-        <button type="button" className="grid h-10 w-10 place-items-center rounded-full">
-          <ArrowRight className="h-5 w-5 rotate-180" strokeWidth={1.75} />
-        </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[16px] font-semibold">{chantier.nom}</h1>
-          <p className={`mt-0.5 flex items-center gap-1 text-[11px] ${active === 'report' ? 'text-[#C9C9C9]' : 'text-[#6B6B6B]'}`}>
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1E8E3E]" />
-            En cours
-          </p>
-        </div>
-        <button type="button" className="h-10 rounded-[10px] bg-[#F06B21] px-3 text-[13px] font-semibold text-white">
-          Enregistrer
-        </button>
-      </div>
-      <nav className="grid grid-cols-3">
-        {mobileTabs.map(tab => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => onTabChange(tab.key)}
-            className={`border-b-2 px-2 py-3 text-[13px] font-medium ${
-              active === tab.key
-                ? 'border-[#F06B21] text-[#F06B21]'
-                : active === 'report'
-                  ? 'border-transparent text-[#C9C9C9]'
-                  : 'border-transparent text-[#1E1E1E]'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-    </header>
-  )
-}
-
-function MobileBottomNav() {
-  const items = [
-    { icon: Home, label: 'Accueil', active: false },
-    { icon: HardHat, label: 'Chantiers', active: true },
-    { icon: Bell, label: 'Notifications', active: false, badge: true },
-    { icon: Menu, label: 'Menu', active: false },
-  ]
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 items-center border-t border-[#F2E8DC] bg-white px-3">
-      {items.slice(0, 2).map(item => {
-        const Icon = item.icon
-        return (
-          <button key={item.label} type="button" className={`flex flex-col items-center gap-1 text-[10px] font-medium ${item.active ? 'text-[#F06B21]' : 'text-[#6B6B6B]'}`}>
-            <Icon className="h-5 w-5" strokeWidth={1.75} />
-            {item.label}
-          </button>
-        )
-      })}
-      <button type="button" className="mx-auto -mt-7 grid h-14 w-14 place-items-center rounded-full bg-[#F06B21] text-white shadow-[0_8px_24px_rgba(240,107,33,0.35)] ring-4 ring-[#FAF6F2]">
-        <Plus className="h-6 w-6" strokeWidth={2.25} />
-      </button>
-      {items.slice(2).map(item => {
-        const Icon = item.icon
-        return (
-          <button key={item.label} type="button" className="relative flex flex-col items-center gap-1 text-[10px] font-medium text-[#6B6B6B]">
-            <span className="relative">
-              <Icon className="h-5 w-5" strokeWidth={1.75} />
-              {item.badge && <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center rounded-full bg-[#F06B21] px-1 text-[9px] font-bold text-white">3</span>}
-            </span>
-            {item.label}
-          </button>
-        )
-      })}
-    </nav>
-  )
-}
-
-function MobileReportTab({ progress }: { progress: number }) {
-  return (
-    <main className="space-y-3 px-4 pb-24 pt-4">
-      <MobileCard className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FAF6F2]">
-            <CalendarDays className="h-5 w-5 text-[#1E1E1E]" strokeWidth={1.75} />
-          </div>
-          <div>
-            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Aujourd'hui</h2>
-            <p className="mt-1 text-[12px] text-[#6B6B6B]">21 avril 2026 à 14:30</p>
-          </div>
-        </div>
-        <div className="mt-5">
-          <p className="text-[12px] text-[#6B6B6B]">Avancement des travaux</p>
-          <p className="mt-2 text-[14px] font-medium text-[#1E1E1E]">Gros œuvre</p>
-        </div>
-        <div className="mt-5 flex items-center justify-between">
-          <p className="text-[13px] text-[#6B6B6B]">Avancement</p>
-          <p className="text-[18px] font-semibold text-[#1E1E1E]">{progress}%</p>
-        </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
-          <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
-        </div>
-      </MobileCard>
-
-      <MobileCard className="p-4">
-        <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Météo</h2>
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#FDEBDD]">
-              <Sun className="h-5 w-5 text-[#F06B21]" strokeWidth={1.75} />
-            </div>
-            <div>
-              <p className="text-[20px] font-semibold text-[#1E1E1E]">18°C</p>
-              <p className="text-[12px] text-[#6B6B6B]">Ensoleillé</p>
-            </div>
-          </div>
-          <p className="flex items-center gap-1 text-[12px] text-[#6B6B6B]">
-            <MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />
-            Le Mans
-          </p>
-        </div>
-      </MobileCard>
-
-      <MobileCard className="p-4">
-        <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Équipe sur site</h2>
-        <div className="mt-4 space-y-3">
-          {mobileCrew.map(member => (
-            <div key={member.name} className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-[#EADBC8] text-[12px] font-semibold text-[#1E1E1E]">{member.initials}</div>
-              <div>
-                <p className="text-[14px] font-medium text-[#1E1E1E]">{member.name}</p>
-                <p className="text-[12px] text-[#6B6B6B]">{member.role}</p>
-              </div>
-            </div>
-          ))}
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#F2E8DC] bg-white text-[13px] font-medium text-[#1E1E1E]">+2</div>
-        </div>
-        <button type="button" className="mt-4 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
-          Voir toute l'équipe
-          <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-        </button>
-      </MobileCard>
-
-      <MobileCard className="p-4">
-        <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Prise de notes</h2>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {[
-            { icon: Keyboard, label: 'Clavier', active: false },
-            { icon: Mic, label: 'Dictée', active: true },
-            { icon: ClipboardCheck, label: 'Modèle', active: false },
-          ].map(item => {
-            const Icon = item.icon
-            return (
-              <button
-                key={item.label}
-                type="button"
-                className={`flex h-[66px] flex-col items-center justify-center gap-1.5 rounded-[14px] border text-[12px] font-medium ${
-                  item.active ? 'border-[#F06B21] bg-[#F06B21] text-white' : 'border-[#F2E8DC] bg-white text-[#1E1E1E]'
-                }`}
-              >
-                <Icon className="h-5 w-5" strokeWidth={1.75} />
-                {item.label}
-              </button>
-            )
-          })}
-        </div>
-        <div className="mt-4 flex h-12 items-center gap-3 rounded-[14px] border border-[#F2E8DC] bg-white px-3">
-          <button type="button" className="grid h-8 w-8 place-items-center rounded-full border border-[#F06B21] text-[#F06B21]">
-            <span className="h-3 w-3 rounded-sm border-x-2 border-[#F06B21]" />
-          </button>
-          <div className="flex flex-1 items-center gap-0.5">
-            {Array.from({ length: 34 }).map((_, index) => (
-              <span key={index} className="w-0.5 rounded-full bg-[#9CA3AF]" style={{ height: `${8 + ((index * 7) % 22)}px` }} />
-            ))}
-          </div>
-          <span className="text-[12px] text-[#6B6B6B]">00:45</span>
-        </div>
-        <div className="mt-4 rounded-[12px] border border-[#F2E8DC] bg-[#FDEBDD]/40 p-4 text-[14px] leading-[1.55] text-[#1E1E1E]">
-          <p>Pose de l'ossature terminée.</p>
-          <p>Début du bardage demain matin.</p>
-          <p>Prévoir livraison linteaux.</p>
-          <p className="mt-3">Réunion avec le client prévue vendredi pour validation menuiseries.</p>
-        </div>
-        <h3 className="mt-5 text-[14px] font-semibold text-[#1E1E1E]">Tags</h3>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {[
-            ['Gros œuvre', 'bg-[#E6F4EA] text-[#1E8E3E]'],
-            ['Bardage', 'bg-[#FDEBDD] text-[#F06B21]'],
-            ['Livraison', 'bg-[#DCE9F2] text-[#315A78]'],
-          ].map(([label, style]) => (
-            <span key={label} className={`rounded-[8px] px-3 py-1.5 text-[12px] font-medium ${style}`}>{label}</span>
-          ))}
-          <button type="button" className="grid h-8 w-8 place-items-center rounded-[8px] border border-[#F2E8DC] text-[#6B6B6B]">
-            <Plus className="h-4 w-4" strokeWidth={1.75} />
-          </button>
-        </div>
-      </MobileCard>
-
-      <button type="button" className="h-12 w-full rounded-[14px] bg-[#F06B21] text-[14px] font-semibold text-white">
-        Enregistrer le compte-rendu
-      </button>
-      <p className="flex items-center justify-center gap-1.5 text-[12px] text-[#1E8E3E]">
-        <CheckCircle2 className="h-4 w-4" strokeWidth={1.75} />
-        Enregistré automatiquement
-      </p>
-    </main>
-  )
-}
-
-function MobilePhotosTab({ chantier }: { chantier: Chantier }) {
-  const gallery = getChantierGallery(chantier.id)
-
-  return (
-    <main className="space-y-5 px-4 pb-40 pt-5">
-      <section>
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Photos du chantier</h2>
-            <p className="mt-2 text-[13px] text-[#6B6B6B]">12 photos</p>
-          </div>
-          <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[13px] font-medium text-[#1E1E1E]">
-            <Plus className="h-4 w-4" strokeWidth={1.75} />
-            Ajouter
-          </button>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {Array.from({ length: 9 }).map((_, index) => (
-            <MobilePhotoTile key={index} src={gallery[index % gallery.length]} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Documents liés</h2>
-        <div className="mt-3 space-y-2">
-          {[
-            { icon: FileText, name: 'Plan_Masse_V2.pdf', type: 'PDF · 1.2 Mo', color: '#DC2626' },
-            { icon: FileSpreadsheet, name: 'Planning_Intervention.xlsx', type: 'XLSX · 240 Ko', color: '#1E8E3E' },
-          ].map(doc => {
-            const Icon = doc.icon
-            return (
-              <MobileCard key={doc.name} className="flex items-center gap-3 p-3">
-                <div className="grid h-10 w-10 place-items-center rounded-[10px] bg-[#FAF6F2]">
-                  <Icon className="h-5 w-5" style={{ color: doc.color }} strokeWidth={1.75} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-medium text-[#1E1E1E]">{doc.name}</p>
-                  <p className="mt-1 text-[12px] text-[#6B6B6B]">{doc.type}</p>
-                </div>
-                <MoreHorizontal className="h-5 w-5 rotate-90 text-[#1E1E1E]" strokeWidth={1.75} />
-              </MobileCard>
-            )
-          })}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Localisation</h2>
-        <MobileCard className="mt-3 overflow-hidden">
-          <div className="relative h-28 bg-[#F1E6D6]">
-            <MapPin className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 fill-[#F06B21] text-[#F06B21]" strokeWidth={1.75} />
-          </div>
-          <div className="p-4">
-            <p className="text-[13px] font-medium text-[#1E1E1E]">{chantier.adresse}</p>
-            <button type="button" className="mt-2 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
-              Voir sur la carte
-              <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-            </button>
-          </div>
-        </MobileCard>
-      </section>
-
-      <MobileCard className="p-4">
-        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Prochaines étapes</h2>
-        <div className="mt-4 space-y-4">
-          {mobileSteps.map(step => (
-            <div key={step.label} className="flex items-center gap-3">
-              <ListChecks className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-              <span className="flex-1 text-[14px] text-[#1E1E1E]">{step.label}</span>
-              <span className="text-[12px] text-[#6B6B6B]">{step.date}</span>
-            </div>
-          ))}
-        </div>
-        <button type="button" className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
-          Voir le planning complet
-          <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-        </button>
-      </MobileCard>
-
-      <div className="fixed bottom-16 left-0 right-0 z-30 rounded-t-[24px] bg-[#1E1E1E] px-5 pb-5 pt-4 text-white">
-        <div className="flex items-center justify-between">
-          <p className="flex items-center gap-2 text-[14px] font-semibold">
-            <WifiOff className="h-4 w-4" strokeWidth={1.75} />
-            Mode hors-ligne
-          </p>
-          <span className="text-[11px] text-[#C9C9C9]">En attente · 3 fichiers</span>
-        </div>
-        <p className="mt-2 text-[12px] leading-5 text-[#C9C9C9]">Vous travaillez hors connexion. Les données seront synchronisées lors du prochain accès à internet.</p>
-        <button type="button" className="mt-4 h-11 w-full rounded-[12px] bg-[#F06B21] text-[13px] font-semibold text-white">Synchroniser maintenant</button>
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-[#8A8A8A]">
-          <CheckCircle2 className="h-3.5 w-3.5 text-[#1E8E3E]" strokeWidth={1.75} />
-          Dernière synchronisation : Hier à 18:45
-        </p>
-      </div>
-    </main>
-  )
-}
-
-function MobileActivityIcon({ kind }: { kind: string }) {
-  const config = {
-    report: { icon: Camera, color: '#F06B21', bg: '#FDEBDD' },
-    photos: { icon: Camera, color: '#1E1E1E', bg: '#FAF6F2' },
-    document: { icon: FileText, color: '#315A78', bg: '#DCE9F2' },
-    progress: { icon: CheckCircle2, color: '#1E8E3E', bg: '#E6F4EA' },
-    comment: { icon: MessageSquare, color: '#1E1E1E', bg: '#FAF6F2' },
-  }[kind] ?? { icon: CircleDot, color: '#6B6B6B', bg: '#FAF6F2' }
-  const Icon = config.icon
-
-  return (
-    <div className="relative z-10 grid h-10 w-10 place-items-center rounded-full border border-[#F2E8DC] bg-white">
-      <div className="grid h-8 w-8 place-items-center rounded-full" style={{ backgroundColor: config.bg }}>
-        <Icon className="h-4 w-4" style={{ color: config.color }} strokeWidth={1.75} />
-      </div>
-    </div>
-  )
-}
-
-function MobileActivityTab({ chantier, client, progress }: { chantier: Chantier; client?: Client; progress: number }) {
-  const gallery = getChantierGallery(chantier.id)
-
-  return (
-    <main className="space-y-3 px-4 pb-24 pt-5">
-      <div className="relative">
-        <div className="absolute left-5 top-0 bottom-0 w-px bg-[#EADBC8]" />
-        <div className="space-y-6">
-          {mobileActivity.map((item, index) => (
-            <article key={`${item.kind}-${index}`} className="relative grid grid-cols-[40px_minmax(0,1fr)] gap-4">
-              <div className={`absolute left-[3px] top-2 h-2.5 w-2.5 rounded-full ${index === 0 ? 'bg-[#F06B21]' : index === 3 ? 'bg-[#1E8E3E]' : 'bg-[#C9C9C9]'}`} />
-              <MobileActivityIcon kind={item.kind} />
-              <div className="pb-2">
-                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">{item.title}</h2>
-                <p className="mt-1 text-[12px] text-[#6B6B6B]">Par {item.author}</p>
-                <p className="mt-1 text-[13px] text-[#6B6B6B]">{item.time}</p>
-                {(item.text || item.kind === 'photos' || item.kind === 'progress') && (
-                  <MobileCard className="mt-3 p-4">
-                    {item.text && <p className="text-[14px] leading-[1.55] text-[#3C3C3C]">{item.text}</p>}
-                    {(item.kind === 'report' || item.kind === 'photos') && (
-                      <div className="mt-3 grid grid-cols-3 gap-2">
-                        {[0, 1, 2].map(photoIndex => (
-                          <MobilePhotoTile key={photoIndex} src={gallery[(photoIndex + index) % gallery.length]} small />
-                        ))}
-                      </div>
-                    )}
-                    {item.kind === 'progress' && (
-                      <div className="mt-1">
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="text-[12px] text-[#6B6B6B]">Avancement</span>
-                          <span className="text-[16px] font-semibold text-[#1E1E1E]">{progress}%</span>
-                        </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
-                          <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
-                        </div>
-                      </div>
-                    )}
-                    <button type="button" className="mt-3 text-[13px] font-semibold text-[#F06B21]">{item.action}</button>
-                  </MobileCard>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-      <button type="button" className="inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
-        Voir toute l'activité
-        <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-      </button>
-
-      <MobileCard className="p-4">
-        <h2 className="text-[17px] font-semibold text-[#1E1E1E]">Informations chantier</h2>
-        <div className="mt-4 space-y-4">
-          {[
-            ['Client', client?.nom ?? 'Dupont Jean'],
-            ['Adresse', chantier.adresse],
-            ['Type de projet', client?.type === 'public' ? 'Bâtiment public' : client?.type === 'professionnel' ? 'Projet professionnel' : 'Maison individuelle'],
-            ['Responsable', chantier.chefChantier],
-            ['Conducteur de travaux', 'Paul Martin'],
-          ].map(([label, value]) => (
-            <div key={label} className="grid grid-cols-[112px_minmax(0,1fr)] gap-4 text-[13px]">
-              <span className="text-[#1E1E1E]">{label}</span>
-              <span className="text-[#6B6B6B]">{value}</span>
-            </div>
-          ))}
-        </div>
-        <button type="button" className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium text-[#1E1E1E]">
-          Voir la fiche chantier
-          <ArrowRight className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-        </button>
-      </MobileCard>
-    </main>
-  )
-}
-
-function MobileChantierView({ chantier, client, progress }: { chantier: Chantier; client?: Client; progress: number }) {
-  const [active, setActive] = useState<MobileTab>('report')
-
-  return (
-    <div className="min-h-dvh bg-white text-[#1E1E1E]">
-      <MobileHeader chantier={chantier} active={active} onTabChange={setActive} />
-      {active === 'report' && <MobileReportTab progress={progress} />}
-      {active === 'photos' && <MobilePhotosTab chantier={chantier} />}
-      {active === 'activity' && <MobileActivityTab chantier={chantier} client={client} progress={progress} />}
-      <MobileBottomNav />
-    </div>
-  )
+function sortByDateDesc<T extends { date: string }>(rows: T[]) {
+  return [...rows].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
 export function ChantierDetailPage() {
@@ -747,29 +244,132 @@ export function ChantierDetailPage() {
     hasUnsyncedLocalChanges,
   } = useOperationalData()
   const [showUploadHint, setShowUploadHint] = useState(false)
-  const [activeDesktopTab, setActiveDesktopTab] = useState(tabs[0])
   const [statusFeedback, setStatusFeedback] = useState('')
   const [isStatusSaving, setIsStatusSaving] = useState(false)
+  const [documents, setDocuments] = useState<DocumentRecord[]>([])
+  const [documentError, setDocumentError] = useState('')
+  const [emailThreads, setEmailThreads] = useState<SqlEmailThread[]>([])
+  const [emailError, setEmailError] = useState('')
+  const [planningEvents, setPlanningEvents] = useState<SqlPlanningEvent[]>([])
+  const [planningError, setPlanningError] = useState('')
   const canEditChantier = canAccessPage(user?.role, 'chantiers', accessMatrix, 'edit')
 
   const chantier = chantiers.find(item => item.id === id)
-
+  const client = clients.find(item => item.id === chantier?.clientId)
   const chantierFactures = useMemo(
     () => factures.filter(facture => facture.chantierId === id),
-    [factures, id]
+    [factures, id],
   )
+  const previsionnelByLineId = useMemo(
+    () => new Map(operationalPrevisionnelLines.map(line => [line.id, line])),
+    [],
+  )
+  const selectedLine = previsionnelByLineId.get(chantierLineId(chantier?.id) ?? '')
+  const isSqlSource = operationalSource === 'dataconnect'
+  const canReadSqlModules = isSqlSource && isDataConnectEnabled && Boolean(user) && isSqlCompatibleId(chantier?.id)
+
+  useEffect(() => {
+    if (!canReadSqlModules || !chantier?.id) {
+      setDocuments([])
+      setDocumentError('')
+      return
+    }
+
+    let isMounted = true
+
+    async function loadDocuments() {
+      try {
+        const sqlData = await loadDocumentsSqlData()
+        if (!isMounted) return
+        setDocuments(sqlData.documents)
+        setDocumentError('')
+      } catch (error) {
+        console.info('Documents SQL Connect indisponibles sur la fiche chantier.', error)
+        if (!isMounted) return
+        setDocuments([])
+        setDocumentError('Documents SQL indisponibles')
+      }
+    }
+
+    void loadDocuments()
+
+    return () => {
+      isMounted = false
+    }
+  }, [canReadSqlModules, chantier?.id])
+
+  useEffect(() => {
+    if (!canReadSqlModules) {
+      setEmailThreads([])
+      setEmailError('')
+      return
+    }
+
+    let isMounted = true
+
+    async function loadEmails() {
+      try {
+        const rows = await loadEmailThreadsFromSql()
+        if (!isMounted) return
+        setEmailThreads(rows)
+        setEmailError('')
+      } catch (error) {
+        console.info('Emails SQL Connect indisponibles sur la fiche chantier.', error)
+        if (!isMounted) return
+        setEmailThreads([])
+        setEmailError('Emails SQL indisponibles')
+      }
+    }
+
+    void loadEmails()
+
+    return () => {
+      isMounted = false
+    }
+  }, [canReadSqlModules])
+
+  useEffect(() => {
+    if (!canReadSqlModules || !chantier?.id) {
+      setPlanningEvents([])
+      setPlanningError('')
+      return
+    }
+
+    let isMounted = true
+
+    async function loadPlanning() {
+      try {
+        const rows = await loadPlanningEventsByChantierFromSql({ chantierId: chantier.id })
+        if (!isMounted) return
+        setPlanningEvents(rows.filter(event => event.statut !== 'cancelled'))
+        setPlanningError('')
+      } catch (error) {
+        console.info('Planning SQL Connect indisponible sur la fiche chantier.', error)
+        if (!isMounted) return
+        setPlanningEvents([])
+        setPlanningError('Planning SQL indisponible')
+      }
+    }
+
+    void loadPlanning()
+
+    return () => {
+      isMounted = false
+    }
+  }, [canReadSqlModules, chantier?.id])
 
   if (!chantier) {
     return (
       <div className="flex min-h-full items-center justify-center bg-[#FAF6F2] p-8">
         <Card className="max-w-md p-8 text-center">
           <h1 className="text-[22px] font-semibold text-[#1E1E1E]">Chantier introuvable</h1>
-          <p className="mt-2 text-sm text-[#6B6B6B]">Le dossier demandé n’existe pas dans le store local.</p>
+          <p className="mt-2 text-sm text-[#6B6B6B]">Le dossier demande n'existe pas dans les donnees chargees.</p>
           <button
             type="button"
             onClick={() => navigate('/chantiers')}
             className="mt-5 inline-flex items-center gap-2 rounded-[14px] bg-[#F06B21] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#D95B17]"
           >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
             Retour aux chantiers
           </button>
         </Card>
@@ -777,32 +377,131 @@ export function ChantierDetailPage() {
     )
   }
 
-  const client = clients.find(item => item.id === chantier.clientId)
   const currentChantier = chantier
-  const chantierEmails = emails.filter(email => email.chantierId === chantier.id)
-  const rawProgress = percentOf(chantier.depensesEngagees, chantier.budgetPrevisionnel)
-  const progress = Math.min(Math.max(rawProgress, 0), 100)
-  const margin = chantier.budgetPrevisionnel - chantier.depensesEngagees
-  const marginPercent = percentOf(margin, chantier.budgetPrevisionnel)
   const factureTotal = chantierFactures.reduce((sum, facture) => sum + facture.montantTTC, 0)
   const factureValidatedTotal = chantierFactures
     .filter(facture => facture.statut === 'validee')
     .reduce((sum, facture) => sum + facture.montantTTC, 0)
   const facturePendingCount = chantierFactures.filter(facture => facture.statut === 'en_attente').length
-  const coverImage = getChantierCover(chantier.id)
-  const galleryImages = getChantierGallery(chantier.id)
-  const isSqlSource = operationalSource === 'dataconnect'
+  const budget = amountBase(selectedLine, chantier.budgetPrevisionnel)
+  const visibleExpenseTotal = chantierFactures.length > 0 ? factureTotal : (selectedLine?.realizedTotal ?? chantier.depensesEngagees)
+  const progress = Math.min(Math.max(percentOf(visibleExpenseTotal, budget), 0), 100)
+  const margin = budget - visibleExpenseTotal
+  const marginPercent = percentOf(margin, budget)
   const sourceLabel = isOperationalLoading
     ? 'Chargement SQL'
     : isSqlSource
-      ? 'SQL lu par le front'
+      ? 'Operationnel SQL'
       : operationalSource === 'excel'
-        ? 'Fallback Excel/local visible'
-        : 'Seeds locaux visibles'
+        ? 'Fallback Excel'
+        : 'Seeds locaux'
   const sourceDetail = isSqlSource
-    ? "Le chantier et ses factures sont lus via Data Connect dans cette session. Ce n'est pas un comptage sandbox distant."
-    : "Le chantier et ses factures viennent d'un fallback front. Cela ne prouve aucune donnee presente en SQL sandbox."
+    ? "Le chantier et ses factures viennent de Data Connect dans cette session."
+    : operationalSource === 'excel'
+      ? "Le chantier vient du fichier Excel/previsionnel charge cote front. Les modules non presents dans l'Excel restent absents."
+      : "Le chantier vient des seeds locaux. Ces donnees ne prouvent pas l'etat sandbox."
   const canWriteSql = operationalSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
+  const sourceTone = isSqlSource ? 'sql' : operationalSource === 'excel' ? 'static' : 'local'
+
+  const chantierDocuments = sortByDateDesc(
+    documents.filter(document =>
+      document.chantierId === chantier.id ||
+      chantierFactures.some(facture => facture.id === document.factureId),
+    ),
+  )
+  const chantierEmailThreads = sortByDateDesc(
+    emailThreads
+      .filter(thread => thread.chantier?.id === chantier.id)
+      .map(thread => ({
+        ...thread,
+        date: thread.lastMessageAt,
+      })),
+  )
+  const planningRows = [...planningEvents].sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+  const upcomingPlanningRows = planningRows.filter(event => new Date(event.endAt).getTime() >= Date.now())
+
+  const assignedPeople = new Map<string, { name: string; role: string }>()
+  if (chantier.chefChantier.trim()) {
+    assignedPeople.set(`chef-${chantier.chefChantier}`, { name: chantier.chefChantier, role: 'Responsable chantier' })
+  }
+  for (const event of planningRows) {
+    for (const assignment of event.assignmentsByChantier) {
+      if (!assignment.user) continue
+      const name = `${assignment.user.prenom} ${assignment.user.nom}`.trim()
+      if (!name) continue
+      assignedPeople.set(assignment.user.id, {
+        name,
+        role: assignment.assignmentRole || assignment.user.role,
+      })
+    }
+  }
+  const teamRows = Array.from(assignedPeople.values())
+
+  const categoryRows = Object.entries(
+    chantierFactures.reduce<Record<string, number>>((acc, facture) => {
+      acc[facture.categorie] = (acc[facture.categorie] ?? 0) + facture.montantTTC
+      return acc
+    }, {}),
+  )
+    .map(([category, amount]) => ({
+      category: category as CategorieDepense,
+      label: categorieLabels[category as CategorieDepense] ?? category,
+      amount,
+      pct: percentOf(amount, Math.max(factureTotal, 1)),
+      color: categoryColor[category as CategorieDepense] ?? '#EADBC8',
+    }))
+    .sort((a, b) => b.amount - a.amount)
+
+  const monthlyRows = (selectedLine?.monthly ?? []).filter(month => month.planned || month.realized || month.invoiceSent)
+  const lotRows = Object.entries(selectedLine?.lots ?? {})
+    .filter(([, value]) => Number(value) !== 0)
+    .sort(([, a], [, b]) => b - a)
+
+  const activityRows: ActivityItem[] = sortByDateDesc([
+    ...chantierFactures.map(facture => ({
+      id: `facture-${facture.id}`,
+      icon: ReceiptText,
+      title: `Facture ${facture.numeroFacture}`,
+      detail: `${facture.fournisseur} - ${formatEuros(facture.montantTTC)}`,
+      date: facture.date,
+    })),
+    ...chantierDocuments.map(document => ({
+      id: `document-${document.id}`,
+      icon: FileText,
+      title: document.title,
+      detail: document.detail || document.folderName || 'Document rattache',
+      date: document.date,
+    })),
+    ...chantierEmailThreads.map(thread => ({
+      id: `email-${thread.id}`,
+      icon: Mail,
+      title: thread.subject,
+      detail: thread.participantsSummary || `${thread.messageCount} message(s)`,
+      date: thread.lastMessageAt,
+    })),
+    ...planningRows.map(event => ({
+      id: `planning-${event.id}`,
+      icon: CalendarDays,
+      title: event.titre,
+      detail: event.location || event.eventType,
+      date: event.startAt,
+    })),
+  ]).slice(0, 8)
+
+  const alerts = [
+    budget > 0 && visibleExpenseTotal > budget
+      ? {
+          title: 'Budget depasse',
+          detail: `${formatEuros(visibleExpenseTotal)} visibles pour ${formatEuros(budget)} budget.`,
+        }
+      : null,
+    facturePendingCount > 0
+      ? {
+          title: 'Factures en attente',
+          detail: `${facturePendingCount} facture${facturePendingCount > 1 ? 's' : ''} a traiter avant validation des depenses.`,
+        }
+      : null,
+  ].filter((item): item is { title: string; detail: string } => Boolean(item))
 
   async function handleStatusChange(nextStatus: Chantier['statut']) {
     if (nextStatus === currentChantier.statut || isStatusSaving) return
@@ -818,14 +517,14 @@ export function ChantierDetailPage() {
 
     try {
       if (canWriteSql) {
-        if (currentChantier.id.startsWith('prev-chantier-') || currentChantier.id.startsWith('local-')) {
+        if (!isSqlCompatibleId(currentChantier.id)) {
           setStatusFeedback("Statut non modifie: ce chantier n'est pas une ligne operationnelle SQL.")
           return
         }
 
         await updateChantierStatutInSql({ id: currentChantier.id, statut: nextStatus, dateFin })
         updateChantierStatus(currentChantier.id, nextStatus, dateFin)
-        setStatusFeedback(`Statut SQL Connect mis a jour: ${statusOptions.find(option => option.value === nextStatus)?.label ?? nextStatus}.`)
+        setStatusFeedback(`Statut SQL Connect mis a jour: ${statusLabel[nextStatus]}.`)
       } else {
         updateChantierStatus(currentChantier.id, nextStatus, dateFin)
         setStatusFeedback("Statut mis a jour en fallback local uniquement. Cela ne prouve pas une ecriture SQL ni une donnee sandbox.")
@@ -838,131 +537,92 @@ export function ChantierDetailPage() {
     }
   }
 
-  const donutData = Object.entries(
-    chantierFactures
-      .filter(facture => facture.statut === 'validee')
-      .reduce<Record<string, number>>((acc, facture) => {
-        acc[facture.categorie] = (acc[facture.categorie] ?? 0) + facture.montantTTC
-        return acc
-      }, {})
-  )
-    .map(([category, amount]) => ({
-      name: categorieLabels[category as CategorieDepense] ?? category,
-      value: Math.round(amount),
-      pct: Math.max(1, Math.round((amount / Math.max(chantier.depensesEngagees, 1)) * 100)),
-      color: DONUT_COLORS[category] ?? '#C8B18C',
-    }))
-    .sort((a, b) => b.value - a.value)
-
-  const financialData = donutData.length
-    ? donutData
-    : [
-        { name: 'Bois', value: Math.round(chantier.depensesEngagees * 0.38), pct: 38, color: '#F06B21' },
-        { name: 'Sous-traitance', value: Math.round(chantier.depensesEngagees * 0.24), pct: 24, color: '#1E1E1E' },
-        { name: 'Quincaillerie', value: Math.round(chantier.depensesEngagees * 0.15), pct: 15, color: '#A45A2C' },
-        { name: 'Carburant', value: Math.round(chantier.depensesEngagees * 0.08), pct: 8, color: '#C8B18C' },
-        { name: 'Autres', value: Math.round(chantier.depensesEngagees * 0.15), pct: 15, color: '#EADBC8' },
-      ]
-
   return (
-    <>
-    <div className="lg:hidden">
-      <MobileChantierView chantier={chantier} client={client} progress={progress} />
-    </div>
-    <div className="hidden min-h-full bg-[#FAF6F2] lg:block">
-      <div className="border-b border-[#F2E8DC] bg-white px-6 py-5 xl:px-8">
+    <div className="min-h-full bg-[#FAF6F2]">
+      <div className="border-b border-[#F2E8DC] bg-white px-5 py-5 lg:px-8">
         <div className="mb-4 flex items-center gap-2 text-[12px] font-medium text-[#6B6B6B]">
           <button type="button" onClick={() => navigate('/chantiers')} className="hover:text-[#F06B21]">
             Chantiers
           </button>
           <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.75} />
-          <span className="text-[#1E1E1E]">{chantier.nom}</span>
+          <span className="truncate text-[#1E1E1E]">{chantier.nom}</span>
         </div>
 
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div>
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-[#1E1E1E]">{chantier.nom}</h1>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E6F4EA] px-3 py-1 text-[11px] font-semibold text-[#1E8E3E]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#1E8E3E]" />
-                {chantier.statut === 'en_cours' ? 'En cours' : chantier.statut === 'cloture' ? 'Clôturé' : 'En attente'}
+              <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-[#1E1E1E] lg:text-[30px]">{chantier.nom}</h1>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${statusStyle[chantier.statut]}`}>
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                {statusLabel[chantier.statut]}
               </span>
+              <SourcePill label={sourceLabel} tone={sourceTone} />
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[#3C3C3C]">
-              <span className="inline-flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                {chantier.adresse}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                Démarrage : {new Date(chantier.dateDebut).toLocaleDateString('fr-FR')}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <UsersRound className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                Livraison prévue : {new Date(chantier.dateFinPrevue).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-              </span>
+              {client && (
+                <Link to={`/clients/${client.id}`} className="inline-flex items-center gap-2 font-medium text-[#1E1E1E] hover:text-[#F06B21]">
+                  <UserRound className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                  {client.nom}
+                </Link>
+              )}
+              {chantier.adresse && (
+                <span className="inline-flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                  {chantier.adresse}
+                </span>
+              )}
+              {formatDate(chantier.dateDebut) && (
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                  Debut: {formatDate(chantier.dateDebut)}
+                </span>
+              )}
+              {formatDate(chantier.dateFinPrevue) && (
+                <span className="inline-flex items-center gap-2">
+                  <ClipboardCheck className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                  Fin prevue: {formatDate(chantier.dateFinPrevue)}
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to={`/clients/${chantier.clientId}`} className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
+              Fiche client
+              <ExternalLink className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+            </Link>
             <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] border border-[#F2E8DC] bg-white px-4 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
               <Share2 className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
               Partager
             </button>
-            <button type="button" className="inline-flex h-10 items-center gap-2 rounded-[14px] bg-[#1E1E1E] px-4 text-sm font-semibold text-white hover:bg-black">
-              Actions
-              <ChevronDown className="h-4 w-4" strokeWidth={1.75} />
-            </button>
           </div>
-        </div>
-
-        <div className="mt-6 flex gap-6 overflow-x-auto border-b border-[#F2E8DC]">
-          {tabs.map(tab => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveDesktopTab(tab)}
-              className={`shrink-0 border-b-2 px-1 pb-3 text-sm font-medium transition-colors ${
-                activeDesktopTab === tab ? 'border-[#F06B21] text-[#F06B21]' : 'border-transparent text-[#3C3C3C] hover:text-[#1E1E1E]'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
       </div>
 
-      <div className="grid gap-5 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:px-8 2xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid gap-5 px-5 py-5 lg:px-8 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <main className="min-w-0 space-y-5">
-          {activeDesktopTab !== tabs[0] && (
-            <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <p className="text-[13px] font-semibold text-[#1E1E1E]">{activeDesktopTab}</p>
-                <p className="mt-1 text-[12px] text-[#6B6B6B]">Aperçu démo activé: les données détaillées restent disponibles dans les blocs ci-dessous.</p>
-              </div>
-              <span className="rounded-[6px] bg-[#FDEBDD] px-2.5 py-1 text-[11px] font-semibold text-[#F06B21]">Onglet actif</span>
-            </Card>
-          )}
           <Card className="p-4">
             <div className="flex flex-wrap items-center gap-2">
-              <SourcePill label={sourceLabel} tone={isSqlSource ? 'sql' : 'local'} />
+              <SourcePill label={sourceLabel} tone={sourceTone} />
               {hasUnsyncedLocalChanges && <SourcePill label="Fallback non verite SQL" tone="local" />}
               {operationalError && <SourcePill label="SQL indisponible" tone="local" />}
-              <SourcePill label="Documents: exemples locaux" tone="static" />
-              <SourcePill label="Emails: seed local" tone="local" />
-              <SourcePill label="Planning: apercu statique" tone="static" />
-              <SourcePill label="Rapports: page dediee SQL" tone="sql" />
+              <SourcePill label={`Factures: ${chantierFactures.length}`} tone={isSqlSource ? 'sql' : sourceTone} />
+              {selectedLine && <SourcePill label={`Excel ${selectedLine.exercise} ligne ${selectedLine.sourceRow}`} tone="static" />}
+              {chantierDocuments.length > 0 && <SourcePill label={`Documents SQL: ${chantierDocuments.length}`} tone="sql" />}
+              {chantierEmailThreads.length > 0 && <SourcePill label={`Emails SQL: ${chantierEmailThreads.length}`} tone="sql" />}
+              {planningRows.length > 0 && <SourcePill label={`Planning SQL: ${planningRows.length}`} tone="sql" />}
             </div>
-            <p className="mt-2 text-[12px] text-[#6B6B6B]">
-              {sourceDetail} Les autres blocs restent indicatifs tant que leurs requetes SQL par chantier ne sont pas branchees ici.
+            <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
+              {sourceDetail} Les modules equipe, planning, echeances, documents, emails et activite ne s'affichent que si une donnee reliee au chantier existe.
             </p>
-            {operationalError && (
+            {(operationalError || documentError || emailError || planningError) && (
               <p className="mt-2 text-[12px] font-medium text-[#D95B17]">
-                Derniere erreur SQL: {operationalError}
+                {[operationalError, documentError, emailError, planningError].filter(Boolean).join(' - ')}
               </p>
             )}
           </Card>
+
           <Card className="flex flex-col gap-4 p-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -970,11 +630,9 @@ export function ChantierDetailPage() {
                 <SourcePill label={canWriteSql ? 'Mutation SQL disponible' : 'Ecriture fallback local'} tone={canWriteSql ? 'sql' : 'local'} />
               </div>
               <p className="mt-1 text-[12px] text-[#6B6B6B]">
-                Le changement de statut ecrit `UpdateChantierStatut` quand Data Connect est la source active. Sinon il reste local et visible comme fallback.
+                UpdateChantierStatut est utilise quand Data Connect est la source active.
               </p>
-              {statusFeedback && (
-                <p className="mt-2 text-[12px] font-medium text-[#D95B17]">{statusFeedback}</p>
-              )}
+              {statusFeedback && <p className="mt-2 text-[12px] font-medium text-[#D95B17]">{statusFeedback}</p>}
             </div>
             <div className="flex flex-wrap gap-2">
               {statusOptions.map(option => (
@@ -994,117 +652,82 @@ export function ChantierDetailPage() {
               ))}
             </div>
           </Card>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-            <KpiCard label="Avancement" value={`${progress}%`}>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
-                <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
-              </div>
-              <p className="mt-3 text-[11px] font-semibold text-[#1E8E3E]">+8% vs semaine dernière</p>
-            </KpiCard>
-            <KpiCard label="Budget total" value={formatEuros(chantier.budgetPrevisionnel)} sub="HT" />
-            <KpiCard label="Dépenses engagées" value={formatEuros(chantier.depensesEngagees)} sub={`${rawProgress}% du budget`} />
-            <KpiCard label="Marge prévisionnelle" value={formatEuros(margin)} sub={`${marginPercent}%`} />
-            <KpiCard label="Prochaine échéance" value="Livraison matériaux">
-              <p className="mt-3 text-[11px] text-[#6B6B6B]">23 avril 2026 à 10:30</p>
-              <div className="mt-2">
-                <LinkButton>Voir le planning</LinkButton>
-              </div>
-            </KpiCard>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {budget > 0 && (
+              <KpiCard label="Avancement financier" value={`${progress}%`} detail={`${formatEuros(visibleExpenseTotal)} / ${formatEuros(budget)}`}>
+                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
+                  <div className="h-full rounded-full bg-[#F06B21]" style={{ width: `${progress}%` }} />
+                </div>
+              </KpiCard>
+            )}
+            {budget > 0 && <KpiCard label={selectedLine ? 'Budget Excel' : 'Budget chantier'} value={formatEuros(budget)} />}
+            <KpiCard label={chantierFactures.length > 0 ? 'Factures TTC visibles' : selectedLine ? 'Realise Excel' : 'Depenses chargees'} value={formatEuros(visibleExpenseTotal)} />
+            {budget > 0 && <KpiCard label="Marge visible" value={formatEuros(margin)} detail={`${marginPercent}% du budget`} />}
           </div>
 
-          <div className="grid gap-5 2xl:grid-cols-[1.05fr_1fr]">
+          <div className="grid gap-5 2xl:grid-cols-[1fr_1fr]">
             <Card className="p-5">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Informations principales</h2>
-              <div className="mt-4 grid gap-5 lg:grid-cols-[190px_minmax(0,1fr)]">
-                <div>
-                  <ProjectPhoto src={coverImage} />
-                  <button type="button" className="mt-3 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white text-[12px] font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
-                    Voir toutes les photos
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {[
-                    ['Client', client?.nom ?? 'Client non renseigné'],
-                    ['Adresse', chantier.adresse],
-                    ['Type de projet', client?.type === 'public' ? 'Bâtiment public' : client?.type === 'professionnel' ? 'Projet professionnel' : 'Maison individuelle'],
-                    ['Surface', '148 m²'],
-                    ['Responsable', chantier.chefChantier],
-                    ['Conducteur de travaux', 'Paul Martin'],
-                    ['Architecte', 'Atelier B'],
-                  ].map(([label, value]) => (
-                    <div key={label} className="grid grid-cols-[102px_minmax(0,1fr)] gap-3 text-[13px]">
-                      <span className="text-[#6B6B6B]">{label}</span>
-                      <span className="font-medium text-[#1E1E1E]">{value}</span>
-                    </div>
-                  ))}
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Informations chantier</h2>
+              <div className="mt-4 space-y-3">
+                {[
+                  ['Client', client?.nom],
+                  ['Adresse', chantier.adresse],
+                  ['Type client', client?.type],
+                  ['Statut', statusLabel[chantier.statut]],
+                  ['Debut', formatDate(chantier.dateDebut)],
+                  ['Fin prevue', formatDate(chantier.dateFinPrevue)],
+                  ['Fin reelle', formatDate(chantier.dateFin)],
+                  ['Responsable', chantier.chefChantier],
+                  ['Source Excel', selectedLine ? `${selectedLine.sourceSheet} ligne ${selectedLine.sourceRow}` : null],
+                  ['Categorie Excel', selectedLine ? previsionnelCategoryLabels[selectedLine.category] : null],
+                ].filter(([, value]) => Boolean(value)).map(([label, value]) => (
+                  <div key={label} className="grid grid-cols-[116px_minmax(0,1fr)] gap-3 text-[13px]">
+                    <span className="text-[#6B6B6B]">{label}</span>
+                    <span className="font-medium text-[#1E1E1E]">{value}</span>
+                  </div>
+                ))}
+                {chantier.description && (
                   <div className="pt-1 text-[13px] leading-5 text-[#3C3C3C]">
                     <span className="mb-1 block text-[#6B6B6B]">Description</span>
                     {chantier.description}
                   </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {['ossature bois', 'maison individuelle', '2026'].map(tag => (
-                      <span key={tag} className="rounded-[6px] bg-[#F1E6D6] px-2.5 py-1 text-[11px] font-medium text-[#3C3C3C]">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
             </Card>
 
             <Card className="p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Synthèse financière</h2>
-                <button type="button" className="inline-flex items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 py-1.5 text-[12px] font-medium text-[#6B6B6B] hover:bg-[#FAF6F2]">
-                  Ce mois
-                  <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.75} />
-                </button>
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Synthese financiere</h2>
+                  <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                    Les categories viennent uniquement des factures rattachees au chantier.
+                  </p>
+                </div>
+                <SourcePill label={chantierFactures.length > 0 ? 'Factures rattachees' : 'Aucune facture'} tone={chantierFactures.length > 0 ? sourceTone : 'static'} />
               </div>
 
-              <div className="mt-5 grid gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
-                <div className="relative flex justify-center">
-                  <PieChart width={210} height={210}>
-                    <Pie
-                      data={financialData}
-                      cx={105}
-                      cy={105}
-                      innerRadius={66}
-                      outerRadius={94}
-                      startAngle={90}
-                      endAngle={-270}
-                      dataKey="value"
-                      stroke="#FFFFFF"
-                      strokeWidth={3}
-                    >
-                      {financialData.map(item => (
-                        <Cell key={item.name} fill={item.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[22px] font-semibold text-[#1E1E1E]">{formatEuros(chantier.depensesEngagees)}</span>
-                    <span className="text-[11px] text-[#6B6B6B]">Dépenses engagées</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3 self-center">
-                  {financialData.slice(0, 6).map(item => (
-                    <div key={item.name} className="grid grid-cols-[minmax(0,1fr)_48px_78px] items-center gap-3 text-[12px]">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="truncate text-[#3C3C3C]">{item.name}</span>
+              {categoryRows.length > 0 ? (
+                <div className="mt-5 space-y-3">
+                  {categoryRows.map(item => (
+                    <div key={item.category}>
+                      <div className="mb-2 grid grid-cols-[minmax(0,1fr)_54px_92px] items-center gap-3 text-[12px]">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="truncate text-[#3C3C3C]">{item.label}</span>
+                        </div>
+                        <span className="text-right font-medium text-[#6B6B6B]">{item.pct}%</span>
+                        <span className="text-right font-medium text-[#1E1E1E]">{formatEuros(item.amount)}</span>
                       </div>
-                      <span className="text-right font-medium text-[#6B6B6B]">{item.pct}%</span>
-                      <span className="text-right font-medium text-[#3C3C3C]">{formatEuros(item.value)}</span>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
+                        <div className="h-full rounded-full" style={{ width: `${Math.min(item.pct, 100)}%`, backgroundColor: item.color }} />
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="mt-4">
-                <LinkButton>Voir le détail des dépenses</LinkButton>
-              </div>
+              ) : (
+                <EmptyNotice>Aucune ventilation par facture rattachee n'est chargee pour ce chantier.</EmptyNotice>
+              )}
             </Card>
           </div>
 
@@ -1113,10 +736,10 @@ export function ChantierDetailPage() {
               <div>
                 <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Factures rattachees au chantier</h2>
                 <p className="mt-1 text-[12px] text-[#6B6B6B]">
-                  Liste issue des factures chargees pour ce chantier. La regle metier des factures impactant les KPI reste a confirmer.
+                  Toute facture creee ou importee avec ce chantierId alimente cette liste, les totaux et l'activite.
                 </p>
               </div>
-              <SourcePill label={isSqlSource ? 'Factures SQL lues' : 'Factures fallback visibles'} tone={isSqlSource ? 'sql' : 'local'} />
+              <SourcePill label={isSqlSource ? 'Factures SQL lues' : 'Factures visibles'} tone={sourceTone} />
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-3">
@@ -1133,24 +756,24 @@ export function ChantierDetailPage() {
             </div>
 
             <div className="mt-5 overflow-hidden rounded-[14px] border border-[#F2E8DC]">
-              <div className="grid grid-cols-[minmax(0,1fr)_130px_110px_110px] gap-3 bg-[#FAF6F2] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">
+              <div className="hidden grid-cols-[minmax(0,1fr)_150px_120px_110px] gap-3 bg-[#FAF6F2] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B] md:grid">
                 <span>Facture</span>
                 <span>Fournisseur</span>
                 <span>Statut</span>
                 <span className="text-right">TTC</span>
               </div>
               <div className="divide-y divide-[#F2E8DC] bg-white">
-                {chantierFactures.slice(0, 8).map(facture => {
+                {sortByDateDesc(chantierFactures).slice(0, 10).map(facture => {
                   const status = factureStatusStyle[facture.statut] ?? factureStatusStyle.en_attente
                   return (
-                    <div key={facture.id} className="grid grid-cols-[minmax(0,1fr)_130px_110px_110px] items-center gap-3 px-4 py-3 text-[13px]">
+                    <div key={facture.id} className="grid gap-3 px-4 py-3 text-[13px] md:grid-cols-[minmax(0,1fr)_150px_120px_110px] md:items-center">
                       <span className="min-w-0">
                         <strong className="block truncate text-[#1E1E1E]">{facture.numeroFacture}</strong>
                         <small className="mt-1 block truncate text-[11px] text-[#6B6B6B]">{facture.description || 'Description non renseignee'}</small>
                       </span>
                       <span className="truncate text-[#3C3C3C]">{facture.fournisseur}</span>
                       <span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold ${status.className}`}>{status.label}</span>
-                      <span className="text-right font-semibold text-[#1E1E1E]">{formatEuros(facture.montantTTC)}</span>
+                      <span className="font-semibold text-[#1E1E1E] md:text-right">{formatEuros(facture.montantTTC)}</span>
                     </div>
                   )
                 })}
@@ -1164,370 +787,280 @@ export function ChantierDetailPage() {
 
             {facturePendingCount > 0 && (
               <p className="mt-3 text-[12px] font-medium text-[#D95B17]">
-                {facturePendingCount} facture{facturePendingCount > 1 ? 's' : ''} en attente: ne pas les compter comme validees sans decision metier.
+                {facturePendingCount} facture{facturePendingCount > 1 ? 's' : ''} en attente.
               </p>
             )}
           </Card>
 
-          <div className="grid gap-5 2xl:grid-cols-[1fr_1.35fr_0.9fr]">
-            <Card className="p-5">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Avancement par lot</h2>
-              <div className="mt-5 space-y-4">
-                {lots.map(lot => (
-                  <div key={lot.label}>
-                    <div className="mb-2 flex items-center justify-between text-[13px]">
-                      <span className="text-[#3C3C3C]">{lot.label}</span>
-                      <span className="font-medium text-[#1E1E1E]">{lot.pct}%</span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-[#F2E8DC]">
-                      <div className="h-full rounded-full" style={{ width: `${lot.pct}%`, backgroundColor: lot.color }} />
-                    </div>
+          {(monthlyRows.length > 0 || lotRows.length > 0) && (
+            <div className="grid gap-5 2xl:grid-cols-[1.2fr_0.8fr]">
+              {monthlyRows.length > 0 && (
+                <Card className="overflow-hidden">
+                  <div className="border-b border-[#F2E8DC] px-5 py-4">
+                    <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Mensualisation Excel</h2>
+                    <p className="mt-1 text-[12px] text-[#6B6B6B]">Les cellules jaunes indiquent facture envoyee, pas paiement encaisse.</p>
                   </div>
-                ))}
-              </div>
-              <div className="mt-5">
-                <LinkButton>Voir le détail des lots</LinkButton>
-              </div>
-            </Card>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-left text-[13px]">
+                      <thead className="bg-[#FAF6F2] text-[12px] font-medium text-[#6B6B6B]">
+                        <tr>
+                          <th className="px-5 py-3">Mois</th>
+                          <th className="px-5 py-3 text-right">Prevu</th>
+                          <th className="px-5 py-3 text-right">Realise</th>
+                          <th className="px-5 py-3">Facture envoyee</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {monthlyRows.map(month => (
+                          <tr key={`${month.order}-${month.month}`} className="border-t border-[#F2E8DC]">
+                            <td className="px-5 py-3 font-semibold text-[#1E1E1E]">{month.label}</td>
+                            <td className="px-5 py-3 text-right text-[#3C3C3C]">{formatEuros(month.planned)}</td>
+                            <td className="px-5 py-3 text-right font-semibold text-[#1E1E1E]">{formatEuros(month.realized)}</td>
+                            <td className="px-5 py-3">
+                              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${month.invoiceSent ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-[#FAF6F2] text-[#6B6B6B]'}`}>
+                                {month.invoiceSent ? 'Oui' : 'Non'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
 
+              {lotRows.length > 0 && (
+                <Card className="p-5">
+                  <h2 className="text-[16px] font-semibold text-[#1E1E1E]">Lots Excel</h2>
+                  <p className="mt-1 text-[12px] text-[#6B6B6B]">Ventilation issue de la ligne source.</p>
+                  <div className="mt-4 space-y-3">
+                    {lotRows.map(([lot, value]) => (
+                      <div key={lot} className="rounded-[14px] bg-[#FAF6F2] p-3">
+                        <p className="text-[12px] capitalize text-[#6B6B6B]">{lot.replace(/_/g, ' ')}</p>
+                        <p className="mt-1 font-semibold text-[#1E1E1E]">{formatEuros(value)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {activityRows.length > 0 && (
             <Card className="p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Dépenses vs prévisionnel</h2>
-                <div className="flex gap-4 text-[11px] text-[#6B6B6B]">
-                  <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 bg-[#F06B21]" /> Réelles</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 border-t border-dashed border-[#6B6B6B]" /> Prévisionnel</span>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Activite recente</h2>
+                <div className="flex flex-wrap gap-2">
+                  {chantierFactures.length > 0 && <SourcePill label="Factures" tone={sourceTone} />}
+                  {chantierDocuments.length > 0 && <SourcePill label="Documents SQL" tone="sql" />}
+                  {chantierEmailThreads.length > 0 && <SourcePill label="Emails SQL" tone="sql" />}
+                  {planningRows.length > 0 && <SourcePill label="Planning SQL" tone="sql" />}
                 </div>
               </div>
-              <div className="h-[210px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={budgetCurve} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: '#6B6B6B' }} axisLine={false} tickLine={false} tickFormatter={value => `${Number(value) / 1000}k €`} />
-                    <Tooltip
-                      formatter={value => [`${formatEuros(Number(value ?? 0))}`, '']}
-                      contentStyle={{ borderRadius: 12, border: '1px solid #F2E8DC', fontSize: 12 }}
-                    />
-                    <Area type="monotone" dataKey="target" stroke="#6B6B6B" strokeDasharray="4 4" strokeWidth={1.5} fill="transparent" />
-                    <Area type="monotone" dataKey="real" stroke="#F06B21" strokeWidth={2} fill="#FDEBDD" fillOpacity={0.35} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <LinkButton>Voir l’analyse complète</LinkButton>
-            </Card>
-
-            <Card className="p-5">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Échéances clés</h2>
-              <div className="mt-4 space-y-4">
-                {deadlines.map(item => (
-                  <div key={`${item.day}-${item.title}`} className="grid grid-cols-[42px_minmax(0,1fr)_48px] items-center gap-3">
-                    <div className="rounded-[10px] bg-[#FDEBDD] px-2 py-2 text-center">
-                      <div className="text-[18px] font-bold leading-none text-[#1E1E1E]">{item.day}</div>
-                      <div className="mt-1 text-[9px] font-semibold text-[#F06B21]">{item.month}</div>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{item.title}</p>
-                      <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{item.sub}</p>
-                    </div>
-                    <span className="rounded-[6px] bg-[#FAF6F2] px-2 py-1 text-center text-[10px] font-medium text-[#6B6B6B]">À venir</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5">
-                <LinkButton>Voir le planning</LinkButton>
-              </div>
-            </Card>
-          </div>
-
-          <div className="grid gap-5 2xl:grid-cols-[1fr_1.15fr]">
-            <Card className="p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Activité récente</h2>
-                <LinkButton>Voir toute l’activité</LinkButton>
-              </div>
               <div className="mt-5 space-y-4">
-                {activities.map(item => {
+                {activityRows.map(item => {
                   const Icon = item.icon
                   return (
-                    <div key={item.title} className="flex items-start gap-4">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]" style={{ backgroundColor: item.bg }}>
-                        <Icon className="h-4 w-4" style={{ color: item.color }} strokeWidth={1.75} />
+                    <div key={item.id} className="flex items-start gap-4">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#FAF6F2] text-[#F06B21]">
+                        <Icon className="h-4 w-4" strokeWidth={1.75} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{item.title}</p>
-                        <p className="mt-1 truncate text-[12px] text-[#6B6B6B]">{item.sub}</p>
+                        <p className="mt-1 truncate text-[12px] text-[#6B6B6B]">{item.detail}</p>
                       </div>
-                      <span className="shrink-0 text-[11px] text-[#9CA3AF]">{item.time}</span>
+                      <span className="shrink-0 text-[11px] text-[#9CA3AF]">{formatDateTime(item.date) ?? formatDate(item.date)}</span>
                     </div>
                   )
                 })}
               </div>
             </Card>
+          )}
 
+          {chantierDocuments.length > 0 && (
             <Card className="p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Derniers documents</h2>
-                <SourcePill label="local" tone="static" />
-                <LinkButton>Voir tous les documents</LinkButton>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Documents rattaches</h2>
+                <SourcePill label="SQL Connect" tone="sql" />
               </div>
               <div className="mt-5 space-y-4">
-                {documents.map(item => (
-                  <div key={item.name} className="grid grid-cols-[34px_minmax(0,1fr)_70px] items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FAF6F2]">
-                      <FileText className="h-4 w-4" style={{ color: item.color }} strokeWidth={1.75} />
+                {chantierDocuments.slice(0, 8).map(document => (
+                  <div key={document.id} className="grid grid-cols-[34px_minmax(0,1fr)_86px] items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FAF6F2] text-[#F06B21]">
+                      <FileText className="h-4 w-4" strokeWidth={1.75} />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-[13px] font-medium text-[#1E1E1E]">{item.name}</p>
-                      <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{item.type}</p>
+                      <p className="truncate text-[13px] font-medium text-[#1E1E1E]">{document.title}</p>
+                      <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{document.detail || document.folderName || document.kind}</p>
                     </div>
-                    <span className="text-right text-[11px] text-[#9CA3AF]">{item.time}</span>
+                    <span className="text-right text-[11px] text-[#9CA3AF]">{formatDate(document.date)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5">
+                <LinkButton to={`/documents?chantierId=${chantier.id}`}>Voir les documents</LinkButton>
+              </div>
+            </Card>
+          )}
+
+          {chantierEmailThreads.length > 0 && (
+            <Card className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Emails rattaches</h2>
+                <SourcePill label="SQL Connect" tone="sql" />
+              </div>
+              <div className="mt-5 space-y-4">
+                {chantierEmailThreads.slice(0, 6).map(thread => (
+                  <div key={thread.id} className="grid grid-cols-[34px_minmax(0,1fr)_86px] items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FAF6F2] text-[#F06B21]">
+                      <Mail className="h-4 w-4" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-medium text-[#1E1E1E]">{thread.subject}</p>
+                      <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{thread.participantsSummary || `${thread.messageCount} message(s)`}</p>
+                    </div>
+                    <span className="text-right text-[11px] text-[#9CA3AF]">{formatDateTime(thread.lastMessageAt)}</span>
                   </div>
                 ))}
               </div>
             </Card>
-          </div>
+          )}
 
-          <Card className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Photos récentes</h2>
-              <LinkButton>Voir toutes les photos</LinkButton>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {galleryImages.slice(0, 4).map(image => (
-                <PhotoTile key={image} src={image} />
-              ))}
-            </div>
-          </Card>
-
-          <Card className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Indicateurs clés</h2>
-              <LinkButton>Voir tous les indicateurs</LinkButton>
-            </div>
-            <div className="mt-5 grid gap-4 md:grid-cols-5">
-              {indicators.map(item => (
-                <div key={item.label} className="border-r border-[#F2E8DC] pr-4 last:border-r-0">
-                  <p className="text-[12px] text-[#6B6B6B]">{item.label}</p>
-                  <p className="mt-2 text-[22px] font-semibold leading-none text-[#1E1E1E]">{item.value}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[11px] text-[#6B6B6B]">{item.sub}</span>
-                    {item.chip && <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[10px] font-semibold text-[#1E8E3E]">{item.chip}</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card className="p-5">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Timeline du chantier</h2>
-              <div className="flex items-center gap-4 text-[11px] text-[#6B6B6B]">
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#1E8E3E]" /> Terminé</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#F06B21]" /> En cours</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#9CA3AF]" /> À venir</span>
+          {planningRows.length > 0 && (
+            <Card className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Planning du chantier</h2>
+                <SourcePill label="SQL Connect" tone="sql" />
               </div>
-            </div>
-            <div className="overflow-x-auto pb-3">
-              <div className="grid min-w-[920px] grid-cols-10 items-start">
-                {timeline.map((item, index) => {
-                  const isDone = item.status === 'done'
-                  const isActive = item.status === 'active'
-                  const nextItem = timeline[index + 1]
-                  const segmentClass =
-                    nextItem && item.status === 'done' && nextItem.status === 'done'
-                      ? 'bg-[#1E8E3E]'
-                      : nextItem && (item.status === 'active' || nextItem.status === 'active')
-                        ? 'bg-[#F06B21]'
-                        : 'bg-[#EADBC8]'
-
-                  return (
-                    <div key={item.label} className="relative flex flex-col items-center text-center">
-                      {nextItem && <span className={`absolute left-1/2 top-[13px] z-0 h-0.5 w-full ${segmentClass}`} />}
-                      <div
-                        className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-white ${
-                          isDone ? 'bg-[#1E8E3E]' : isActive ? 'bg-[#F06B21]' : 'bg-[#C9C9C9]'
-                        }`}
-                      >
-                        {isDone ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : isActive ? <CircleDot className="h-3.5 w-3.5" strokeWidth={2.5} /> : <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              <div className="mt-5 space-y-3">
+                {planningRows.slice(0, 8).map(event => (
+                  <div key={event.id} className="rounded-[14px] border border-[#F2E8DC] bg-white p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{event.titre}</p>
+                        <p className="mt-1 text-[12px] text-[#6B6B6B]">
+                          {formatDateTime(event.startAt)} - {formatDateTime(event.endAt)}
+                        </p>
                       </div>
-                      <p className="mt-3 max-w-[90px] text-[11px] font-medium leading-tight text-[#1E1E1E]">{item.label}</p>
-                      <p className="mt-1 text-[10px] text-[#6B6B6B]">{item.date}</p>
+                      <span className="rounded-full bg-[#FAF6F2] px-2.5 py-1 text-[11px] font-semibold text-[#6B6B6B]">{event.statut}</span>
                     </div>
-                  )
-                })}
+                    {(event.location || event.notes) && (
+                      <p className="mt-3 text-[12px] leading-5 text-[#6B6B6B]">{[event.location, event.notes].filter(Boolean).join(' - ')}</p>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-            <LinkButton>Voir toute la timeline</LinkButton>
-          </Card>
+              <div className="mt-5">
+                <LinkButton to="/planning">Voir le planning</LinkButton>
+              </div>
+            </Card>
+          )}
         </main>
 
         <aside className="space-y-5">
           <Card className="p-5">
             <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Actions rapides</h2>
             <div className="mt-4 space-y-2">
+              <Link to={`/factures?chantierId=${chantier.id}`} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-[#D95B17]">
+                <ReceiptText className="h-4 w-4" strokeWidth={2} />
+                Nouvelle facture fournisseur
+              </Link>
+              <IconAction icon={Upload} to={`/documents?chantierId=${chantier.id}`}>
+                Ajouter un document
+              </IconAction>
+              <IconAction icon={CalendarDays} to="/planning">
+                Ouvrir le planning
+              </IconAction>
               <button
                 type="button"
                 onClick={() => setShowUploadHint(value => !value)}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#F06B21] px-4 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-[#D95B17]"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]"
               >
-                <Plus className="h-4 w-4" strokeWidth={2} />
-                Ajouter un document
-              </button>
-              {[
-                { icon: ReceiptText, label: 'Nouvelle facture fournisseur' },
-                { icon: ClipboardCheck, label: 'Nouveau compte-rendu' },
-                { icon: Euro, label: 'Créer un devis' },
-              ].map(item => {
-                const Icon = item.icon
-                return (
-                  <button key={item.label} type="button" className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
-                    <Icon className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
-                    {item.label}
-                  </button>
-                )
-              })}
-              <button type="button" className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-white px-3 text-sm font-medium text-[#1E1E1E] hover:bg-[#FAF6F2]">
-                Plus d’actions
                 <MoreHorizontal className="h-4 w-4 text-[#6B6B6B]" strokeWidth={1.75} />
+                Etat des raccordements
               </button>
             </div>
             {showUploadHint && (
-              <div className="mt-4 rounded-[14px] border border-dashed border-[#EADBC8] bg-[#FAF6F2] p-4 text-center">
-                <Upload className="mx-auto h-5 w-5 text-[#F06B21]" strokeWidth={1.75} />
-                <p className="mt-2 text-[12px] font-medium text-[#1E1E1E]">Zone document prête</p>
-                <p className="mt-1 text-[11px] text-[#6B6B6B]">Le branchement Storage viendra avec le flux documentaire.</p>
+              <div className="mt-4 rounded-[14px] border border-dashed border-[#EADBC8] bg-[#FAF6F2] p-4">
+                <p className="text-[12px] font-semibold text-[#1E1E1E]">Raccordements actifs sur cette fiche</p>
+                <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#6B6B6B]">
+                  <li>Factures: store operationnel par chantierId.</li>
+                  <li>Documents: SQL DocumentAttache par chantierId ou factureId.</li>
+                  <li>Emails: SQL EmailThread par chantierId.</li>
+                  <li>Planning/equipe: SQL PlanningEvent et assignments par chantierId.</li>
+                </ul>
               </div>
             )}
           </Card>
 
-          <Card className="p-5">
-            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Équipe affectée</h2>
-            <div className="mt-4 space-y-4">
-              {team.map((item, index) => (
-                <div key={item.name} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EADBC8] text-[12px] font-bold text-[#1E1E1E]">
-                    {index === 0 ? 'JD' : index === 1 ? 'PM' : index === 2 ? 'LB' : 'SL'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{item.name}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-[#6B6B6B]">{item.role}</p>
-                  </div>
-                  <span className={`rounded-[6px] px-2 py-1 text-[10px] font-semibold ${item.tagClass}`}>{item.tag}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <LinkButton>Voir toute l’équipe</LinkButton>
-            </div>
-          </Card>
-
-          <Card className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Planning du chantier</h2>
-              <SourcePill label="apercu statique" tone="static" />
-              <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] border border-[#F2E8DC] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#6B6B6B]">
-                Semaine
-                <ChevronDown className="h-3 w-3" strokeWidth={1.75} />
-              </button>
-            </div>
-            <p className="mt-3 text-[12px] text-[#3C3C3C]">21 – 27 avril 2026</p>
-            <div className="mt-4 grid grid-cols-7 overflow-hidden rounded-[12px] border border-[#F2E8DC] text-[10px] text-[#6B6B6B]">
-              {['Lun 21', 'Mar 22', 'Mer 23', 'Jeu 24', 'Ven 25', 'Sam 26', 'Dim 27'].map(day => (
-                <div key={day} className="border-r border-[#F2E8DC] bg-[#FAF6F2] px-2 py-2 text-center last:border-r-0">
-                  {day}
-                </div>
-              ))}
-              <div className="col-span-3 border-t border-[#F2E8DC] bg-[#E6F4EA] px-2 py-2 text-[#1E8E3E]">
-                <p className="font-semibold">Gros œuvre</p>
-                <p>Maison Dupont</p>
-              </div>
-              <div className="col-span-4 border-t border-[#F2E8DC] bg-[#DCE9F2] px-2 py-2 text-[#3C3C3C]">
-                <p className="font-semibold">Charpente</p>
-                <p>Villa des Pins</p>
-              </div>
-              <div className="col-span-4 col-start-2 border-t border-[#F2E8DC] bg-[#FDE9DB] px-2 py-2 text-[#F06B21]">
-                <p className="font-semibold">Isolation</p>
-                <p>Maison Dupont</p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <LinkButton>Voir le planning complet</LinkButton>
-            </div>
-          </Card>
-
-          <Card className="p-5">
-            <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Alertes</h2>
-            <div className="mt-4 space-y-4">
-              {[
-                { icon: AlertTriangle, title: 'Dépassement de budget prévisionnel', sub: 'Le chantier dépasse le budget de 12%.', time: 'Il y a 2 h' },
-                { icon: ReceiptText, title: 'Facture non rattachée', sub: '2 factures en attente de rattachement.', time: 'Il y a 5 h' },
-                { icon: FileText, title: 'Document manquant', sub: 'Attestation d’assurance à fournir.', time: 'Il y a 1 j' },
-              ].map(item => {
-                const Icon = item.icon
-                return (
-                  <div key={item.title} className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
-                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+          {teamRows.length > 0 && (
+            <Card className="p-5">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Equipe affectee</h2>
+              <div className="mt-4 space-y-4">
+                {teamRows.map(member => (
+                  <div key={`${member.name}-${member.role}`} className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EADBC8] text-[12px] font-bold text-[#1E1E1E]">
+                      {initials(member.name)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-semibold text-[#1E1E1E]">{item.title}</p>
-                      <p className="mt-1 text-[11px] leading-4 text-[#6B6B6B]">{item.sub}</p>
+                      <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{member.name}</p>
+                      <p className="mt-0.5 truncate text-[11px] text-[#6B6B6B]">{member.role}</p>
                     </div>
-                    <span className="shrink-0 text-[10px] text-[#9CA3AF]">{item.time}</span>
                   </div>
-                )
-              })}
-            </div>
-            <div className="mt-4">
-              <LinkButton>Voir toutes les alertes</LinkButton>
-            </div>
-          </Card>
-
-          <Card className="p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Notes</h2>
-              <button type="button" className="flex h-8 w-8 items-center justify-center rounded-[10px] text-[#6B6B6B] hover:bg-[#FAF6F2] hover:text-[#1E1E1E]" aria-label="Modifier la note">
-                <Pencil className="h-4 w-4" strokeWidth={1.75} />
-              </button>
-            </div>
-            <p className="mt-3 text-[13px] leading-5 text-[#3C3C3C]">Rappel : vérifier la livraison des fenêtres le 28/04.</p>
-            <p className="mt-3 text-[11px] text-[#9CA3AF]">Modifié par {chantier.chefChantier}, il y a 1 h</p>
-          </Card>
-
-          <Card className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#FDEBDD] text-[#F06B21]">
-                <Sparkles className="h-5 w-5" strokeWidth={1.75} />
+                ))}
               </div>
+            </Card>
+          )}
+
+          {upcomingPlanningRows.length > 0 && (
+            <Card className="p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Echeances planning</h2>
+                <SourcePill label="SQL" tone="sql" />
+              </div>
+              <div className="mt-4 space-y-3">
+                {upcomingPlanningRows.slice(0, 4).map(event => (
+                  <div key={event.id} className="rounded-[14px] bg-[#FAF6F2] p-3">
+                    <p className="text-[13px] font-semibold text-[#1E1E1E]">{event.titre}</p>
+                    <p className="mt-1 text-[11px] text-[#6B6B6B]">{formatDateTime(event.startAt)}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {alerts.length > 0 && (
+            <Card className="p-5">
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Alertes calculees</h2>
+              <div className="mt-4 space-y-4">
+                {alerts.map(alert => (
+                  <div key={alert.title} className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#FDEBDD] text-[#F06B21]">
+                      <AlertTriangle className="h-4 w-4" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-semibold text-[#1E1E1E]">{alert.title}</p>
+                      <p className="mt-1 text-[11px] leading-4 text-[#6B6B6B]">{alert.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          <Card className="p-5">
+            <div className="flex items-start gap-3">
+              <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-[#F06B21]" strokeWidth={1.75} />
               <div>
-                <h2 className="text-[14px] font-semibold text-[#1E1E1E]">Vue IA chantier</h2>
-                <div className="mt-2">
-                  <SourcePill label="emails seed local" tone="local" />
-                </div>
-                <p className="mt-1 text-[12px] leading-5 text-[#6B6B6B]">
-                  {chantierEmails.length} emails liés, {chantierFactures.length} factures suivies et marge à surveiller cette semaine.
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Modules sans source</h2>
+                <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
+                  Photos, notes terrain, indicateurs qualite/securite/heures, timeline de lots et meteo ne sont plus affiches ici tant qu'aucune table ou import ne les alimente.
                 </p>
               </div>
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              {[
-                { icon: Mail, value: chantierEmails.length, label: 'Emails' },
-                { icon: ReceiptText, value: chantierFactures.length, label: 'Factures' },
-                { icon: ShieldCheck, value: 0, label: 'Incidents' },
-              ].map(item => {
-                const Icon = item.icon
-                return (
-                  <div key={item.label} className="rounded-[12px] bg-[#FAF6F2] px-2 py-3">
-                    <Icon className="mx-auto h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                    <p className="mt-2 text-[16px] font-semibold text-[#1E1E1E]">{item.value}</p>
-                    <p className="text-[10px] text-[#6B6B6B]">{item.label}</p>
-                  </div>
-                )
-              })}
             </div>
           </Card>
         </aside>
       </div>
     </div>
-    </>
   )
 }

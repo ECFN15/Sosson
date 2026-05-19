@@ -91,6 +91,16 @@ type DiagramLink = {
   label: string
 }
 
+type DiagramZoneSpec = {
+  label: string
+  tone: 'operationnel' | 'documents' | 'previsionnel' | 'audit'
+  x: number
+  y: number
+  w: number
+  h: number
+  nodeKeys: string[]
+}
+
 const initialProbe: ProbeState = {
   status: 'idle',
   error: null,
@@ -99,44 +109,50 @@ const initialProbe: ProbeState = {
   previsionnel: null,
 }
 
-const diagramStageWidth = 1500
-const diagramStageHeight = 760
-const diagramNodeWidth = 154
-const diagramNodeHeight = 78
-const workbenchFitPadding = 32
+const diagramStageWidth = 1680
+const diagramStageHeight = 980
+const diagramNodeWidth = 148
+const diagramNodeHeight = 72
+const workbenchFitPadding = 44
 const minWorkbenchZoom = 0.45
 const maxWorkbenchZoom = 1.7
+const diagramZoneSafety = {
+  left: 42,
+  top: 58,
+  right: 42,
+  bottom: 68,
+}
 
 const diagramNodes: DiagramNode[] = [
-  { key: 'user', x: 80, y: 110 },
-  { key: 'client', x: 270, y: 110 },
-  { key: 'devis', x: 440, y: 88 },
-  { key: 'chantier', x: 440, y: 208 },
-  { key: 'facture', x: 600, y: 208 },
-  { key: 'documentFolder', x: 805, y: 100 },
-  { key: 'documentAttache', x: 1030, y: 130 },
-  { key: 'emailThread', x: 805, y: 245 },
-  { key: 'emailMessage', x: 1030, y: 265 },
-  { key: 'emailAttachment', x: 1240, y: 265 },
-  { key: 'previsionnelImportBatch', x: 80, y: 420 },
-  { key: 'previsionnelExercise', x: 270, y: 420 },
-  { key: 'clientAlias', x: 270, y: 555 },
-  { key: 'previsionnelLine', x: 440, y: 490 },
-  { key: 'previsionnelMonthlyAmount', x: 600, y: 420 },
-  { key: 'previsionnelLotAmount', x: 600, y: 555 },
-  { key: 'previsionnelCellEdit', x: 80, y: 555 },
-  { key: 'planningEvent', x: 805, y: 420 },
-  { key: 'planningAssignment', x: 985, y: 420 },
-  { key: 'analyticsSnapshot', x: 805, y: 555 },
-  { key: 'rapport', x: 985, y: 555 },
-  { key: 'auditEvent', x: 1165, y: 420 },
-  { key: 'entityChangeLog', x: 1330, y: 420 },
-  { key: 'checkpointRun', x: 1165, y: 555 },
-  { key: 'checkpointStep', x: 1330, y: 555 },
-  { key: 'checkpointArtifact', x: 1165, y: 650 },
-  { key: 'checkpointDecision', x: 1330, y: 650 },
-  { key: 'dataImportRun', x: 805, y: 650 },
-  { key: 'dataImportIssue', x: 985, y: 650 },
+  { key: 'user', x: 80, y: 126 },
+  { key: 'client', x: 260, y: 126 },
+  { key: 'devis', x: 440, y: 96 },
+  { key: 'chantier', x: 440, y: 246 },
+  { key: 'facture', x: 620, y: 246 },
+  { key: 'documentFolder', x: 880, y: 116 },
+  { key: 'documentAttache', x: 1140, y: 116 },
+  { key: 'emailThread', x: 880, y: 266 },
+  { key: 'emailMessage', x: 1140, y: 266 },
+  { key: 'emailAttachment', x: 1400, y: 266 },
+  { key: 'previsionnelImportBatch', x: 80, y: 500 },
+  { key: 'previsionnelExercise', x: 260, y: 500 },
+  { key: 'clientAlias', x: 260, y: 670 },
+  { key: 'previsionnelLine', x: 440, y: 590 },
+  { key: 'previsionnelMonthlyAmount', x: 620, y: 500 },
+  { key: 'previsionnelLotAmount', x: 620, y: 670 },
+  { key: 'previsionnelCellEdit', x: 80, y: 670 },
+  { key: 'planningEvent', x: 880, y: 500 },
+  { key: 'planningAssignment', x: 1060, y: 500 },
+  { key: 'analyticsSnapshot', x: 880, y: 670 },
+  { key: 'rapport', x: 1060, y: 670 },
+  { key: 'auditEvent', x: 1240, y: 500 },
+  { key: 'entityChangeLog', x: 1420, y: 500 },
+  { key: 'checkpointRun', x: 1240, y: 670 },
+  { key: 'checkpointStep', x: 1420, y: 670 },
+  { key: 'checkpointArtifact', x: 1240, y: 780 },
+  { key: 'checkpointDecision', x: 1420, y: 780 },
+  { key: 'dataImportRun', x: 880, y: 780 },
+  { key: 'dataImportIssue', x: 1060, y: 780 },
 ]
 
 const diagramLinks: DiagramLink[] = [
@@ -176,12 +192,106 @@ const diagramLinks: DiagramLink[] = [
   { from: 'dataImportRun', to: 'entityChangeLog', label: 'change' },
 ]
 
-const diagramZones = [
-  { label: 'Operationnel', tone: 'operationnel', x: 40, y: 58, w: 740, h: 280 },
-  { label: 'Documents + emails', tone: 'documents', x: 790, y: 58, w: 700, h: 320 },
-  { label: 'Previsionnel Excel', tone: 'previsionnel', x: 40, y: 390, w: 740, h: 330 },
-  { label: 'Planning + analytics + audit', tone: 'audit', x: 790, y: 390, w: 700, h: 350 },
+const diagramZoneSpecs: DiagramZoneSpec[] = [
+  {
+    label: 'Operationnel',
+    tone: 'operationnel',
+    x: 40,
+    y: 64,
+    w: 760,
+    h: 314,
+    nodeKeys: ['user', 'client', 'devis', 'chantier', 'facture'],
+  },
+  {
+    label: 'Documents + emails',
+    tone: 'documents',
+    x: 835,
+    y: 64,
+    w: 805,
+    h: 314,
+    nodeKeys: ['documentFolder', 'documentAttache', 'emailThread', 'emailMessage', 'emailAttachment'],
+  },
+  {
+    label: 'Previsionnel Excel',
+    tone: 'previsionnel',
+    x: 40,
+    y: 424,
+    w: 760,
+    h: 436,
+    nodeKeys: [
+      'previsionnelImportBatch',
+      'previsionnelExercise',
+      'clientAlias',
+      'previsionnelLine',
+      'previsionnelMonthlyAmount',
+      'previsionnelLotAmount',
+      'previsionnelCellEdit',
+    ],
+  },
+  {
+    label: 'Planning + analytics + audit',
+    tone: 'audit',
+    x: 835,
+    y: 424,
+    w: 805,
+    h: 436,
+    nodeKeys: [
+      'planningEvent',
+      'planningAssignment',
+      'analyticsSnapshot',
+      'rapport',
+      'auditEvent',
+      'entityChangeLog',
+      'checkpointRun',
+      'checkpointStep',
+      'checkpointArtifact',
+      'checkpointDecision',
+      'dataImportRun',
+      'dataImportIssue',
+    ],
+  },
 ]
+
+const staticDiagramNodeByKey = new Map(diagramNodes.map(node => [node.key, node]))
+
+function diagramZoneBase(spec: DiagramZoneSpec) {
+  return {
+    label: spec.label,
+    tone: spec.tone,
+    x: spec.x,
+    y: spec.y,
+    w: spec.w,
+    h: spec.h,
+  }
+}
+
+const diagramZones = diagramZoneSpecs.map(spec => {
+  const nodes = spec.nodeKeys
+    .map(key => staticDiagramNodeByKey.get(key))
+    .filter((node): node is DiagramNode => Boolean(node))
+
+  if (!nodes.length) {
+    return diagramZoneBase(spec)
+  }
+
+  const minX = Math.min(...nodes.map(node => node.x))
+  const minY = Math.min(...nodes.map(node => node.y))
+  const maxRight = Math.max(...nodes.map(node => node.x + diagramNodeWidth))
+  const maxBottom = Math.max(...nodes.map(node => node.y + diagramNodeHeight))
+  const x = Math.min(spec.x, minX - diagramZoneSafety.left)
+  const y = Math.min(spec.y, minY - diagramZoneSafety.top)
+  const right = Math.max(spec.x + spec.w, maxRight + diagramZoneSafety.right)
+  const bottom = Math.max(spec.y + spec.h, maxBottom + diagramZoneSafety.bottom)
+  const zone = diagramZoneBase(spec)
+
+  return {
+    ...zone,
+    x,
+    y,
+    w: right - x,
+    h: bottom - y,
+  }
+})
 
 function normalizeSearch(value: string) {
   return value
@@ -533,8 +643,13 @@ export function SossonEngineRoomPage() {
   }, [])
 
   useEffect(() => {
-    if (!workbenchViewportSize.width || !workbenchViewportSize.height) return
-    setWorkbenchPan(getCenteredWorkbenchPan(workbenchViewportSize, workbenchFitScale))
+    if (!workbenchViewportSize.width || !workbenchViewportSize.height) return undefined
+
+    const frame = window.requestAnimationFrame(() => {
+      setWorkbenchPan(getCenteredWorkbenchPan(workbenchViewportSize, workbenchFitScale))
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [workbenchFitScale, workbenchViewportSize])
 
   const resetWorkbenchView = useCallback(() => {
@@ -2127,16 +2242,14 @@ const engineRoomCss = `
 }
 
 .bench-sidebar {
-  display: grid;
+  display: flex;
+  height: calc(100svh - 72px);
   min-height: 0;
-  align-content: start;
+  flex-direction: column;
   overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, .08);
   background: #1E1E1E;
   color: #fff;
-}
-
-.bench-sidebar {
-  border-right: 1px solid rgba(255, 255, 255, .08);
   padding: var(--engine-s-4);
 }
 
@@ -2227,8 +2340,9 @@ const engineRoomCss = `
 .bench-domain-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: var(--engine-s-4) 0;
+  flex: 0 0 auto;
+  gap: 10px;
+  padding: 10px 0 14px;
 }
 
 .bench-domain-pill {
@@ -2240,6 +2354,7 @@ const engineRoomCss = `
   border-radius: 12px;
   background: rgba(255, 255, 255, .05);
   color: #fff;
+  min-height: 38px;
   padding: 9px 10px;
   cursor: pointer;
 }
@@ -2259,10 +2374,28 @@ const engineRoomCss = `
 
 .bench-table-list {
   display: grid;
+  flex: 1 1 auto;
   min-height: 0;
   gap: 8px;
+  align-content: start;
   overflow-y: auto;
-  padding-right: 4px;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+}
+
+.bench-table-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bench-table-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, .05);
+  border-radius: 999px;
+}
+
+.bench-table-list::-webkit-scrollbar-thumb {
+  border: 2px solid #1E1E1E;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .42);
 }
 
 .bench-table-row {
@@ -2499,10 +2632,12 @@ const engineRoomCss = `
   inset: 0;
   overflow: hidden;
   background:
-    linear-gradient(#EDE3D8 1px, transparent 1px),
-    linear-gradient(90deg, #EDE3D8 1px, transparent 1px),
+    linear-gradient(#DFCFC0 1px, transparent 1px),
+    linear-gradient(90deg, #DFCFC0 1px, transparent 1px),
+    linear-gradient(#F0E6DC 1px, transparent 1px),
+    linear-gradient(90deg, #F0E6DC 1px, transparent 1px),
     #FFFDF9;
-  background-size: 24px 24px;
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
   cursor: grab;
   overscroll-behavior: contain;
   touch-action: none;
@@ -2515,8 +2650,8 @@ const engineRoomCss = `
 
 .bench-diagram-stage {
   position: relative;
-  width: 1500px;
-  height: 760px;
+  width: ${diagramStageWidth}px;
+  height: ${diagramStageHeight}px;
   overflow: visible;
   transform-origin: 0 0;
   will-change: transform;
@@ -2525,44 +2660,47 @@ const engineRoomCss = `
 .bench-diagram-zone {
   position: absolute;
   z-index: 0;
-  border: 1px solid rgba(30, 30, 30, .12);
-  border-radius: 10px;
-  background: rgba(255, 244, 236, .72);
+  border: 1px solid rgba(174, 139, 105, .26);
+  border-radius: 8px;
+  background: rgba(255, 244, 236, .78);
   color: rgba(30, 30, 30, .58);
   overflow: hidden;
-  padding: 12px 14px;
+  padding: 14px 16px;
   font-size: 11px;
   font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .64);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .70);
   text-transform: uppercase;
 }
 
 .bench-diagram-zone[data-tone='documents'] {
-  background: rgba(238, 244, 255, .82);
+  border-color: rgba(108, 141, 184, .30);
+  background: rgba(238, 244, 255, .86);
 }
 
 .bench-diagram-zone[data-tone='previsionnel'] {
-  background: rgba(255, 251, 235, .80);
+  border-color: rgba(206, 160, 58, .30);
+  background: rgba(255, 251, 235, .84);
 }
 
 .bench-diagram-zone[data-tone='audit'] {
-  background: rgba(246, 242, 236, .82);
+  border-color: rgba(142, 130, 119, .28);
+  background: rgba(246, 242, 236, .86);
 }
 
 .bench-diagram-lines {
   position: absolute;
   inset: 0;
   z-index: 1;
-  width: 1500px;
-  height: 760px;
+  width: ${diagramStageWidth}px;
+  height: ${diagramStageHeight}px;
   pointer-events: none;
 }
 
 .bench-link path {
   fill: none;
-  stroke: rgba(30, 30, 30, .24);
-  stroke-width: 1.25;
-  opacity: .24;
+  stroke: rgba(30, 30, 30, .30);
+  stroke-width: 1.15;
+  opacity: .18;
   shape-rendering: geometricPrecision;
 }
 
@@ -2583,8 +2721,8 @@ const engineRoomCss = `
   position: absolute;
   z-index: 2;
   display: grid;
-  width: 154px;
-  height: 78px;
+  width: ${diagramNodeWidth}px;
+  height: ${diagramNodeHeight}px;
   align-content: start;
   gap: 0;
   border: 1px solid #CBB8A5;
@@ -2626,12 +2764,12 @@ const engineRoomCss = `
   display: grid;
   width: 100%;
   height: 100%;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
   border: 0;
   background: transparent;
   color: inherit;
-  padding: 12px 9px 9px;
+  padding: 11px 9px 8px;
   text-align: left;
   cursor: pointer;
 }
@@ -2672,9 +2810,9 @@ const engineRoomCss = `
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   overflow: hidden;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
 }
 
@@ -2696,7 +2834,7 @@ const engineRoomCss = `
   overflow: hidden;
   color: #5A5A5A;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 9px;
+  font-size: 8.5px;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
