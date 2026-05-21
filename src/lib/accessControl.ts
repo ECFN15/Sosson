@@ -21,6 +21,7 @@ export const appPages = [
   { key: 'documentation', label: 'Documentation', path: '/documentation', group: 'Support' },
   { key: 'equipe', label: 'Equipe', path: '/equipe', group: 'Administration' },
   { key: 'parametres', label: 'Parametres', path: '/parametres', group: 'Administration' },
+  { key: 'base-sql-deploiement', label: 'Base SQL & Deploiement', path: '/base-sql-deploiement', group: 'Support' },
 ] as const
 
 export type PagePermissionKey = (typeof appPages)[number]['key']
@@ -64,6 +65,7 @@ export const defaultAccessMatrix: AccessMatrix = {
     documentation: readOnly,
     equipe: readOnly,
     parametres: noAccess,
+    'base-sql-deploiement': readOnly,
   }),
   chef_chantier: roleAccess({
     cowork: readWrite,

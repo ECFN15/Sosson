@@ -33,12 +33,19 @@ Sosson est un hub operationnel interne mono-entreprise pour une PME francaise du
 | [16 - Audit SQL reel et architecture cible](16-sql-architecture-target-audit.md) | Audit du schema reel, mapping front, cible SQL durable, checkpoints et migration. |
 | [17 - Scenario nouveau client operationnel](17-operational-lifecycle-scenario.md) | Decisions metier et criteres avant validation sandbox du cycle client/prospect -> devis -> chantier -> factures. |
 | [18 - Audit front et remapping SQL Connect](18-front-sql-remapping-audit.md) | Cartographie page par page des sources front, fallbacks et remapping vers les workflows SQL Connect. |
+| [Audit pre-sandbox SQL Connect](sql-connect-pre-sandbox-audit.md) | Verdict pre-sandbox, preuves locales/distantes, tables, operations, front, risques et limites. |
+| [Passage emulateur vers sandbox SQL Connect](sql-connect-emulator-to-sandbox-plan.md) | Plan concret pour passer de l'emulateur local a la sandbox sans action production. |
+| [Runbook SQL Connect et deploiement sandbox](sql-connect-deployment-runbook.md) | Procedure humaine locale/sandbox/prod, rollback, backups, PITR, HA et commandes utiles. |
+| [Registre des risques SQL Connect](sql-connect-risk-register.md) | Risques, severite, preuves, mitigations et decisions humaines avant passage sandbox. |
 | [99 - Glossaire](99-glossary.md) | Vocabulaire partage. |
 
 ## Documentation visible dans l'app
 
 La page `/documentation` est implementee dans `src/pages/SossonDocsPage.tsx`.
 Elle sert de documentation produit lisible depuis l'application et doit rester cumulative.
+
+La page `/base-sql-deploiement` est implementee dans `src/pages/SqlDeploymentPage.tsx`.
+Elle vulgarise l'etat SQL Connect/PostgreSQL, les environnements, les sauvegardes et les regles anti-perte.
 
 Chapitres visibles:
 

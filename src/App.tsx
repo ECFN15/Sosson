@@ -20,6 +20,7 @@ import { RapportsPage } from '@/pages/RapportsPage'
 import { PrevisionnelPage } from '@/pages/PrevisionnelPage'
 import { StatistiquesPage } from '@/pages/StatistiquesPage'
 import { SossonDocsPage } from '@/pages/SossonDocsPage'
+import { SqlDeploymentPage } from '@/pages/SqlDeploymentPage'
 import { EquipePage } from '@/pages/EquipePage'
 import { EquipeProfilePage } from '@/pages/EquipeProfilePage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
@@ -111,6 +112,7 @@ function App() {
             <Route path="/planning" element={<PlanningPage />} />
             <Route path="/rapports" element={<RapportsPage />} />
             <Route path="/documentation" element={<SossonDocsPage />} />
+            <Route path="/base-sql-deploiement" element={<SqlDeploymentPage />} />
             <Route path="/equipe" element={<EquipePage />} />
             <Route path="/equipe/profils/:memberId" element={<EquipeProfilePage />} />
             <Route path="/parametres" element={<PlaceholderPage title="Paramètres" />} />

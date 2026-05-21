@@ -2,6 +2,7 @@ import {
   BarChart2,
   BookOpen,
   Calendar,
+  Database,
   FileText,
   Folder,
   Handshake,
@@ -30,6 +31,7 @@ export type ModuleKey =
   | 'documentation'
   | 'equipe'
   | 'parametres'
+  | 'base-sql-deploiement'
 
 export type ModuleMeta = {
   key: ModuleKey
@@ -137,6 +139,13 @@ const moduleMetaByKey: Record<ModuleKey, ModuleMeta> = {
     eyebrow: 'Administration',
     description: "Configuration, acces et preferences de l'espace Sosson.",
     Icon: Settings,
+  },
+  'base-sql-deploiement': {
+    key: 'base-sql-deploiement',
+    label: 'Base SQL & Deploiement',
+    eyebrow: 'Exploitation',
+    description: 'Etat SQL Connect, PostgreSQL, sandbox, backups et production.',
+    Icon: Database,
   },
 }
 

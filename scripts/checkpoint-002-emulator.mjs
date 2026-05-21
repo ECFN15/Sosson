@@ -32,6 +32,11 @@ const commands = [
     ],
   },
   {
+    label: 'Comptage Data Connect local propre archivable',
+    args: ['run', 'count:dataconnect', '--', '--output=tmp/checkpoint-002/counts-local.json'],
+    validateCounts: true,
+  },
+  {
     label: 'Verification statut chantier SQL local',
     args: [
       'run',
@@ -68,11 +73,6 @@ const commands = [
   {
     label: 'Verification rapports SQL local',
     args: ['run', 'verify:reports:dataconnect'],
-  },
-  {
-    label: 'Comptage Data Connect local propre archivable',
-    args: ['run', 'count:dataconnect', '--', '--output=tmp/checkpoint-002/counts-local.json'],
-    validateCounts: true,
   },
   {
     label: 'Snapshot analytics SQL local',

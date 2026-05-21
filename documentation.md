@@ -50,12 +50,19 @@ Le checkpoint 001 confirme:
 | [15 - Execution sandbox checkpoint 002](docs/15-checkpoint-002-sandbox-execution.md) | Gabarit d'execution humaine des actions sandbox reelles. |
 | [16 - Audit SQL reel et architecture cible](docs/16-sql-architecture-target-audit.md) | Rapport SQL/front/previsionnel/checkpoints et plan de migration durable. |
 | [18 - Audit front et remapping SQL Connect](docs/18-front-sql-remapping-audit.md) | Cartographie page par page des donnees front, fallbacks et workflow SQL cible. |
+| [Audit pre-sandbox SQL Connect](docs/sql-connect-pre-sandbox-audit.md) | Verdict pre-sandbox, preuves locales/distantes, tables, operations, front et limites. |
+| [Passage emulateur vers sandbox SQL Connect](docs/sql-connect-emulator-to-sandbox-plan.md) | Plan concret pour passer de l'emulateur local a la sandbox sans action production. |
+| [Runbook SQL Connect](docs/sql-connect-deployment-runbook.md) | Procedure locale/sandbox/prod, rollback, sauvegardes, PITR, HA et commandes utiles. |
+| [Registre des risques SQL Connect](docs/sql-connect-risk-register.md) | Risques, preuves, mitigations et decisions humaines. |
 | [ADR](docs/adr/README.md) | Decisions structurantes. |
 
 ## Documentation visible dans l'application
 
 La page React `/documentation` est maintenue dans `src/pages/SossonDocsPage.tsx`.
 Elle n'est pas un simple extrait de `docs/05-sql-connect.md`: c'est la documentation produit visible dans l'app, cumulative, avec les anciens contenus reorganises et les ajouts checkpoint 001/002.
+
+La page React `/base-sql-deploiement` est maintenue dans `src/pages/SqlDeploymentPage.tsx`.
+Elle donne une version courte et junior-friendly de l'etat SQL Connect/PostgreSQL, de l'emulateur, de la sandbox et des garde-fous avant passage sandbox.
 
 Chapitres actuels:
 

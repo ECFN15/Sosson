@@ -52,6 +52,7 @@ const navSecondary: NavEntry[] = [
   { to: '/documentation', icon: BookOpen, label: 'Documentation', accessKey: 'documentation' },
   { to: '/equipe', icon: UsersRound, label: 'Equipe', accessKey: 'equipe' },
   { to: '/parametres', icon: Settings, label: 'Parametres', accessKey: 'parametres' },
+  { to: '/base-sql-deploiement', icon: Database, label: 'Base SQL & Deploiement', accessKey: 'base-sql-deploiement' },
 ]
 
 function NavItem({ to, icon: Icon, label }: NavEntry) {
