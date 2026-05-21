@@ -8,6 +8,11 @@ const staleInsecureReasonPatterns = [
   /role hardening is added later/i,
   /database-level role checks are added/i,
 ]
+const selfServiceMutationNames = new Set(['SubmitCurrentTeamProfile'])
+const clientSuppliedActorPatterns = [
+  /\$(approvedById|createdById|updatedById|authorId)\b/,
+  /\b(approvedById|createdById|updatedById|authorId)\s*:\s*\$(approvedById|createdById|updatedById|authorId)\b/,
+]
 
 function extractMutations(source) {
   const matches = [...source.matchAll(/^mutation\s+(\w+)\s*\(/gm)]
@@ -32,7 +37,31 @@ for (const mutation of mutations) {
     findings.push(`${mutationsPath}: mutation ${mutation.name} sans @auth explicite.`)
   }
 
-  if (mutation.name !== 'UpsertCurrentUser') {
+  if (clientSuppliedActorPatterns.some(pattern => pattern.test(mutation.body))) {
+    findings.push(`${mutationsPath}: mutation ${mutation.name} expose un champ acteur falsifiable; utiliser *_expr: "auth.uid".`)
+  }
+
+  if (selfServiceMutationNames.has(mutation.name)) {
+    if (!/insecureReason\s*:/.test(mutation.body)) {
+      findings.push(`${mutationsPath}: mutation ${mutation.name} sans insecureReason documentant la portee self-service.`)
+    }
+
+    if (!/@transaction\b/.test(mutation.body)) {
+      findings.push(`${mutationsPath}: mutation ${mutation.name} sans @transaction.`)
+    }
+
+    if (!/teamProfileSubmission_upsert\s*\(/.test(mutation.body)) {
+      findings.push(`${mutationsPath}: mutation ${mutation.name} ne doit ecrire que TeamProfileSubmission.`)
+    }
+
+    if (!/id_expr:\s*"auth\.uid"/.test(mutation.body)) {
+      findings.push(`${mutationsPath}: mutation ${mutation.name} doit borner la demande a auth.uid.`)
+    }
+
+    if (/\buser_(insert|upsert|update|delete)\b/.test(mutation.body) || /\brole\s*:/.test(mutation.body)) {
+      findings.push(`${mutationsPath}: mutation ${mutation.name} ne doit jamais creer/modifier un User ou un role applicatif.`)
+    }
+  } else if (mutation.name !== 'UpsertCurrentUser') {
     if (!/insecureReason\s*:/.test(mutation.body)) {
       findings.push(
         `${mutationsPath}: mutation ${mutation.name} sans insecureReason documentant l'etat RBAC transitoire.`,

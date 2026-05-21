@@ -32,6 +32,7 @@ Sosson est un hub operationnel interne mono-entreprise pour une PME francaise du
 | [15 - Execution sandbox checkpoint 002](15-checkpoint-002-sandbox-execution.md) | Gabarit d'execution humaine des actions sandbox reelles et preuves a collecter. |
 | [16 - Audit SQL reel et architecture cible](16-sql-architecture-target-audit.md) | Audit du schema reel, mapping front, cible SQL durable, checkpoints et migration. |
 | [17 - Scenario nouveau client operationnel](17-operational-lifecycle-scenario.md) | Decisions metier et criteres avant validation sandbox du cycle client/prospect -> devis -> chantier -> factures. |
+| [18 - Audit front et remapping SQL Connect](18-front-sql-remapping-audit.md) | Cartographie page par page des sources front, fallbacks et remapping vers les workflows SQL Connect. |
 | [99 - Glossaire](99-glossary.md) | Vocabulaire partage. |
 
 ## Documentation visible dans l'app

@@ -19,6 +19,12 @@ function mapSqlUser(row: NonNullable<GetCurrentUserData['user']>): User | null {
     nom: row.nom,
     prenom: row.prenom,
     role,
+    profilStatut: row.profilStatut,
+    equipeTypeSouhaite: row.equipeTypeSouhaite,
+    equipeFinaleId: row.equipeFinaleId,
+    poste: row.poste,
+    telephone: row.telephone,
+    sourceConnexion: row.sourceConnexion,
     avatar: row.avatar ?? `${row.prenom[0] ?? ''}${row.nom[0] ?? ''}`.toUpperCase(),
   }
 }

@@ -154,12 +154,14 @@ Resultat observe le 18 mai 2026 apres ajout du cycle operationnel client/chantie
 - `checkpoint:002:emulator`: OK sur base pglite locale resetee;
 - `count:dataconnect`: operationnel `3/4/12`, documents `0/0`, previsionnel `898` lignes, `1577` montants mensuels, `887` montants par lot;
 - `verify:email:dataconnect`: creation/relecture locale d'un `EmailThread`, `EmailMessage` et `EmailAttachment`, puis classement du fil en `traite`;
-- `verify:documents:dataconnect`: creation/relecture locale d'un `DocumentFolder` et d'un `DocumentAttache` avec `storagePath`, `tailleBytes` et `sha256`;
-- `verify:planning:dataconnect`: creation/relecture locale d'une carte `PlanningEvent` + `PlanningAssignment`, modification via `UpdatePlanningEventDetails`, puis annulation soft via `CancelPlanningEvent`;
+- `verify:documents:dataconnect`: creation/relecture locale d'un `DocumentFolder`, d'un document libre et d'un document facture lie a un chantier avec `storagePath`, `tailleBytes`, `sha256`, lien facture et relecture `ListDocumentsByChantier`;
+- `verify:planning:dataconnect`: creation/relecture locale d'une carte `PlanningEvent` + `PlanningAssignment` liee a un chantier, modification via `UpdatePlanningEventDetails`, annulation soft via `CancelPlanningEvent`, puis relecture `ListPlanningEventsByChantier`;
 - `verify:reports:dataconnect`: creation/relecture locale d'un `Rapport`, generation d'un artefact CSV local sous `tmp/`, puis marquage genere avec chemin/hash reel via `MarkRapportGenerated`;
 - `verify:operational-lifecycle:dataconnect`: creation/relecture locale d'un prospect sans chantier, d'un devis demande, d'un client operationnel, d'un chantier rattache, d'un devis signe et de factures fournisseur definitives/categorisees; artefact `tmp/checkpoint-002/operational-lifecycle-local.json`;
 - `verify:checkpoint-audit:dataconnect`: 1 `CheckpointRun`, 1 `CheckpointStep`, 1 `CheckpointArtifact`, 1 `CheckpointDecision`, 1 `DataImportRun`, 1 `DataImportIssue`, 1 `AuditEvent` et 1 `EntityChangeLog` ecrits puis relus;
 - preuves locales: `tmp/checkpoint-002/counts-local.json`, `tmp/checkpoint-002/operational-boundary-local.json`, `tmp/checkpoint-002/chantier-status-local.json`, `tmp/checkpoint-002/client-update-local.json`, `tmp/checkpoint-002/operational-lifecycle-local.json`, `tmp/checkpoint-002/team-users-local.json`, `tmp/checkpoint-002/email-local.json`, `tmp/checkpoint-002/factures-local.json`, `tmp/checkpoint-002/documents-local.json`, `tmp/checkpoint-002/planning-local.json`, `tmp/checkpoint-002/report-local.json`, `tmp/checkpoint-002/previsionnel-edits-local.json`, `tmp/checkpoint-002/analytics-snapshot-local.json` et `tmp/checkpoint-002/checkpoint-audit-local.json`.
+
+Extension verifiee le 21 mai 2026: `verify:team-users:dataconnect -- --output=tmp/mission-sql-connect/team-users-local.json` couvre aussi le flux `SubmitCurrentTeamProfile` -> demande pending -> refus conversion hors gerant -> `ConvertTeamProfileSubmission` par gerant -> relecture `GetCurrentUser` du demandeur converti.
 
 Si l'emulateur contient deja des lignes RBAC locales, `checkpoint:002:emulator` echoue avant de relancer RBAC et demande une base locale propre. Comme l'etat pglite peut persister sous `dataconnect/.dataconnect/pgliteData`, le reset propre est explicite:
 

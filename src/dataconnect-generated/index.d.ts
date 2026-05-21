@@ -30,7 +30,6 @@ export interface CancelPlanningEventData {
 export interface CancelPlanningEventVariables {
   id: UUIDString;
   notes?: string | null;
-  updatedById?: string | null;
 }
 
 export interface Chantier_Key {
@@ -68,6 +67,45 @@ export interface Client_Key {
   __typename?: 'Client_Key';
 }
 
+export interface CompletePlanningJobSheetData {
+  query?: {
+  };
+    planningJobSheet_update?: PlanningJobSheet_Key | null;
+}
+
+export interface CompletePlanningJobSheetVariables {
+  id: UUIDString;
+  actualHours?: number | null;
+  completionNotes?: string | null;
+  proofStoragePath?: string | null;
+  proofSha256?: string | null;
+  reportStoragePath?: string | null;
+  reportSha256?: string | null;
+}
+
+export interface ConvertTeamProfileSubmissionData {
+  query?: {
+  };
+    user_upsert: User_Key;
+    teamProfileSubmission_update?: TeamProfileSubmission_Key | null;
+}
+
+export interface ConvertTeamProfileSubmissionVariables {
+  id: string;
+  email: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  avatar?: string | null;
+  equipeTypeSouhaite?: string | null;
+  equipeFinaleId?: string | null;
+  poste?: string | null;
+  telephone?: string | null;
+  sourceConnexion?: string | null;
+  convertedMemberId?: string | null;
+  reviewNote?: string | null;
+}
+
 export interface CreateAnalyticsSnapshotData {
   query?: {
   };
@@ -89,7 +127,6 @@ export interface CreateAnalyticsSnapshotVariables {
   payloadPath?: string | null;
   payloadHash?: string | null;
   sourceWatermark?: string | null;
-  createdById?: string | null;
 }
 
 export interface CreateAuditEventData {
@@ -440,6 +477,7 @@ export interface CreatePlanningAssignmentData {
 export interface CreatePlanningAssignmentVariables {
   eventId: UUIDString;
   userId?: string | null;
+  sossonTeamId?: UUIDString | null;
   assignmentRole?: string | null;
   statut: string;
   notes?: string | null;
@@ -460,8 +498,28 @@ export interface CreatePlanningEventVariables {
   endAt: TimestampString;
   location?: string | null;
   notes?: string | null;
-  createdById?: string | null;
-  updatedById?: string | null;
+}
+
+export interface CreatePlanningJobSheetData {
+  query?: {
+  };
+    planningJobSheet_insert: PlanningJobSheet_Key;
+}
+
+export interface CreatePlanningJobSheetVariables {
+  eventId: UUIDString;
+  assignmentId?: UUIDString | null;
+  chantierId?: UUIDString | null;
+  sossonTeamId?: UUIDString | null;
+  leadMemberId?: UUIDString | null;
+  titre: string;
+  statut: string;
+  instructions?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  checklist?: string | null;
+  materials?: string | null;
+  blockers?: string | null;
 }
 
 export interface CreatePrevisionnelImportBatchData {
@@ -485,7 +543,6 @@ export interface CreateRapportData {
 
 export interface CreateRapportVariables {
   snapshotId?: UUIDString | null;
-  authorId?: string | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
   titre: string;
@@ -498,6 +555,105 @@ export interface CreateRapportVariables {
   sha256?: string | null;
   summary?: string | null;
   generatedAt?: TimestampString | null;
+}
+
+export interface CreateSossonPayrollPeriodData {
+  query?: {
+  };
+    sossonPayrollPeriod_insert: SossonPayrollPeriod_Key;
+}
+
+export interface CreateSossonPayrollPeriodVariables {
+  memberId: UUIDString;
+  periodLabel: string;
+  year: number;
+  month: number;
+  baseSalaryGrossMonthly?: number | null;
+  overtimeHours?: number | null;
+  paidLeaveDays?: number | null;
+  absenceDays?: number | null;
+  grossEstimate?: number | null;
+  status: string;
+  notes?: string | null;
+}
+
+export interface CreateSossonTeamData {
+  query?: {
+  };
+    sossonTeam_insert: SossonTeam_Key;
+}
+
+export interface CreateSossonTeamLeavePeriodData {
+  query?: {
+  };
+    sossonTeamLeavePeriod_insert: SossonTeamLeavePeriod_Key;
+}
+
+export interface CreateSossonTeamLeavePeriodVariables {
+  memberId: UUIDString;
+  type: string;
+  month: string;
+  startDay: number;
+  endDay: number;
+  status: string;
+  note?: string | null;
+}
+
+export interface CreateSossonTeamMemberData {
+  query?: {
+  };
+    sossonTeamMember_insert: SossonTeamMember_Key;
+}
+
+export interface CreateSossonTeamMemberVariables {
+  teamId: UUIDString;
+  userId?: string | null;
+  firstName: string;
+  lastName: string;
+  title: string;
+  qualification?: string | null;
+  level?: string | null;
+  salaryGrossMonthly?: number | null;
+  contract?: string | null;
+  coefficient?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  status: string;
+  site?: string | null;
+  activeSites?: string | null;
+  responsibilities?: string | null;
+  permissions?: string | null;
+}
+
+export interface CreateSossonTeamVariables {
+  code: string;
+  name: string;
+  type: string;
+  statut: string;
+  theme?: string | null;
+  leadName?: string | null;
+  description?: string | null;
+  activeSites?: string | null;
+  ordre?: number | null;
+}
+
+export interface CreateSossonWorkTimeEntryData {
+  query?: {
+  };
+    sossonWorkTimeEntry_insert: SossonWorkTimeEntry_Key;
+}
+
+export interface CreateSossonWorkTimeEntryVariables {
+  memberId: UUIDString;
+  chantierId?: UUIDString | null;
+  planningEventId?: UUIDString | null;
+  planningAssignmentId?: UUIDString | null;
+  jobSheetId?: UUIDString | null;
+  workDate: DateString;
+  hours: number;
+  kind: string;
+  status: string;
+  notes?: string | null;
 }
 
 export interface DataImportIssue_Key {
@@ -770,6 +926,30 @@ export interface GetClientVariables {
   id: UUIDString;
 }
 
+export interface GetCurrentTeamProfileSubmissionData {
+  teamProfileSubmission?: {
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    requestedTeamType: string;
+    status: string;
+    sourceConnexion?: string | null;
+    convertedTeamId?: string | null;
+    convertedMemberId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: TimestampString | null;
+    reviewedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+  } & TeamProfileSubmission_Key;
+}
+
 export interface GetCurrentUserData {
   user?: {
     id: string;
@@ -777,6 +957,12 @@ export interface GetCurrentUserData {
     nom: string;
     prenom: string;
     role: string;
+    profilStatut?: string | null;
+    equipeTypeSouhaite?: string | null;
+    equipeFinaleId?: string | null;
+    poste?: string | null;
+    telephone?: string | null;
+    sourceConnexion?: string | null;
     avatar?: string | null;
   } & User_Key;
 }
@@ -1329,6 +1515,46 @@ export interface ListDocumentsByChantierVariables {
   chantierId: UUIDString;
 }
 
+export interface ListEmailThreadsByChantierData {
+  emailThreads: ({
+    id: UUIDString;
+    provider: string;
+    externalThreadId: string;
+    subject: string;
+    statut: string;
+    importance?: string | null;
+    lastMessageAt: TimestampString;
+    participantsSummary?: string | null;
+    messageCount: number;
+    hasAttachments: boolean;
+    dateModification: TimestampString;
+    client?: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+        } & Client_Key;
+      } & Chantier_Key;
+        assignedTo?: {
+          id: string;
+          nom: string;
+          prenom: string;
+          avatar?: string | null;
+        } & User_Key;
+  } & EmailThread_Key)[];
+}
+
+export interface ListEmailThreadsByChantierVariables {
+  chantierId: UUIDString;
+}
+
 export interface ListEmailThreadsData {
   emailThreads: ({
     id: UUIDString;
@@ -1507,14 +1733,48 @@ export interface ListPlanningEventsByChantierData {
       id: UUIDString;
       assignmentRole?: string | null;
       statut: string;
-      user?: {
-        id: string;
-        nom: string;
-        prenom: string;
-        avatar?: string | null;
-        role: string;
-      } & User_Key;
+      sossonTeam?: {
+        id: UUIDString;
+        code: string;
+        name: string;
+        type: string;
+        theme?: string | null;
+      } & SossonTeam_Key;
+        user?: {
+          id: string;
+          nom: string;
+          prenom: string;
+          avatar?: string | null;
+          role: string;
+        } & User_Key;
     } & PlanningAssignment_Key)[];
+      jobSheetsByChantier: ({
+        id: UUIDString;
+        titre: string;
+        statut: string;
+        instructions?: string | null;
+        plannedHours?: number | null;
+        actualHours?: number | null;
+        completionNotes?: string | null;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+        } & Chantier_Key;
+          sossonTeam?: {
+            id: UUIDString;
+            code: string;
+            name: string;
+            type: string;
+            theme?: string | null;
+          } & SossonTeam_Key;
+            leadMember?: {
+              id: UUIDString;
+              firstName: string;
+              lastName: string;
+              title: string;
+            } & SossonTeamMember_Key;
+      } & PlanningJobSheet_Key)[];
   } & PlanningEvent_Key)[];
 }
 
@@ -1558,20 +1818,203 @@ export interface ListPlanningEventsByPeriodData {
             assignmentRole?: string | null;
             statut: string;
             notes?: string | null;
-            user?: {
-              id: string;
-              nom: string;
-              prenom: string;
-              avatar?: string | null;
-              role: string;
-            } & User_Key;
+            sossonTeam?: {
+              id: UUIDString;
+              code: string;
+              name: string;
+              type: string;
+              theme?: string | null;
+            } & SossonTeam_Key;
+              user?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+                role: string;
+              } & User_Key;
           } & PlanningAssignment_Key)[];
+            jobSheetsByPeriod: ({
+              id: UUIDString;
+              titre: string;
+              statut: string;
+              instructions?: string | null;
+              plannedHours?: number | null;
+              actualHours?: number | null;
+              checklist?: string | null;
+              materials?: string | null;
+              blockers?: string | null;
+              completionNotes?: string | null;
+              proofStoragePath?: string | null;
+              proofSha256?: string | null;
+              reportStoragePath?: string | null;
+              reportSha256?: string | null;
+              completedAt?: TimestampString | null;
+              validatedAt?: TimestampString | null;
+              dateModification: TimestampString;
+              dateCreation: TimestampString;
+              assignment?: {
+                id: UUIDString;
+                statut: string;
+                assignmentRole?: string | null;
+              } & PlanningAssignment_Key;
+                chantier?: {
+                  id: UUIDString;
+                  nom: string;
+                  statut: string;
+                } & Chantier_Key;
+                  sossonTeam?: {
+                    id: UUIDString;
+                    code: string;
+                    name: string;
+                    type: string;
+                    theme?: string | null;
+                  } & SossonTeam_Key;
+                    leadMember?: {
+                      id: UUIDString;
+                      firstName: string;
+                      lastName: string;
+                      title: string;
+                    } & SossonTeamMember_Key;
+                      preparedBy?: {
+                        id: string;
+                        nom: string;
+                        prenom: string;
+                        avatar?: string | null;
+                      } & User_Key;
+                        updatedBy?: {
+                          id: string;
+                          nom: string;
+                          prenom: string;
+                          avatar?: string | null;
+                        } & User_Key;
+                          completedBy?: {
+                            id: string;
+                            nom: string;
+                            prenom: string;
+                            avatar?: string | null;
+                          } & User_Key;
+                            validatedBy?: {
+                              id: string;
+                              nom: string;
+                              prenom: string;
+                              avatar?: string | null;
+                            } & User_Key;
+                              workTimesByPeriodJobSheet: ({
+                                id: UUIDString;
+                                workDate: DateString;
+                                hours: number;
+                                kind: string;
+                                status: string;
+                                notes?: string | null;
+                                member: {
+                                  id: UUIDString;
+                                  firstName: string;
+                                  lastName: string;
+                                  title: string;
+                                } & SossonTeamMember_Key;
+                              } & SossonWorkTimeEntry_Key)[];
+            } & PlanningJobSheet_Key)[];
   } & PlanningEvent_Key)[];
 }
 
 export interface ListPlanningEventsByPeriodVariables {
   startAt: TimestampString;
   endAt: TimestampString;
+}
+
+export interface ListPlanningJobSheetsByEventData {
+  planningJobSheets: ({
+    id: UUIDString;
+    titre: string;
+    statut: string;
+    instructions?: string | null;
+    plannedHours?: number | null;
+    actualHours?: number | null;
+    checklist?: string | null;
+    materials?: string | null;
+    blockers?: string | null;
+    completionNotes?: string | null;
+    proofStoragePath?: string | null;
+    proofSha256?: string | null;
+    reportStoragePath?: string | null;
+    reportSha256?: string | null;
+    completedAt?: TimestampString | null;
+    validatedAt?: TimestampString | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    event: {
+      id: UUIDString;
+      titre: string;
+      startAt: TimestampString;
+      endAt: TimestampString;
+      statut: string;
+    } & PlanningEvent_Key;
+      assignment?: {
+        id: UUIDString;
+        statut: string;
+        assignmentRole?: string | null;
+      } & PlanningAssignment_Key;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+        } & Chantier_Key;
+          sossonTeam?: {
+            id: UUIDString;
+            code: string;
+            name: string;
+            type: string;
+            theme?: string | null;
+          } & SossonTeam_Key;
+            leadMember?: {
+              id: UUIDString;
+              firstName: string;
+              lastName: string;
+              title: string;
+            } & SossonTeamMember_Key;
+              preparedBy?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+              } & User_Key;
+                updatedBy?: {
+                  id: string;
+                  nom: string;
+                  prenom: string;
+                  avatar?: string | null;
+                } & User_Key;
+                  completedBy?: {
+                    id: string;
+                    nom: string;
+                    prenom: string;
+                    avatar?: string | null;
+                  } & User_Key;
+                    validatedBy?: {
+                      id: string;
+                      nom: string;
+                      prenom: string;
+                      avatar?: string | null;
+                    } & User_Key;
+                      workTimesByEventJobSheet: ({
+                        id: UUIDString;
+                        workDate: DateString;
+                        hours: number;
+                        kind: string;
+                        status: string;
+                        notes?: string | null;
+                        member: {
+                          id: UUIDString;
+                          firstName: string;
+                          lastName: string;
+                          title: string;
+                        } & SossonTeamMember_Key;
+                      } & SossonWorkTimeEntry_Key)[];
+  } & PlanningJobSheet_Key)[];
+}
+
+export interface ListPlanningJobSheetsByEventVariables {
+  eventId: UUIDString;
 }
 
 export interface ListPrevisionnelCellEditsData {
@@ -1732,6 +2175,180 @@ export interface ListRecentAuditEventsVariables {
   environment: string;
 }
 
+export interface ListSossonPayrollPeriodsData {
+  sossonPayrollPeriods: ({
+    id: UUIDString;
+    periodLabel: string;
+    year: number;
+    month: number;
+    baseSalaryGrossMonthly?: number | null;
+    overtimeHours?: number | null;
+    paidLeaveDays?: number | null;
+    absenceDays?: number | null;
+    grossEstimate?: number | null;
+    status: string;
+    notes?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    member: {
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      team: {
+        id: UUIDString;
+        name: string;
+        code: string;
+        type: string;
+      } & SossonTeam_Key;
+    } & SossonTeamMember_Key;
+  } & SossonPayrollPeriod_Key)[];
+}
+
+export interface ListSossonPayrollPeriodsVariables {
+  year: number;
+}
+
+export interface ListSossonTeamsData {
+  sossonTeams: ({
+    id: UUIDString;
+    code: string;
+    name: string;
+    type: string;
+    statut: string;
+    theme?: string | null;
+    leadName?: string | null;
+    description?: string | null;
+    activeSites?: string | null;
+    ordre?: number | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    members: ({
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      qualification?: string | null;
+      level?: string | null;
+      salaryGrossMonthly?: number | null;
+      contract?: string | null;
+      coefficient?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      status: string;
+      site?: string | null;
+      activeSites?: string | null;
+      responsibilities?: string | null;
+      permissions?: string | null;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+      user?: {
+        id: string;
+        nom: string;
+        prenom: string;
+        email: string;
+        role: string;
+        avatar?: string | null;
+      } & User_Key;
+        leaves: ({
+          id: UUIDString;
+          type: string;
+          month: string;
+          startDay: number;
+          endDay: number;
+          status: string;
+          note?: string | null;
+          dateCreation: TimestampString;
+        } & SossonTeamLeavePeriod_Key)[];
+    } & SossonTeamMember_Key)[];
+  } & SossonTeam_Key)[];
+}
+
+export interface ListSossonWorkTimeEntriesData {
+  sossonWorkTimeEntries: ({
+    id: UUIDString;
+    workDate: DateString;
+    hours: number;
+    kind: string;
+    status: string;
+    notes?: string | null;
+    dateCreation: TimestampString;
+    member: {
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      team: {
+        id: UUIDString;
+        name: string;
+        code: string;
+        type: string;
+      } & SossonTeam_Key;
+    } & SossonTeamMember_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+        } & Client_Key;
+      } & Chantier_Key;
+        planningEvent?: {
+          id: UUIDString;
+          titre: string;
+          startAt: TimestampString;
+          endAt: TimestampString;
+          statut: string;
+        } & PlanningEvent_Key;
+          planningAssignment?: {
+            id: UUIDString;
+            statut: string;
+            assignmentRole?: string | null;
+          } & PlanningAssignment_Key;
+            jobSheet?: {
+              id: UUIDString;
+              titre: string;
+              statut: string;
+            } & PlanningJobSheet_Key;
+              approvedBy?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+              } & User_Key;
+  } & SossonWorkTimeEntry_Key)[];
+}
+
+export interface ListSossonWorkTimeEntriesVariables {
+  startDate: DateString;
+  endDate: DateString;
+}
+
+export interface ListTeamProfileSubmissionsData {
+  teamProfileSubmissions: ({
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    requestedTeamType: string;
+    status: string;
+    sourceConnexion?: string | null;
+    convertedTeamId?: string | null;
+    convertedMemberId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: TimestampString | null;
+    reviewedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+  } & TeamProfileSubmission_Key)[];
+}
+
 export interface ListUnreadEmailThreadsData {
   emailThreads: ({
     id: UUIDString;
@@ -1770,6 +2387,12 @@ export interface ListUsersData {
     nom: string;
     prenom: string;
     role: string;
+    profilStatut?: string | null;
+    equipeTypeSouhaite?: string | null;
+    equipeFinaleId?: string | null;
+    poste?: string | null;
+    telephone?: string | null;
+    sourceConnexion?: string | null;
     avatar?: string | null;
     dateCreation: TimestampString;
   } & User_Key)[];
@@ -1799,6 +2422,11 @@ export interface PlanningAssignment_Key {
 export interface PlanningEvent_Key {
   id: UUIDString;
   __typename?: 'PlanningEvent_Key';
+}
+
+export interface PlanningJobSheet_Key {
+  id: UUIDString;
+  __typename?: 'PlanningJobSheet_Key';
 }
 
 export interface PrevisionnelCellEdit_Key {
@@ -1863,6 +2491,48 @@ export interface SetFactureStatutData {
 export interface SetFactureStatutVariables {
   id: UUIDString;
   statut: string;
+}
+
+export interface SossonPayrollPeriod_Key {
+  id: UUIDString;
+  __typename?: 'SossonPayrollPeriod_Key';
+}
+
+export interface SossonTeamLeavePeriod_Key {
+  id: UUIDString;
+  __typename?: 'SossonTeamLeavePeriod_Key';
+}
+
+export interface SossonTeamMember_Key {
+  id: UUIDString;
+  __typename?: 'SossonTeamMember_Key';
+}
+
+export interface SossonTeam_Key {
+  id: UUIDString;
+  __typename?: 'SossonTeam_Key';
+}
+
+export interface SossonWorkTimeEntry_Key {
+  id: UUIDString;
+  __typename?: 'SossonWorkTimeEntry_Key';
+}
+
+export interface SubmitCurrentTeamProfileData {
+  teamProfileSubmission_upsert: TeamProfileSubmission_Key;
+}
+
+export interface SubmitCurrentTeamProfileVariables {
+  email: string;
+  nom: string;
+  prenom: string;
+  requestedTeamType: string;
+  sourceConnexion?: string | null;
+}
+
+export interface TeamProfileSubmission_Key {
+  id: string;
+  __typename?: 'TeamProfileSubmission_Key';
 }
 
 export interface UpdateChantierStatutData {
@@ -1970,7 +2640,6 @@ export interface UpdatePlanningEventDetailsVariables {
   endAt: TimestampString;
   location?: string | null;
   notes?: string | null;
-  updatedById?: string | null;
 }
 
 export interface UpdatePlanningEventStatusData {
@@ -1982,7 +2651,28 @@ export interface UpdatePlanningEventStatusData {
 export interface UpdatePlanningEventStatusVariables {
   id: UUIDString;
   statut: string;
-  updatedById?: string | null;
+}
+
+export interface UpdatePlanningJobSheetProgressData {
+  query?: {
+  };
+    planningJobSheet_update?: PlanningJobSheet_Key | null;
+}
+
+export interface UpdatePlanningJobSheetProgressVariables {
+  id: UUIDString;
+  statut: string;
+  instructions?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  checklist?: string | null;
+  materials?: string | null;
+  blockers?: string | null;
+  completionNotes?: string | null;
+  proofStoragePath?: string | null;
+  proofSha256?: string | null;
+  reportStoragePath?: string | null;
+  reportSha256?: string | null;
 }
 
 export interface UpdatePrevisionnelLineAmountsData {
@@ -2017,6 +2707,48 @@ export interface UpdatePrevisionnelMonthlyAmountVariables {
   invoiceSent?: boolean | null;
 }
 
+export interface UpdateSossonTeamData {
+  query?: {
+  };
+    sossonTeam_update?: SossonTeam_Key | null;
+}
+
+export interface UpdateSossonTeamMemberData {
+  query?: {
+  };
+    sossonTeamMember_update?: SossonTeamMember_Key | null;
+}
+
+export interface UpdateSossonTeamMemberVariables {
+  id: UUIDString;
+  teamId?: UUIDString | null;
+  userId?: string | null;
+  title?: string | null;
+  qualification?: string | null;
+  level?: string | null;
+  salaryGrossMonthly?: number | null;
+  contract?: string | null;
+  coefficient?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  site?: string | null;
+  activeSites?: string | null;
+  responsibilities?: string | null;
+  permissions?: string | null;
+}
+
+export interface UpdateSossonTeamVariables {
+  id: UUIDString;
+  name?: string | null;
+  type?: string | null;
+  statut?: string | null;
+  theme?: string | null;
+  leadName?: string | null;
+  description?: string | null;
+  activeSites?: string | null;
+  ordre?: number | null;
+}
+
 export interface UpsertPrevisionnelCellEditData {
   query?: {
   };
@@ -2035,6 +2767,150 @@ export interface User_Key {
   id: string;
   __typename?: 'User_Key';
 }
+
+interface SubmitCurrentTeamProfileRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: SubmitCurrentTeamProfileVariables): MutationRef<SubmitCurrentTeamProfileData, SubmitCurrentTeamProfileVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: SubmitCurrentTeamProfileVariables): MutationRef<SubmitCurrentTeamProfileData, SubmitCurrentTeamProfileVariables>;
+  operationName: string;
+}
+export const submitCurrentTeamProfileRef: SubmitCurrentTeamProfileRef;
+
+export function submitCurrentTeamProfile(vars: SubmitCurrentTeamProfileVariables): MutationPromise<SubmitCurrentTeamProfileData, SubmitCurrentTeamProfileVariables>;
+export function submitCurrentTeamProfile(dc: DataConnect, vars: SubmitCurrentTeamProfileVariables): MutationPromise<SubmitCurrentTeamProfileData, SubmitCurrentTeamProfileVariables>;
+
+interface ConvertTeamProfileSubmissionRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ConvertTeamProfileSubmissionVariables): MutationRef<ConvertTeamProfileSubmissionData, ConvertTeamProfileSubmissionVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ConvertTeamProfileSubmissionVariables): MutationRef<ConvertTeamProfileSubmissionData, ConvertTeamProfileSubmissionVariables>;
+  operationName: string;
+}
+export const convertTeamProfileSubmissionRef: ConvertTeamProfileSubmissionRef;
+
+export function convertTeamProfileSubmission(vars: ConvertTeamProfileSubmissionVariables): MutationPromise<ConvertTeamProfileSubmissionData, ConvertTeamProfileSubmissionVariables>;
+export function convertTeamProfileSubmission(dc: DataConnect, vars: ConvertTeamProfileSubmissionVariables): MutationPromise<ConvertTeamProfileSubmissionData, ConvertTeamProfileSubmissionVariables>;
+
+interface CreateSossonTeamRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateSossonTeamVariables): MutationRef<CreateSossonTeamData, CreateSossonTeamVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateSossonTeamVariables): MutationRef<CreateSossonTeamData, CreateSossonTeamVariables>;
+  operationName: string;
+}
+export const createSossonTeamRef: CreateSossonTeamRef;
+
+export function createSossonTeam(vars: CreateSossonTeamVariables): MutationPromise<CreateSossonTeamData, CreateSossonTeamVariables>;
+export function createSossonTeam(dc: DataConnect, vars: CreateSossonTeamVariables): MutationPromise<CreateSossonTeamData, CreateSossonTeamVariables>;
+
+interface UpdateSossonTeamRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateSossonTeamVariables): MutationRef<UpdateSossonTeamData, UpdateSossonTeamVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdateSossonTeamVariables): MutationRef<UpdateSossonTeamData, UpdateSossonTeamVariables>;
+  operationName: string;
+}
+export const updateSossonTeamRef: UpdateSossonTeamRef;
+
+export function updateSossonTeam(vars: UpdateSossonTeamVariables): MutationPromise<UpdateSossonTeamData, UpdateSossonTeamVariables>;
+export function updateSossonTeam(dc: DataConnect, vars: UpdateSossonTeamVariables): MutationPromise<UpdateSossonTeamData, UpdateSossonTeamVariables>;
+
+interface CreateSossonTeamMemberRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateSossonTeamMemberVariables): MutationRef<CreateSossonTeamMemberData, CreateSossonTeamMemberVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateSossonTeamMemberVariables): MutationRef<CreateSossonTeamMemberData, CreateSossonTeamMemberVariables>;
+  operationName: string;
+}
+export const createSossonTeamMemberRef: CreateSossonTeamMemberRef;
+
+export function createSossonTeamMember(vars: CreateSossonTeamMemberVariables): MutationPromise<CreateSossonTeamMemberData, CreateSossonTeamMemberVariables>;
+export function createSossonTeamMember(dc: DataConnect, vars: CreateSossonTeamMemberVariables): MutationPromise<CreateSossonTeamMemberData, CreateSossonTeamMemberVariables>;
+
+interface UpdateSossonTeamMemberRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateSossonTeamMemberVariables): MutationRef<UpdateSossonTeamMemberData, UpdateSossonTeamMemberVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdateSossonTeamMemberVariables): MutationRef<UpdateSossonTeamMemberData, UpdateSossonTeamMemberVariables>;
+  operationName: string;
+}
+export const updateSossonTeamMemberRef: UpdateSossonTeamMemberRef;
+
+export function updateSossonTeamMember(vars: UpdateSossonTeamMemberVariables): MutationPromise<UpdateSossonTeamMemberData, UpdateSossonTeamMemberVariables>;
+export function updateSossonTeamMember(dc: DataConnect, vars: UpdateSossonTeamMemberVariables): MutationPromise<UpdateSossonTeamMemberData, UpdateSossonTeamMemberVariables>;
+
+interface CreateSossonTeamLeavePeriodRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateSossonTeamLeavePeriodVariables): MutationRef<CreateSossonTeamLeavePeriodData, CreateSossonTeamLeavePeriodVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateSossonTeamLeavePeriodVariables): MutationRef<CreateSossonTeamLeavePeriodData, CreateSossonTeamLeavePeriodVariables>;
+  operationName: string;
+}
+export const createSossonTeamLeavePeriodRef: CreateSossonTeamLeavePeriodRef;
+
+export function createSossonTeamLeavePeriod(vars: CreateSossonTeamLeavePeriodVariables): MutationPromise<CreateSossonTeamLeavePeriodData, CreateSossonTeamLeavePeriodVariables>;
+export function createSossonTeamLeavePeriod(dc: DataConnect, vars: CreateSossonTeamLeavePeriodVariables): MutationPromise<CreateSossonTeamLeavePeriodData, CreateSossonTeamLeavePeriodVariables>;
+
+interface CreateSossonWorkTimeEntryRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateSossonWorkTimeEntryVariables): MutationRef<CreateSossonWorkTimeEntryData, CreateSossonWorkTimeEntryVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateSossonWorkTimeEntryVariables): MutationRef<CreateSossonWorkTimeEntryData, CreateSossonWorkTimeEntryVariables>;
+  operationName: string;
+}
+export const createSossonWorkTimeEntryRef: CreateSossonWorkTimeEntryRef;
+
+export function createSossonWorkTimeEntry(vars: CreateSossonWorkTimeEntryVariables): MutationPromise<CreateSossonWorkTimeEntryData, CreateSossonWorkTimeEntryVariables>;
+export function createSossonWorkTimeEntry(dc: DataConnect, vars: CreateSossonWorkTimeEntryVariables): MutationPromise<CreateSossonWorkTimeEntryData, CreateSossonWorkTimeEntryVariables>;
+
+interface CreateSossonPayrollPeriodRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateSossonPayrollPeriodVariables): MutationRef<CreateSossonPayrollPeriodData, CreateSossonPayrollPeriodVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateSossonPayrollPeriodVariables): MutationRef<CreateSossonPayrollPeriodData, CreateSossonPayrollPeriodVariables>;
+  operationName: string;
+}
+export const createSossonPayrollPeriodRef: CreateSossonPayrollPeriodRef;
+
+export function createSossonPayrollPeriod(vars: CreateSossonPayrollPeriodVariables): MutationPromise<CreateSossonPayrollPeriodData, CreateSossonPayrollPeriodVariables>;
+export function createSossonPayrollPeriod(dc: DataConnect, vars: CreateSossonPayrollPeriodVariables): MutationPromise<CreateSossonPayrollPeriodData, CreateSossonPayrollPeriodVariables>;
+
+interface CreatePlanningJobSheetRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreatePlanningJobSheetVariables): MutationRef<CreatePlanningJobSheetData, CreatePlanningJobSheetVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreatePlanningJobSheetVariables): MutationRef<CreatePlanningJobSheetData, CreatePlanningJobSheetVariables>;
+  operationName: string;
+}
+export const createPlanningJobSheetRef: CreatePlanningJobSheetRef;
+
+export function createPlanningJobSheet(vars: CreatePlanningJobSheetVariables): MutationPromise<CreatePlanningJobSheetData, CreatePlanningJobSheetVariables>;
+export function createPlanningJobSheet(dc: DataConnect, vars: CreatePlanningJobSheetVariables): MutationPromise<CreatePlanningJobSheetData, CreatePlanningJobSheetVariables>;
+
+interface UpdatePlanningJobSheetProgressRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdatePlanningJobSheetProgressVariables): MutationRef<UpdatePlanningJobSheetProgressData, UpdatePlanningJobSheetProgressVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdatePlanningJobSheetProgressVariables): MutationRef<UpdatePlanningJobSheetProgressData, UpdatePlanningJobSheetProgressVariables>;
+  operationName: string;
+}
+export const updatePlanningJobSheetProgressRef: UpdatePlanningJobSheetProgressRef;
+
+export function updatePlanningJobSheetProgress(vars: UpdatePlanningJobSheetProgressVariables): MutationPromise<UpdatePlanningJobSheetProgressData, UpdatePlanningJobSheetProgressVariables>;
+export function updatePlanningJobSheetProgress(dc: DataConnect, vars: UpdatePlanningJobSheetProgressVariables): MutationPromise<UpdatePlanningJobSheetProgressData, UpdatePlanningJobSheetProgressVariables>;
+
+interface CompletePlanningJobSheetRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CompletePlanningJobSheetVariables): MutationRef<CompletePlanningJobSheetData, CompletePlanningJobSheetVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CompletePlanningJobSheetVariables): MutationRef<CompletePlanningJobSheetData, CompletePlanningJobSheetVariables>;
+  operationName: string;
+}
+export const completePlanningJobSheetRef: CompletePlanningJobSheetRef;
+
+export function completePlanningJobSheet(vars: CompletePlanningJobSheetVariables): MutationPromise<CompletePlanningJobSheetData, CompletePlanningJobSheetVariables>;
+export function completePlanningJobSheet(dc: DataConnect, vars: CompletePlanningJobSheetVariables): MutationPromise<CompletePlanningJobSheetData, CompletePlanningJobSheetVariables>;
 
 interface CreateClientRef {
   /* Allow users to create refs without passing in DataConnect */
@@ -2504,6 +3380,66 @@ export const listUsersRef: ListUsersRef;
 export function listUsers(options?: ExecuteQueryOptions): QueryPromise<ListUsersData, undefined>;
 export function listUsers(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListUsersData, undefined>;
 
+interface GetCurrentTeamProfileSubmissionRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<GetCurrentTeamProfileSubmissionData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<GetCurrentTeamProfileSubmissionData, undefined>;
+  operationName: string;
+}
+export const getCurrentTeamProfileSubmissionRef: GetCurrentTeamProfileSubmissionRef;
+
+export function getCurrentTeamProfileSubmission(options?: ExecuteQueryOptions): QueryPromise<GetCurrentTeamProfileSubmissionData, undefined>;
+export function getCurrentTeamProfileSubmission(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<GetCurrentTeamProfileSubmissionData, undefined>;
+
+interface ListTeamProfileSubmissionsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListTeamProfileSubmissionsData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListTeamProfileSubmissionsData, undefined>;
+  operationName: string;
+}
+export const listTeamProfileSubmissionsRef: ListTeamProfileSubmissionsRef;
+
+export function listTeamProfileSubmissions(options?: ExecuteQueryOptions): QueryPromise<ListTeamProfileSubmissionsData, undefined>;
+export function listTeamProfileSubmissions(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListTeamProfileSubmissionsData, undefined>;
+
+interface ListSossonTeamsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListSossonTeamsData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListSossonTeamsData, undefined>;
+  operationName: string;
+}
+export const listSossonTeamsRef: ListSossonTeamsRef;
+
+export function listSossonTeams(options?: ExecuteQueryOptions): QueryPromise<ListSossonTeamsData, undefined>;
+export function listSossonTeams(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListSossonTeamsData, undefined>;
+
+interface ListSossonWorkTimeEntriesRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListSossonWorkTimeEntriesVariables): QueryRef<ListSossonWorkTimeEntriesData, ListSossonWorkTimeEntriesVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListSossonWorkTimeEntriesVariables): QueryRef<ListSossonWorkTimeEntriesData, ListSossonWorkTimeEntriesVariables>;
+  operationName: string;
+}
+export const listSossonWorkTimeEntriesRef: ListSossonWorkTimeEntriesRef;
+
+export function listSossonWorkTimeEntries(vars: ListSossonWorkTimeEntriesVariables, options?: ExecuteQueryOptions): QueryPromise<ListSossonWorkTimeEntriesData, ListSossonWorkTimeEntriesVariables>;
+export function listSossonWorkTimeEntries(dc: DataConnect, vars: ListSossonWorkTimeEntriesVariables, options?: ExecuteQueryOptions): QueryPromise<ListSossonWorkTimeEntriesData, ListSossonWorkTimeEntriesVariables>;
+
+interface ListSossonPayrollPeriodsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListSossonPayrollPeriodsVariables): QueryRef<ListSossonPayrollPeriodsData, ListSossonPayrollPeriodsVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListSossonPayrollPeriodsVariables): QueryRef<ListSossonPayrollPeriodsData, ListSossonPayrollPeriodsVariables>;
+  operationName: string;
+}
+export const listSossonPayrollPeriodsRef: ListSossonPayrollPeriodsRef;
+
+export function listSossonPayrollPeriods(vars: ListSossonPayrollPeriodsVariables, options?: ExecuteQueryOptions): QueryPromise<ListSossonPayrollPeriodsData, ListSossonPayrollPeriodsVariables>;
+export function listSossonPayrollPeriods(dc: DataConnect, vars: ListSossonPayrollPeriodsVariables, options?: ExecuteQueryOptions): QueryPromise<ListSossonPayrollPeriodsData, ListSossonPayrollPeriodsVariables>;
+
 interface ListOperationalClientsRef {
   /* Allow users to create refs without passing in DataConnect */
   (): QueryRef<ListOperationalClientsData, undefined>;
@@ -2708,6 +3644,18 @@ export const listEmailThreadsRef: ListEmailThreadsRef;
 export function listEmailThreads(options?: ExecuteQueryOptions): QueryPromise<ListEmailThreadsData, undefined>;
 export function listEmailThreads(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListEmailThreadsData, undefined>;
 
+interface ListEmailThreadsByChantierRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListEmailThreadsByChantierVariables): QueryRef<ListEmailThreadsByChantierData, ListEmailThreadsByChantierVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListEmailThreadsByChantierVariables): QueryRef<ListEmailThreadsByChantierData, ListEmailThreadsByChantierVariables>;
+  operationName: string;
+}
+export const listEmailThreadsByChantierRef: ListEmailThreadsByChantierRef;
+
+export function listEmailThreadsByChantier(vars: ListEmailThreadsByChantierVariables, options?: ExecuteQueryOptions): QueryPromise<ListEmailThreadsByChantierData, ListEmailThreadsByChantierVariables>;
+export function listEmailThreadsByChantier(dc: DataConnect, vars: ListEmailThreadsByChantierVariables, options?: ExecuteQueryOptions): QueryPromise<ListEmailThreadsByChantierData, ListEmailThreadsByChantierVariables>;
+
 interface ListUnreadEmailThreadsRef {
   /* Allow users to create refs without passing in DataConnect */
   (): QueryRef<ListUnreadEmailThreadsData, undefined>;
@@ -2755,6 +3703,18 @@ export const listPlanningEventsByChantierRef: ListPlanningEventsByChantierRef;
 
 export function listPlanningEventsByChantier(vars: ListPlanningEventsByChantierVariables, options?: ExecuteQueryOptions): QueryPromise<ListPlanningEventsByChantierData, ListPlanningEventsByChantierVariables>;
 export function listPlanningEventsByChantier(dc: DataConnect, vars: ListPlanningEventsByChantierVariables, options?: ExecuteQueryOptions): QueryPromise<ListPlanningEventsByChantierData, ListPlanningEventsByChantierVariables>;
+
+interface ListPlanningJobSheetsByEventRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListPlanningJobSheetsByEventVariables): QueryRef<ListPlanningJobSheetsByEventData, ListPlanningJobSheetsByEventVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListPlanningJobSheetsByEventVariables): QueryRef<ListPlanningJobSheetsByEventData, ListPlanningJobSheetsByEventVariables>;
+  operationName: string;
+}
+export const listPlanningJobSheetsByEventRef: ListPlanningJobSheetsByEventRef;
+
+export function listPlanningJobSheetsByEvent(vars: ListPlanningJobSheetsByEventVariables, options?: ExecuteQueryOptions): QueryPromise<ListPlanningJobSheetsByEventData, ListPlanningJobSheetsByEventVariables>;
+export function listPlanningJobSheetsByEvent(dc: DataConnect, vars: ListPlanningJobSheetsByEventVariables, options?: ExecuteQueryOptions): QueryPromise<ListPlanningJobSheetsByEventData, ListPlanningJobSheetsByEventVariables>;
 
 interface ListAnalyticsSnapshotsRef {
   /* Allow users to create refs without passing in DataConnect */

@@ -7,6 +7,7 @@ export type CapabilitySet = Record<AccessCapability, boolean>
 
 export const appPages = [
   { key: 'dashboard', label: 'Tableau de bord', path: '/dashboard', group: 'Pilotage' },
+  { key: 'cowork', label: 'COWORK', path: '/cowork', group: 'Operationnel' },
   { key: 'chantiers', label: 'Chantiers', path: '/chantiers', group: 'Operationnel' },
   { key: 'clients', label: 'Clients', path: '/clients', group: 'Operationnel' },
   { key: 'documents', label: 'Documents', path: '/documents', group: 'Documents' },
@@ -49,6 +50,7 @@ export const defaultAccessMatrix: AccessMatrix = {
   ),
   assistante: roleAccess({
     dashboard: readOnly,
+    cowork: readWrite,
     chantiers: readWrite,
     clients: readWrite,
     documents: readWrite,
@@ -65,6 +67,7 @@ export const defaultAccessMatrix: AccessMatrix = {
   }),
   chef_chantier: roleAccess({
     dashboard: readOnly,
+    cowork: readWrite,
     chantiers: readWrite,
     clients: readOnly,
     documents: readWrite,

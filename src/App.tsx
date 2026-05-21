@@ -3,7 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AppProvider } from '@/lib/store'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/LoginPage'
+import { ProfileCompletionPage } from '@/pages/ProfileCompletionPage'
+import { ProfilePendingPage } from '@/pages/ProfilePendingPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { CoworkPage } from '@/pages/CoworkPage'
 import { ChantiersPage } from '@/pages/ChantiersPage'
 import { ChantierDetailPage } from '@/pages/ChantierDetailPage'
 import { ClientsPage } from '@/pages/ClientsPage'
@@ -48,10 +51,12 @@ function RouteLoading() {
 }
 
 function FullscreenProtectedRoute({ children }: { children: ReactNode }) {
-  const { authInitializing, user } = useApp()
+  const { authInitializing, authStatus, user } = useApp()
   const location = useLocation()
 
   if (authInitializing) return <RouteLoading />
+  if (authStatus === 'missing-profile') return <Navigate to="/complete-profile" replace state={{ from: `${location.pathname}${location.search}` }} />
+  if (authStatus === 'profile-pending') return <Navigate to="/profile-pending" replace />
   if (!user) return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
 
   return children
@@ -63,6 +68,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/complete-profile" element={<ProfileCompletionPage />} />
+          <Route path="/profile-pending" element={<ProfilePendingPage />} />
           <Route path="/auth/microsoft/callback" element={<MicrosoftCallbackPage />} />
           <Route
             path="/previsionnel/tableur"
@@ -87,6 +94,7 @@ function App() {
           <Route path="/moteur" element={<Navigate to="/moteur-dataflow" replace />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/cowork" element={<CoworkPage />} />
             <Route path="/chantiers" element={<ChantiersPage />} />
             <Route path="/chantiers/:id" element={<ChantierDetailPage />} />
             <Route path="/clients" element={<ClientsPage />} />

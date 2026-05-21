@@ -1,6 +1,8 @@
 import {
+  GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithCustomToken,
+  signInWithPopup,
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth'
@@ -10,6 +12,7 @@ import { auth, db, ENV, shouldUseAuthEmulator } from '@/lib/firebase'
 import { users } from '@/data/users'
 import type { User } from '@/data/users'
 import { fetchCurrentSqlUserProfile } from '@/features/auth/sqlUserProfile'
+import { fetchCurrentTeamProfileSubmission } from '@/features/auth/teamProfileSubmission'
 
 const AUTH_KEY = 'sosson_user'
 export const isFirebaseConfigured = Boolean(import.meta.env.VITE_FIREBASE_API_KEY)
@@ -18,10 +21,58 @@ export const isLocalAuthFallbackEnabled =
   ENV !== 'production' &&
   import.meta.env.VITE_ENABLE_LOCAL_AUTH_FALLBACK === 'true'
 
+export type AuthSessionStatus = 'loading' | 'signed-out' | 'missing-profile' | 'profile-pending' | 'ready'
+
+export type AuthSessionState = {
+  status: AuthSessionStatus
+  user: User | null
+  firebaseUser: FirebaseUser | null
+}
+
+const signedOutState: AuthSessionState = {
+  status: 'signed-out',
+  user: null,
+  firebaseUser: null,
+}
+
 function persistUser(profile: User) {
   const safeProfile = { ...profile, password: undefined }
   localStorage.setItem(AUTH_KEY, JSON.stringify(safeProfile))
   return safeProfile
+}
+
+function readyState(profile: User, firebaseUser: FirebaseUser | null): AuthSessionState {
+  return {
+    status: 'ready',
+    user: persistUser(profile),
+    firebaseUser,
+  }
+}
+
+async function resolveFirebaseUserState(fbUser: FirebaseUser): Promise<AuthSessionState> {
+  const profile = await getUserProfile(fbUser)
+  if (profile) return readyState(profile, fbUser)
+
+  try {
+    const submission = await fetchCurrentTeamProfileSubmission()
+    if (submission) {
+      localStorage.removeItem(AUTH_KEY)
+      return {
+        status: 'profile-pending',
+        user: null,
+        firebaseUser: fbUser,
+      }
+    }
+  } catch (error) {
+    console.info('Demande de profil SQL indisponible.', error)
+  }
+
+  localStorage.removeItem(AUTH_KEY)
+  return {
+    status: 'missing-profile',
+    user: null,
+    firebaseUser: fbUser,
+  }
 }
 
 function base64UrlJson(value: Record<string, unknown>) {
@@ -70,12 +121,13 @@ export async function ensureLocalAuthEmulatorSession(localProfile: User): Promis
   return loginWithLocalAuthEmulator(localProfile)
 }
 
-export async function login(email: string, password: string): Promise<User | null> {
+export async function loginWithPassword(email: string, password: string): Promise<AuthSessionState> {
   if (isLocalAuthFallbackEnabled && shouldUseAuthEmulator) {
     const seedUser = users.find(u => u.email === email && u.password === password)
     if (seedUser) {
       try {
-        return await loginWithLocalAuthEmulator(seedUser)
+        const profile = await loginWithLocalAuthEmulator(seedUser)
+        return profile ? readyState(profile, auth.currentUser) : signedOutState
       } catch (error) {
         console.info('Connexion Auth emulator refusee, fallback local transitoire.', error)
       }
@@ -85,23 +137,51 @@ export async function login(email: string, password: string): Promise<User | nul
   if (isFirebaseConfigured) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
-      const profile = await getUserProfile(cred.user)
-      if (profile) {
-        return persistUser(profile)
-      }
-      return null
+      return resolveFirebaseUserState(cred.user)
     } catch (error) {
       console.info('Connexion Firebase refusee.', error)
-      if (!isLocalAuthFallbackEnabled) return null
+      if (!isLocalAuthFallbackEnabled) return signedOutState
     }
   }
 
-  if (!isLocalAuthFallbackEnabled && isFirebaseConfigured) return null
+  if (!isLocalAuthFallbackEnabled && isFirebaseConfigured) return signedOutState
 
   const user = users.find(u => u.email === email && u.password === password)
   if (user) {
-    return persistUser(user)
+    return readyState(user, null)
   }
+  return signedOutState
+}
+
+export async function loginWithGoogle(): Promise<AuthSessionState> {
+  if (!isFirebaseConfigured) return signedOutState
+
+  const provider = new GoogleAuthProvider()
+  provider.setCustomParameters({ prompt: 'select_account' })
+
+  try {
+    const cred = await signInWithPopup(auth, provider)
+    return resolveFirebaseUserState(cred.user)
+  } catch (error) {
+    console.info('Connexion Google refusee.', error)
+    return signedOutState
+  }
+}
+
+export async function resolveCurrentAuthState(): Promise<AuthSessionState> {
+  if (isFirebaseConfigured) {
+    if (!auth.currentUser) return signedOutState
+    return resolveFirebaseUserState(auth.currentUser)
+  }
+
+  const localProfile = getCurrentUser()
+  return localProfile ? readyState(localProfile, null) : signedOutState
+}
+
+export async function login(email: string, password: string): Promise<User | null> {
+  const result = await loginWithPassword(email, password)
+  if (result.status === 'ready') return result.user
+  if (!isLocalAuthFallbackEnabled && isFirebaseConfigured) return null
   return null
 }
 
@@ -148,14 +228,11 @@ export function isAuthenticated(): boolean {
   return getCurrentUser() !== null
 }
 
-export function onAuthChange(callback: (user: User | null) => void) {
+export function onAuthChange(callback: (state: AuthSessionState) => void) {
   if (!isFirebaseConfigured) return () => {}
   return onAuthStateChanged(auth, async fbUser => {
     if (fbUser) {
-      const profile = await getUserProfile(fbUser)
-      if (profile) persistUser(profile)
-      else localStorage.removeItem(AUTH_KEY)
-      callback(profile)
+      callback(await resolveFirebaseUserState(fbUser))
     } else {
       if (isLocalAuthFallbackEnabled) {
         const localProfile = getCurrentUser()
@@ -163,20 +240,20 @@ export function onAuthChange(callback: (user: User | null) => void) {
           if (shouldUseAuthEmulator) {
             try {
               const profile = await ensureLocalAuthEmulatorSession(localProfile)
-              callback(profile)
+              callback(profile ? readyState(profile, auth.currentUser) : signedOutState)
             } catch (error) {
               console.info('Session Auth emulator locale indisponible.', error)
-              callback(localProfile)
+              callback(readyState(localProfile, null))
             }
             return
           }
 
-          callback(localProfile)
+          callback(readyState(localProfile, null))
           return
         }
       }
       localStorage.removeItem(AUTH_KEY)
-      callback(null)
+      callback(signedOutState)
     }
   })
 }

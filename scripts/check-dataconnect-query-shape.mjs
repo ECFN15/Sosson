@@ -42,6 +42,24 @@ function requirePattern(name, pattern, label) {
   if (query && !pattern.test(query)) failures.push(`${name}: ${label}`)
 }
 
+function requireSqlUserRoleCheck(name, roles) {
+  const query = requireQuery(name)
+  if (!query) return
+
+  if (!/currentUser:\s*user\(key:\s*\{\s*id_expr:\s*"auth\.uid"\s*\}/.test(query)) {
+    failures.push(`${name}: lecture RBAC du User SQL courant manquante`)
+  }
+
+  if (!/role\s+@check\(expr:\s*"this in \[/.test(query)) {
+    failures.push(`${name}: check role serveur manquant`)
+    return
+  }
+
+  for (const role of roles) {
+    if (!query.includes(`'${role}'`)) failures.push(`${name}: role ${role} absent du check serveur`)
+  }
+}
+
 const queryNames = Array.from(source.matchAll(/\bquery\s+([A-Za-z0-9_]+)/g), match => match[1])
 for (const name of queryNames) requireAuth(name)
 
@@ -55,6 +73,7 @@ const broadListLimits = new Map([
   ['ListDocumentsAttaches', 1000],
   ['ListPrevisionnelLinesByExercise', 300],
   ['ListPrevisionnelCellEdits', 10000],
+  ['ListPlanningJobSheetsByEvent', 50],
 ])
 
 for (const [name, max] of broadListLimits) requireLimit(name, max)
@@ -64,6 +83,15 @@ requirePattern('ListDocumentsByChantier', /where:\s*\{\s*chantierId:\s*\{\s*eq:\
 requirePattern('GetCurrentUser', /id_expr:\s*"auth\.uid"/, 'lecture utilisateur courant non bornee a auth.uid')
 requirePattern('ListOperationalClients', /where:\s*\{\s*origineImport:\s*\{\s*eq:\s*"operationnel"\s*\}/, 'filtre origineImport operationnel manquant')
 requirePattern('ListOperationalChantiers', /where:\s*\{\s*origineImport:\s*\{\s*eq:\s*"operationnel"\s*\}/, 'filtre origineImport operationnel manquant')
+
+requireSqlUserRoleCheck('ListUsers', ['gerant', 'assistante', 'chef_chantier'])
+requireSqlUserRoleCheck('ListTeamProfileSubmissions', ['gerant'])
+requireSqlUserRoleCheck('ListSossonTeams', ['gerant', 'assistante', 'chef_chantier'])
+requireSqlUserRoleCheck('ListSossonWorkTimeEntries', ['gerant', 'assistante', 'chef_chantier'])
+requireSqlUserRoleCheck('ListSossonPayrollPeriods', ['gerant', 'assistante'])
+requireSqlUserRoleCheck('ListPlanningEventsByPeriod', ['gerant', 'assistante', 'chef_chantier'])
+requireSqlUserRoleCheck('ListPlanningEventsByChantier', ['gerant', 'assistante', 'chef_chantier'])
+requireSqlUserRoleCheck('ListPlanningJobSheetsByEvent', ['gerant', 'assistante', 'chef_chantier'])
 
 if (failures.length > 0) {
   console.error('Garde-fou queries SQL Connect KO:')

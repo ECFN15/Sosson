@@ -19,6 +19,11 @@ You can also follow the instructions from the [Data Connect documentation](https
 - [**Queries**](#queries)
   - [*GetCurrentUser*](#getcurrentuser)
   - [*ListUsers*](#listusers)
+  - [*GetCurrentTeamProfileSubmission*](#getcurrentteamprofilesubmission)
+  - [*ListTeamProfileSubmissions*](#listteamprofilesubmissions)
+  - [*ListSossonTeams*](#listsossonteams)
+  - [*ListSossonWorkTimeEntries*](#listsossonworktimeentries)
+  - [*ListSossonPayrollPeriods*](#listsossonpayrollperiods)
   - [*ListOperationalClients*](#listoperationalclients)
   - [*GetClient*](#getclient)
   - [*ListOperationalChantiers*](#listoperationalchantiers)
@@ -36,10 +41,12 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*SearchClientAliases*](#searchclientaliases)
   - [*ListPrevisionnelCellEdits*](#listprevisionnelcelledits)
   - [*ListEmailThreads*](#listemailthreads)
+  - [*ListEmailThreadsByChantier*](#listemailthreadsbychantier)
   - [*ListUnreadEmailThreads*](#listunreademailthreads)
   - [*GetEmailThread*](#getemailthread)
   - [*ListPlanningEventsByPeriod*](#listplanningeventsbyperiod)
   - [*ListPlanningEventsByChantier*](#listplanningeventsbychantier)
+  - [*ListPlanningJobSheetsByEvent*](#listplanningjobsheetsbyevent)
   - [*ListAnalyticsSnapshots*](#listanalyticssnapshots)
   - [*GetAnalyticsSnapshot*](#getanalyticssnapshot)
   - [*ListRapports*](#listrapports)
@@ -51,6 +58,18 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*ListDataImportRuns*](#listdataimportruns)
   - [*GetDataImportRun*](#getdataimportrun)
 - [**Mutations**](#mutations)
+  - [*SubmitCurrentTeamProfile*](#submitcurrentteamprofile)
+  - [*ConvertTeamProfileSubmission*](#convertteamprofilesubmission)
+  - [*CreateSossonTeam*](#createsossonteam)
+  - [*UpdateSossonTeam*](#updatesossonteam)
+  - [*CreateSossonTeamMember*](#createsossonteammember)
+  - [*UpdateSossonTeamMember*](#updatesossonteammember)
+  - [*CreateSossonTeamLeavePeriod*](#createsossonteamleaveperiod)
+  - [*CreateSossonWorkTimeEntry*](#createsossonworktimeentry)
+  - [*CreateSossonPayrollPeriod*](#createsossonpayrollperiod)
+  - [*CreatePlanningJobSheet*](#createplanningjobsheet)
+  - [*UpdatePlanningJobSheetProgress*](#updateplanningjobsheetprogress)
+  - [*CompletePlanningJobSheet*](#completeplanningjobsheet)
   - [*CreateClient*](#createclient)
   - [*UpdateClient*](#updateclient)
   - [*CreateChantier*](#createchantier)
@@ -206,6 +225,12 @@ export interface GetCurrentUserData {
     nom: string;
     prenom: string;
     role: string;
+    profilStatut?: string | null;
+    equipeTypeSouhaite?: string | null;
+    equipeFinaleId?: string | null;
+    poste?: string | null;
+    telephone?: string | null;
+    sourceConnexion?: string | null;
     avatar?: string | null;
   } & User_Key;
 }
@@ -282,6 +307,12 @@ export interface ListUsersData {
     nom: string;
     prenom: string;
     role: string;
+    profilStatut?: string | null;
+    equipeTypeSouhaite?: string | null;
+    equipeFinaleId?: string | null;
+    poste?: string | null;
+    telephone?: string | null;
+    sourceConnexion?: string | null;
     avatar?: string | null;
     dateCreation: TimestampString;
   } & User_Key)[];
@@ -327,6 +358,548 @@ export default function ListUsersComponent() {
   // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
   if (query.isSuccess) {
     console.log(query.data.users);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## GetCurrentTeamProfileSubmission
+You can execute the `GetCurrentTeamProfileSubmission` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useGetCurrentTeamProfileSubmission(dc: DataConnect, options?: useDataConnectQueryOptions<GetCurrentTeamProfileSubmissionData>): UseDataConnectQueryResult<GetCurrentTeamProfileSubmissionData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useGetCurrentTeamProfileSubmission(options?: useDataConnectQueryOptions<GetCurrentTeamProfileSubmissionData>): UseDataConnectQueryResult<GetCurrentTeamProfileSubmissionData, undefined>;
+```
+
+### Variables
+The `GetCurrentTeamProfileSubmission` Query has no variables.
+### Return Type
+Recall that calling the `GetCurrentTeamProfileSubmission` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `GetCurrentTeamProfileSubmission` Query is of type `GetCurrentTeamProfileSubmissionData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface GetCurrentTeamProfileSubmissionData {
+  teamProfileSubmission?: {
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    requestedTeamType: string;
+    status: string;
+    sourceConnexion?: string | null;
+    convertedTeamId?: string | null;
+    convertedMemberId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: TimestampString | null;
+    reviewedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+  } & TeamProfileSubmission_Key;
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `GetCurrentTeamProfileSubmission`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useGetCurrentTeamProfileSubmission } from '@dataconnect/generated/react'
+
+export default function GetCurrentTeamProfileSubmissionComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useGetCurrentTeamProfileSubmission();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useGetCurrentTeamProfileSubmission(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetCurrentTeamProfileSubmission(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetCurrentTeamProfileSubmission(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.teamProfileSubmission);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListTeamProfileSubmissions
+You can execute the `ListTeamProfileSubmissions` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListTeamProfileSubmissions(dc: DataConnect, options?: useDataConnectQueryOptions<ListTeamProfileSubmissionsData>): UseDataConnectQueryResult<ListTeamProfileSubmissionsData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListTeamProfileSubmissions(options?: useDataConnectQueryOptions<ListTeamProfileSubmissionsData>): UseDataConnectQueryResult<ListTeamProfileSubmissionsData, undefined>;
+```
+
+### Variables
+The `ListTeamProfileSubmissions` Query has no variables.
+### Return Type
+Recall that calling the `ListTeamProfileSubmissions` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListTeamProfileSubmissions` Query is of type `ListTeamProfileSubmissionsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListTeamProfileSubmissionsData {
+  teamProfileSubmissions: ({
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    requestedTeamType: string;
+    status: string;
+    sourceConnexion?: string | null;
+    convertedTeamId?: string | null;
+    convertedMemberId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: TimestampString | null;
+    reviewedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+  } & TeamProfileSubmission_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListTeamProfileSubmissions`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useListTeamProfileSubmissions } from '@dataconnect/generated/react'
+
+export default function ListTeamProfileSubmissionsComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListTeamProfileSubmissions();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListTeamProfileSubmissions(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListTeamProfileSubmissions(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListTeamProfileSubmissions(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.teamProfileSubmissions);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListSossonTeams
+You can execute the `ListSossonTeams` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListSossonTeams(dc: DataConnect, options?: useDataConnectQueryOptions<ListSossonTeamsData>): UseDataConnectQueryResult<ListSossonTeamsData, undefined>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListSossonTeams(options?: useDataConnectQueryOptions<ListSossonTeamsData>): UseDataConnectQueryResult<ListSossonTeamsData, undefined>;
+```
+
+### Variables
+The `ListSossonTeams` Query has no variables.
+### Return Type
+Recall that calling the `ListSossonTeams` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListSossonTeams` Query is of type `ListSossonTeamsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListSossonTeamsData {
+  sossonTeams: ({
+    id: UUIDString;
+    code: string;
+    name: string;
+    type: string;
+    statut: string;
+    theme?: string | null;
+    leadName?: string | null;
+    description?: string | null;
+    activeSites?: string | null;
+    ordre?: number | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    members: ({
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      qualification?: string | null;
+      level?: string | null;
+      salaryGrossMonthly?: number | null;
+      contract?: string | null;
+      coefficient?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      status: string;
+      site?: string | null;
+      activeSites?: string | null;
+      responsibilities?: string | null;
+      permissions?: string | null;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+      user?: {
+        id: string;
+        nom: string;
+        prenom: string;
+        email: string;
+        role: string;
+        avatar?: string | null;
+      } & User_Key;
+        leaves: ({
+          id: UUIDString;
+          type: string;
+          month: string;
+          startDay: number;
+          endDay: number;
+          status: string;
+          note?: string | null;
+          dateCreation: TimestampString;
+        } & SossonTeamLeavePeriod_Key)[];
+    } & SossonTeamMember_Key)[];
+  } & SossonTeam_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListSossonTeams`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig } from '@dataconnect/generated';
+import { useListSossonTeams } from '@dataconnect/generated/react'
+
+export default function ListSossonTeamsComponent() {
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListSossonTeams();
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListSossonTeams(dataConnect);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListSossonTeams(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListSossonTeams(dataConnect, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.sossonTeams);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListSossonWorkTimeEntries
+You can execute the `ListSossonWorkTimeEntries` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListSossonWorkTimeEntries(dc: DataConnect, vars: ListSossonWorkTimeEntriesVariables, options?: useDataConnectQueryOptions<ListSossonWorkTimeEntriesData>): UseDataConnectQueryResult<ListSossonWorkTimeEntriesData, ListSossonWorkTimeEntriesVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListSossonWorkTimeEntries(vars: ListSossonWorkTimeEntriesVariables, options?: useDataConnectQueryOptions<ListSossonWorkTimeEntriesData>): UseDataConnectQueryResult<ListSossonWorkTimeEntriesData, ListSossonWorkTimeEntriesVariables>;
+```
+
+### Variables
+The `ListSossonWorkTimeEntries` Query requires an argument of type `ListSossonWorkTimeEntriesVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListSossonWorkTimeEntriesVariables {
+  startDate: DateString;
+  endDate: DateString;
+}
+```
+### Return Type
+Recall that calling the `ListSossonWorkTimeEntries` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListSossonWorkTimeEntries` Query is of type `ListSossonWorkTimeEntriesData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListSossonWorkTimeEntriesData {
+  sossonWorkTimeEntries: ({
+    id: UUIDString;
+    workDate: DateString;
+    hours: number;
+    kind: string;
+    status: string;
+    notes?: string | null;
+    dateCreation: TimestampString;
+    member: {
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      team: {
+        id: UUIDString;
+        name: string;
+        code: string;
+        type: string;
+      } & SossonTeam_Key;
+    } & SossonTeamMember_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+        } & Client_Key;
+      } & Chantier_Key;
+        planningEvent?: {
+          id: UUIDString;
+          titre: string;
+          startAt: TimestampString;
+          endAt: TimestampString;
+          statut: string;
+        } & PlanningEvent_Key;
+          planningAssignment?: {
+            id: UUIDString;
+            statut: string;
+            assignmentRole?: string | null;
+          } & PlanningAssignment_Key;
+            jobSheet?: {
+              id: UUIDString;
+              titre: string;
+              statut: string;
+            } & PlanningJobSheet_Key;
+              approvedBy?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+              } & User_Key;
+  } & SossonWorkTimeEntry_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListSossonWorkTimeEntries`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListSossonWorkTimeEntriesVariables } from '@dataconnect/generated';
+import { useListSossonWorkTimeEntries } from '@dataconnect/generated/react'
+
+export default function ListSossonWorkTimeEntriesComponent() {
+  // The `useListSossonWorkTimeEntries` Query hook requires an argument of type `ListSossonWorkTimeEntriesVariables`:
+  const listSossonWorkTimeEntriesVars: ListSossonWorkTimeEntriesVariables = {
+    startDate: ..., 
+    endDate: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListSossonWorkTimeEntries(listSossonWorkTimeEntriesVars);
+  // Variables can be defined inline as well.
+  const query = useListSossonWorkTimeEntries({ startDate: ..., endDate: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListSossonWorkTimeEntries(dataConnect, listSossonWorkTimeEntriesVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListSossonWorkTimeEntries(listSossonWorkTimeEntriesVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListSossonWorkTimeEntries(dataConnect, listSossonWorkTimeEntriesVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.sossonWorkTimeEntries);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListSossonPayrollPeriods
+You can execute the `ListSossonPayrollPeriods` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListSossonPayrollPeriods(dc: DataConnect, vars: ListSossonPayrollPeriodsVariables, options?: useDataConnectQueryOptions<ListSossonPayrollPeriodsData>): UseDataConnectQueryResult<ListSossonPayrollPeriodsData, ListSossonPayrollPeriodsVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListSossonPayrollPeriods(vars: ListSossonPayrollPeriodsVariables, options?: useDataConnectQueryOptions<ListSossonPayrollPeriodsData>): UseDataConnectQueryResult<ListSossonPayrollPeriodsData, ListSossonPayrollPeriodsVariables>;
+```
+
+### Variables
+The `ListSossonPayrollPeriods` Query requires an argument of type `ListSossonPayrollPeriodsVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListSossonPayrollPeriodsVariables {
+  year: number;
+}
+```
+### Return Type
+Recall that calling the `ListSossonPayrollPeriods` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListSossonPayrollPeriods` Query is of type `ListSossonPayrollPeriodsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListSossonPayrollPeriodsData {
+  sossonPayrollPeriods: ({
+    id: UUIDString;
+    periodLabel: string;
+    year: number;
+    month: number;
+    baseSalaryGrossMonthly?: number | null;
+    overtimeHours?: number | null;
+    paidLeaveDays?: number | null;
+    absenceDays?: number | null;
+    grossEstimate?: number | null;
+    status: string;
+    notes?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    member: {
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      team: {
+        id: UUIDString;
+        name: string;
+        code: string;
+        type: string;
+      } & SossonTeam_Key;
+    } & SossonTeamMember_Key;
+  } & SossonPayrollPeriod_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListSossonPayrollPeriods`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListSossonPayrollPeriodsVariables } from '@dataconnect/generated';
+import { useListSossonPayrollPeriods } from '@dataconnect/generated/react'
+
+export default function ListSossonPayrollPeriodsComponent() {
+  // The `useListSossonPayrollPeriods` Query hook requires an argument of type `ListSossonPayrollPeriodsVariables`:
+  const listSossonPayrollPeriodsVars: ListSossonPayrollPeriodsVariables = {
+    year: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListSossonPayrollPeriods(listSossonPayrollPeriodsVars);
+  // Variables can be defined inline as well.
+  const query = useListSossonPayrollPeriods({ year: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListSossonPayrollPeriods(dataConnect, listSossonPayrollPeriodsVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListSossonPayrollPeriods(listSossonPayrollPeriodsVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListSossonPayrollPeriods(dataConnect, listSossonPayrollPeriodsVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.sossonPayrollPeriods);
   }
   return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -2127,6 +2700,120 @@ export default function ListEmailThreadsComponent() {
 }
 ```
 
+## ListEmailThreadsByChantier
+You can execute the `ListEmailThreadsByChantier` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListEmailThreadsByChantier(dc: DataConnect, vars: ListEmailThreadsByChantierVariables, options?: useDataConnectQueryOptions<ListEmailThreadsByChantierData>): UseDataConnectQueryResult<ListEmailThreadsByChantierData, ListEmailThreadsByChantierVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListEmailThreadsByChantier(vars: ListEmailThreadsByChantierVariables, options?: useDataConnectQueryOptions<ListEmailThreadsByChantierData>): UseDataConnectQueryResult<ListEmailThreadsByChantierData, ListEmailThreadsByChantierVariables>;
+```
+
+### Variables
+The `ListEmailThreadsByChantier` Query requires an argument of type `ListEmailThreadsByChantierVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListEmailThreadsByChantierVariables {
+  chantierId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `ListEmailThreadsByChantier` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListEmailThreadsByChantier` Query is of type `ListEmailThreadsByChantierData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListEmailThreadsByChantierData {
+  emailThreads: ({
+    id: UUIDString;
+    provider: string;
+    externalThreadId: string;
+    subject: string;
+    statut: string;
+    importance?: string | null;
+    lastMessageAt: TimestampString;
+    participantsSummary?: string | null;
+    messageCount: number;
+    hasAttachments: boolean;
+    dateModification: TimestampString;
+    client?: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+        } & Client_Key;
+      } & Chantier_Key;
+        assignedTo?: {
+          id: string;
+          nom: string;
+          prenom: string;
+          avatar?: string | null;
+        } & User_Key;
+  } & EmailThread_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListEmailThreadsByChantier`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListEmailThreadsByChantierVariables } from '@dataconnect/generated';
+import { useListEmailThreadsByChantier } from '@dataconnect/generated/react'
+
+export default function ListEmailThreadsByChantierComponent() {
+  // The `useListEmailThreadsByChantier` Query hook requires an argument of type `ListEmailThreadsByChantierVariables`:
+  const listEmailThreadsByChantierVars: ListEmailThreadsByChantierVariables = {
+    chantierId: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListEmailThreadsByChantier(listEmailThreadsByChantierVars);
+  // Variables can be defined inline as well.
+  const query = useListEmailThreadsByChantier({ chantierId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListEmailThreadsByChantier(dataConnect, listEmailThreadsByChantierVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListEmailThreadsByChantier(listEmailThreadsByChantierVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListEmailThreadsByChantier(dataConnect, listEmailThreadsByChantierVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.emailThreads);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
 ## ListUnreadEmailThreads
 You can execute the `ListUnreadEmailThreads` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
 
@@ -2439,14 +3126,102 @@ export interface ListPlanningEventsByPeriodData {
             assignmentRole?: string | null;
             statut: string;
             notes?: string | null;
-            user?: {
-              id: string;
-              nom: string;
-              prenom: string;
-              avatar?: string | null;
-              role: string;
-            } & User_Key;
+            sossonTeam?: {
+              id: UUIDString;
+              code: string;
+              name: string;
+              type: string;
+              theme?: string | null;
+            } & SossonTeam_Key;
+              user?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+                role: string;
+              } & User_Key;
           } & PlanningAssignment_Key)[];
+            jobSheetsByPeriod: ({
+              id: UUIDString;
+              titre: string;
+              statut: string;
+              instructions?: string | null;
+              plannedHours?: number | null;
+              actualHours?: number | null;
+              checklist?: string | null;
+              materials?: string | null;
+              blockers?: string | null;
+              completionNotes?: string | null;
+              proofStoragePath?: string | null;
+              proofSha256?: string | null;
+              reportStoragePath?: string | null;
+              reportSha256?: string | null;
+              completedAt?: TimestampString | null;
+              validatedAt?: TimestampString | null;
+              dateModification: TimestampString;
+              dateCreation: TimestampString;
+              assignment?: {
+                id: UUIDString;
+                statut: string;
+                assignmentRole?: string | null;
+              } & PlanningAssignment_Key;
+                chantier?: {
+                  id: UUIDString;
+                  nom: string;
+                  statut: string;
+                } & Chantier_Key;
+                  sossonTeam?: {
+                    id: UUIDString;
+                    code: string;
+                    name: string;
+                    type: string;
+                    theme?: string | null;
+                  } & SossonTeam_Key;
+                    leadMember?: {
+                      id: UUIDString;
+                      firstName: string;
+                      lastName: string;
+                      title: string;
+                    } & SossonTeamMember_Key;
+                      preparedBy?: {
+                        id: string;
+                        nom: string;
+                        prenom: string;
+                        avatar?: string | null;
+                      } & User_Key;
+                        updatedBy?: {
+                          id: string;
+                          nom: string;
+                          prenom: string;
+                          avatar?: string | null;
+                        } & User_Key;
+                          completedBy?: {
+                            id: string;
+                            nom: string;
+                            prenom: string;
+                            avatar?: string | null;
+                          } & User_Key;
+                            validatedBy?: {
+                              id: string;
+                              nom: string;
+                              prenom: string;
+                              avatar?: string | null;
+                            } & User_Key;
+                              workTimesByPeriodJobSheet: ({
+                                id: UUIDString;
+                                workDate: DateString;
+                                hours: number;
+                                kind: string;
+                                status: string;
+                                notes?: string | null;
+                                member: {
+                                  id: UUIDString;
+                                  firstName: string;
+                                  lastName: string;
+                                  title: string;
+                                } & SossonTeamMember_Key;
+                              } & SossonWorkTimeEntry_Key)[];
+            } & PlanningJobSheet_Key)[];
   } & PlanningEvent_Key)[];
 }
 ```
@@ -2543,14 +3318,48 @@ export interface ListPlanningEventsByChantierData {
       id: UUIDString;
       assignmentRole?: string | null;
       statut: string;
-      user?: {
-        id: string;
-        nom: string;
-        prenom: string;
-        avatar?: string | null;
-        role: string;
-      } & User_Key;
+      sossonTeam?: {
+        id: UUIDString;
+        code: string;
+        name: string;
+        type: string;
+        theme?: string | null;
+      } & SossonTeam_Key;
+        user?: {
+          id: string;
+          nom: string;
+          prenom: string;
+          avatar?: string | null;
+          role: string;
+        } & User_Key;
     } & PlanningAssignment_Key)[];
+      jobSheetsByChantier: ({
+        id: UUIDString;
+        titre: string;
+        statut: string;
+        instructions?: string | null;
+        plannedHours?: number | null;
+        actualHours?: number | null;
+        completionNotes?: string | null;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+        } & Chantier_Key;
+          sossonTeam?: {
+            id: UUIDString;
+            code: string;
+            name: string;
+            type: string;
+            theme?: string | null;
+          } & SossonTeam_Key;
+            leadMember?: {
+              id: UUIDString;
+              firstName: string;
+              lastName: string;
+              title: string;
+            } & SossonTeamMember_Key;
+      } & PlanningJobSheet_Key)[];
   } & PlanningEvent_Key)[];
 }
 ```
@@ -2601,6 +3410,175 @@ export default function ListPlanningEventsByChantierComponent() {
   // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
   if (query.isSuccess) {
     console.log(query.data.planningEvents);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListPlanningJobSheetsByEvent
+You can execute the `ListPlanningJobSheetsByEvent` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListPlanningJobSheetsByEvent(dc: DataConnect, vars: ListPlanningJobSheetsByEventVariables, options?: useDataConnectQueryOptions<ListPlanningJobSheetsByEventData>): UseDataConnectQueryResult<ListPlanningJobSheetsByEventData, ListPlanningJobSheetsByEventVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListPlanningJobSheetsByEvent(vars: ListPlanningJobSheetsByEventVariables, options?: useDataConnectQueryOptions<ListPlanningJobSheetsByEventData>): UseDataConnectQueryResult<ListPlanningJobSheetsByEventData, ListPlanningJobSheetsByEventVariables>;
+```
+
+### Variables
+The `ListPlanningJobSheetsByEvent` Query requires an argument of type `ListPlanningJobSheetsByEventVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListPlanningJobSheetsByEventVariables {
+  eventId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `ListPlanningJobSheetsByEvent` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListPlanningJobSheetsByEvent` Query is of type `ListPlanningJobSheetsByEventData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListPlanningJobSheetsByEventData {
+  planningJobSheets: ({
+    id: UUIDString;
+    titre: string;
+    statut: string;
+    instructions?: string | null;
+    plannedHours?: number | null;
+    actualHours?: number | null;
+    checklist?: string | null;
+    materials?: string | null;
+    blockers?: string | null;
+    completionNotes?: string | null;
+    proofStoragePath?: string | null;
+    proofSha256?: string | null;
+    reportStoragePath?: string | null;
+    reportSha256?: string | null;
+    completedAt?: TimestampString | null;
+    validatedAt?: TimestampString | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    event: {
+      id: UUIDString;
+      titre: string;
+      startAt: TimestampString;
+      endAt: TimestampString;
+      statut: string;
+    } & PlanningEvent_Key;
+      assignment?: {
+        id: UUIDString;
+        statut: string;
+        assignmentRole?: string | null;
+      } & PlanningAssignment_Key;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+        } & Chantier_Key;
+          sossonTeam?: {
+            id: UUIDString;
+            code: string;
+            name: string;
+            type: string;
+            theme?: string | null;
+          } & SossonTeam_Key;
+            leadMember?: {
+              id: UUIDString;
+              firstName: string;
+              lastName: string;
+              title: string;
+            } & SossonTeamMember_Key;
+              preparedBy?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+              } & User_Key;
+                updatedBy?: {
+                  id: string;
+                  nom: string;
+                  prenom: string;
+                  avatar?: string | null;
+                } & User_Key;
+                  completedBy?: {
+                    id: string;
+                    nom: string;
+                    prenom: string;
+                    avatar?: string | null;
+                  } & User_Key;
+                    validatedBy?: {
+                      id: string;
+                      nom: string;
+                      prenom: string;
+                      avatar?: string | null;
+                    } & User_Key;
+                      workTimesByEventJobSheet: ({
+                        id: UUIDString;
+                        workDate: DateString;
+                        hours: number;
+                        kind: string;
+                        status: string;
+                        notes?: string | null;
+                        member: {
+                          id: UUIDString;
+                          firstName: string;
+                          lastName: string;
+                          title: string;
+                        } & SossonTeamMember_Key;
+                      } & SossonWorkTimeEntry_Key)[];
+  } & PlanningJobSheet_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListPlanningJobSheetsByEvent`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListPlanningJobSheetsByEventVariables } from '@dataconnect/generated';
+import { useListPlanningJobSheetsByEvent } from '@dataconnect/generated/react'
+
+export default function ListPlanningJobSheetsByEventComponent() {
+  // The `useListPlanningJobSheetsByEvent` Query hook requires an argument of type `ListPlanningJobSheetsByEventVariables`:
+  const listPlanningJobSheetsByEventVars: ListPlanningJobSheetsByEventVariables = {
+    eventId: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListPlanningJobSheetsByEvent(listPlanningJobSheetsByEventVars);
+  // Variables can be defined inline as well.
+  const query = useListPlanningJobSheetsByEvent({ eventId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListPlanningJobSheetsByEvent(dataConnect, listPlanningJobSheetsByEventVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPlanningJobSheetsByEvent(listPlanningJobSheetsByEventVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPlanningJobSheetsByEvent(dataConnect, listPlanningJobSheetsByEventVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.planningJobSheets);
   }
   return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -3772,6 +4750,1403 @@ Here's a general overview of how to use the generated Mutation hooks in your cod
   - ***Special case:*** If the Mutation has no arguments (or all optional arguments and you wish to provide none), and you want to pass `options` to `UseMutationResult.mutate()`, you must pass `undefined` where you would normally pass the Mutation's arguments, and then may provide the options argument.
 
 Below are examples of how to use the `sosson` connector's generated Mutation hook functions to execute each Mutation. You can also follow the examples from the [Data Connect documentation](https://firebase.google.com/docs/data-connect/web-sdk#operations-react-angular).
+
+## SubmitCurrentTeamProfile
+You can execute the `SubmitCurrentTeamProfile` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useSubmitCurrentTeamProfile(options?: useDataConnectMutationOptions<SubmitCurrentTeamProfileData, FirebaseError, SubmitCurrentTeamProfileVariables>): UseDataConnectMutationResult<SubmitCurrentTeamProfileData, SubmitCurrentTeamProfileVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useSubmitCurrentTeamProfile(dc: DataConnect, options?: useDataConnectMutationOptions<SubmitCurrentTeamProfileData, FirebaseError, SubmitCurrentTeamProfileVariables>): UseDataConnectMutationResult<SubmitCurrentTeamProfileData, SubmitCurrentTeamProfileVariables>;
+```
+
+### Variables
+The `SubmitCurrentTeamProfile` Mutation requires an argument of type `SubmitCurrentTeamProfileVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface SubmitCurrentTeamProfileVariables {
+  email: string;
+  nom: string;
+  prenom: string;
+  requestedTeamType: string;
+  sourceConnexion?: string | null;
+}
+```
+### Return Type
+Recall that calling the `SubmitCurrentTeamProfile` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `SubmitCurrentTeamProfile` Mutation is of type `SubmitCurrentTeamProfileData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface SubmitCurrentTeamProfileData {
+  teamProfileSubmission_upsert: TeamProfileSubmission_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `SubmitCurrentTeamProfile`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, SubmitCurrentTeamProfileVariables } from '@dataconnect/generated';
+import { useSubmitCurrentTeamProfile } from '@dataconnect/generated/react'
+
+export default function SubmitCurrentTeamProfileComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useSubmitCurrentTeamProfile();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useSubmitCurrentTeamProfile(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useSubmitCurrentTeamProfile(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useSubmitCurrentTeamProfile(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useSubmitCurrentTeamProfile` Mutation requires an argument of type `SubmitCurrentTeamProfileVariables`:
+  const submitCurrentTeamProfileVars: SubmitCurrentTeamProfileVariables = {
+    email: ..., 
+    nom: ..., 
+    prenom: ..., 
+    requestedTeamType: ..., 
+    sourceConnexion: ..., // optional
+  };
+  mutation.mutate(submitCurrentTeamProfileVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ email: ..., nom: ..., prenom: ..., requestedTeamType: ..., sourceConnexion: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(submitCurrentTeamProfileVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.teamProfileSubmission_upsert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ConvertTeamProfileSubmission
+You can execute the `ConvertTeamProfileSubmission` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useConvertTeamProfileSubmission(options?: useDataConnectMutationOptions<ConvertTeamProfileSubmissionData, FirebaseError, ConvertTeamProfileSubmissionVariables>): UseDataConnectMutationResult<ConvertTeamProfileSubmissionData, ConvertTeamProfileSubmissionVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useConvertTeamProfileSubmission(dc: DataConnect, options?: useDataConnectMutationOptions<ConvertTeamProfileSubmissionData, FirebaseError, ConvertTeamProfileSubmissionVariables>): UseDataConnectMutationResult<ConvertTeamProfileSubmissionData, ConvertTeamProfileSubmissionVariables>;
+```
+
+### Variables
+The `ConvertTeamProfileSubmission` Mutation requires an argument of type `ConvertTeamProfileSubmissionVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ConvertTeamProfileSubmissionVariables {
+  id: string;
+  email: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  avatar?: string | null;
+  equipeTypeSouhaite?: string | null;
+  equipeFinaleId?: string | null;
+  poste?: string | null;
+  telephone?: string | null;
+  sourceConnexion?: string | null;
+  convertedMemberId?: string | null;
+  reviewNote?: string | null;
+}
+```
+### Return Type
+Recall that calling the `ConvertTeamProfileSubmission` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `ConvertTeamProfileSubmission` Mutation is of type `ConvertTeamProfileSubmissionData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ConvertTeamProfileSubmissionData {
+  query?: {
+  };
+    user_upsert: User_Key;
+    teamProfileSubmission_update?: TeamProfileSubmission_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `ConvertTeamProfileSubmission`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ConvertTeamProfileSubmissionVariables } from '@dataconnect/generated';
+import { useConvertTeamProfileSubmission } from '@dataconnect/generated/react'
+
+export default function ConvertTeamProfileSubmissionComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useConvertTeamProfileSubmission();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useConvertTeamProfileSubmission(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useConvertTeamProfileSubmission(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useConvertTeamProfileSubmission(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useConvertTeamProfileSubmission` Mutation requires an argument of type `ConvertTeamProfileSubmissionVariables`:
+  const convertTeamProfileSubmissionVars: ConvertTeamProfileSubmissionVariables = {
+    id: ..., 
+    email: ..., 
+    nom: ..., 
+    prenom: ..., 
+    role: ..., 
+    avatar: ..., // optional
+    equipeTypeSouhaite: ..., // optional
+    equipeFinaleId: ..., // optional
+    poste: ..., // optional
+    telephone: ..., // optional
+    sourceConnexion: ..., // optional
+    convertedMemberId: ..., // optional
+    reviewNote: ..., // optional
+  };
+  mutation.mutate(convertTeamProfileSubmissionVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., email: ..., nom: ..., prenom: ..., role: ..., avatar: ..., equipeTypeSouhaite: ..., equipeFinaleId: ..., poste: ..., telephone: ..., sourceConnexion: ..., convertedMemberId: ..., reviewNote: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(convertTeamProfileSubmissionVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.user_upsert);
+    console.log(mutation.data.teamProfileSubmission_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateSossonTeam
+You can execute the `CreateSossonTeam` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateSossonTeam(options?: useDataConnectMutationOptions<CreateSossonTeamData, FirebaseError, CreateSossonTeamVariables>): UseDataConnectMutationResult<CreateSossonTeamData, CreateSossonTeamVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateSossonTeam(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSossonTeamData, FirebaseError, CreateSossonTeamVariables>): UseDataConnectMutationResult<CreateSossonTeamData, CreateSossonTeamVariables>;
+```
+
+### Variables
+The `CreateSossonTeam` Mutation requires an argument of type `CreateSossonTeamVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateSossonTeamVariables {
+  code: string;
+  name: string;
+  type: string;
+  statut: string;
+  theme?: string | null;
+  leadName?: string | null;
+  description?: string | null;
+  activeSites?: string | null;
+  ordre?: number | null;
+}
+```
+### Return Type
+Recall that calling the `CreateSossonTeam` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateSossonTeam` Mutation is of type `CreateSossonTeamData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateSossonTeamData {
+  query?: {
+  };
+    sossonTeam_insert: SossonTeam_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateSossonTeam`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateSossonTeamVariables } from '@dataconnect/generated';
+import { useCreateSossonTeam } from '@dataconnect/generated/react'
+
+export default function CreateSossonTeamComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateSossonTeam();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateSossonTeam(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonTeam(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonTeam(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateSossonTeam` Mutation requires an argument of type `CreateSossonTeamVariables`:
+  const createSossonTeamVars: CreateSossonTeamVariables = {
+    code: ..., 
+    name: ..., 
+    type: ..., 
+    statut: ..., 
+    theme: ..., // optional
+    leadName: ..., // optional
+    description: ..., // optional
+    activeSites: ..., // optional
+    ordre: ..., // optional
+  };
+  mutation.mutate(createSossonTeamVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ code: ..., name: ..., type: ..., statut: ..., theme: ..., leadName: ..., description: ..., activeSites: ..., ordre: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createSossonTeamVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonTeam_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateSossonTeam
+You can execute the `UpdateSossonTeam` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateSossonTeam(options?: useDataConnectMutationOptions<UpdateSossonTeamData, FirebaseError, UpdateSossonTeamVariables>): UseDataConnectMutationResult<UpdateSossonTeamData, UpdateSossonTeamVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateSossonTeam(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateSossonTeamData, FirebaseError, UpdateSossonTeamVariables>): UseDataConnectMutationResult<UpdateSossonTeamData, UpdateSossonTeamVariables>;
+```
+
+### Variables
+The `UpdateSossonTeam` Mutation requires an argument of type `UpdateSossonTeamVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateSossonTeamVariables {
+  id: UUIDString;
+  name?: string | null;
+  type?: string | null;
+  statut?: string | null;
+  theme?: string | null;
+  leadName?: string | null;
+  description?: string | null;
+  activeSites?: string | null;
+  ordre?: number | null;
+}
+```
+### Return Type
+Recall that calling the `UpdateSossonTeam` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateSossonTeam` Mutation is of type `UpdateSossonTeamData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateSossonTeamData {
+  query?: {
+  };
+    sossonTeam_update?: SossonTeam_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateSossonTeam`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateSossonTeamVariables } from '@dataconnect/generated';
+import { useUpdateSossonTeam } from '@dataconnect/generated/react'
+
+export default function UpdateSossonTeamComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateSossonTeam();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateSossonTeam(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateSossonTeam(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateSossonTeam(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateSossonTeam` Mutation requires an argument of type `UpdateSossonTeamVariables`:
+  const updateSossonTeamVars: UpdateSossonTeamVariables = {
+    id: ..., 
+    name: ..., // optional
+    type: ..., // optional
+    statut: ..., // optional
+    theme: ..., // optional
+    leadName: ..., // optional
+    description: ..., // optional
+    activeSites: ..., // optional
+    ordre: ..., // optional
+  };
+  mutation.mutate(updateSossonTeamVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., name: ..., type: ..., statut: ..., theme: ..., leadName: ..., description: ..., activeSites: ..., ordre: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateSossonTeamVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonTeam_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateSossonTeamMember
+You can execute the `CreateSossonTeamMember` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateSossonTeamMember(options?: useDataConnectMutationOptions<CreateSossonTeamMemberData, FirebaseError, CreateSossonTeamMemberVariables>): UseDataConnectMutationResult<CreateSossonTeamMemberData, CreateSossonTeamMemberVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateSossonTeamMember(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSossonTeamMemberData, FirebaseError, CreateSossonTeamMemberVariables>): UseDataConnectMutationResult<CreateSossonTeamMemberData, CreateSossonTeamMemberVariables>;
+```
+
+### Variables
+The `CreateSossonTeamMember` Mutation requires an argument of type `CreateSossonTeamMemberVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateSossonTeamMemberVariables {
+  teamId: UUIDString;
+  userId?: string | null;
+  firstName: string;
+  lastName: string;
+  title: string;
+  qualification?: string | null;
+  level?: string | null;
+  salaryGrossMonthly?: number | null;
+  contract?: string | null;
+  coefficient?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  status: string;
+  site?: string | null;
+  activeSites?: string | null;
+  responsibilities?: string | null;
+  permissions?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateSossonTeamMember` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateSossonTeamMember` Mutation is of type `CreateSossonTeamMemberData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateSossonTeamMemberData {
+  query?: {
+  };
+    sossonTeamMember_insert: SossonTeamMember_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateSossonTeamMember`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateSossonTeamMemberVariables } from '@dataconnect/generated';
+import { useCreateSossonTeamMember } from '@dataconnect/generated/react'
+
+export default function CreateSossonTeamMemberComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateSossonTeamMember();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateSossonTeamMember(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonTeamMember(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonTeamMember(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateSossonTeamMember` Mutation requires an argument of type `CreateSossonTeamMemberVariables`:
+  const createSossonTeamMemberVars: CreateSossonTeamMemberVariables = {
+    teamId: ..., 
+    userId: ..., // optional
+    firstName: ..., 
+    lastName: ..., 
+    title: ..., 
+    qualification: ..., // optional
+    level: ..., // optional
+    salaryGrossMonthly: ..., // optional
+    contract: ..., // optional
+    coefficient: ..., // optional
+    email: ..., // optional
+    phone: ..., // optional
+    status: ..., 
+    site: ..., // optional
+    activeSites: ..., // optional
+    responsibilities: ..., // optional
+    permissions: ..., // optional
+  };
+  mutation.mutate(createSossonTeamMemberVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ teamId: ..., userId: ..., firstName: ..., lastName: ..., title: ..., qualification: ..., level: ..., salaryGrossMonthly: ..., contract: ..., coefficient: ..., email: ..., phone: ..., status: ..., site: ..., activeSites: ..., responsibilities: ..., permissions: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createSossonTeamMemberVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonTeamMember_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateSossonTeamMember
+You can execute the `UpdateSossonTeamMember` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateSossonTeamMember(options?: useDataConnectMutationOptions<UpdateSossonTeamMemberData, FirebaseError, UpdateSossonTeamMemberVariables>): UseDataConnectMutationResult<UpdateSossonTeamMemberData, UpdateSossonTeamMemberVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateSossonTeamMember(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateSossonTeamMemberData, FirebaseError, UpdateSossonTeamMemberVariables>): UseDataConnectMutationResult<UpdateSossonTeamMemberData, UpdateSossonTeamMemberVariables>;
+```
+
+### Variables
+The `UpdateSossonTeamMember` Mutation requires an argument of type `UpdateSossonTeamMemberVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateSossonTeamMemberVariables {
+  id: UUIDString;
+  teamId?: UUIDString | null;
+  userId?: string | null;
+  title?: string | null;
+  qualification?: string | null;
+  level?: string | null;
+  salaryGrossMonthly?: number | null;
+  contract?: string | null;
+  coefficient?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  site?: string | null;
+  activeSites?: string | null;
+  responsibilities?: string | null;
+  permissions?: string | null;
+}
+```
+### Return Type
+Recall that calling the `UpdateSossonTeamMember` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateSossonTeamMember` Mutation is of type `UpdateSossonTeamMemberData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateSossonTeamMemberData {
+  query?: {
+  };
+    sossonTeamMember_update?: SossonTeamMember_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateSossonTeamMember`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateSossonTeamMemberVariables } from '@dataconnect/generated';
+import { useUpdateSossonTeamMember } from '@dataconnect/generated/react'
+
+export default function UpdateSossonTeamMemberComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateSossonTeamMember();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateSossonTeamMember(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateSossonTeamMember(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateSossonTeamMember(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateSossonTeamMember` Mutation requires an argument of type `UpdateSossonTeamMemberVariables`:
+  const updateSossonTeamMemberVars: UpdateSossonTeamMemberVariables = {
+    id: ..., 
+    teamId: ..., // optional
+    userId: ..., // optional
+    title: ..., // optional
+    qualification: ..., // optional
+    level: ..., // optional
+    salaryGrossMonthly: ..., // optional
+    contract: ..., // optional
+    coefficient: ..., // optional
+    phone: ..., // optional
+    status: ..., // optional
+    site: ..., // optional
+    activeSites: ..., // optional
+    responsibilities: ..., // optional
+    permissions: ..., // optional
+  };
+  mutation.mutate(updateSossonTeamMemberVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., teamId: ..., userId: ..., title: ..., qualification: ..., level: ..., salaryGrossMonthly: ..., contract: ..., coefficient: ..., phone: ..., status: ..., site: ..., activeSites: ..., responsibilities: ..., permissions: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateSossonTeamMemberVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonTeamMember_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateSossonTeamLeavePeriod
+You can execute the `CreateSossonTeamLeavePeriod` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateSossonTeamLeavePeriod(options?: useDataConnectMutationOptions<CreateSossonTeamLeavePeriodData, FirebaseError, CreateSossonTeamLeavePeriodVariables>): UseDataConnectMutationResult<CreateSossonTeamLeavePeriodData, CreateSossonTeamLeavePeriodVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateSossonTeamLeavePeriod(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSossonTeamLeavePeriodData, FirebaseError, CreateSossonTeamLeavePeriodVariables>): UseDataConnectMutationResult<CreateSossonTeamLeavePeriodData, CreateSossonTeamLeavePeriodVariables>;
+```
+
+### Variables
+The `CreateSossonTeamLeavePeriod` Mutation requires an argument of type `CreateSossonTeamLeavePeriodVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateSossonTeamLeavePeriodVariables {
+  memberId: UUIDString;
+  type: string;
+  month: string;
+  startDay: number;
+  endDay: number;
+  status: string;
+  note?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateSossonTeamLeavePeriod` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateSossonTeamLeavePeriod` Mutation is of type `CreateSossonTeamLeavePeriodData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateSossonTeamLeavePeriodData {
+  query?: {
+  };
+    sossonTeamLeavePeriod_insert: SossonTeamLeavePeriod_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateSossonTeamLeavePeriod`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateSossonTeamLeavePeriodVariables } from '@dataconnect/generated';
+import { useCreateSossonTeamLeavePeriod } from '@dataconnect/generated/react'
+
+export default function CreateSossonTeamLeavePeriodComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateSossonTeamLeavePeriod();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateSossonTeamLeavePeriod(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonTeamLeavePeriod(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonTeamLeavePeriod(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateSossonTeamLeavePeriod` Mutation requires an argument of type `CreateSossonTeamLeavePeriodVariables`:
+  const createSossonTeamLeavePeriodVars: CreateSossonTeamLeavePeriodVariables = {
+    memberId: ..., 
+    type: ..., 
+    month: ..., 
+    startDay: ..., 
+    endDay: ..., 
+    status: ..., 
+    note: ..., // optional
+  };
+  mutation.mutate(createSossonTeamLeavePeriodVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ memberId: ..., type: ..., month: ..., startDay: ..., endDay: ..., status: ..., note: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createSossonTeamLeavePeriodVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonTeamLeavePeriod_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateSossonWorkTimeEntry
+You can execute the `CreateSossonWorkTimeEntry` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateSossonWorkTimeEntry(options?: useDataConnectMutationOptions<CreateSossonWorkTimeEntryData, FirebaseError, CreateSossonWorkTimeEntryVariables>): UseDataConnectMutationResult<CreateSossonWorkTimeEntryData, CreateSossonWorkTimeEntryVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateSossonWorkTimeEntry(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSossonWorkTimeEntryData, FirebaseError, CreateSossonWorkTimeEntryVariables>): UseDataConnectMutationResult<CreateSossonWorkTimeEntryData, CreateSossonWorkTimeEntryVariables>;
+```
+
+### Variables
+The `CreateSossonWorkTimeEntry` Mutation requires an argument of type `CreateSossonWorkTimeEntryVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateSossonWorkTimeEntryVariables {
+  memberId: UUIDString;
+  chantierId?: UUIDString | null;
+  planningEventId?: UUIDString | null;
+  planningAssignmentId?: UUIDString | null;
+  jobSheetId?: UUIDString | null;
+  workDate: DateString;
+  hours: number;
+  kind: string;
+  status: string;
+  notes?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateSossonWorkTimeEntry` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateSossonWorkTimeEntry` Mutation is of type `CreateSossonWorkTimeEntryData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateSossonWorkTimeEntryData {
+  query?: {
+  };
+    sossonWorkTimeEntry_insert: SossonWorkTimeEntry_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateSossonWorkTimeEntry`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateSossonWorkTimeEntryVariables } from '@dataconnect/generated';
+import { useCreateSossonWorkTimeEntry } from '@dataconnect/generated/react'
+
+export default function CreateSossonWorkTimeEntryComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateSossonWorkTimeEntry();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateSossonWorkTimeEntry(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonWorkTimeEntry(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonWorkTimeEntry(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateSossonWorkTimeEntry` Mutation requires an argument of type `CreateSossonWorkTimeEntryVariables`:
+  const createSossonWorkTimeEntryVars: CreateSossonWorkTimeEntryVariables = {
+    memberId: ..., 
+    chantierId: ..., // optional
+    planningEventId: ..., // optional
+    planningAssignmentId: ..., // optional
+    jobSheetId: ..., // optional
+    workDate: ..., 
+    hours: ..., 
+    kind: ..., 
+    status: ..., 
+    notes: ..., // optional
+  };
+  mutation.mutate(createSossonWorkTimeEntryVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ memberId: ..., chantierId: ..., planningEventId: ..., planningAssignmentId: ..., jobSheetId: ..., workDate: ..., hours: ..., kind: ..., status: ..., notes: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createSossonWorkTimeEntryVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonWorkTimeEntry_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateSossonPayrollPeriod
+You can execute the `CreateSossonPayrollPeriod` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateSossonPayrollPeriod(options?: useDataConnectMutationOptions<CreateSossonPayrollPeriodData, FirebaseError, CreateSossonPayrollPeriodVariables>): UseDataConnectMutationResult<CreateSossonPayrollPeriodData, CreateSossonPayrollPeriodVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateSossonPayrollPeriod(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSossonPayrollPeriodData, FirebaseError, CreateSossonPayrollPeriodVariables>): UseDataConnectMutationResult<CreateSossonPayrollPeriodData, CreateSossonPayrollPeriodVariables>;
+```
+
+### Variables
+The `CreateSossonPayrollPeriod` Mutation requires an argument of type `CreateSossonPayrollPeriodVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateSossonPayrollPeriodVariables {
+  memberId: UUIDString;
+  periodLabel: string;
+  year: number;
+  month: number;
+  baseSalaryGrossMonthly?: number | null;
+  overtimeHours?: number | null;
+  paidLeaveDays?: number | null;
+  absenceDays?: number | null;
+  grossEstimate?: number | null;
+  status: string;
+  notes?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateSossonPayrollPeriod` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateSossonPayrollPeriod` Mutation is of type `CreateSossonPayrollPeriodData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateSossonPayrollPeriodData {
+  query?: {
+  };
+    sossonPayrollPeriod_insert: SossonPayrollPeriod_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateSossonPayrollPeriod`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateSossonPayrollPeriodVariables } from '@dataconnect/generated';
+import { useCreateSossonPayrollPeriod } from '@dataconnect/generated/react'
+
+export default function CreateSossonPayrollPeriodComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateSossonPayrollPeriod();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateSossonPayrollPeriod(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonPayrollPeriod(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateSossonPayrollPeriod(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateSossonPayrollPeriod` Mutation requires an argument of type `CreateSossonPayrollPeriodVariables`:
+  const createSossonPayrollPeriodVars: CreateSossonPayrollPeriodVariables = {
+    memberId: ..., 
+    periodLabel: ..., 
+    year: ..., 
+    month: ..., 
+    baseSalaryGrossMonthly: ..., // optional
+    overtimeHours: ..., // optional
+    paidLeaveDays: ..., // optional
+    absenceDays: ..., // optional
+    grossEstimate: ..., // optional
+    status: ..., 
+    notes: ..., // optional
+  };
+  mutation.mutate(createSossonPayrollPeriodVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ memberId: ..., periodLabel: ..., year: ..., month: ..., baseSalaryGrossMonthly: ..., overtimeHours: ..., paidLeaveDays: ..., absenceDays: ..., grossEstimate: ..., status: ..., notes: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createSossonPayrollPeriodVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.sossonPayrollPeriod_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreatePlanningJobSheet
+You can execute the `CreatePlanningJobSheet` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreatePlanningJobSheet(options?: useDataConnectMutationOptions<CreatePlanningJobSheetData, FirebaseError, CreatePlanningJobSheetVariables>): UseDataConnectMutationResult<CreatePlanningJobSheetData, CreatePlanningJobSheetVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreatePlanningJobSheet(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePlanningJobSheetData, FirebaseError, CreatePlanningJobSheetVariables>): UseDataConnectMutationResult<CreatePlanningJobSheetData, CreatePlanningJobSheetVariables>;
+```
+
+### Variables
+The `CreatePlanningJobSheet` Mutation requires an argument of type `CreatePlanningJobSheetVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreatePlanningJobSheetVariables {
+  eventId: UUIDString;
+  assignmentId?: UUIDString | null;
+  chantierId?: UUIDString | null;
+  sossonTeamId?: UUIDString | null;
+  leadMemberId?: UUIDString | null;
+  titre: string;
+  statut: string;
+  instructions?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  checklist?: string | null;
+  materials?: string | null;
+  blockers?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreatePlanningJobSheet` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreatePlanningJobSheet` Mutation is of type `CreatePlanningJobSheetData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreatePlanningJobSheetData {
+  query?: {
+  };
+    planningJobSheet_insert: PlanningJobSheet_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreatePlanningJobSheet`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreatePlanningJobSheetVariables } from '@dataconnect/generated';
+import { useCreatePlanningJobSheet } from '@dataconnect/generated/react'
+
+export default function CreatePlanningJobSheetComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreatePlanningJobSheet();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreatePlanningJobSheet(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreatePlanningJobSheet(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreatePlanningJobSheet(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreatePlanningJobSheet` Mutation requires an argument of type `CreatePlanningJobSheetVariables`:
+  const createPlanningJobSheetVars: CreatePlanningJobSheetVariables = {
+    eventId: ..., 
+    assignmentId: ..., // optional
+    chantierId: ..., // optional
+    sossonTeamId: ..., // optional
+    leadMemberId: ..., // optional
+    titre: ..., 
+    statut: ..., 
+    instructions: ..., // optional
+    plannedHours: ..., // optional
+    actualHours: ..., // optional
+    checklist: ..., // optional
+    materials: ..., // optional
+    blockers: ..., // optional
+  };
+  mutation.mutate(createPlanningJobSheetVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ eventId: ..., assignmentId: ..., chantierId: ..., sossonTeamId: ..., leadMemberId: ..., titre: ..., statut: ..., instructions: ..., plannedHours: ..., actualHours: ..., checklist: ..., materials: ..., blockers: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createPlanningJobSheetVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.planningJobSheet_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdatePlanningJobSheetProgress
+You can execute the `UpdatePlanningJobSheetProgress` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdatePlanningJobSheetProgress(options?: useDataConnectMutationOptions<UpdatePlanningJobSheetProgressData, FirebaseError, UpdatePlanningJobSheetProgressVariables>): UseDataConnectMutationResult<UpdatePlanningJobSheetProgressData, UpdatePlanningJobSheetProgressVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdatePlanningJobSheetProgress(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePlanningJobSheetProgressData, FirebaseError, UpdatePlanningJobSheetProgressVariables>): UseDataConnectMutationResult<UpdatePlanningJobSheetProgressData, UpdatePlanningJobSheetProgressVariables>;
+```
+
+### Variables
+The `UpdatePlanningJobSheetProgress` Mutation requires an argument of type `UpdatePlanningJobSheetProgressVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdatePlanningJobSheetProgressVariables {
+  id: UUIDString;
+  statut: string;
+  instructions?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  checklist?: string | null;
+  materials?: string | null;
+  blockers?: string | null;
+  completionNotes?: string | null;
+  proofStoragePath?: string | null;
+  proofSha256?: string | null;
+  reportStoragePath?: string | null;
+  reportSha256?: string | null;
+}
+```
+### Return Type
+Recall that calling the `UpdatePlanningJobSheetProgress` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdatePlanningJobSheetProgress` Mutation is of type `UpdatePlanningJobSheetProgressData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdatePlanningJobSheetProgressData {
+  query?: {
+  };
+    planningJobSheet_update?: PlanningJobSheet_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdatePlanningJobSheetProgress`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdatePlanningJobSheetProgressVariables } from '@dataconnect/generated';
+import { useUpdatePlanningJobSheetProgress } from '@dataconnect/generated/react'
+
+export default function UpdatePlanningJobSheetProgressComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdatePlanningJobSheetProgress();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdatePlanningJobSheetProgress(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdatePlanningJobSheetProgress(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdatePlanningJobSheetProgress(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdatePlanningJobSheetProgress` Mutation requires an argument of type `UpdatePlanningJobSheetProgressVariables`:
+  const updatePlanningJobSheetProgressVars: UpdatePlanningJobSheetProgressVariables = {
+    id: ..., 
+    statut: ..., 
+    instructions: ..., // optional
+    plannedHours: ..., // optional
+    actualHours: ..., // optional
+    checklist: ..., // optional
+    materials: ..., // optional
+    blockers: ..., // optional
+    completionNotes: ..., // optional
+    proofStoragePath: ..., // optional
+    proofSha256: ..., // optional
+    reportStoragePath: ..., // optional
+    reportSha256: ..., // optional
+  };
+  mutation.mutate(updatePlanningJobSheetProgressVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., statut: ..., instructions: ..., plannedHours: ..., actualHours: ..., checklist: ..., materials: ..., blockers: ..., completionNotes: ..., proofStoragePath: ..., proofSha256: ..., reportStoragePath: ..., reportSha256: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updatePlanningJobSheetProgressVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.planningJobSheet_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CompletePlanningJobSheet
+You can execute the `CompletePlanningJobSheet` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCompletePlanningJobSheet(options?: useDataConnectMutationOptions<CompletePlanningJobSheetData, FirebaseError, CompletePlanningJobSheetVariables>): UseDataConnectMutationResult<CompletePlanningJobSheetData, CompletePlanningJobSheetVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCompletePlanningJobSheet(dc: DataConnect, options?: useDataConnectMutationOptions<CompletePlanningJobSheetData, FirebaseError, CompletePlanningJobSheetVariables>): UseDataConnectMutationResult<CompletePlanningJobSheetData, CompletePlanningJobSheetVariables>;
+```
+
+### Variables
+The `CompletePlanningJobSheet` Mutation requires an argument of type `CompletePlanningJobSheetVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CompletePlanningJobSheetVariables {
+  id: UUIDString;
+  actualHours?: number | null;
+  completionNotes?: string | null;
+  proofStoragePath?: string | null;
+  proofSha256?: string | null;
+  reportStoragePath?: string | null;
+  reportSha256?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CompletePlanningJobSheet` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CompletePlanningJobSheet` Mutation is of type `CompletePlanningJobSheetData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CompletePlanningJobSheetData {
+  query?: {
+  };
+    planningJobSheet_update?: PlanningJobSheet_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CompletePlanningJobSheet`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CompletePlanningJobSheetVariables } from '@dataconnect/generated';
+import { useCompletePlanningJobSheet } from '@dataconnect/generated/react'
+
+export default function CompletePlanningJobSheetComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCompletePlanningJobSheet();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCompletePlanningJobSheet(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCompletePlanningJobSheet(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCompletePlanningJobSheet(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCompletePlanningJobSheet` Mutation requires an argument of type `CompletePlanningJobSheetVariables`:
+  const completePlanningJobSheetVars: CompletePlanningJobSheetVariables = {
+    id: ..., 
+    actualHours: ..., // optional
+    completionNotes: ..., // optional
+    proofStoragePath: ..., // optional
+    proofSha256: ..., // optional
+    reportStoragePath: ..., // optional
+    reportSha256: ..., // optional
+  };
+  mutation.mutate(completePlanningJobSheetVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., actualHours: ..., completionNotes: ..., proofStoragePath: ..., proofSha256: ..., reportStoragePath: ..., reportSha256: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(completePlanningJobSheetVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.planningJobSheet_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
 
 ## CreateClient
 You can execute the `CreateClient` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
@@ -6014,8 +8389,6 @@ export interface CreatePlanningEventVariables {
   endAt: TimestampString;
   location?: string | null;
   notes?: string | null;
-  createdById?: string | null;
-  updatedById?: string | null;
 }
 ```
 ### Return Type
@@ -6075,12 +8448,10 @@ export default function CreatePlanningEventComponent() {
     endAt: ..., 
     location: ..., // optional
     notes: ..., // optional
-    createdById: ..., // optional
-    updatedById: ..., // optional
   };
   mutation.mutate(createPlanningEventVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ chantierId: ..., titre: ..., eventType: ..., statut: ..., startAt: ..., endAt: ..., location: ..., notes: ..., createdById: ..., updatedById: ..., });
+  mutation.mutate({ chantierId: ..., titre: ..., eventType: ..., statut: ..., startAt: ..., endAt: ..., location: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -6123,7 +8494,6 @@ The `UpdatePlanningEventStatus` Mutation requires an argument of type `UpdatePla
 export interface UpdatePlanningEventStatusVariables {
   id: UUIDString;
   statut: string;
-  updatedById?: string | null;
 }
 ```
 ### Return Type
@@ -6177,11 +8547,10 @@ export default function UpdatePlanningEventStatusComponent() {
   const updatePlanningEventStatusVars: UpdatePlanningEventStatusVariables = {
     id: ..., 
     statut: ..., 
-    updatedById: ..., // optional
   };
   mutation.mutate(updatePlanningEventStatusVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ id: ..., statut: ..., updatedById: ..., });
+  mutation.mutate({ id: ..., statut: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -6231,7 +8600,6 @@ export interface UpdatePlanningEventDetailsVariables {
   endAt: TimestampString;
   location?: string | null;
   notes?: string | null;
-  updatedById?: string | null;
 }
 ```
 ### Return Type
@@ -6292,11 +8660,10 @@ export default function UpdatePlanningEventDetailsComponent() {
     endAt: ..., 
     location: ..., // optional
     notes: ..., // optional
-    updatedById: ..., // optional
   };
   mutation.mutate(updatePlanningEventDetailsVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ id: ..., chantierId: ..., titre: ..., eventType: ..., statut: ..., startAt: ..., endAt: ..., location: ..., notes: ..., updatedById: ..., });
+  mutation.mutate({ id: ..., chantierId: ..., titre: ..., eventType: ..., statut: ..., startAt: ..., endAt: ..., location: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -6339,7 +8706,6 @@ The `CancelPlanningEvent` Mutation requires an argument of type `CancelPlanningE
 export interface CancelPlanningEventVariables {
   id: UUIDString;
   notes?: string | null;
-  updatedById?: string | null;
 }
 ```
 ### Return Type
@@ -6393,11 +8759,10 @@ export default function CancelPlanningEventComponent() {
   const cancelPlanningEventVars: CancelPlanningEventVariables = {
     id: ..., 
     notes: ..., // optional
-    updatedById: ..., // optional
   };
   mutation.mutate(cancelPlanningEventVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ id: ..., notes: ..., updatedById: ..., });
+  mutation.mutate({ id: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -6440,6 +8805,7 @@ The `CreatePlanningAssignment` Mutation requires an argument of type `CreatePlan
 export interface CreatePlanningAssignmentVariables {
   eventId: UUIDString;
   userId?: string | null;
+  sossonTeamId?: UUIDString | null;
   assignmentRole?: string | null;
   statut: string;
   notes?: string | null;
@@ -6496,13 +8862,14 @@ export default function CreatePlanningAssignmentComponent() {
   const createPlanningAssignmentVars: CreatePlanningAssignmentVariables = {
     eventId: ..., 
     userId: ..., // optional
+    sossonTeamId: ..., // optional
     assignmentRole: ..., // optional
     statut: ..., 
     notes: ..., // optional
   };
   mutation.mutate(createPlanningAssignmentVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ eventId: ..., userId: ..., assignmentRole: ..., statut: ..., notes: ..., });
+  mutation.mutate({ eventId: ..., userId: ..., sossonTeamId: ..., assignmentRole: ..., statut: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -6658,7 +9025,6 @@ export interface CreateAnalyticsSnapshotVariables {
   payloadPath?: string | null;
   payloadHash?: string | null;
   sourceWatermark?: string | null;
-  createdById?: string | null;
 }
 ```
 ### Return Type
@@ -6724,11 +9090,10 @@ export default function CreateAnalyticsSnapshotComponent() {
     payloadPath: ..., // optional
     payloadHash: ..., // optional
     sourceWatermark: ..., // optional
-    createdById: ..., // optional
   };
   mutation.mutate(createAnalyticsSnapshotVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ environment: ..., snapshotType: ..., scopeType: ..., scopeId: ..., periodStart: ..., periodEnd: ..., status: ..., totalCaPrevision: ..., totalCaRealise: ..., totalFacturesTtc: ..., totalMarge: ..., payloadPath: ..., payloadHash: ..., sourceWatermark: ..., createdById: ..., });
+  mutation.mutate({ environment: ..., snapshotType: ..., scopeType: ..., scopeId: ..., periodStart: ..., periodEnd: ..., status: ..., totalCaPrevision: ..., totalCaRealise: ..., totalFacturesTtc: ..., totalMarge: ..., payloadPath: ..., payloadHash: ..., sourceWatermark: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -6770,7 +9135,6 @@ The `CreateRapport` Mutation requires an argument of type `CreateRapportVariable
 ```javascript
 export interface CreateRapportVariables {
   snapshotId?: UUIDString | null;
-  authorId?: string | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
   titre: string;
@@ -6835,7 +9199,6 @@ export default function CreateRapportComponent() {
   // The `useCreateRapport` Mutation requires an argument of type `CreateRapportVariables`:
   const createRapportVars: CreateRapportVariables = {
     snapshotId: ..., // optional
-    authorId: ..., // optional
     clientId: ..., // optional
     chantierId: ..., // optional
     titre: ..., 
@@ -6851,7 +9214,7 @@ export default function CreateRapportComponent() {
   };
   mutation.mutate(createRapportVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ snapshotId: ..., authorId: ..., clientId: ..., chantierId: ..., titre: ..., rapportType: ..., statut: ..., periodeDebut: ..., periodeFin: ..., format: ..., storagePath: ..., sha256: ..., summary: ..., generatedAt: ..., });
+  mutation.mutate({ snapshotId: ..., clientId: ..., chantierId: ..., titre: ..., rapportType: ..., statut: ..., periodeDebut: ..., periodeFin: ..., format: ..., storagePath: ..., sha256: ..., summary: ..., generatedAt: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {

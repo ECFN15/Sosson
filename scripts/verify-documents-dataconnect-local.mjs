@@ -13,6 +13,7 @@ import {
   createFacture,
   listDocumentFolders,
   listDocumentsAttaches,
+  listDocumentsByChantier,
 } from '@dataconnect/admin-generated'
 
 const EMULATOR_HOST = '127.0.0.1'
@@ -216,19 +217,22 @@ const invoiceDocumentResponse = await createDocumentAttache(
 )
 const invoiceDocumentId = invoiceDocumentResponse.data.documentAttache_insert.id
 
-const [documentsRead, foldersRead] = await Promise.all([
+const [documentsRead, foldersRead, documentsByChantierRead] = await Promise.all([
   listDocumentsAttaches(dc, options),
   listDocumentFolders(dc, options),
+  listDocumentsByChantier(dc, { chantierId }, options),
 ])
 
 const readBack = documentsRead.data.documentAttaches.find(document => document.id === documentId)
 const invoiceReadBack = documentsRead.data.documentAttaches.find(document => document.id === invoiceDocumentId)
+const invoiceByChantierBack = documentsByChantierRead.data.documentAttaches.find(document => document.id === invoiceDocumentId)
 const folderBack = foldersRead.data.documentFolders.find(folder => folder.id === folderId)
 
 assert(folderBack, 'DocumentFolder cree introuvable via ListDocumentFolders.')
 assert(readBack, 'DocumentAttache cree introuvable via ListDocumentsAttaches.')
 assert(invoiceReadBack, 'DocumentAttache facture cree introuvable via ListDocumentsAttaches.')
 assert(readBack.folder?.id === folderId, 'Lien DocumentAttache -> DocumentFolder non relu.')
+assert(invoiceByChantierBack, 'DocumentAttache facture introuvable via ListDocumentsByChantier.')
 assert(readBack.storagePath === storagePath, 'storagePath document non relu.')
 assert(readBack.sha256 === contentHash, 'sha256 document non relu.')
 assert(readBack.tailleBytes === Buffer.byteLength(content, 'utf8'), 'tailleBytes document non relue.')
@@ -239,6 +243,8 @@ assert(invoiceReadBack.storagePath === invoiceStoragePath, 'storagePath document
 assert(invoiceReadBack.sha256 === invoiceContentHash, 'sha256 document facture non relu.')
 assert(invoiceReadBack.typeDocument === 'facture', 'typeDocument facture non relu.')
 assert(invoiceReadBack.statut === 'lie', 'statut document facture non relu.')
+assert(invoiceByChantierBack.chantier?.id === chantierId, 'Filtre ListDocumentsByChantier ne relit pas le chantier direct du document.')
+assert(invoiceByChantierBack.facture?.id === factureId, 'ListDocumentsByChantier ne relit pas le lien facture du document.')
 
 const proof = {
   mode: 'local-emulator',
@@ -250,6 +256,7 @@ const proof = {
   folderId,
   documentId,
   invoiceDocumentId,
+  documentsByChantierCount: documentsByChantierRead.data.documentAttaches.length,
   readBack: {
     found: true,
     folderLinked: readBack.folder?.id === folderId,
@@ -262,6 +269,7 @@ const proof = {
   },
   invoiceReadBack: {
     found: true,
+    listedByChantier: true,
     factureLinked: invoiceReadBack.facture?.id === factureId,
     chantierLinked: invoiceReadBack.chantier?.id === chantierId || invoiceReadBack.facture?.chantier?.id === chantierId,
     storagePath: invoiceReadBack.storagePath,

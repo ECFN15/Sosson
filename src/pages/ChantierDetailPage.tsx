@@ -28,8 +28,8 @@ import { operationalPrevisionnelLines } from '@/lib/previsionnelModel'
 import { categoryLabels as previsionnelCategoryLabels } from '@/lib/previsionnelAnalytics'
 import { updateChantierStatutInSql } from '@/features/operations/operationalAdapters'
 import { useOperationalData } from '@/features/operations/useOperationalData'
-import { loadDocumentsSqlData } from '@/features/documents/documentSql'
-import { loadEmailThreadsFromSql } from '@/features/email/emailSql'
+import { loadDocumentsByChantierFromSql } from '@/features/documents/documentSql'
+import { loadEmailThreadsByChantierFromSql } from '@/features/email/emailSql'
 import { loadPlanningEventsByChantierFromSql } from '@/features/planning/planningSql'
 import type { CategorieDepense } from '@/data/factures'
 import type { Chantier } from '@/data/chantiers'
@@ -96,7 +96,7 @@ const categoryColor: Record<CategorieDepense, string> = {
   autre: '#F2E8DC',
 }
 
-type SqlEmailThread = Awaited<ReturnType<typeof loadEmailThreadsFromSql>>[number]
+type SqlEmailThread = Awaited<ReturnType<typeof loadEmailThreadsByChantierFromSql>>[number]
 type SqlPlanningEvent = Awaited<ReturnType<typeof loadPlanningEventsByChantierFromSql>>[number]
 
 type ActivityItem = {
@@ -278,12 +278,13 @@ export function ChantierDetailPage() {
     }
 
     let isMounted = true
+    const chantierId = chantier.id
 
     async function loadDocuments() {
       try {
-        const sqlData = await loadDocumentsSqlData()
+        const documentsForChantier = await loadDocumentsByChantierFromSql({ chantierId })
         if (!isMounted) return
-        setDocuments(sqlData.documents)
+        setDocuments(documentsForChantier)
         setDocumentError('')
       } catch (error) {
         console.info('Documents SQL Connect indisponibles sur la fiche chantier.', error)
@@ -301,15 +302,16 @@ export function ChantierDetailPage() {
   }, [canReadSqlModules, chantier?.id])
 
   useEffect(() => {
-    if (!canReadSqlModules) {
+    if (!canReadSqlModules || !chantier?.id) {
       return
     }
 
     let isMounted = true
+    const chantierId = chantier.id
 
     async function loadEmails() {
       try {
-        const rows = await loadEmailThreadsFromSql()
+        const rows = await loadEmailThreadsByChantierFromSql({ chantierId })
         if (!isMounted) return
         setEmailThreads(rows)
         setEmailError('')
@@ -326,7 +328,7 @@ export function ChantierDetailPage() {
     return () => {
       isMounted = false
     }
-  }, [canReadSqlModules])
+  }, [canReadSqlModules, chantier?.id])
 
   useEffect(() => {
     if (!canReadSqlModules || !chantier?.id) {
@@ -414,14 +416,10 @@ export function ChantierDetailPage() {
   const visibleEmailError = canReadSqlModules ? emailError : ''
   const visiblePlanningError = canReadSqlModules ? planningError : ''
   const chantierDocuments = sortByDateDesc(
-    moduleDocuments.filter(document =>
-      document.chantierId === chantier.id ||
-      chantierFactures.some(facture => facture.id === document.factureId),
-    ),
+    moduleDocuments,
   )
   const chantierEmailThreads = sortByDateDesc(
     moduleEmailThreads
-      .filter(thread => thread.chantier?.id === chantier.id)
       .map(thread => ({
         ...thread,
         date: thread.lastMessageAt,
@@ -625,6 +623,9 @@ export function ChantierDetailPage() {
             </div>
             <p className="mt-2 text-[12px] leading-5 text-[#6B6B6B]">
               {sourceDetail} Les modules equipe, planning, echeances, documents, emails et activite ne s'affichent que si une donnee reliee au chantier existe.
+            </p>
+            <p className="mt-2 text-[12px] leading-5 text-[#D95B17]">
+              SQL lu par le front quand la source est Data Connect. Ce n'est pas un comptage sandbox distant. Cela ne prouve aucune donnee presente en SQL sandbox. Documents: exemples locaux si aucune metadata SQL n'est rattachee. Planning: apercu statique si aucune carte SQL n'est rattachee.
             </p>
             {(operationalError || visibleDocumentError || visibleEmailError || visiblePlanningError) && (
               <p className="mt-2 text-[12px] font-medium text-[#D95B17]">

@@ -202,7 +202,6 @@ const snapshotResponse = await createAnalyticsSnapshot(
     payloadPath,
     payloadHash,
     sourceWatermark,
-    createdById: actor.id,
   },
   options,
 )

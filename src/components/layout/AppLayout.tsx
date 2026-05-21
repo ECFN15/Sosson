@@ -10,7 +10,7 @@ import { getModuleMeta } from '@/lib/moduleMeta'
  * Sidebar anthracite fixe (gauche) + Topbar blanche (haut) + Outlet scrollable sur fond `paper-50`.
  */
 export function AppLayout() {
-  const { user, authInitializing, accessMatrix } = useApp()
+  const { user, authInitializing, authStatus, accessMatrix } = useApp()
   const location = useLocation()
   const moduleMeta = getModuleMeta(location.pathname)
   const ModuleIcon = moduleMeta.Icon
@@ -29,6 +29,8 @@ export function AppLayout() {
   }
 
   if (!user) {
+    if (authStatus === 'missing-profile') return <Navigate to="/complete-profile" replace state={{ from: `${location.pathname}${location.search}` }} />
+    if (authStatus === 'profile-pending') return <Navigate to="/profile-pending" replace />
     return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
   }
   if (!canAccessPath(user.role, location.pathname, accessMatrix)) {

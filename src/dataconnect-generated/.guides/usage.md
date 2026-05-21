@@ -12,28 +12,28 @@ For each operation, there is a wrapper hook that can be used to call the operati
 
 Here are all of the hooks that get generated:
 ```ts
-import { useCreateClient, useUpdateClient, useCreateChantier, useUpdateChantierStatut, useCreateDevis, useUpdateDevisStatut, useCreateFacture, useSetFactureStatut, useCreateDocumentFolder, useCreateDocumentAttache } from '@dataconnect/generated/react';
+import { useSubmitCurrentTeamProfile, useConvertTeamProfileSubmission, useCreateSossonTeam, useUpdateSossonTeam, useCreateSossonTeamMember, useUpdateSossonTeamMember, useCreateSossonTeamLeavePeriod, useCreateSossonWorkTimeEntry, useCreateSossonPayrollPeriod, useCreatePlanningJobSheet } from '@dataconnect/generated/react';
 // The types of these hooks are available in react/index.d.ts
 
-const { data, isPending, isSuccess, isError, error } = useCreateClient(createClientVars);
+const { data, isPending, isSuccess, isError, error } = useSubmitCurrentTeamProfile(submitCurrentTeamProfileVars);
 
-const { data, isPending, isSuccess, isError, error } = useUpdateClient(updateClientVars);
+const { data, isPending, isSuccess, isError, error } = useConvertTeamProfileSubmission(convertTeamProfileSubmissionVars);
 
-const { data, isPending, isSuccess, isError, error } = useCreateChantier(createChantierVars);
+const { data, isPending, isSuccess, isError, error } = useCreateSossonTeam(createSossonTeamVars);
 
-const { data, isPending, isSuccess, isError, error } = useUpdateChantierStatut(updateChantierStatutVars);
+const { data, isPending, isSuccess, isError, error } = useUpdateSossonTeam(updateSossonTeamVars);
 
-const { data, isPending, isSuccess, isError, error } = useCreateDevis(createDevisVars);
+const { data, isPending, isSuccess, isError, error } = useCreateSossonTeamMember(createSossonTeamMemberVars);
 
-const { data, isPending, isSuccess, isError, error } = useUpdateDevisStatut(updateDevisStatutVars);
+const { data, isPending, isSuccess, isError, error } = useUpdateSossonTeamMember(updateSossonTeamMemberVars);
 
-const { data, isPending, isSuccess, isError, error } = useCreateFacture(createFactureVars);
+const { data, isPending, isSuccess, isError, error } = useCreateSossonTeamLeavePeriod(createSossonTeamLeavePeriodVars);
 
-const { data, isPending, isSuccess, isError, error } = useSetFactureStatut(setFactureStatutVars);
+const { data, isPending, isSuccess, isError, error } = useCreateSossonWorkTimeEntry(createSossonWorkTimeEntryVars);
 
-const { data, isPending, isSuccess, isError, error } = useCreateDocumentFolder(createDocumentFolderVars);
+const { data, isPending, isSuccess, isError, error } = useCreateSossonPayrollPeriod(createSossonPayrollPeriodVars);
 
-const { data, isPending, isSuccess, isError, error } = useCreateDocumentAttache(createDocumentAttacheVars);
+const { data, isPending, isSuccess, isError, error } = useCreatePlanningJobSheet(createPlanningJobSheetVars);
 
 ```
 
@@ -72,38 +72,38 @@ If a user is not using a supported framework, they can use the generated SDK dir
 Here's an example of how to use it with the first 5 operations:
 
 ```js
-import { createClient, updateClient, createChantier, updateChantierStatut, createDevis, updateDevisStatut, createFacture, setFactureStatut, createDocumentFolder, createDocumentAttache } from '@dataconnect/generated';
+import { submitCurrentTeamProfile, convertTeamProfileSubmission, createSossonTeam, updateSossonTeam, createSossonTeamMember, updateSossonTeamMember, createSossonTeamLeavePeriod, createSossonWorkTimeEntry, createSossonPayrollPeriod, createPlanningJobSheet } from '@dataconnect/generated';
 
 
-// Operation CreateClient:  For variables, look at type CreateClientVars in ../index.d.ts
-const { data } = await CreateClient(dataConnect, createClientVars);
+// Operation SubmitCurrentTeamProfile:  For variables, look at type SubmitCurrentTeamProfileVars in ../index.d.ts
+const { data } = await SubmitCurrentTeamProfile(dataConnect, submitCurrentTeamProfileVars);
 
-// Operation UpdateClient:  For variables, look at type UpdateClientVars in ../index.d.ts
-const { data } = await UpdateClient(dataConnect, updateClientVars);
+// Operation ConvertTeamProfileSubmission:  For variables, look at type ConvertTeamProfileSubmissionVars in ../index.d.ts
+const { data } = await ConvertTeamProfileSubmission(dataConnect, convertTeamProfileSubmissionVars);
 
-// Operation CreateChantier:  For variables, look at type CreateChantierVars in ../index.d.ts
-const { data } = await CreateChantier(dataConnect, createChantierVars);
+// Operation CreateSossonTeam:  For variables, look at type CreateSossonTeamVars in ../index.d.ts
+const { data } = await CreateSossonTeam(dataConnect, createSossonTeamVars);
 
-// Operation UpdateChantierStatut:  For variables, look at type UpdateChantierStatutVars in ../index.d.ts
-const { data } = await UpdateChantierStatut(dataConnect, updateChantierStatutVars);
+// Operation UpdateSossonTeam:  For variables, look at type UpdateSossonTeamVars in ../index.d.ts
+const { data } = await UpdateSossonTeam(dataConnect, updateSossonTeamVars);
 
-// Operation CreateDevis:  For variables, look at type CreateDevisVars in ../index.d.ts
-const { data } = await CreateDevis(dataConnect, createDevisVars);
+// Operation CreateSossonTeamMember:  For variables, look at type CreateSossonTeamMemberVars in ../index.d.ts
+const { data } = await CreateSossonTeamMember(dataConnect, createSossonTeamMemberVars);
 
-// Operation UpdateDevisStatut:  For variables, look at type UpdateDevisStatutVars in ../index.d.ts
-const { data } = await UpdateDevisStatut(dataConnect, updateDevisStatutVars);
+// Operation UpdateSossonTeamMember:  For variables, look at type UpdateSossonTeamMemberVars in ../index.d.ts
+const { data } = await UpdateSossonTeamMember(dataConnect, updateSossonTeamMemberVars);
 
-// Operation CreateFacture:  For variables, look at type CreateFactureVars in ../index.d.ts
-const { data } = await CreateFacture(dataConnect, createFactureVars);
+// Operation CreateSossonTeamLeavePeriod:  For variables, look at type CreateSossonTeamLeavePeriodVars in ../index.d.ts
+const { data } = await CreateSossonTeamLeavePeriod(dataConnect, createSossonTeamLeavePeriodVars);
 
-// Operation SetFactureStatut:  For variables, look at type SetFactureStatutVars in ../index.d.ts
-const { data } = await SetFactureStatut(dataConnect, setFactureStatutVars);
+// Operation CreateSossonWorkTimeEntry:  For variables, look at type CreateSossonWorkTimeEntryVars in ../index.d.ts
+const { data } = await CreateSossonWorkTimeEntry(dataConnect, createSossonWorkTimeEntryVars);
 
-// Operation CreateDocumentFolder:  For variables, look at type CreateDocumentFolderVars in ../index.d.ts
-const { data } = await CreateDocumentFolder(dataConnect, createDocumentFolderVars);
+// Operation CreateSossonPayrollPeriod:  For variables, look at type CreateSossonPayrollPeriodVars in ../index.d.ts
+const { data } = await CreateSossonPayrollPeriod(dataConnect, createSossonPayrollPeriodVars);
 
-// Operation CreateDocumentAttache:  For variables, look at type CreateDocumentAttacheVars in ../index.d.ts
-const { data } = await CreateDocumentAttache(dataConnect, createDocumentAttacheVars);
+// Operation CreatePlanningJobSheet:  For variables, look at type CreatePlanningJobSheetVars in ../index.d.ts
+const { data } = await CreatePlanningJobSheet(dataConnect, createPlanningJobSheetVars);
 
 
 ```

@@ -6,8 +6,11 @@ import { getDataConnect } from 'firebase-admin/data-connect'
 import {
   cancelPlanningEvent,
   connectorConfig,
+  createChantier,
+  createClient,
   createPlanningAssignment,
   createPlanningEvent,
+  listPlanningEventsByChantier,
   listPlanningEventsByPeriod,
   updatePlanningEventDetails,
 } from '@dataconnect/admin-generated'
@@ -105,10 +108,42 @@ const periodEnd = '2026-02-04T23:59:59.999Z'
 
 await dc.upsert('User', actor)
 
+const clientResponse = await createClient(
+  dc,
+  {
+    type: 'professionnel',
+    nom: `Client planning local ${stamp}`,
+    email: 'client-planning@sosson.local',
+    telephone: null,
+    adresse: null,
+    ville: 'Local',
+    codePostal: '00000',
+  },
+  options,
+)
+const clientId = clientResponse.data.client_insert.id
+
+const chantierResponse = await createChantier(
+  dc,
+  {
+    clientId,
+    chefChantierId: null,
+    nom: `Chantier planning local ${stamp}`,
+    statut: 'en_cours',
+    dateDebut: '2026-02-01',
+    dateFinPrevue: '2026-03-01',
+    budgetPrevisionnel: 18000,
+    description: 'Prerequis local pour verifier le planning relie au detail chantier.',
+    adresse: 'Local',
+  },
+  options,
+)
+const chantierId = chantierResponse.data.chantier_insert.id
+
 const createResponse = await createPlanningEvent(
   dc,
   {
-    chantierId: null,
+    chantierId,
     titre: `Planning local ${stamp}`,
     eventType: 'charpente',
     statut: 'planned',
@@ -116,8 +151,6 @@ const createResponse = await createPlanningEvent(
     endAt: initialEndAt,
     location: 'Atelier',
     notes: 'Creation locale avant modification.',
-    createdById: actor.id,
-    updatedById: actor.id,
   },
   options,
 )
@@ -140,7 +173,7 @@ await updatePlanningEventDetails(
   dc,
   {
     id: eventId,
-    chantierId: null,
+    chantierId,
     titre: `Planning local modifie ${stamp}`,
     eventType: 'couverture',
     statut: 'blocked',
@@ -148,7 +181,6 @@ await updatePlanningEventDetails(
     endAt: updatedEndAt,
     location: 'Chantier test local',
     notes: 'Modification SQL relue via ListPlanningEventsByPeriod.',
-    updatedById: actor.id,
   },
   options,
 )
@@ -159,27 +191,35 @@ await cancelPlanningEvent(
   {
     id: eventId,
     notes: cancellationNotes,
-    updatedById: actor.id,
   },
   options,
 )
 
-const readResponse = await listPlanningEventsByPeriod(
-  dc,
-  {
-    startAt: periodStart,
-    endAt: periodEnd,
-  },
-  options,
-)
+const [readResponse, byChantierResponse] = await Promise.all([
+  listPlanningEventsByPeriod(
+    dc,
+    {
+      startAt: periodStart,
+      endAt: periodEnd,
+    },
+    options,
+  ),
+  listPlanningEventsByChantier(dc, { chantierId }, options),
+])
 const readBack = readResponse.data.planningEvents.find(event => event.id === eventId)
+const byChantierBack = byChantierResponse.data.planningEvents.find(event => event.id === eventId)
 
 assert(readBack, 'PlanningEvent cree puis modifie introuvable via ListPlanningEventsByPeriod.')
+assert(byChantierBack, 'PlanningEvent cree puis modifie introuvable via ListPlanningEventsByChantier.')
 assert(readBack.titre === `Planning local modifie ${stamp}`, 'Titre planning non modifie en SQL.')
 assert(readBack.eventType === 'couverture', 'Equipe/type planning non modifie en SQL.')
 assert(readBack.statut === 'cancelled', 'Annulation planning non enregistree en SQL.')
+assert(byChantierBack.statut === 'cancelled', 'Annulation planning non relue via ListPlanningEventsByChantier.')
+assert(readBack.chantier?.id === chantierId, 'Lien PlanningEvent -> Chantier non relu via ListPlanningEventsByPeriod.')
 assert(sameInstant(readBack.startAt, updatedStartAt), 'Debut planning non modifie en SQL.')
 assert(sameInstant(readBack.endAt, updatedEndAt), 'Fin planning non modifiee en SQL.')
+assert(sameInstant(byChantierBack.startAt, updatedStartAt), 'Debut planning non relu via ListPlanningEventsByChantier.')
+assert(sameInstant(byChantierBack.endAt, updatedEndAt), 'Fin planning non relue via ListPlanningEventsByChantier.')
 assert(readBack.location === 'Chantier test local', 'Lieu planning non modifie en SQL.')
 assert(readBack.notes === cancellationNotes, 'Notes d annulation planning non modifiees en SQL.')
 assert(readBack.updatedBy?.id === actor.id, 'updatedBy planning non renseigne avec le profil SQL local.')
@@ -187,19 +227,28 @@ assert(
   readBack.assignmentsByPeriod.some(assignment => assignment.id === assignmentId && assignment.assignmentRole === 'charpente'),
   'PlanningAssignment creee non relue avec l evenement planning.',
 )
+assert(
+  byChantierBack.assignmentsByChantier.some(assignment => assignment.id === assignmentId && assignment.assignmentRole === 'charpente'),
+  'PlanningAssignment creee non relue via ListPlanningEventsByChantier.',
+)
 
 const proof = {
   mode: 'local-emulator',
   mutatesData: true,
   generatedAt: new Date().toISOString(),
+  clientId,
+  chantierId,
   eventId,
   assignmentId,
+  planningEventsByChantierCount: byChantierResponse.data.planningEvents.length,
   readBack: {
     found: true,
+    listedByChantier: true,
     titre: readBack.titre,
     eventType: readBack.eventType,
     statut: readBack.statut,
     cancelledWithoutDelete: readBack.statut === 'cancelled',
+    chantierLinked: readBack.chantier?.id === chantierId,
     startAt: readBack.startAt,
     endAt: readBack.endAt,
     location: readBack.location,

@@ -49,6 +49,7 @@ Le checkpoint 001 confirme:
 | [14 - Audit completion objectif global](docs/14-objective-completion-audit.md) | Mapping exigence -> preuve -> manque pour eviter une fausse cloture. |
 | [15 - Execution sandbox checkpoint 002](docs/15-checkpoint-002-sandbox-execution.md) | Gabarit d'execution humaine des actions sandbox reelles. |
 | [16 - Audit SQL reel et architecture cible](docs/16-sql-architecture-target-audit.md) | Rapport SQL/front/previsionnel/checkpoints et plan de migration durable. |
+| [18 - Audit front et remapping SQL Connect](docs/18-front-sql-remapping-audit.md) | Cartographie page par page des donnees front, fallbacks et workflow SQL cible. |
 | [ADR](docs/adr/README.md) | Decisions structurantes. |
 
 ## Documentation visible dans l'application

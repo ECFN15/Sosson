@@ -27,7 +27,6 @@ export interface CancelPlanningEventData {
 export interface CancelPlanningEventVariables {
   id: UUIDString;
   notes?: string | null;
-  updatedById?: string | null;
 }
 
 export interface Chantier_Key {
@@ -65,6 +64,45 @@ export interface Client_Key {
   __typename?: 'Client_Key';
 }
 
+export interface CompletePlanningJobSheetData {
+  query?: {
+  };
+    planningJobSheet_update?: PlanningJobSheet_Key | null;
+}
+
+export interface CompletePlanningJobSheetVariables {
+  id: UUIDString;
+  actualHours?: number | null;
+  completionNotes?: string | null;
+  proofStoragePath?: string | null;
+  proofSha256?: string | null;
+  reportStoragePath?: string | null;
+  reportSha256?: string | null;
+}
+
+export interface ConvertTeamProfileSubmissionData {
+  query?: {
+  };
+    user_upsert: User_Key;
+    teamProfileSubmission_update?: TeamProfileSubmission_Key | null;
+}
+
+export interface ConvertTeamProfileSubmissionVariables {
+  id: string;
+  email: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  avatar?: string | null;
+  equipeTypeSouhaite?: string | null;
+  equipeFinaleId?: string | null;
+  poste?: string | null;
+  telephone?: string | null;
+  sourceConnexion?: string | null;
+  convertedMemberId?: string | null;
+  reviewNote?: string | null;
+}
+
 export interface CreateAnalyticsSnapshotData {
   query?: {
   };
@@ -86,7 +124,6 @@ export interface CreateAnalyticsSnapshotVariables {
   payloadPath?: string | null;
   payloadHash?: string | null;
   sourceWatermark?: string | null;
-  createdById?: string | null;
 }
 
 export interface CreateAuditEventData {
@@ -437,6 +474,7 @@ export interface CreatePlanningAssignmentData {
 export interface CreatePlanningAssignmentVariables {
   eventId: UUIDString;
   userId?: string | null;
+  sossonTeamId?: UUIDString | null;
   assignmentRole?: string | null;
   statut: string;
   notes?: string | null;
@@ -457,8 +495,28 @@ export interface CreatePlanningEventVariables {
   endAt: TimestampString;
   location?: string | null;
   notes?: string | null;
-  createdById?: string | null;
-  updatedById?: string | null;
+}
+
+export interface CreatePlanningJobSheetData {
+  query?: {
+  };
+    planningJobSheet_insert: PlanningJobSheet_Key;
+}
+
+export interface CreatePlanningJobSheetVariables {
+  eventId: UUIDString;
+  assignmentId?: UUIDString | null;
+  chantierId?: UUIDString | null;
+  sossonTeamId?: UUIDString | null;
+  leadMemberId?: UUIDString | null;
+  titre: string;
+  statut: string;
+  instructions?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  checklist?: string | null;
+  materials?: string | null;
+  blockers?: string | null;
 }
 
 export interface CreatePrevisionnelImportBatchData {
@@ -482,7 +540,6 @@ export interface CreateRapportData {
 
 export interface CreateRapportVariables {
   snapshotId?: UUIDString | null;
-  authorId?: string | null;
   clientId?: UUIDString | null;
   chantierId?: UUIDString | null;
   titre: string;
@@ -495,6 +552,105 @@ export interface CreateRapportVariables {
   sha256?: string | null;
   summary?: string | null;
   generatedAt?: TimestampString | null;
+}
+
+export interface CreateSossonPayrollPeriodData {
+  query?: {
+  };
+    sossonPayrollPeriod_insert: SossonPayrollPeriod_Key;
+}
+
+export interface CreateSossonPayrollPeriodVariables {
+  memberId: UUIDString;
+  periodLabel: string;
+  year: number;
+  month: number;
+  baseSalaryGrossMonthly?: number | null;
+  overtimeHours?: number | null;
+  paidLeaveDays?: number | null;
+  absenceDays?: number | null;
+  grossEstimate?: number | null;
+  status: string;
+  notes?: string | null;
+}
+
+export interface CreateSossonTeamData {
+  query?: {
+  };
+    sossonTeam_insert: SossonTeam_Key;
+}
+
+export interface CreateSossonTeamLeavePeriodData {
+  query?: {
+  };
+    sossonTeamLeavePeriod_insert: SossonTeamLeavePeriod_Key;
+}
+
+export interface CreateSossonTeamLeavePeriodVariables {
+  memberId: UUIDString;
+  type: string;
+  month: string;
+  startDay: number;
+  endDay: number;
+  status: string;
+  note?: string | null;
+}
+
+export interface CreateSossonTeamMemberData {
+  query?: {
+  };
+    sossonTeamMember_insert: SossonTeamMember_Key;
+}
+
+export interface CreateSossonTeamMemberVariables {
+  teamId: UUIDString;
+  userId?: string | null;
+  firstName: string;
+  lastName: string;
+  title: string;
+  qualification?: string | null;
+  level?: string | null;
+  salaryGrossMonthly?: number | null;
+  contract?: string | null;
+  coefficient?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  status: string;
+  site?: string | null;
+  activeSites?: string | null;
+  responsibilities?: string | null;
+  permissions?: string | null;
+}
+
+export interface CreateSossonTeamVariables {
+  code: string;
+  name: string;
+  type: string;
+  statut: string;
+  theme?: string | null;
+  leadName?: string | null;
+  description?: string | null;
+  activeSites?: string | null;
+  ordre?: number | null;
+}
+
+export interface CreateSossonWorkTimeEntryData {
+  query?: {
+  };
+    sossonWorkTimeEntry_insert: SossonWorkTimeEntry_Key;
+}
+
+export interface CreateSossonWorkTimeEntryVariables {
+  memberId: UUIDString;
+  chantierId?: UUIDString | null;
+  planningEventId?: UUIDString | null;
+  planningAssignmentId?: UUIDString | null;
+  jobSheetId?: UUIDString | null;
+  workDate: DateString;
+  hours: number;
+  kind: string;
+  status: string;
+  notes?: string | null;
 }
 
 export interface DataImportIssue_Key {
@@ -767,6 +923,30 @@ export interface GetClientVariables {
   id: UUIDString;
 }
 
+export interface GetCurrentTeamProfileSubmissionData {
+  teamProfileSubmission?: {
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    requestedTeamType: string;
+    status: string;
+    sourceConnexion?: string | null;
+    convertedTeamId?: string | null;
+    convertedMemberId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: TimestampString | null;
+    reviewedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+  } & TeamProfileSubmission_Key;
+}
+
 export interface GetCurrentUserData {
   user?: {
     id: string;
@@ -774,6 +954,12 @@ export interface GetCurrentUserData {
     nom: string;
     prenom: string;
     role: string;
+    profilStatut?: string | null;
+    equipeTypeSouhaite?: string | null;
+    equipeFinaleId?: string | null;
+    poste?: string | null;
+    telephone?: string | null;
+    sourceConnexion?: string | null;
     avatar?: string | null;
   } & User_Key;
 }
@@ -1326,6 +1512,46 @@ export interface ListDocumentsByChantierVariables {
   chantierId: UUIDString;
 }
 
+export interface ListEmailThreadsByChantierData {
+  emailThreads: ({
+    id: UUIDString;
+    provider: string;
+    externalThreadId: string;
+    subject: string;
+    statut: string;
+    importance?: string | null;
+    lastMessageAt: TimestampString;
+    participantsSummary?: string | null;
+    messageCount: number;
+    hasAttachments: boolean;
+    dateModification: TimestampString;
+    client?: {
+      id: UUIDString;
+      nom: string;
+      type: string;
+    } & Client_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+        } & Client_Key;
+      } & Chantier_Key;
+        assignedTo?: {
+          id: string;
+          nom: string;
+          prenom: string;
+          avatar?: string | null;
+        } & User_Key;
+  } & EmailThread_Key)[];
+}
+
+export interface ListEmailThreadsByChantierVariables {
+  chantierId: UUIDString;
+}
+
 export interface ListEmailThreadsData {
   emailThreads: ({
     id: UUIDString;
@@ -1504,14 +1730,48 @@ export interface ListPlanningEventsByChantierData {
       id: UUIDString;
       assignmentRole?: string | null;
       statut: string;
-      user?: {
-        id: string;
-        nom: string;
-        prenom: string;
-        avatar?: string | null;
-        role: string;
-      } & User_Key;
+      sossonTeam?: {
+        id: UUIDString;
+        code: string;
+        name: string;
+        type: string;
+        theme?: string | null;
+      } & SossonTeam_Key;
+        user?: {
+          id: string;
+          nom: string;
+          prenom: string;
+          avatar?: string | null;
+          role: string;
+        } & User_Key;
     } & PlanningAssignment_Key)[];
+      jobSheetsByChantier: ({
+        id: UUIDString;
+        titre: string;
+        statut: string;
+        instructions?: string | null;
+        plannedHours?: number | null;
+        actualHours?: number | null;
+        completionNotes?: string | null;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+        } & Chantier_Key;
+          sossonTeam?: {
+            id: UUIDString;
+            code: string;
+            name: string;
+            type: string;
+            theme?: string | null;
+          } & SossonTeam_Key;
+            leadMember?: {
+              id: UUIDString;
+              firstName: string;
+              lastName: string;
+              title: string;
+            } & SossonTeamMember_Key;
+      } & PlanningJobSheet_Key)[];
   } & PlanningEvent_Key)[];
 }
 
@@ -1555,20 +1815,203 @@ export interface ListPlanningEventsByPeriodData {
             assignmentRole?: string | null;
             statut: string;
             notes?: string | null;
-            user?: {
-              id: string;
-              nom: string;
-              prenom: string;
-              avatar?: string | null;
-              role: string;
-            } & User_Key;
+            sossonTeam?: {
+              id: UUIDString;
+              code: string;
+              name: string;
+              type: string;
+              theme?: string | null;
+            } & SossonTeam_Key;
+              user?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+                role: string;
+              } & User_Key;
           } & PlanningAssignment_Key)[];
+            jobSheetsByPeriod: ({
+              id: UUIDString;
+              titre: string;
+              statut: string;
+              instructions?: string | null;
+              plannedHours?: number | null;
+              actualHours?: number | null;
+              checklist?: string | null;
+              materials?: string | null;
+              blockers?: string | null;
+              completionNotes?: string | null;
+              proofStoragePath?: string | null;
+              proofSha256?: string | null;
+              reportStoragePath?: string | null;
+              reportSha256?: string | null;
+              completedAt?: TimestampString | null;
+              validatedAt?: TimestampString | null;
+              dateModification: TimestampString;
+              dateCreation: TimestampString;
+              assignment?: {
+                id: UUIDString;
+                statut: string;
+                assignmentRole?: string | null;
+              } & PlanningAssignment_Key;
+                chantier?: {
+                  id: UUIDString;
+                  nom: string;
+                  statut: string;
+                } & Chantier_Key;
+                  sossonTeam?: {
+                    id: UUIDString;
+                    code: string;
+                    name: string;
+                    type: string;
+                    theme?: string | null;
+                  } & SossonTeam_Key;
+                    leadMember?: {
+                      id: UUIDString;
+                      firstName: string;
+                      lastName: string;
+                      title: string;
+                    } & SossonTeamMember_Key;
+                      preparedBy?: {
+                        id: string;
+                        nom: string;
+                        prenom: string;
+                        avatar?: string | null;
+                      } & User_Key;
+                        updatedBy?: {
+                          id: string;
+                          nom: string;
+                          prenom: string;
+                          avatar?: string | null;
+                        } & User_Key;
+                          completedBy?: {
+                            id: string;
+                            nom: string;
+                            prenom: string;
+                            avatar?: string | null;
+                          } & User_Key;
+                            validatedBy?: {
+                              id: string;
+                              nom: string;
+                              prenom: string;
+                              avatar?: string | null;
+                            } & User_Key;
+                              workTimesByPeriodJobSheet: ({
+                                id: UUIDString;
+                                workDate: DateString;
+                                hours: number;
+                                kind: string;
+                                status: string;
+                                notes?: string | null;
+                                member: {
+                                  id: UUIDString;
+                                  firstName: string;
+                                  lastName: string;
+                                  title: string;
+                                } & SossonTeamMember_Key;
+                              } & SossonWorkTimeEntry_Key)[];
+            } & PlanningJobSheet_Key)[];
   } & PlanningEvent_Key)[];
 }
 
 export interface ListPlanningEventsByPeriodVariables {
   startAt: TimestampString;
   endAt: TimestampString;
+}
+
+export interface ListPlanningJobSheetsByEventData {
+  planningJobSheets: ({
+    id: UUIDString;
+    titre: string;
+    statut: string;
+    instructions?: string | null;
+    plannedHours?: number | null;
+    actualHours?: number | null;
+    checklist?: string | null;
+    materials?: string | null;
+    blockers?: string | null;
+    completionNotes?: string | null;
+    proofStoragePath?: string | null;
+    proofSha256?: string | null;
+    reportStoragePath?: string | null;
+    reportSha256?: string | null;
+    completedAt?: TimestampString | null;
+    validatedAt?: TimestampString | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    event: {
+      id: UUIDString;
+      titre: string;
+      startAt: TimestampString;
+      endAt: TimestampString;
+      statut: string;
+    } & PlanningEvent_Key;
+      assignment?: {
+        id: UUIDString;
+        statut: string;
+        assignmentRole?: string | null;
+      } & PlanningAssignment_Key;
+        chantier?: {
+          id: UUIDString;
+          nom: string;
+          statut: string;
+        } & Chantier_Key;
+          sossonTeam?: {
+            id: UUIDString;
+            code: string;
+            name: string;
+            type: string;
+            theme?: string | null;
+          } & SossonTeam_Key;
+            leadMember?: {
+              id: UUIDString;
+              firstName: string;
+              lastName: string;
+              title: string;
+            } & SossonTeamMember_Key;
+              preparedBy?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+              } & User_Key;
+                updatedBy?: {
+                  id: string;
+                  nom: string;
+                  prenom: string;
+                  avatar?: string | null;
+                } & User_Key;
+                  completedBy?: {
+                    id: string;
+                    nom: string;
+                    prenom: string;
+                    avatar?: string | null;
+                  } & User_Key;
+                    validatedBy?: {
+                      id: string;
+                      nom: string;
+                      prenom: string;
+                      avatar?: string | null;
+                    } & User_Key;
+                      workTimesByEventJobSheet: ({
+                        id: UUIDString;
+                        workDate: DateString;
+                        hours: number;
+                        kind: string;
+                        status: string;
+                        notes?: string | null;
+                        member: {
+                          id: UUIDString;
+                          firstName: string;
+                          lastName: string;
+                          title: string;
+                        } & SossonTeamMember_Key;
+                      } & SossonWorkTimeEntry_Key)[];
+  } & PlanningJobSheet_Key)[];
+}
+
+export interface ListPlanningJobSheetsByEventVariables {
+  eventId: UUIDString;
 }
 
 export interface ListPrevisionnelCellEditsData {
@@ -1729,6 +2172,180 @@ export interface ListRecentAuditEventsVariables {
   environment: string;
 }
 
+export interface ListSossonPayrollPeriodsData {
+  sossonPayrollPeriods: ({
+    id: UUIDString;
+    periodLabel: string;
+    year: number;
+    month: number;
+    baseSalaryGrossMonthly?: number | null;
+    overtimeHours?: number | null;
+    paidLeaveDays?: number | null;
+    absenceDays?: number | null;
+    grossEstimate?: number | null;
+    status: string;
+    notes?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    member: {
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      team: {
+        id: UUIDString;
+        name: string;
+        code: string;
+        type: string;
+      } & SossonTeam_Key;
+    } & SossonTeamMember_Key;
+  } & SossonPayrollPeriod_Key)[];
+}
+
+export interface ListSossonPayrollPeriodsVariables {
+  year: number;
+}
+
+export interface ListSossonTeamsData {
+  sossonTeams: ({
+    id: UUIDString;
+    code: string;
+    name: string;
+    type: string;
+    statut: string;
+    theme?: string | null;
+    leadName?: string | null;
+    description?: string | null;
+    activeSites?: string | null;
+    ordre?: number | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    members: ({
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      qualification?: string | null;
+      level?: string | null;
+      salaryGrossMonthly?: number | null;
+      contract?: string | null;
+      coefficient?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      status: string;
+      site?: string | null;
+      activeSites?: string | null;
+      responsibilities?: string | null;
+      permissions?: string | null;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+      user?: {
+        id: string;
+        nom: string;
+        prenom: string;
+        email: string;
+        role: string;
+        avatar?: string | null;
+      } & User_Key;
+        leaves: ({
+          id: UUIDString;
+          type: string;
+          month: string;
+          startDay: number;
+          endDay: number;
+          status: string;
+          note?: string | null;
+          dateCreation: TimestampString;
+        } & SossonTeamLeavePeriod_Key)[];
+    } & SossonTeamMember_Key)[];
+  } & SossonTeam_Key)[];
+}
+
+export interface ListSossonWorkTimeEntriesData {
+  sossonWorkTimeEntries: ({
+    id: UUIDString;
+    workDate: DateString;
+    hours: number;
+    kind: string;
+    status: string;
+    notes?: string | null;
+    dateCreation: TimestampString;
+    member: {
+      id: UUIDString;
+      firstName: string;
+      lastName: string;
+      title: string;
+      team: {
+        id: UUIDString;
+        name: string;
+        code: string;
+        type: string;
+      } & SossonTeam_Key;
+    } & SossonTeamMember_Key;
+      chantier?: {
+        id: UUIDString;
+        nom: string;
+        statut: string;
+        client: {
+          id: UUIDString;
+          nom: string;
+        } & Client_Key;
+      } & Chantier_Key;
+        planningEvent?: {
+          id: UUIDString;
+          titre: string;
+          startAt: TimestampString;
+          endAt: TimestampString;
+          statut: string;
+        } & PlanningEvent_Key;
+          planningAssignment?: {
+            id: UUIDString;
+            statut: string;
+            assignmentRole?: string | null;
+          } & PlanningAssignment_Key;
+            jobSheet?: {
+              id: UUIDString;
+              titre: string;
+              statut: string;
+            } & PlanningJobSheet_Key;
+              approvedBy?: {
+                id: string;
+                nom: string;
+                prenom: string;
+                avatar?: string | null;
+              } & User_Key;
+  } & SossonWorkTimeEntry_Key)[];
+}
+
+export interface ListSossonWorkTimeEntriesVariables {
+  startDate: DateString;
+  endDate: DateString;
+}
+
+export interface ListTeamProfileSubmissionsData {
+  teamProfileSubmissions: ({
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    requestedTeamType: string;
+    status: string;
+    sourceConnexion?: string | null;
+    convertedTeamId?: string | null;
+    convertedMemberId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: TimestampString | null;
+    reviewedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
+      dateCreation: TimestampString;
+  } & TeamProfileSubmission_Key)[];
+}
+
 export interface ListUnreadEmailThreadsData {
   emailThreads: ({
     id: UUIDString;
@@ -1767,6 +2384,12 @@ export interface ListUsersData {
     nom: string;
     prenom: string;
     role: string;
+    profilStatut?: string | null;
+    equipeTypeSouhaite?: string | null;
+    equipeFinaleId?: string | null;
+    poste?: string | null;
+    telephone?: string | null;
+    sourceConnexion?: string | null;
     avatar?: string | null;
     dateCreation: TimestampString;
   } & User_Key)[];
@@ -1796,6 +2419,11 @@ export interface PlanningAssignment_Key {
 export interface PlanningEvent_Key {
   id: UUIDString;
   __typename?: 'PlanningEvent_Key';
+}
+
+export interface PlanningJobSheet_Key {
+  id: UUIDString;
+  __typename?: 'PlanningJobSheet_Key';
 }
 
 export interface PrevisionnelCellEdit_Key {
@@ -1860,6 +2488,48 @@ export interface SetFactureStatutData {
 export interface SetFactureStatutVariables {
   id: UUIDString;
   statut: string;
+}
+
+export interface SossonPayrollPeriod_Key {
+  id: UUIDString;
+  __typename?: 'SossonPayrollPeriod_Key';
+}
+
+export interface SossonTeamLeavePeriod_Key {
+  id: UUIDString;
+  __typename?: 'SossonTeamLeavePeriod_Key';
+}
+
+export interface SossonTeamMember_Key {
+  id: UUIDString;
+  __typename?: 'SossonTeamMember_Key';
+}
+
+export interface SossonTeam_Key {
+  id: UUIDString;
+  __typename?: 'SossonTeam_Key';
+}
+
+export interface SossonWorkTimeEntry_Key {
+  id: UUIDString;
+  __typename?: 'SossonWorkTimeEntry_Key';
+}
+
+export interface SubmitCurrentTeamProfileData {
+  teamProfileSubmission_upsert: TeamProfileSubmission_Key;
+}
+
+export interface SubmitCurrentTeamProfileVariables {
+  email: string;
+  nom: string;
+  prenom: string;
+  requestedTeamType: string;
+  sourceConnexion?: string | null;
+}
+
+export interface TeamProfileSubmission_Key {
+  id: string;
+  __typename?: 'TeamProfileSubmission_Key';
 }
 
 export interface UpdateChantierStatutData {
@@ -1967,7 +2637,6 @@ export interface UpdatePlanningEventDetailsVariables {
   endAt: TimestampString;
   location?: string | null;
   notes?: string | null;
-  updatedById?: string | null;
 }
 
 export interface UpdatePlanningEventStatusData {
@@ -1979,7 +2648,28 @@ export interface UpdatePlanningEventStatusData {
 export interface UpdatePlanningEventStatusVariables {
   id: UUIDString;
   statut: string;
-  updatedById?: string | null;
+}
+
+export interface UpdatePlanningJobSheetProgressData {
+  query?: {
+  };
+    planningJobSheet_update?: PlanningJobSheet_Key | null;
+}
+
+export interface UpdatePlanningJobSheetProgressVariables {
+  id: UUIDString;
+  statut: string;
+  instructions?: string | null;
+  plannedHours?: number | null;
+  actualHours?: number | null;
+  checklist?: string | null;
+  materials?: string | null;
+  blockers?: string | null;
+  completionNotes?: string | null;
+  proofStoragePath?: string | null;
+  proofSha256?: string | null;
+  reportStoragePath?: string | null;
+  reportSha256?: string | null;
 }
 
 export interface UpdatePrevisionnelLineAmountsData {
@@ -2014,6 +2704,48 @@ export interface UpdatePrevisionnelMonthlyAmountVariables {
   invoiceSent?: boolean | null;
 }
 
+export interface UpdateSossonTeamData {
+  query?: {
+  };
+    sossonTeam_update?: SossonTeam_Key | null;
+}
+
+export interface UpdateSossonTeamMemberData {
+  query?: {
+  };
+    sossonTeamMember_update?: SossonTeamMember_Key | null;
+}
+
+export interface UpdateSossonTeamMemberVariables {
+  id: UUIDString;
+  teamId?: UUIDString | null;
+  userId?: string | null;
+  title?: string | null;
+  qualification?: string | null;
+  level?: string | null;
+  salaryGrossMonthly?: number | null;
+  contract?: string | null;
+  coefficient?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  site?: string | null;
+  activeSites?: string | null;
+  responsibilities?: string | null;
+  permissions?: string | null;
+}
+
+export interface UpdateSossonTeamVariables {
+  id: UUIDString;
+  name?: string | null;
+  type?: string | null;
+  statut?: string | null;
+  theme?: string | null;
+  leadName?: string | null;
+  description?: string | null;
+  activeSites?: string | null;
+  ordre?: number | null;
+}
+
 export interface UpsertPrevisionnelCellEditData {
   query?: {
   };
@@ -2033,170 +2765,65 @@ export interface User_Key {
   __typename?: 'User_Key';
 }
 
-/** Generated Node Admin SDK operation action function for the 'GetCurrentUser' Query. Allow users to execute without passing in DataConnect. */
-export function getCurrentUser(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCurrentUserData>>;
-/** Generated Node Admin SDK operation action function for the 'GetCurrentUser' Query. Allow users to pass in custom DataConnect instances. */
-export function getCurrentUser(options?: OperationOptions): Promise<ExecuteOperationResponse<GetCurrentUserData>>;
+/** Generated Node Admin SDK operation action function for the 'SubmitCurrentTeamProfile' Mutation. Allow users to execute without passing in DataConnect. */
+export function submitCurrentTeamProfile(dc: DataConnect, vars: SubmitCurrentTeamProfileVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<SubmitCurrentTeamProfileData>>;
+/** Generated Node Admin SDK operation action function for the 'SubmitCurrentTeamProfile' Mutation. Allow users to pass in custom DataConnect instances. */
+export function submitCurrentTeamProfile(vars: SubmitCurrentTeamProfileVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<SubmitCurrentTeamProfileData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListUsers' Query. Allow users to execute without passing in DataConnect. */
-export function listUsers(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListUsersData>>;
-/** Generated Node Admin SDK operation action function for the 'ListUsers' Query. Allow users to pass in custom DataConnect instances. */
-export function listUsers(options?: OperationOptions): Promise<ExecuteOperationResponse<ListUsersData>>;
+/** Generated Node Admin SDK operation action function for the 'ConvertTeamProfileSubmission' Mutation. Allow users to execute without passing in DataConnect. */
+export function convertTeamProfileSubmission(dc: DataConnect, vars: ConvertTeamProfileSubmissionVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ConvertTeamProfileSubmissionData>>;
+/** Generated Node Admin SDK operation action function for the 'ConvertTeamProfileSubmission' Mutation. Allow users to pass in custom DataConnect instances. */
+export function convertTeamProfileSubmission(vars: ConvertTeamProfileSubmissionVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ConvertTeamProfileSubmissionData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListOperationalClients' Query. Allow users to execute without passing in DataConnect. */
-export function listOperationalClients(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalClientsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListOperationalClients' Query. Allow users to pass in custom DataConnect instances. */
-export function listOperationalClients(options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalClientsData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonTeam' Mutation. Allow users to execute without passing in DataConnect. */
+export function createSossonTeam(dc: DataConnect, vars: CreateSossonTeamVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonTeamData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonTeam' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createSossonTeam(vars: CreateSossonTeamVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonTeamData>>;
 
-/** Generated Node Admin SDK operation action function for the 'GetClient' Query. Allow users to execute without passing in DataConnect. */
-export function getClient(dc: DataConnect, vars: GetClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetClientData>>;
-/** Generated Node Admin SDK operation action function for the 'GetClient' Query. Allow users to pass in custom DataConnect instances. */
-export function getClient(vars: GetClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetClientData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdateSossonTeam' Mutation. Allow users to execute without passing in DataConnect. */
+export function updateSossonTeam(dc: DataConnect, vars: UpdateSossonTeamVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateSossonTeamData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdateSossonTeam' Mutation. Allow users to pass in custom DataConnect instances. */
+export function updateSossonTeam(vars: UpdateSossonTeamVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateSossonTeamData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListOperationalChantiers' Query. Allow users to execute without passing in DataConnect. */
-export function listOperationalChantiers(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalChantiersData>>;
-/** Generated Node Admin SDK operation action function for the 'ListOperationalChantiers' Query. Allow users to pass in custom DataConnect instances. */
-export function listOperationalChantiers(options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalChantiersData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonTeamMember' Mutation. Allow users to execute without passing in DataConnect. */
+export function createSossonTeamMember(dc: DataConnect, vars: CreateSossonTeamMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonTeamMemberData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonTeamMember' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createSossonTeamMember(vars: CreateSossonTeamMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonTeamMemberData>>;
 
-/** Generated Node Admin SDK operation action function for the 'GetChantier' Query. Allow users to execute without passing in DataConnect. */
-export function getChantier(dc: DataConnect, vars: GetChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetChantierData>>;
-/** Generated Node Admin SDK operation action function for the 'GetChantier' Query. Allow users to pass in custom DataConnect instances. */
-export function getChantier(vars: GetChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdateSossonTeamMember' Mutation. Allow users to execute without passing in DataConnect. */
+export function updateSossonTeamMember(dc: DataConnect, vars: UpdateSossonTeamMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateSossonTeamMemberData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdateSossonTeamMember' Mutation. Allow users to pass in custom DataConnect instances. */
+export function updateSossonTeamMember(vars: UpdateSossonTeamMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdateSossonTeamMemberData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListDevis' Query. Allow users to execute without passing in DataConnect. */
-export function listDevis(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDevis' Query. Allow users to pass in custom DataConnect instances. */
-export function listDevis(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonTeamLeavePeriod' Mutation. Allow users to execute without passing in DataConnect. */
+export function createSossonTeamLeavePeriod(dc: DataConnect, vars: CreateSossonTeamLeavePeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonTeamLeavePeriodData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonTeamLeavePeriod' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createSossonTeamLeavePeriod(vars: CreateSossonTeamLeavePeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonTeamLeavePeriodData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListDevisByClient' Query. Allow users to execute without passing in DataConnect. */
-export function listDevisByClient(dc: DataConnect, vars: ListDevisByClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByClientData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDevisByClient' Query. Allow users to pass in custom DataConnect instances. */
-export function listDevisByClient(vars: ListDevisByClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByClientData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonWorkTimeEntry' Mutation. Allow users to execute without passing in DataConnect. */
+export function createSossonWorkTimeEntry(dc: DataConnect, vars: CreateSossonWorkTimeEntryVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonWorkTimeEntryData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonWorkTimeEntry' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createSossonWorkTimeEntry(vars: CreateSossonWorkTimeEntryVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonWorkTimeEntryData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListDevisByChantier' Query. Allow users to execute without passing in DataConnect. */
-export function listDevisByChantier(dc: DataConnect, vars: ListDevisByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByChantierData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDevisByChantier' Query. Allow users to pass in custom DataConnect instances. */
-export function listDevisByChantier(vars: ListDevisByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonPayrollPeriod' Mutation. Allow users to execute without passing in DataConnect. */
+export function createSossonPayrollPeriod(dc: DataConnect, vars: CreateSossonPayrollPeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonPayrollPeriodData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateSossonPayrollPeriod' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createSossonPayrollPeriod(vars: CreateSossonPayrollPeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateSossonPayrollPeriodData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListFactures' Query. Allow users to execute without passing in DataConnect. */
-export function listFactures(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesData>>;
-/** Generated Node Admin SDK operation action function for the 'ListFactures' Query. Allow users to pass in custom DataConnect instances. */
-export function listFactures(options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesData>>;
+/** Generated Node Admin SDK operation action function for the 'CreatePlanningJobSheet' Mutation. Allow users to execute without passing in DataConnect. */
+export function createPlanningJobSheet(dc: DataConnect, vars: CreatePlanningJobSheetVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreatePlanningJobSheetData>>;
+/** Generated Node Admin SDK operation action function for the 'CreatePlanningJobSheet' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createPlanningJobSheet(vars: CreatePlanningJobSheetVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreatePlanningJobSheetData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListFacturesByStatut' Query. Allow users to execute without passing in DataConnect. */
-export function listFacturesByStatut(dc: DataConnect, vars: ListFacturesByStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesByStatutData>>;
-/** Generated Node Admin SDK operation action function for the 'ListFacturesByStatut' Query. Allow users to pass in custom DataConnect instances. */
-export function listFacturesByStatut(vars: ListFacturesByStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesByStatutData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdatePlanningJobSheetProgress' Mutation. Allow users to execute without passing in DataConnect. */
+export function updatePlanningJobSheetProgress(dc: DataConnect, vars: UpdatePlanningJobSheetProgressVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdatePlanningJobSheetProgressData>>;
+/** Generated Node Admin SDK operation action function for the 'UpdatePlanningJobSheetProgress' Mutation. Allow users to pass in custom DataConnect instances. */
+export function updatePlanningJobSheetProgress(vars: UpdatePlanningJobSheetProgressVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<UpdatePlanningJobSheetProgressData>>;
 
-/** Generated Node Admin SDK operation action function for the 'ListDocumentFolders' Query. Allow users to execute without passing in DataConnect. */
-export function listDocumentFolders(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentFoldersData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDocumentFolders' Query. Allow users to pass in custom DataConnect instances. */
-export function listDocumentFolders(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentFoldersData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListDocumentsAttaches' Query. Allow users to execute without passing in DataConnect. */
-export function listDocumentsAttaches(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsAttachesData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDocumentsAttaches' Query. Allow users to pass in custom DataConnect instances. */
-export function listDocumentsAttaches(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsAttachesData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListDocumentsByChantier' Query. Allow users to execute without passing in DataConnect. */
-export function listDocumentsByChantier(dc: DataConnect, vars: ListDocumentsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsByChantierData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDocumentsByChantier' Query. Allow users to pass in custom DataConnect instances. */
-export function listDocumentsByChantier(vars: ListDocumentsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsByChantierData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelExercises' Query. Allow users to execute without passing in DataConnect. */
-export function listPrevisionnelExercises(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelExercisesData>>;
-/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelExercises' Query. Allow users to pass in custom DataConnect instances. */
-export function listPrevisionnelExercises(options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelExercisesData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelLinesByExercise' Query. Allow users to execute without passing in DataConnect. */
-export function listPrevisionnelLinesByExercise(dc: DataConnect, vars: ListPrevisionnelLinesByExerciseVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelLinesByExerciseData>>;
-/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelLinesByExercise' Query. Allow users to pass in custom DataConnect instances. */
-export function listPrevisionnelLinesByExercise(vars: ListPrevisionnelLinesByExerciseVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelLinesByExerciseData>>;
-
-/** Generated Node Admin SDK operation action function for the 'SearchClientAliases' Query. Allow users to execute without passing in DataConnect. */
-export function searchClientAliases(dc: DataConnect, vars: SearchClientAliasesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<SearchClientAliasesData>>;
-/** Generated Node Admin SDK operation action function for the 'SearchClientAliases' Query. Allow users to pass in custom DataConnect instances. */
-export function searchClientAliases(vars: SearchClientAliasesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<SearchClientAliasesData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelCellEdits' Query. Allow users to execute without passing in DataConnect. */
-export function listPrevisionnelCellEdits(dc: DataConnect, vars: ListPrevisionnelCellEditsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelCellEditsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelCellEdits' Query. Allow users to pass in custom DataConnect instances. */
-export function listPrevisionnelCellEdits(vars: ListPrevisionnelCellEditsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelCellEditsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListEmailThreads' Query. Allow users to execute without passing in DataConnect. */
-export function listEmailThreads(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEmailThreadsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListEmailThreads' Query. Allow users to pass in custom DataConnect instances. */
-export function listEmailThreads(options?: OperationOptions): Promise<ExecuteOperationResponse<ListEmailThreadsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListUnreadEmailThreads' Query. Allow users to execute without passing in DataConnect. */
-export function listUnreadEmailThreads(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListUnreadEmailThreadsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListUnreadEmailThreads' Query. Allow users to pass in custom DataConnect instances. */
-export function listUnreadEmailThreads(options?: OperationOptions): Promise<ExecuteOperationResponse<ListUnreadEmailThreadsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'GetEmailThread' Query. Allow users to execute without passing in DataConnect. */
-export function getEmailThread(dc: DataConnect, vars: GetEmailThreadVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetEmailThreadData>>;
-/** Generated Node Admin SDK operation action function for the 'GetEmailThread' Query. Allow users to pass in custom DataConnect instances. */
-export function getEmailThread(vars: GetEmailThreadVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetEmailThreadData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByPeriod' Query. Allow users to execute without passing in DataConnect. */
-export function listPlanningEventsByPeriod(dc: DataConnect, vars: ListPlanningEventsByPeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByPeriodData>>;
-/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByPeriod' Query. Allow users to pass in custom DataConnect instances. */
-export function listPlanningEventsByPeriod(vars: ListPlanningEventsByPeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByPeriodData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByChantier' Query. Allow users to execute without passing in DataConnect. */
-export function listPlanningEventsByChantier(dc: DataConnect, vars: ListPlanningEventsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByChantierData>>;
-/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByChantier' Query. Allow users to pass in custom DataConnect instances. */
-export function listPlanningEventsByChantier(vars: ListPlanningEventsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByChantierData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListAnalyticsSnapshots' Query. Allow users to execute without passing in DataConnect. */
-export function listAnalyticsSnapshots(dc: DataConnect, vars: ListAnalyticsSnapshotsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListAnalyticsSnapshotsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListAnalyticsSnapshots' Query. Allow users to pass in custom DataConnect instances. */
-export function listAnalyticsSnapshots(vars: ListAnalyticsSnapshotsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListAnalyticsSnapshotsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'GetAnalyticsSnapshot' Query. Allow users to execute without passing in DataConnect. */
-export function getAnalyticsSnapshot(dc: DataConnect, vars: GetAnalyticsSnapshotVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetAnalyticsSnapshotData>>;
-/** Generated Node Admin SDK operation action function for the 'GetAnalyticsSnapshot' Query. Allow users to pass in custom DataConnect instances. */
-export function getAnalyticsSnapshot(vars: GetAnalyticsSnapshotVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetAnalyticsSnapshotData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListRapports' Query. Allow users to execute without passing in DataConnect. */
-export function listRapports(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRapportsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListRapports' Query. Allow users to pass in custom DataConnect instances. */
-export function listRapports(options?: OperationOptions): Promise<ExecuteOperationResponse<ListRapportsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'GetRapport' Query. Allow users to execute without passing in DataConnect. */
-export function getRapport(dc: DataConnect, vars: GetRapportVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetRapportData>>;
-/** Generated Node Admin SDK operation action function for the 'GetRapport' Query. Allow users to pass in custom DataConnect instances. */
-export function getRapport(vars: GetRapportVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetRapportData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListRecentAuditEvents' Query. Allow users to execute without passing in DataConnect. */
-export function listRecentAuditEvents(dc: DataConnect, vars: ListRecentAuditEventsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRecentAuditEventsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListRecentAuditEvents' Query. Allow users to pass in custom DataConnect instances. */
-export function listRecentAuditEvents(vars: ListRecentAuditEventsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRecentAuditEventsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListEntityChangeLogs' Query. Allow users to execute without passing in DataConnect. */
-export function listEntityChangeLogs(dc: DataConnect, vars: ListEntityChangeLogsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEntityChangeLogsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListEntityChangeLogs' Query. Allow users to pass in custom DataConnect instances. */
-export function listEntityChangeLogs(vars: ListEntityChangeLogsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEntityChangeLogsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListCheckpointRuns' Query. Allow users to execute without passing in DataConnect. */
-export function listCheckpointRuns(dc: DataConnect, vars: ListCheckpointRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListCheckpointRunsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListCheckpointRuns' Query. Allow users to pass in custom DataConnect instances. */
-export function listCheckpointRuns(vars: ListCheckpointRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListCheckpointRunsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'GetCheckpointRun' Query. Allow users to execute without passing in DataConnect. */
-export function getCheckpointRun(dc: DataConnect, vars: GetCheckpointRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCheckpointRunData>>;
-/** Generated Node Admin SDK operation action function for the 'GetCheckpointRun' Query. Allow users to pass in custom DataConnect instances. */
-export function getCheckpointRun(vars: GetCheckpointRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCheckpointRunData>>;
-
-/** Generated Node Admin SDK operation action function for the 'ListDataImportRuns' Query. Allow users to execute without passing in DataConnect. */
-export function listDataImportRuns(dc: DataConnect, vars: ListDataImportRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDataImportRunsData>>;
-/** Generated Node Admin SDK operation action function for the 'ListDataImportRuns' Query. Allow users to pass in custom DataConnect instances. */
-export function listDataImportRuns(vars: ListDataImportRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDataImportRunsData>>;
-
-/** Generated Node Admin SDK operation action function for the 'GetDataImportRun' Query. Allow users to execute without passing in DataConnect. */
-export function getDataImportRun(dc: DataConnect, vars: GetDataImportRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetDataImportRunData>>;
-/** Generated Node Admin SDK operation action function for the 'GetDataImportRun' Query. Allow users to pass in custom DataConnect instances. */
-export function getDataImportRun(vars: GetDataImportRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetDataImportRunData>>;
+/** Generated Node Admin SDK operation action function for the 'CompletePlanningJobSheet' Mutation. Allow users to execute without passing in DataConnect. */
+export function completePlanningJobSheet(dc: DataConnect, vars: CompletePlanningJobSheetVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CompletePlanningJobSheetData>>;
+/** Generated Node Admin SDK operation action function for the 'CompletePlanningJobSheet' Mutation. Allow users to pass in custom DataConnect instances. */
+export function completePlanningJobSheet(vars: CompletePlanningJobSheetVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CompletePlanningJobSheetData>>;
 
 /** Generated Node Admin SDK operation action function for the 'CreateClient' Mutation. Allow users to execute without passing in DataConnect. */
 export function createClient(dc: DataConnect, vars: CreateClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateClientData>>;
@@ -2382,4 +3009,204 @@ export function createDataImportIssue(vars: CreateDataImportIssueVariables, opti
 export function createEntityChangeLog(dc: DataConnect, vars: CreateEntityChangeLogVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateEntityChangeLogData>>;
 /** Generated Node Admin SDK operation action function for the 'CreateEntityChangeLog' Mutation. Allow users to pass in custom DataConnect instances. */
 export function createEntityChangeLog(vars: CreateEntityChangeLogVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateEntityChangeLogData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetCurrentUser' Query. Allow users to execute without passing in DataConnect. */
+export function getCurrentUser(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCurrentUserData>>;
+/** Generated Node Admin SDK operation action function for the 'GetCurrentUser' Query. Allow users to pass in custom DataConnect instances. */
+export function getCurrentUser(options?: OperationOptions): Promise<ExecuteOperationResponse<GetCurrentUserData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListUsers' Query. Allow users to execute without passing in DataConnect. */
+export function listUsers(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListUsersData>>;
+/** Generated Node Admin SDK operation action function for the 'ListUsers' Query. Allow users to pass in custom DataConnect instances. */
+export function listUsers(options?: OperationOptions): Promise<ExecuteOperationResponse<ListUsersData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetCurrentTeamProfileSubmission' Query. Allow users to execute without passing in DataConnect. */
+export function getCurrentTeamProfileSubmission(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCurrentTeamProfileSubmissionData>>;
+/** Generated Node Admin SDK operation action function for the 'GetCurrentTeamProfileSubmission' Query. Allow users to pass in custom DataConnect instances. */
+export function getCurrentTeamProfileSubmission(options?: OperationOptions): Promise<ExecuteOperationResponse<GetCurrentTeamProfileSubmissionData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListTeamProfileSubmissions' Query. Allow users to execute without passing in DataConnect. */
+export function listTeamProfileSubmissions(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListTeamProfileSubmissionsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListTeamProfileSubmissions' Query. Allow users to pass in custom DataConnect instances. */
+export function listTeamProfileSubmissions(options?: OperationOptions): Promise<ExecuteOperationResponse<ListTeamProfileSubmissionsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListSossonTeams' Query. Allow users to execute without passing in DataConnect. */
+export function listSossonTeams(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListSossonTeamsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListSossonTeams' Query. Allow users to pass in custom DataConnect instances. */
+export function listSossonTeams(options?: OperationOptions): Promise<ExecuteOperationResponse<ListSossonTeamsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListSossonWorkTimeEntries' Query. Allow users to execute without passing in DataConnect. */
+export function listSossonWorkTimeEntries(dc: DataConnect, vars: ListSossonWorkTimeEntriesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListSossonWorkTimeEntriesData>>;
+/** Generated Node Admin SDK operation action function for the 'ListSossonWorkTimeEntries' Query. Allow users to pass in custom DataConnect instances. */
+export function listSossonWorkTimeEntries(vars: ListSossonWorkTimeEntriesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListSossonWorkTimeEntriesData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListSossonPayrollPeriods' Query. Allow users to execute without passing in DataConnect. */
+export function listSossonPayrollPeriods(dc: DataConnect, vars: ListSossonPayrollPeriodsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListSossonPayrollPeriodsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListSossonPayrollPeriods' Query. Allow users to pass in custom DataConnect instances. */
+export function listSossonPayrollPeriods(vars: ListSossonPayrollPeriodsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListSossonPayrollPeriodsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListOperationalClients' Query. Allow users to execute without passing in DataConnect. */
+export function listOperationalClients(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalClientsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListOperationalClients' Query. Allow users to pass in custom DataConnect instances. */
+export function listOperationalClients(options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalClientsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetClient' Query. Allow users to execute without passing in DataConnect. */
+export function getClient(dc: DataConnect, vars: GetClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetClientData>>;
+/** Generated Node Admin SDK operation action function for the 'GetClient' Query. Allow users to pass in custom DataConnect instances. */
+export function getClient(vars: GetClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetClientData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListOperationalChantiers' Query. Allow users to execute without passing in DataConnect. */
+export function listOperationalChantiers(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalChantiersData>>;
+/** Generated Node Admin SDK operation action function for the 'ListOperationalChantiers' Query. Allow users to pass in custom DataConnect instances. */
+export function listOperationalChantiers(options?: OperationOptions): Promise<ExecuteOperationResponse<ListOperationalChantiersData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetChantier' Query. Allow users to execute without passing in DataConnect. */
+export function getChantier(dc: DataConnect, vars: GetChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'GetChantier' Query. Allow users to pass in custom DataConnect instances. */
+export function getChantier(vars: GetChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetChantierData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDevis' Query. Allow users to execute without passing in DataConnect. */
+export function listDevis(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDevis' Query. Allow users to pass in custom DataConnect instances. */
+export function listDevis(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDevisByClient' Query. Allow users to execute without passing in DataConnect. */
+export function listDevisByClient(dc: DataConnect, vars: ListDevisByClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByClientData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDevisByClient' Query. Allow users to pass in custom DataConnect instances. */
+export function listDevisByClient(vars: ListDevisByClientVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByClientData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDevisByChantier' Query. Allow users to execute without passing in DataConnect. */
+export function listDevisByChantier(dc: DataConnect, vars: ListDevisByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDevisByChantier' Query. Allow users to pass in custom DataConnect instances. */
+export function listDevisByChantier(vars: ListDevisByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDevisByChantierData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListFactures' Query. Allow users to execute without passing in DataConnect. */
+export function listFactures(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesData>>;
+/** Generated Node Admin SDK operation action function for the 'ListFactures' Query. Allow users to pass in custom DataConnect instances. */
+export function listFactures(options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListFacturesByStatut' Query. Allow users to execute without passing in DataConnect. */
+export function listFacturesByStatut(dc: DataConnect, vars: ListFacturesByStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesByStatutData>>;
+/** Generated Node Admin SDK operation action function for the 'ListFacturesByStatut' Query. Allow users to pass in custom DataConnect instances. */
+export function listFacturesByStatut(vars: ListFacturesByStatutVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListFacturesByStatutData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDocumentFolders' Query. Allow users to execute without passing in DataConnect. */
+export function listDocumentFolders(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentFoldersData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDocumentFolders' Query. Allow users to pass in custom DataConnect instances. */
+export function listDocumentFolders(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentFoldersData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDocumentsAttaches' Query. Allow users to execute without passing in DataConnect. */
+export function listDocumentsAttaches(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsAttachesData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDocumentsAttaches' Query. Allow users to pass in custom DataConnect instances. */
+export function listDocumentsAttaches(options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsAttachesData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDocumentsByChantier' Query. Allow users to execute without passing in DataConnect. */
+export function listDocumentsByChantier(dc: DataConnect, vars: ListDocumentsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsByChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDocumentsByChantier' Query. Allow users to pass in custom DataConnect instances. */
+export function listDocumentsByChantier(vars: ListDocumentsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDocumentsByChantierData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelExercises' Query. Allow users to execute without passing in DataConnect. */
+export function listPrevisionnelExercises(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelExercisesData>>;
+/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelExercises' Query. Allow users to pass in custom DataConnect instances. */
+export function listPrevisionnelExercises(options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelExercisesData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelLinesByExercise' Query. Allow users to execute without passing in DataConnect. */
+export function listPrevisionnelLinesByExercise(dc: DataConnect, vars: ListPrevisionnelLinesByExerciseVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelLinesByExerciseData>>;
+/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelLinesByExercise' Query. Allow users to pass in custom DataConnect instances. */
+export function listPrevisionnelLinesByExercise(vars: ListPrevisionnelLinesByExerciseVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelLinesByExerciseData>>;
+
+/** Generated Node Admin SDK operation action function for the 'SearchClientAliases' Query. Allow users to execute without passing in DataConnect. */
+export function searchClientAliases(dc: DataConnect, vars: SearchClientAliasesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<SearchClientAliasesData>>;
+/** Generated Node Admin SDK operation action function for the 'SearchClientAliases' Query. Allow users to pass in custom DataConnect instances. */
+export function searchClientAliases(vars: SearchClientAliasesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<SearchClientAliasesData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelCellEdits' Query. Allow users to execute without passing in DataConnect. */
+export function listPrevisionnelCellEdits(dc: DataConnect, vars: ListPrevisionnelCellEditsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelCellEditsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListPrevisionnelCellEdits' Query. Allow users to pass in custom DataConnect instances. */
+export function listPrevisionnelCellEdits(vars: ListPrevisionnelCellEditsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPrevisionnelCellEditsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListEmailThreads' Query. Allow users to execute without passing in DataConnect. */
+export function listEmailThreads(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEmailThreadsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListEmailThreads' Query. Allow users to pass in custom DataConnect instances. */
+export function listEmailThreads(options?: OperationOptions): Promise<ExecuteOperationResponse<ListEmailThreadsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListEmailThreadsByChantier' Query. Allow users to execute without passing in DataConnect. */
+export function listEmailThreadsByChantier(dc: DataConnect, vars: ListEmailThreadsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEmailThreadsByChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'ListEmailThreadsByChantier' Query. Allow users to pass in custom DataConnect instances. */
+export function listEmailThreadsByChantier(vars: ListEmailThreadsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEmailThreadsByChantierData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListUnreadEmailThreads' Query. Allow users to execute without passing in DataConnect. */
+export function listUnreadEmailThreads(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListUnreadEmailThreadsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListUnreadEmailThreads' Query. Allow users to pass in custom DataConnect instances. */
+export function listUnreadEmailThreads(options?: OperationOptions): Promise<ExecuteOperationResponse<ListUnreadEmailThreadsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetEmailThread' Query. Allow users to execute without passing in DataConnect. */
+export function getEmailThread(dc: DataConnect, vars: GetEmailThreadVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetEmailThreadData>>;
+/** Generated Node Admin SDK operation action function for the 'GetEmailThread' Query. Allow users to pass in custom DataConnect instances. */
+export function getEmailThread(vars: GetEmailThreadVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetEmailThreadData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByPeriod' Query. Allow users to execute without passing in DataConnect. */
+export function listPlanningEventsByPeriod(dc: DataConnect, vars: ListPlanningEventsByPeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByPeriodData>>;
+/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByPeriod' Query. Allow users to pass in custom DataConnect instances. */
+export function listPlanningEventsByPeriod(vars: ListPlanningEventsByPeriodVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByPeriodData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByChantier' Query. Allow users to execute without passing in DataConnect. */
+export function listPlanningEventsByChantier(dc: DataConnect, vars: ListPlanningEventsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByChantierData>>;
+/** Generated Node Admin SDK operation action function for the 'ListPlanningEventsByChantier' Query. Allow users to pass in custom DataConnect instances. */
+export function listPlanningEventsByChantier(vars: ListPlanningEventsByChantierVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningEventsByChantierData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListPlanningJobSheetsByEvent' Query. Allow users to execute without passing in DataConnect. */
+export function listPlanningJobSheetsByEvent(dc: DataConnect, vars: ListPlanningJobSheetsByEventVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningJobSheetsByEventData>>;
+/** Generated Node Admin SDK operation action function for the 'ListPlanningJobSheetsByEvent' Query. Allow users to pass in custom DataConnect instances. */
+export function listPlanningJobSheetsByEvent(vars: ListPlanningJobSheetsByEventVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListPlanningJobSheetsByEventData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListAnalyticsSnapshots' Query. Allow users to execute without passing in DataConnect. */
+export function listAnalyticsSnapshots(dc: DataConnect, vars: ListAnalyticsSnapshotsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListAnalyticsSnapshotsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListAnalyticsSnapshots' Query. Allow users to pass in custom DataConnect instances. */
+export function listAnalyticsSnapshots(vars: ListAnalyticsSnapshotsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListAnalyticsSnapshotsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetAnalyticsSnapshot' Query. Allow users to execute without passing in DataConnect. */
+export function getAnalyticsSnapshot(dc: DataConnect, vars: GetAnalyticsSnapshotVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetAnalyticsSnapshotData>>;
+/** Generated Node Admin SDK operation action function for the 'GetAnalyticsSnapshot' Query. Allow users to pass in custom DataConnect instances. */
+export function getAnalyticsSnapshot(vars: GetAnalyticsSnapshotVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetAnalyticsSnapshotData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListRapports' Query. Allow users to execute without passing in DataConnect. */
+export function listRapports(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRapportsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListRapports' Query. Allow users to pass in custom DataConnect instances. */
+export function listRapports(options?: OperationOptions): Promise<ExecuteOperationResponse<ListRapportsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetRapport' Query. Allow users to execute without passing in DataConnect. */
+export function getRapport(dc: DataConnect, vars: GetRapportVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetRapportData>>;
+/** Generated Node Admin SDK operation action function for the 'GetRapport' Query. Allow users to pass in custom DataConnect instances. */
+export function getRapport(vars: GetRapportVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetRapportData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListRecentAuditEvents' Query. Allow users to execute without passing in DataConnect. */
+export function listRecentAuditEvents(dc: DataConnect, vars: ListRecentAuditEventsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRecentAuditEventsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListRecentAuditEvents' Query. Allow users to pass in custom DataConnect instances. */
+export function listRecentAuditEvents(vars: ListRecentAuditEventsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRecentAuditEventsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListEntityChangeLogs' Query. Allow users to execute without passing in DataConnect. */
+export function listEntityChangeLogs(dc: DataConnect, vars: ListEntityChangeLogsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEntityChangeLogsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListEntityChangeLogs' Query. Allow users to pass in custom DataConnect instances. */
+export function listEntityChangeLogs(vars: ListEntityChangeLogsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListEntityChangeLogsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListCheckpointRuns' Query. Allow users to execute without passing in DataConnect. */
+export function listCheckpointRuns(dc: DataConnect, vars: ListCheckpointRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListCheckpointRunsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListCheckpointRuns' Query. Allow users to pass in custom DataConnect instances. */
+export function listCheckpointRuns(vars: ListCheckpointRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListCheckpointRunsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetCheckpointRun' Query. Allow users to execute without passing in DataConnect. */
+export function getCheckpointRun(dc: DataConnect, vars: GetCheckpointRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCheckpointRunData>>;
+/** Generated Node Admin SDK operation action function for the 'GetCheckpointRun' Query. Allow users to pass in custom DataConnect instances. */
+export function getCheckpointRun(vars: GetCheckpointRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetCheckpointRunData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListDataImportRuns' Query. Allow users to execute without passing in DataConnect. */
+export function listDataImportRuns(dc: DataConnect, vars: ListDataImportRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDataImportRunsData>>;
+/** Generated Node Admin SDK operation action function for the 'ListDataImportRuns' Query. Allow users to pass in custom DataConnect instances. */
+export function listDataImportRuns(vars: ListDataImportRunsVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListDataImportRunsData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetDataImportRun' Query. Allow users to execute without passing in DataConnect. */
+export function getDataImportRun(dc: DataConnect, vars: GetDataImportRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetDataImportRunData>>;
+/** Generated Node Admin SDK operation action function for the 'GetDataImportRun' Query. Allow users to pass in custom DataConnect instances. */
+export function getDataImportRun(vars: GetDataImportRunVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetDataImportRunData>>;
 

@@ -30,8 +30,137 @@ type User @table {
   prenom: String! @col(dataType: "varchar(80)")
   # Rôle applicatif : "gerant" | "assistante" | "chef_chantier"
   role: String! @col(dataType: "varchar(32)")
+  # Statut d'activation du profil applicatif : "actif" | "a_classer" | "suspendu"
+  profilStatut: String @default(value: "actif") @col(dataType: "varchar(32)")
+  # Demande initiale saisie par l'utilisateur : "chantier" | "chantier_bureau" | "administratif" | "gerant"
+  equipeTypeSouhaite: String @col(dataType: "varchar(32)")
+  # Identifiant de l'equipe front/local creee pendant la transposition.
+  equipeFinaleId: String @col(dataType: "varchar(120)")
+  poste: String @col(dataType: "varchar(120)")
+  telephone: String @col(dataType: "varchar(32)")
+  sourceConnexion: String @col(dataType: "varchar(32)")
   # Initiales d'affichage pour l'avatar (ex : "PS")
   avatar: String @col(dataType: "varchar(8)")
+  dateActivation: Timestamp
+  dateModification: Timestamp! @default(expr: "request.time")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Demande de profil creee apres une premiere connexion Firebase Auth.
+# Cette table ne donne aucun droit applicatif: elle sert de file d'attente
+# pour que le gerant classe la personne dans l'equipe et cree le vrai User SQL.
+type TeamProfileSubmission @table {
+  id: String! @default(expr: "auth.uid")
+  email: String! @col(dataType: "varchar(254)")
+  nom: String! @col(dataType: "varchar(80)")
+  prenom: String! @col(dataType: "varchar(80)")
+  requestedTeamType: String! @col(dataType: "varchar(32)")
+  # Statut : "pending" | "converted" | "rejected"
+  status: String! @default(value: "pending") @col(dataType: "varchar(32)")
+  sourceConnexion: String @col(dataType: "varchar(32)")
+  convertedTeamId: String @col(dataType: "varchar(120)")
+  convertedMemberId: String @col(dataType: "varchar(120)")
+  reviewNote: String
+  reviewedBy: User
+  reviewedAt: Timestamp
+  dateModification: Timestamp! @default(expr: "request.time")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Equipe finale Sosson utilisee pour l'affectation RH et planning.
+type SossonTeam @table {
+  code: String! @col(dataType: "varchar(64)")
+  name: String! @col(dataType: "varchar(120)")
+  # Type : "chantier" | "chantier_bureau" | "administratif" | "gerant"
+  type: String! @col(dataType: "varchar(32)")
+  # Statut : "active" | "archive"
+  statut: String! @default(value: "active") @col(dataType: "varchar(32)")
+  theme: String @col(dataType: "varchar(32)")
+  leadName: String @col(dataType: "varchar(160)")
+  description: String
+  # Liste simple separee par des virgules tant que les sites/equipes n'ont pas
+  # besoin d'une table dediee.
+  activeSites: String
+  ordre: Int
+  dateModification: Timestamp! @default(expr: "request.time")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Fiche de poste RH liee a une equipe finale. Le lien vers User est optionnel
+# pour permettre les fiches chantier sans compte applicatif.
+type SossonTeamMember @table {
+  user: User
+  team: SossonTeam!
+  firstName: String! @col(dataType: "varchar(80)")
+  lastName: String! @col(dataType: "varchar(80)")
+  title: String! @col(dataType: "varchar(120)")
+  qualification: String @col(dataType: "varchar(160)")
+  level: String @col(dataType: "varchar(120)")
+  salaryGrossMonthly: Float @col(dataType: "numeric(12, 2)")
+  contract: String @col(dataType: "varchar(80)")
+  coefficient: String @col(dataType: "varchar(80)")
+  email: String @col(dataType: "varchar(254)")
+  phone: String @col(dataType: "varchar(32)")
+  # Statut : "terrain" | "atelier" | "bureau" | "absent"
+  status: String! @default(value: "terrain") @col(dataType: "varchar(32)")
+  site: String @col(dataType: "varchar(160)")
+  activeSites: String
+  responsibilities: String
+  permissions: String
+  dateModification: Timestamp! @default(expr: "request.time")
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Absence/conge rattache a une fiche membre.
+type SossonTeamLeavePeriod @table {
+  member: SossonTeamMember!
+  type: String! @col(dataType: "varchar(32)")
+  month: String! @col(dataType: "varchar(32)")
+  startDay: Int!
+  endDay: Int!
+  status: String! @default(value: "approved") @col(dataType: "varchar(32)")
+  note: String
+  approvedBy: User
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Ligne d'heures travaillee, validable avant paie.
+type SossonWorkTimeEntry @table {
+  member: SossonTeamMember!
+  chantier: Chantier
+  planningEvent: PlanningEvent
+  planningAssignment: PlanningAssignment
+  jobSheet: PlanningJobSheet
+  workDate: Date!
+  hours: Float! @col(dataType: "numeric(6, 2)")
+  kind: String! @default(value: "chantier") @col(dataType: "varchar(32)")
+  status: String! @default(value: "draft") @col(dataType: "varchar(32)")
+  notes: String
+  approvedBy: User
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Preparation paie par membre et periode. Ce n'est pas un bulletin legal: la
+# table sert a consolider les donnees RH avant export/compta.
+type SossonPayrollPeriod @table {
+  member: SossonTeamMember!
+  periodLabel: String! @col(dataType: "varchar(32)")
+  year: Int!
+  month: Int!
+  baseSalaryGrossMonthly: Float @col(dataType: "numeric(12, 2)")
+  overtimeHours: Float @default(value: 0) @col(dataType: "numeric(6, 2)")
+  paidLeaveDays: Float @default(value: 0) @col(dataType: "numeric(6, 2)")
+  absenceDays: Float @default(value: 0) @col(dataType: "numeric(6, 2)")
+  grossEstimate: Float @col(dataType: "numeric(12, 2)")
+  status: String! @default(value: "draft") @col(dataType: "varchar(32)")
+  notes: String
+  dateModification: Timestamp! @default(expr: "request.time")
   dateCreation: Timestamp! @default(expr: "request.time")
 }
 
@@ -358,9 +487,43 @@ type PlanningEvent @table {
 type PlanningAssignment @table {
   event: PlanningEvent!
   user: User
+  sossonTeam: SossonTeam
   assignmentRole: String @col(dataType: "varchar(80)")
   statut: String! @col(dataType: "varchar(32)")
   notes: String
+  dateCreation: Timestamp! @default(expr: "request.time")
+}
+
+
+# Fiche d'intervention issue du planning. Elle relie la carte planning, son
+# affectation, le chantier, l'equipe finale et les heures reellement saisies.
+type PlanningJobSheet @table {
+  event: PlanningEvent!
+  assignment: PlanningAssignment
+  chantier: Chantier
+  sossonTeam: SossonTeam
+  leadMember: SossonTeamMember
+  titre: String! @col(dataType: "varchar(200)")
+  # Statut : "draft" | "ready" | "in_progress" | "completed" | "validated" | "blocked"
+  statut: String! @default(value: "draft") @col(dataType: "varchar(32)")
+  instructions: String
+  plannedHours: Float @col(dataType: "numeric(6, 2)")
+  actualHours: Float @col(dataType: "numeric(6, 2)")
+  checklist: String
+  materials: String
+  blockers: String
+  completionNotes: String
+  proofStoragePath: String @col(dataType: "varchar(500)")
+  proofSha256: String @col(dataType: "varchar(64)")
+  reportStoragePath: String @col(dataType: "varchar(500)")
+  reportSha256: String @col(dataType: "varchar(64)")
+  preparedBy: User
+  updatedBy: User
+  completedBy: User
+  validatedBy: User
+  completedAt: Timestamp
+  validatedAt: Timestamp
+  dateModification: Timestamp! @default(expr: "request.time")
   dateCreation: Timestamp! @default(expr: "request.time")
 }
 

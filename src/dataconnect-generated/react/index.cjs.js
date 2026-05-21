@@ -1,6 +1,102 @@
-const { createClientRef, updateClientRef, createChantierRef, updateChantierStatutRef, createDevisRef, updateDevisStatutRef, createFactureRef, setFactureStatutRef, createDocumentFolderRef, createDocumentAttacheRef, updateDocumentAttacheLinksRef, createPrevisionnelImportBatchRef, updatePrevisionnelMonthlyAmountRef, updatePrevisionnelLineAmountsRef, linkPrevisionnelLineToChantierRef, upsertPrevisionnelCellEditRef, createEmailThreadRef, updateEmailThreadStatusAndLinksRef, createEmailMessageRef, createEmailAttachmentRef, createPlanningEventRef, updatePlanningEventStatusRef, updatePlanningEventDetailsRef, cancelPlanningEventRef, createPlanningAssignmentRef, updatePlanningAssignmentStatusRef, createAnalyticsSnapshotRef, createRapportRef, markRapportGeneratedRef, createAuditEventRef, createCheckpointRunRef, createCheckpointStepRef, createCheckpointArtifactRef, createCheckpointDecisionRef, createDataImportRunRef, createDataImportIssueRef, createEntityChangeLogRef, getCurrentUserRef, listUsersRef, listOperationalClientsRef, getClientRef, listOperationalChantiersRef, getChantierRef, listDevisRef, listDevisByClientRef, listDevisByChantierRef, listFacturesRef, listFacturesByStatutRef, listDocumentFoldersRef, listDocumentsAttachesRef, listDocumentsByChantierRef, listPrevisionnelExercisesRef, listPrevisionnelLinesByExerciseRef, searchClientAliasesRef, listPrevisionnelCellEditsRef, listEmailThreadsRef, listUnreadEmailThreadsRef, getEmailThreadRef, listPlanningEventsByPeriodRef, listPlanningEventsByChantierRef, listAnalyticsSnapshotsRef, getAnalyticsSnapshotRef, listRapportsRef, getRapportRef, listRecentAuditEventsRef, listEntityChangeLogsRef, listCheckpointRunsRef, getCheckpointRunRef, listDataImportRunsRef, getDataImportRunRef, connectorConfig } = require('../index.cjs.js');
+const { submitCurrentTeamProfileRef, convertTeamProfileSubmissionRef, createSossonTeamRef, updateSossonTeamRef, createSossonTeamMemberRef, updateSossonTeamMemberRef, createSossonTeamLeavePeriodRef, createSossonWorkTimeEntryRef, createSossonPayrollPeriodRef, createPlanningJobSheetRef, updatePlanningJobSheetProgressRef, completePlanningJobSheetRef, createClientRef, updateClientRef, createChantierRef, updateChantierStatutRef, createDevisRef, updateDevisStatutRef, createFactureRef, setFactureStatutRef, createDocumentFolderRef, createDocumentAttacheRef, updateDocumentAttacheLinksRef, createPrevisionnelImportBatchRef, updatePrevisionnelMonthlyAmountRef, updatePrevisionnelLineAmountsRef, linkPrevisionnelLineToChantierRef, upsertPrevisionnelCellEditRef, createEmailThreadRef, updateEmailThreadStatusAndLinksRef, createEmailMessageRef, createEmailAttachmentRef, createPlanningEventRef, updatePlanningEventStatusRef, updatePlanningEventDetailsRef, cancelPlanningEventRef, createPlanningAssignmentRef, updatePlanningAssignmentStatusRef, createAnalyticsSnapshotRef, createRapportRef, markRapportGeneratedRef, createAuditEventRef, createCheckpointRunRef, createCheckpointStepRef, createCheckpointArtifactRef, createCheckpointDecisionRef, createDataImportRunRef, createDataImportIssueRef, createEntityChangeLogRef, getCurrentUserRef, listUsersRef, getCurrentTeamProfileSubmissionRef, listTeamProfileSubmissionsRef, listSossonTeamsRef, listSossonWorkTimeEntriesRef, listSossonPayrollPeriodsRef, listOperationalClientsRef, getClientRef, listOperationalChantiersRef, getChantierRef, listDevisRef, listDevisByClientRef, listDevisByChantierRef, listFacturesRef, listFacturesByStatutRef, listDocumentFoldersRef, listDocumentsAttachesRef, listDocumentsByChantierRef, listPrevisionnelExercisesRef, listPrevisionnelLinesByExerciseRef, searchClientAliasesRef, listPrevisionnelCellEditsRef, listEmailThreadsRef, listEmailThreadsByChantierRef, listUnreadEmailThreadsRef, getEmailThreadRef, listPlanningEventsByPeriodRef, listPlanningEventsByChantierRef, listPlanningJobSheetsByEventRef, listAnalyticsSnapshotsRef, getAnalyticsSnapshotRef, listRapportsRef, getRapportRef, listRecentAuditEventsRef, listEntityChangeLogsRef, listCheckpointRunsRef, getCheckpointRunRef, listDataImportRunsRef, getDataImportRunRef, connectorConfig } = require('../index.cjs.js');
 const { validateArgs, CallerSdkTypeEnum } = require('firebase/data-connect');
 const { useDataConnectQuery, useDataConnectMutation, validateReactArgs } = require('@tanstack-query-firebase/react/data-connect');
+
+exports.useSubmitCurrentTeamProfile = function useSubmitCurrentTeamProfile(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return submitCurrentTeamProfileRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useConvertTeamProfileSubmission = function useConvertTeamProfileSubmission(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return convertTeamProfileSubmissionRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCreateSossonTeam = function useCreateSossonTeam(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createSossonTeamRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useUpdateSossonTeam = function useUpdateSossonTeam(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return updateSossonTeamRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCreateSossonTeamMember = function useCreateSossonTeamMember(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createSossonTeamMemberRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useUpdateSossonTeamMember = function useUpdateSossonTeamMember(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return updateSossonTeamMemberRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCreateSossonTeamLeavePeriod = function useCreateSossonTeamLeavePeriod(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createSossonTeamLeavePeriodRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCreateSossonWorkTimeEntry = function useCreateSossonWorkTimeEntry(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createSossonWorkTimeEntryRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCreateSossonPayrollPeriod = function useCreateSossonPayrollPeriod(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createSossonPayrollPeriodRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCreatePlanningJobSheet = function useCreatePlanningJobSheet(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createPlanningJobSheetRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useUpdatePlanningJobSheetProgress = function useUpdatePlanningJobSheetProgress(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return updatePlanningJobSheetProgressRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useCompletePlanningJobSheet = function useCompletePlanningJobSheet(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return completePlanningJobSheetRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
 
 exports.useCreateClient = function useCreateClient(dcOrOptions, options) {
   const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
@@ -311,6 +407,36 @@ exports.useListUsers = function useListUsers(dcOrOptions, options) {
   return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
 }
 
+exports.useGetCurrentTeamProfileSubmission = function useGetCurrentTeamProfileSubmission(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts } = validateReactArgs(connectorConfig, dcOrOptions, options);
+  const ref = getCurrentTeamProfileSubmissionRef(dcInstance);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useListTeamProfileSubmissions = function useListTeamProfileSubmissions(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts } = validateReactArgs(connectorConfig, dcOrOptions, options);
+  const ref = listTeamProfileSubmissionsRef(dcInstance);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useListSossonTeams = function useListSossonTeams(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts } = validateReactArgs(connectorConfig, dcOrOptions, options);
+  const ref = listSossonTeamsRef(dcInstance);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useListSossonWorkTimeEntries = function useListSossonWorkTimeEntries(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = listSossonWorkTimeEntriesRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useListSossonPayrollPeriods = function useListSossonPayrollPeriods(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = listSossonPayrollPeriodsRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
 exports.useListOperationalClients = function useListOperationalClients(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts } = validateReactArgs(connectorConfig, dcOrOptions, options);
   const ref = listOperationalClientsRef(dcInstance);
@@ -413,6 +539,12 @@ exports.useListEmailThreads = function useListEmailThreads(dcOrOptions, options)
   return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
 }
 
+exports.useListEmailThreadsByChantier = function useListEmailThreadsByChantier(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = listEmailThreadsByChantierRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
 exports.useListUnreadEmailThreads = function useListUnreadEmailThreads(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts } = validateReactArgs(connectorConfig, dcOrOptions, options);
   const ref = listUnreadEmailThreadsRef(dcInstance);
@@ -434,6 +566,12 @@ exports.useListPlanningEventsByPeriod = function useListPlanningEventsByPeriod(d
 exports.useListPlanningEventsByChantier = function useListPlanningEventsByChantier(dcOrVars, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   const ref = listPlanningEventsByChantierRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+exports.useListPlanningJobSheetsByEvent = function useListPlanningJobSheetsByEvent(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = listPlanningJobSheetsByEventRef(dcInstance, inputVars);
   return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
 }
 

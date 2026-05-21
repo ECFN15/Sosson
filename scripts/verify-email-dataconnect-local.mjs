@@ -11,6 +11,8 @@ import {
   createEmailThread,
   getEmailThread,
   listEmailThreads,
+  listEmailThreadsByChantier,
+  listOperationalChantiers,
   listUnreadEmailThreads,
   updateEmailThreadStatusAndLinks,
 } from '@dataconnect/admin-generated'
@@ -105,6 +107,9 @@ const attachmentHash = sha256(`email-local-attachment-${stamp}`)
 
 await dc.upsert('User', actor)
 
+const chantiersResponse = await listOperationalChantiers(dc, options)
+const linkedChantier = chantiersResponse.data.chantiers[0] ?? null
+
 const threadResponse = await createEmailThread(
   dc,
   {
@@ -113,8 +118,8 @@ const threadResponse = await createEmailThread(
     subject: `Demande chantier local ${stamp}`,
     statut: 'a_traiter',
     importance: 'haute',
-    clientId: null,
-    chantierId: null,
+    clientId: linkedChantier?.client.id ?? null,
+    chantierId: linkedChantier?.id ?? null,
     assignedToId: actor.id,
     lastMessageAt: receivedAt,
     participantsSummary: 'client@sosson.local -> email@sosson.local',
@@ -170,17 +175,18 @@ await updateEmailThreadStatusAndLinks(
   {
     id: threadId,
     statut: 'traite',
-    clientId: null,
-    chantierId: null,
+    clientId: linkedChantier?.client.id ?? null,
+    chantierId: linkedChantier?.id ?? null,
     assignedToId: actor.id,
   },
   options,
 )
 
-const [threadRead, threadsRead, unreadRead] = await Promise.all([
+const [threadRead, threadsRead, unreadRead, chantierThreadsRead] = await Promise.all([
   getEmailThread(dc, { id: threadId }, options),
   listEmailThreads(dc, options),
   listUnreadEmailThreads(dc, options),
+  linkedChantier ? listEmailThreadsByChantier(dc, { chantierId: linkedChantier.id }, options) : Promise.resolve(null),
 ])
 
 const thread = threadRead.data.emailThread
@@ -195,6 +201,12 @@ assert(message.bodyHash === bodyHash, 'Hash du corps email non relu.')
 assert(attachment?.sha256 === attachmentHash, 'EmailAttachment creee non relue sous le message.')
 assert(threadsRead.data.emailThreads.some(item => item.id === threadId), 'EmailThread absent de ListEmailThreads.')
 assert(!unreadRead.data.emailThreads.some(item => item.id === threadId), 'EmailThread traite encore present dans ListUnreadEmailThreads.')
+if (linkedChantier) {
+  assert(
+    chantierThreadsRead?.data.emailThreads.some(item => item.id === threadId),
+    'EmailThread rattache absent de ListEmailThreadsByChantier.',
+  )
+}
 
 const proof = {
   mode: 'local-emulator',
@@ -216,6 +228,14 @@ const proof = {
     attachmentsOnMessage: message?.attachments.length ?? 0,
     listedInAllThreads: true,
     listedInUnreadThreads: false,
+    linkedChantier: linkedChantier
+      ? {
+          id: linkedChantier.id,
+          nom: linkedChantier.nom,
+          clientId: linkedChantier.client.id,
+        }
+      : null,
+    listedByChantier: linkedChantier ? true : 'skipped-no-seed-chantier',
   },
 }
 

@@ -6,7 +6,8 @@ import {
   Check,
   ChevronRight,
   ClipboardList,
-  ExternalLink,
+  Clock3,
+  Euro,
   LockKeyhole,
   Plus,
   ShieldCheck,
@@ -44,9 +45,31 @@ import {
 } from '@/lib/teamDirectory'
 import type { LeavePeriod, LeaveType, MemberStatus, Team, TeamMember, TeamTheme } from '@/lib/teamDirectory'
 import { loadTeamProfilesFromSql } from '@/features/team/teamSql'
-import type { SqlTeamProfile } from '@/features/team/teamSql'
+import {
+  convertTeamProfileSubmissionInSql,
+  createPayrollPeriodInSql,
+  createTeamInSql,
+  createTeamLeavePeriodInSql,
+  createTeamMemberInSql,
+  createWorkTimeEntryInSql,
+  isUuidLike,
+  listToSqlValue,
+  loadTeamProfileSubmissionsFromSql,
+  loadTeamDirectoryFromSql,
+  makeTeamCode,
+  permissionsToSqlValue,
+  updateTeamMemberInSql,
+} from '@/features/team/teamSql'
+import type { ListedTeamProfileSubmission, SqlTeamProfile } from '@/features/team/teamSql'
+import {
+  buildInitials,
+  defaultPosteForRequestedTeamType,
+  defaultRoleForRequestedTeamType,
+  labelRequestedTeamType,
+} from '@/features/auth/teamProfileSubmission'
 
 const roles: Role[] = ['gerant', 'assistante', 'chef_chantier']
+type TeamDirectorySource = 'local' | 'sql' | 'sql-empty'
 
 const capabilityLabels: Record<AccessCapability, string> = {
   view: 'Voir',
@@ -67,6 +90,36 @@ function statusClass(status: MemberStatus) {
   if (status === 'absent') return 'bg-[#FEE2E2] text-[#DC2626]'
   if (status === 'bureau') return 'bg-[#E6F4EA] text-[#1E8E3E]'
   return 'bg-[#FAF6F2] text-[#6B6B6B]'
+}
+
+function teamTypeFromTheme(theme: TeamTheme) {
+  return theme === 'administratif' ? 'administratif' : 'chantier'
+}
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function currentPayrollLabel() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+function parsePayrollLabel(label: string) {
+  const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(label.trim())
+  if (!match) return null
+  return { year: Number(match[1]), month: Number(match[2]) }
+}
+
+function asPositiveNumber(value: string) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0
+}
+
+function estimateGross(baseSalaryGrossMonthly: number, overtimeHours: number, absenceDays: number) {
+  const hourlyRate = baseSalaryGrossMonthly > 0 ? baseSalaryGrossMonthly / 151.67 : 0
+  const dailyRate = baseSalaryGrossMonthly > 0 ? baseSalaryGrossMonthly / 21.67 : 0
+  return Math.max(0, baseSalaryGrossMonthly + overtimeHours * hourlyRate * 1.25 - absenceDays * dailyRate)
 }
 
 export function EquipePage() {
@@ -109,8 +162,23 @@ export function EquipePage() {
   })
   const [permissionFeedback, setPermissionFeedback] = useState('')
   const [sqlProfiles, setSqlProfiles] = useState<SqlTeamProfile[]>([])
+  const [profileSubmissions, setProfileSubmissions] = useState<ListedTeamProfileSubmission[]>([])
   const [sqlProfileStatus, setSqlProfileStatus] = useState<'idle' | 'loading' | 'sql' | 'unavailable'>('idle')
   const [sqlProfileMessage, setSqlProfileMessage] = useState('Lecture SQL User non lancee.')
+  const [teamDirectorySource, setTeamDirectorySource] = useState<TeamDirectorySource>('local')
+  const [timeDraft, setTimeDraft] = useState({
+    workDate: todayKey(),
+    hours: '7',
+    kind: 'chantier',
+    notes: '',
+  })
+  const [payrollDraft, setPayrollDraft] = useState({
+    periodLabel: currentPayrollLabel(),
+    overtimeHours: '0',
+    paidLeaveDays: '0',
+    absenceDays: '0',
+    notes: '',
+  })
   const canCreateEquipe = canAccessPage(user?.role, 'equipe', accessMatrix, 'create')
   const canEditEquipe = canAccessPage(user?.role, 'equipe', accessMatrix, 'edit')
   const canAdminEquipe = canAccessPage(user?.role, 'equipe', accessMatrix, 'admin')
@@ -120,16 +188,19 @@ export function EquipePage() {
   }
 
   useEffect(() => {
+    if (teamDirectorySource !== 'local') return
     saveCollection(TEAMS_STORAGE_KEY, teams)
-  }, [teams])
+  }, [teamDirectorySource, teams])
 
   useEffect(() => {
+    if (teamDirectorySource !== 'local') return
     saveCollection(MEMBERS_STORAGE_KEY, members)
-  }, [members])
+  }, [members, teamDirectorySource])
 
   useEffect(() => {
+    if (teamDirectorySource !== 'local') return
     saveCollection(LEAVES_STORAGE_KEY, leaves)
-  }, [leaves])
+  }, [leaves, teamDirectorySource])
 
   useEffect(() => {
     let isMounted = true
@@ -153,19 +224,41 @@ export function EquipePage() {
           return
         }
 
-        const profiles = await loadTeamProfilesFromSql()
+        const [profiles, submissions, directory] = await Promise.all([
+          loadTeamProfilesFromSql(),
+          user.role === 'gerant' ? loadTeamProfileSubmissionsFromSql() : Promise.resolve([]),
+          loadTeamDirectoryFromSql(),
+        ])
         if (!isMounted) return
 
         setSqlProfiles(profiles)
+        setProfileSubmissions(submissions)
+        if (directory.teams.length > 0) {
+          setTeams(directory.teams)
+          setMembers(directory.members)
+          setLeaves(directory.leaves)
+          setSelectedTeamId(directory.teams[0]?.id ?? '')
+          setSelectedMemberId(directory.members[0]?.id ?? '')
+          setTeamDirectorySource('sql')
+        } else {
+          setTeams([])
+          setMembers([])
+          setLeaves([])
+          setSelectedTeamId('')
+          setSelectedMemberId('')
+          setTeamDirectorySource('sql-empty')
+        }
         setSqlProfileStatus('sql')
         setSqlProfileMessage(
-          profiles.length > 0
-            ? `${profiles.length} profil(s) applicatif(s) lus depuis SQL User.`
-            : 'SQL User repond mais aucun profil applicatif provisionne.',
+          profiles.length > 0 || submissions.length > 0 || directory.teams.length > 0
+            ? `${profiles.length} profil(s), ${submissions.length} demande(s) onboarding et ${directory.teams.length} equipe(s) finale(s) lus depuis SQL.`
+            : 'SQL repond mais aucun profil applicatif, demande onboarding ou equipe finale.',
         )
       } catch (error) {
         if (!isMounted) return
         setSqlProfiles([])
+        setProfileSubmissions([])
+        setTeamDirectorySource('local')
         setSqlProfileStatus('unavailable')
         setSqlProfileMessage(`Profils SQL indisponibles: ${error instanceof Error ? error.message : String(error)}`)
       }
@@ -197,11 +290,13 @@ export function EquipePage() {
     return [
       { label: 'Equipes chantier', value: String(teams.filter(team => team.theme !== 'administratif').length), Icon: UsersRound },
       { label: 'Membres actifs', value: String(activeMembers), Icon: UserRound },
+      { label: 'Profils a classer', value: String(profileSubmissions.filter(submission => submission.status === 'pending').length), Icon: UserPlus },
       { label: 'Conges poses', value: String(leaveCount), Icon: CalendarDays },
+      { label: 'Source equipes', value: teamDirectorySource === 'sql' ? 'SQL' : teamDirectorySource === 'sql-empty' ? 'Vide' : 'Local', Icon: ShieldCheck },
       { label: 'Profils SQL User', value: sqlProfileStatus === 'sql' ? String(sqlProfiles.length) : 'N/A', Icon: ShieldCheck },
       { label: 'Pages controlees', value: String(controlledPages), Icon: ShieldCheck },
     ]
-  }, [accessMatrix, leaves.length, members, sqlProfileStatus, sqlProfiles.length, teams])
+  }, [accessMatrix, leaves.length, members, profileSubmissions, sqlProfileStatus, sqlProfiles.length, teamDirectorySource, teams])
 
   const roleStats = useMemo(() => {
     const pages = appPages.length
@@ -215,9 +310,14 @@ export function EquipePage() {
     setSelectedMemberId(members.find(member => member.teamId === teamId)?.id ?? '')
   }
 
-  function addTeam() {
+  async function addTeam() {
     if (!canCreateEquipe) {
       deny('Creation equipe non autorisee pour ce profil.')
+      return
+    }
+
+    if (sqlProfileStatus === 'loading') {
+      deny('Attendez la fin de lecture SQL avant de creer une equipe.')
       return
     }
 
@@ -231,6 +331,28 @@ export function EquipePage() {
       lead: teamDraft.lead.trim() || 'A definir',
       description: teamDraft.description.trim() || 'Equipe operationnelle chantier.',
       activeSites: splitList(teamDraft.activeSites, ['A affecter']),
+    }
+
+    if (isDataConnectEnabled && user && teamDirectorySource !== 'local') {
+      try {
+        team.id = await createTeamInSql({
+          code: makeTeamCode(name),
+          name: team.name,
+          type: teamTypeFromTheme(team.theme),
+          statut: 'active',
+          theme: team.theme,
+          leadName: team.lead,
+          description: team.description,
+          activeSites: listToSqlValue(team.activeSites),
+          ordre: teams.length + 1,
+        })
+        setTeamDirectorySource('sql')
+      } catch (error) {
+        deny(`Equipe non creee: SQL indisponible (${error instanceof Error ? error.message : String(error)}). Aucun fallback local n'a ete cree.`)
+        return
+      }
+    } else if (!isDataConnectEnabled || !user || teamDirectorySource === 'local') {
+      deny('Equipe creee en fallback local: ce n est pas une preuve SQL.')
     }
 
     setTeams(prev => [...prev, team])
@@ -257,7 +379,7 @@ export function EquipePage() {
     setSelectedMemberId(remainingMembers.find(member => member.teamId === nextTeam?.id)?.id ?? '')
   }
 
-  function addMember() {
+  async function addMember() {
     if (!canCreateEquipe) {
       deny('Creation membre non autorisee pour ce profil.')
       return
@@ -287,6 +409,41 @@ export function EquipePage() {
       activeSites: splitList(memberDraft.activeSites, selectedTeam.activeSites),
       responsibilities: splitList(memberDraft.responsibilities, ['Intervention chantier']),
       permissions: ['chantiers', 'documents'],
+    }
+
+    if (isDataConnectEnabled && user && teamDirectorySource !== 'local') {
+      if (!isUuidLike(selectedTeam.id)) {
+        deny("Fiche membre non creee: l'equipe selectionnee n'est pas une equipe SQL.")
+        return
+      }
+
+      try {
+        member.id = await createTeamMemberInSql({
+          teamId: selectedTeam.id,
+          userId: null,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          title: member.title,
+          qualification: member.qualification,
+          level: member.level,
+          salaryGrossMonthly: member.salaryGrossMonthly,
+          contract: member.contract,
+          coefficient: member.coefficient,
+          email: member.email || null,
+          phone: member.phone || null,
+          status: member.status,
+          site: member.site,
+          activeSites: listToSqlValue(member.activeSites),
+          responsibilities: listToSqlValue(member.responsibilities),
+          permissions: permissionsToSqlValue(member.permissions),
+        })
+        setTeamDirectorySource('sql')
+      } catch (error) {
+        deny(`Fiche membre non creee: SQL indisponible (${error instanceof Error ? error.message : String(error)}). Aucun fallback local n'a ete cree.`)
+        return
+      }
+    } else if (!isDataConnectEnabled || !user || teamDirectorySource === 'local') {
+      deny('Fiche membre creee en fallback local: ce n est pas une preuve SQL.')
     }
 
     setMembers(prev => [...prev, member])
@@ -321,16 +478,59 @@ export function EquipePage() {
     setSelectedMemberId(remaining.find(member => member.teamId === selectedTeam?.id)?.id ?? '')
   }
 
-  function moveMemberToTeam(memberId: string, teamId: string) {
+  async function moveMemberToTeam(memberId: string, teamId: string) {
     if (!canEditEquipe) {
       deny('Modification membre non autorisee pour ce profil.')
       return
     }
 
+    const movedMember = members.find(member => member.id === memberId)
+    const targetTeam = teams.find(team => team.id === teamId)
+    if (!movedMember || !targetTeam) return
+
+    if (isDataConnectEnabled && user && isUuidLike(movedMember.id)) {
+      if (!canAdminEquipe) {
+        deny('Deplacement SQL reserve au gerant.')
+        return
+      }
+      if (!isUuidLike(teamId)) {
+        deny("Deplacement SQL refuse: l'equipe cible n'est pas une equipe finale SQL.")
+        return
+      }
+
+      try {
+        await updateTeamMemberInSql({
+          id: movedMember.id,
+          teamId,
+          title: movedMember.title,
+          qualification: movedMember.qualification,
+          level: movedMember.level,
+          salaryGrossMonthly: movedMember.salaryGrossMonthly,
+          contract: movedMember.contract,
+          coefficient: movedMember.coefficient,
+          phone: movedMember.phone || null,
+          status: movedMember.status,
+          site: movedMember.site,
+          activeSites: listToSqlValue(movedMember.activeSites),
+          responsibilities: listToSqlValue(movedMember.responsibilities),
+          permissions: permissionsToSqlValue(movedMember.permissions),
+        })
+        setTeamDirectorySource('sql')
+      } catch (error) {
+        deny(`Deplacement SQL impossible: ${error instanceof Error ? error.message : String(error)}`)
+        return
+      }
+    } else if (!isDataConnectEnabled || !user || !isUuidLike(movedMember.id)) {
+      deny('Deplacement en fallback local: ce n est pas une preuve SQL.')
+    }
+
     setMembers(prev => prev.map(member => (member.id === memberId ? { ...member, teamId } : member)))
+    setSelectedTeamId(teamId)
+    setSelectedMemberId(memberId)
+    deny(`${movedMember.firstName} ${movedMember.lastName} est rattache a ${targetTeam.name}.`)
   }
 
-  function addLeave() {
+  async function addLeave() {
     if (!canEditEquipe) {
       deny('Modification conges non autorisee pour ce profil.')
       return
@@ -350,8 +550,114 @@ export function EquipePage() {
       note: leaveDraft.note.trim(),
     }
 
+    if (isDataConnectEnabled && user && isUuidLike(selectedMember.id)) {
+      try {
+        leave.id = await createTeamLeavePeriodInSql({
+          memberId: selectedMember.id,
+          type: leave.type,
+          month: leave.month,
+          startDay: leave.startDay,
+          endDay: leave.endDay,
+          status: 'approved',
+          note: leave.note || null,
+        })
+        setTeamDirectorySource('sql')
+      } catch (error) {
+        deny(`Conge non cree: SQL indisponible (${error instanceof Error ? error.message : String(error)}). Aucun fallback local n'a ete cree.`)
+        return
+      }
+    } else if (!isDataConnectEnabled || !user || !isUuidLike(selectedMember.id)) {
+      deny('Conge cree en fallback local: ce n est pas une preuve SQL.')
+    }
+
     setLeaves(prev => [...prev, leave])
     setLeaveDraft(prev => ({ ...prev, note: '' }))
+  }
+
+  async function addWorkTimeEntry() {
+    if (!canEditEquipe) {
+      deny('Saisie des heures non autorisee pour ce profil.')
+      return
+    }
+
+    if (!selectedMember) {
+      deny('Selectionnez un membre avant de saisir des heures.')
+      return
+    }
+
+    if (!isDataConnectEnabled || !user || !isUuidLike(selectedMember.id)) {
+      deny('La saisie des heures demande une fiche membre SQL issue de la base.')
+      return
+    }
+
+    const hours = asPositiveNumber(timeDraft.hours)
+    if (hours <= 0) {
+      deny('Renseignez un nombre d heures superieur a zero.')
+      return
+    }
+
+    try {
+      await createWorkTimeEntryInSql({
+        memberId: selectedMember.id,
+        chantierId: null,
+        workDate: timeDraft.workDate,
+        hours,
+        kind: timeDraft.kind,
+        status: 'submitted',
+        notes: timeDraft.notes.trim() || null,
+      })
+      setTimeDraft(prev => ({ ...prev, notes: '' }))
+      deny(`Heures envoyees en SQL pour ${selectedMember.firstName} ${selectedMember.lastName}.`)
+    } catch (error) {
+      deny(`Saisie des heures impossible: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  async function addPayrollPeriod() {
+    if (!canAdminEquipe) {
+      deny('Preparation paie reservee au gerant.')
+      return
+    }
+
+    if (!selectedMember) {
+      deny('Selectionnez un membre avant de preparer une periode de paie.')
+      return
+    }
+
+    if (!isDataConnectEnabled || !user || !isUuidLike(selectedMember.id)) {
+      deny('La preparation paie demande une fiche membre SQL issue de la base.')
+      return
+    }
+
+    const period = parsePayrollLabel(payrollDraft.periodLabel)
+    if (!period) {
+      deny('Utilisez un libelle de periode au format AAAA-MM.')
+      return
+    }
+
+    const overtimeHours = asPositiveNumber(payrollDraft.overtimeHours)
+    const paidLeaveDays = asPositiveNumber(payrollDraft.paidLeaveDays)
+    const absenceDays = asPositiveNumber(payrollDraft.absenceDays)
+
+    try {
+      await createPayrollPeriodInSql({
+        memberId: selectedMember.id,
+        periodLabel: payrollDraft.periodLabel.trim(),
+        year: period.year,
+        month: period.month,
+        baseSalaryGrossMonthly: selectedMember.salaryGrossMonthly || null,
+        overtimeHours,
+        paidLeaveDays,
+        absenceDays,
+        grossEstimate: estimateGross(selectedMember.salaryGrossMonthly, overtimeHours, absenceDays),
+        status: 'draft',
+        notes: payrollDraft.notes.trim() || null,
+      })
+      setPayrollDraft(prev => ({ ...prev, notes: '' }))
+      deny(`Preparation paie ${payrollDraft.periodLabel} creee en SQL.`)
+    } catch (error) {
+      deny(`Preparation paie impossible: ${error instanceof Error ? error.message : String(error)}`)
+    }
   }
 
   function deleteLeave(leaveId: string) {
@@ -391,6 +697,139 @@ export function EquipePage() {
     })
   }
 
+  async function convertSubmissionToSelectedTeam(submission: ListedTeamProfileSubmission) {
+    if (!canAdminEquipe) {
+      deny('Conversion de profil reservee au gerant.')
+      return
+    }
+
+    if (!selectedTeam) {
+      deny('Selectionnez une equipe finale avant de convertir le profil.')
+      return
+    }
+
+    if (!isUuidLike(selectedTeam.id)) {
+      deny('Conversion refusee: selectionnez une equipe finale SQL avant de creer le User applicatif.')
+      return
+    }
+
+    const existingMember = members.find(member => member.email.toLowerCase() === submission.email.toLowerCase())
+    if (existingMember) {
+      setSelectedTeamId(existingMember.teamId)
+      setSelectedMemberId(existingMember.id)
+      deny('Ce profil est deja transpose dans les fiches equipe locales.')
+      return
+    }
+
+    const role = defaultRoleForRequestedTeamType(submission.requestedTeamType)
+    const title = defaultPosteForRequestedTeamType(submission.requestedTeamType)
+    const memberId = createId('member')
+    let convertedMemberId = memberId
+    const member: TeamMember = {
+      id: memberId,
+      teamId: selectedTeam.id,
+      firstName: submission.prenom,
+      lastName: submission.nom,
+      title,
+      qualification: title,
+      level: roleLabels[role],
+      salaryGrossMonthly: 0,
+      contract: 'A definir',
+      coefficient: 'A definir',
+      email: submission.email,
+      phone: '',
+      status: submission.requestedTeamType === 'administratif' || submission.requestedTeamType === 'gerant' ? 'bureau' : 'terrain',
+      site: selectedTeam.activeSites[0] || 'A affecter',
+      activeSites: selectedTeam.activeSites,
+      responsibilities: ['Fiche de poste a completer'],
+      permissions: role === 'assistante' ? ['clients', 'factures', 'documents', 'emails'] : ['chantiers', 'documents', 'planning'],
+    }
+
+    try {
+      const usesSqlTeam = isDataConnectEnabled && user && isUuidLike(selectedTeam.id)
+
+      if (usesSqlTeam) {
+        member.id = await createTeamMemberInSql({
+          teamId: selectedTeam.id,
+          userId: null,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          title: member.title,
+          qualification: member.qualification,
+          level: member.level,
+          salaryGrossMonthly: member.salaryGrossMonthly,
+          contract: member.contract,
+          coefficient: member.coefficient,
+          email: member.email || null,
+          phone: member.phone || null,
+          status: member.status,
+          site: member.site,
+          activeSites: listToSqlValue(member.activeSites),
+          responsibilities: listToSqlValue(member.responsibilities),
+          permissions: permissionsToSqlValue(member.permissions),
+        })
+        convertedMemberId = member.id
+      }
+
+      await convertTeamProfileSubmissionInSql({
+        id: submission.id,
+        email: submission.email,
+        nom: submission.nom,
+        prenom: submission.prenom,
+        role,
+        avatar: buildInitials(submission.prenom, submission.nom),
+        equipeTypeSouhaite: submission.requestedTeamType,
+        equipeFinaleId: selectedTeam.id,
+        poste: title,
+        telephone: '',
+        sourceConnexion: submission.sourceConnexion ?? 'onboarding',
+        convertedMemberId,
+        reviewNote: `Converti dans ${selectedTeam.name}`,
+      })
+
+      if (usesSqlTeam) {
+        await updateTeamMemberInSql({
+          id: member.id,
+          teamId: selectedTeam.id,
+          userId: submission.id,
+          title: member.title,
+          qualification: member.qualification,
+          level: member.level,
+          salaryGrossMonthly: member.salaryGrossMonthly,
+          contract: member.contract,
+          coefficient: member.coefficient,
+          phone: member.phone || null,
+          status: member.status,
+          site: member.site,
+          activeSites: listToSqlValue(member.activeSites),
+          responsibilities: listToSqlValue(member.responsibilities),
+          permissions: permissionsToSqlValue(member.permissions),
+        })
+        setTeamDirectorySource('sql')
+      }
+    } catch (error) {
+      deny(`Conversion SQL impossible: ${error instanceof Error ? error.message : String(error)}`)
+      return
+    }
+
+    setMembers(prev => [...prev, member])
+    setSelectedMemberId(member.id)
+    setProfileSubmissions(prev =>
+      prev.map(item =>
+        item.id === submission.id
+          ? {
+              ...item,
+              status: 'converted',
+              convertedTeamId: selectedTeam.id,
+              convertedMemberId,
+              reviewNote: `Converti dans ${selectedTeam.name}`,
+            }
+          : item,
+      ),
+    )
+    deny(`${submission.prenom} ${submission.nom} est converti en profil applicatif et fiche equipe.`)
+  }
+
   const selectedTheme = selectedTeam ? themeOptions[selectedTeam.theme] : null
 
   return (
@@ -400,7 +839,7 @@ export function EquipePage() {
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#F06B21]">Administration interne</p>
           <h1 className="mt-2 text-[30px] font-semibold leading-tight text-[#1E1E1E]">Equipe, profils et droits</h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-6 text-[#3C3C3C]">
-            Deux equipes chantier fictives mais coherentes pour la construction de maisons ossature bois, avec fiches de poste, salaires, congés 12 mois et permissions par profil.
+            Reception des premieres connexions, classement en equipes finales, fiches de poste, conges, heures et preparation paie connectes a SQL quand la base est active.
           </p>
         </div>
         <button
@@ -425,7 +864,7 @@ export function EquipePage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Profils applicatifs SQL</h2>
+              <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Reception profils et onboarding</h2>
               <span className={`rounded-[6px] px-2 py-1 text-[11px] font-semibold ${
                 sqlProfileStatus === 'sql'
                   ? 'bg-[#E6F4EA] text-[#1E8E3E]'
@@ -437,13 +876,65 @@ export function EquipePage() {
               </span>
             </div>
             <p className="mt-2 max-w-3xl text-[13px] leading-5 text-[#3C3C3C]">
-              {sqlProfileMessage} Les roles ne sont pas modifies depuis cette page: ils restent provisionnes par script admin avec de vrais UID Firebase Auth.
+              {sqlProfileMessage} Une demande onboarding ne donne aucun droit: la conversion en User SQL actif reste reservee au gerant.
             </p>
           </div>
           <div className="rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] px-4 py-3 text-[12px] text-[#6B6B6B]">
-            Equipes, membres, conges et matrice de droits restent en localStorage tant que les tables RH dediees ne sont pas ajoutees.
+            La transposition cree un User SQL actif et exige une equipe finale SQL; aucun droit n'est derive d'une fiche locale.
           </div>
         </div>
+
+        <div className="mt-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-[13px] font-semibold text-[#1E1E1E]">Demandes a classer</h3>
+            <span className="rounded-[6px] bg-[#FDEBDD] px-2 py-1 text-[11px] font-semibold text-[#F06B21]">
+              {profileSubmissions.filter(submission => submission.status === 'pending').length} en attente
+            </span>
+          </div>
+          {profileSubmissions.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {profileSubmissions.map(submission => {
+                const alreadyMember = members.some(member => member.email.toLowerCase() === submission.email.toLowerCase())
+                const isPending = submission.status === 'pending'
+                return (
+                  <div key={submission.id} className="rounded-[16px] border border-[#F2E8DC] bg-[#FAF6F2] p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#1E1E1E] text-[11px] font-bold text-white">
+                        {buildInitials(submission.prenom, submission.nom)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold text-[#1E1E1E]">{submission.prenom} {submission.nom}</p>
+                        <p className="mt-1 truncate text-[11px] text-[#6B6B6B]">{submission.email}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className="rounded-[6px] bg-white px-2 py-1 text-[10px] font-semibold text-[#1E1E1E]">
+                            {labelRequestedTeamType(submission.requestedTeamType)}
+                          </span>
+                          <span className={`rounded-[6px] px-2 py-1 text-[10px] font-semibold ${isPending ? 'bg-[#FDEBDD] text-[#F06B21]' : 'bg-[#E6F4EA] text-[#1E8E3E]'}`}>
+                            {isPending ? 'A classer' : 'Converti'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void convertSubmissionToSelectedTeam(submission)}
+                      disabled={!isPending || alreadyMember || !selectedTeam || !canAdminEquipe}
+                      className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-[12px] bg-[#F06B21] px-3 text-[12px] font-semibold text-white transition hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:bg-[#D99A72]"
+                    >
+                      <UserPlus className="h-4 w-4" strokeWidth={1.75} />
+                      {alreadyMember ? 'Deja transpose' : selectedTeam ? `Transposer vers ${selectedTeam.name}` : 'Selectionner une equipe'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="rounded-[14px] bg-[#FAF6F2] p-4 text-[13px] text-[#6B6B6B]">
+              Aucune demande onboarding recue pour le moment.
+            </p>
+          )}
+        </div>
+
         {sqlProfiles.length > 0 && (
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {sqlProfiles.slice(0, 4).map(profile => (
@@ -458,6 +949,11 @@ export function EquipePage() {
                     <p className="mt-2 text-[11px] font-semibold text-[#F06B21]">
                       {profile.role ? roleLabels[profile.role] : profile.rawRole}
                     </p>
+                    {profile.equipeTypeSouhaite && (
+                      <p className="mt-1 text-[11px] text-[#6B6B6B]">
+                        {labelRequestedTeamType(profile.equipeTypeSouhaite)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -466,7 +962,7 @@ export function EquipePage() {
         )}
       </section>
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
         {stats.map(stat => {
           const Icon = stat.Icon
           return (
@@ -625,7 +1121,7 @@ export function EquipePage() {
               <div>
                 <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Ajouter un membre</h2>
                 <p className="text-[12px] text-[#6B6B6B]">
-                  {selectedTeam ? "La fiche sera enregistree dans la base locale de l'equipe selectionnee." : "Creez une equipe avant d'ajouter une fiche membre."}
+                  {selectedTeam ? "La fiche est enregistree en SQL quand l'equipe selectionnee vient de la base; le local reste un fallback annonce." : "Creez une equipe avant d'ajouter une fiche membre."}
                 </p>
               </div>
             </div>
@@ -681,7 +1177,7 @@ export function EquipePage() {
                   <InfoLine label="Contrat" value={selectedMember.contract} />
                   <InfoLine label="Coefficient" value={selectedMember.coefficient} />
                   <InfoLine label="Salaire brut" value={formatSalary(selectedMember.salaryGrossMonthly)} />
-                  <select value={selectedMember.teamId} onChange={event => moveMemberToTeam(selectedMember.id, event.target.value)} disabled={!canEditEquipe} className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] text-[#1E1E1E] outline-none disabled:cursor-not-allowed disabled:bg-[#FAF6F2] disabled:text-[#9CA3AF] focus:border-[#F06B21]">
+                  <select value={selectedMember.teamId} onChange={event => void moveMemberToTeam(selectedMember.id, event.target.value)} disabled={!canEditEquipe || (isDataConnectEnabled && isUuidLike(selectedMember.id) && !canAdminEquipe)} className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] text-[#1E1E1E] outline-none disabled:cursor-not-allowed disabled:bg-[#FAF6F2] disabled:text-[#9CA3AF] focus:border-[#F06B21]">
                     {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
                   </select>
                 </div>
@@ -702,9 +1198,8 @@ export function EquipePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Link to={`/equipe/profils/${selectedMember.id}`} className="inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#F06B21] px-3 text-[12px] font-semibold text-white transition hover:bg-[#D95B17]">
-                    <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
-                    Ouvrir profil
+                  <Link to={`/equipe/profils/${selectedMember.id}`} className="inline-flex min-h-9 items-center gap-2 rounded-[12px] border border-[#F2E8DC] bg-[#FAF6F2] px-3 py-2 text-[12px] font-semibold text-[#1E1E1E] transition hover:border-[#F06B21] hover:text-[#F06B21]">
+                    Ouvrir la fiche RH complete
                   </Link>
                   <button type="button" onClick={() => deleteMember(selectedMember.id)} disabled={!canEditEquipe} className="inline-flex h-9 items-center gap-2 rounded-[12px] border border-[#FCA5A5] bg-white px-3 text-[12px] font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2] disabled:cursor-not-allowed disabled:border-[#F2E8DC] disabled:text-[#9CA3AF]">
                     <Trash2 className="h-4 w-4" strokeWidth={1.75} />
@@ -755,9 +1250,59 @@ export function EquipePage() {
               <input value={leaveDraft.endDay} onChange={event => setLeaveDraft(prev => ({ ...prev, endDay: Number(event.target.value) }))} type="number" min="1" max="31" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
               <input value={leaveDraft.note} onChange={event => setLeaveDraft(prev => ({ ...prev, note: event.target.value }))} placeholder="Note" className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
             </div>
-            <button type="button" onClick={addLeave} disabled={!selectedMember || !canEditEquipe} className="mt-3 inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
+            <button type="button" onClick={() => void addLeave()} disabled={!selectedMember || !canEditEquipe} className="mt-3 inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
               <Plus className="h-4 w-4" strokeWidth={2} />
               Poser conges
+            </button>
+          </section>
+
+          <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FDEBDD] text-[#F06B21]">
+                <Clock3 className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Heures</h2>
+                <p className="text-[12px] text-[#6B6B6B]">Saisie rapide SQL</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <input value={timeDraft.workDate} onChange={event => setTimeDraft(prev => ({ ...prev, workDate: event.target.value }))} type="date" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+              <input value={timeDraft.hours} onChange={event => setTimeDraft(prev => ({ ...prev, hours: event.target.value }))} type="number" min="0" step="0.25" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+              <select value={timeDraft.kind} onChange={event => setTimeDraft(prev => ({ ...prev, kind: event.target.value }))} className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]">
+                <option value="chantier">Chantier</option>
+                <option value="atelier">Atelier</option>
+                <option value="bureau">Bureau</option>
+                <option value="formation">Formation</option>
+              </select>
+              <input value={timeDraft.notes} onChange={event => setTimeDraft(prev => ({ ...prev, notes: event.target.value }))} placeholder="Note heures" className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+            </div>
+            <button type="button" onClick={() => void addWorkTimeEntry()} disabled={!selectedMember || !canEditEquipe} className="mt-3 inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              Enregistrer heures
+            </button>
+          </section>
+
+          <section className="rounded-[20px] border border-[#F2E8DC] bg-white p-5">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#FDEBDD] text-[#F06B21]">
+                <Euro className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Preparation paie</h2>
+                <p className="text-[12px] text-[#6B6B6B]">Brouillon mensuel, non bulletin legal</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <input value={payrollDraft.periodLabel} onChange={event => setPayrollDraft(prev => ({ ...prev, periodLabel: event.target.value }))} placeholder="AAAA-MM" className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+              <input value={payrollDraft.overtimeHours} onChange={event => setPayrollDraft(prev => ({ ...prev, overtimeHours: event.target.value }))} type="number" min="0" step="0.25" placeholder="Heures sup." className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+              <input value={payrollDraft.paidLeaveDays} onChange={event => setPayrollDraft(prev => ({ ...prev, paidLeaveDays: event.target.value }))} type="number" min="0" step="0.5" placeholder="CP jours" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+              <input value={payrollDraft.absenceDays} onChange={event => setPayrollDraft(prev => ({ ...prev, absenceDays: event.target.value }))} type="number" min="0" step="0.5" placeholder="Absence jours" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+              <input value={payrollDraft.notes} onChange={event => setPayrollDraft(prev => ({ ...prev, notes: event.target.value }))} placeholder="Note paie" className="h-9 rounded-[10px] border border-[#F2E8DC] px-2 text-[12px] outline-none focus:border-[#F06B21]" />
+            </div>
+            <button type="button" onClick={() => void addPayrollPeriod()} disabled={!selectedMember || !canAdminEquipe} className="mt-3 inline-flex h-9 items-center gap-2 rounded-[12px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white transition hover:bg-[#2A2A2A] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]">
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              Creer brouillon
             </button>
           </section>
         </aside>

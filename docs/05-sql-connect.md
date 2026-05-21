@@ -180,6 +180,7 @@ Exemples:
 - `ListDevisByChantier`
 - `ListFactures`
 - `ListDocumentsAttaches`
+- `ListDocumentsByChantier`
 - `ListPrevisionnelExercises`
 - `ListPrevisionnelLinesByExercise`
 - `ListCheckpointRuns`
@@ -187,6 +188,7 @@ Exemples:
 - `ListDataImportRuns`
 - `ListRecentAuditEvents`
 - `ListEmailThreads`
+- `ListEmailThreadsByChantier`
 - `GetEmailThread`
 - `ListPlanningEventsByPeriod`
 - `ListAnalyticsSnapshots`
@@ -286,6 +288,8 @@ Etat actuel:
 - La table existe.
 - `GetCurrentUser` existe.
 - `ListUsers` existe pour lire les profils applicatifs provisionnes depuis la page Equipe, sans mutation de role cote navigateur.
+- `TeamProfileSubmission` existe pour collecter une demande de profil sans creer de role applicatif.
+- `SubmitCurrentTeamProfile` cree uniquement la demande du `auth.uid` courant; `ConvertTeamProfileSubmission` est reservee au role SQL `gerant`, exige une demande existante encore `pending`, conserve `sourceConnexion` et cree le vrai `User`.
 - Le login tente maintenant `GetCurrentUser` avant Firestore via `src/features/auth/sqlUserProfile.ts`.
 - Firestore `users/{uid}` reste un fallback transitoire tant que les vrais profils SQL sandbox ne sont pas provisionnes.
 - Le fallback local seed est uniquement un mode developpement opt-in, pas un mecanisme sandbox/production.
@@ -645,13 +649,13 @@ Etat de validation:
 - Adapter Equipe ajoute:
   - `src/features/team/teamSql.ts`
 - Dashboard, Statistiques et Rapports lisent maintenant `AnalyticsSnapshot` quand SQL Connect est disponible; Rapports peut creer un brouillon metadata SQL.
-- Preuve email locale du 2026-05-17: `npm run verify:email:dataconnect` via `checkpoint:002:emulator` cree un `EmailThread`, un `EmailMessage` et une `EmailAttachment`, classe le fil en `traite`, puis relit le tout; artefact `tmp/checkpoint-002/email-local.json`.
+- Preuve email locale du 2026-05-17, etendue le 2026-05-21: `npm run verify:email:dataconnect` via `checkpoint:002:emulator` cree un `EmailThread`, un `EmailMessage` et une `EmailAttachment`, classe le fil en `traite`, puis relit le tout. Quand un chantier operationnel seed existe, la preuve relit aussi le fil via `ListEmailThreadsByChantier`; artefact `tmp/checkpoint-002/email-local.json`.
 - Preuve statut chantier locale du 2026-05-17: `npm run verify:chantier-status:dataconnect` via `checkpoint:002:emulator` modifie puis restaure le statut d'un chantier operationnel seed via `UpdateChantierStatut`; artefact `tmp/checkpoint-002/chantier-status-local.json`.
 - Preuve edition client locale du 2026-05-17: `npm run verify:client-update:dataconnect` via `checkpoint:002:emulator` modifie puis restaure un client operationnel seed via `UpdateClient`; artefact `tmp/checkpoint-002/client-update-local.json`.
 - Preuve edition previsionnel locale du 2026-05-17: `npm run verify:previsionnel-edits:dataconnect` via `checkpoint:002:emulator` modifie puis restaure un montant mensuel seed via `UpdatePrevisionnelMonthlyAmount`, puis ecrit une cellule de preuve via `UpsertPrevisionnelCellEdit`; artefact `tmp/checkpoint-002/previsionnel-edits-local.json`. Cette preuve est lancee apres le snapshot analytics local pour ne pas influencer le snapshot.
 - Preuve factures locale du 2026-05-17: `npm run verify:factures:dataconnect` via `checkpoint:002:emulator` cree une facture operationnelle locale via `CreateFacture`, la relit en `en_attente`, modifie son statut via `SetFactureStatut`, puis la relit en `validee`; artefact `tmp/checkpoint-002/factures-local.json`. Cette preuve est lancee apres le comptage propre pour ne pas fausser les compteurs seed.
-- Preuve documents locale du 2026-05-17: `npm run verify:documents:dataconnect` via `checkpoint:002:emulator` cree un `DocumentFolder` et un `DocumentAttache`, relit `storagePath`, `tailleBytes` et `sha256`; artefact `tmp/checkpoint-002/documents-local.json`. Ce n'est pas encore un upload Storage.
-- Preuve planning locale du 2026-05-17: `npm run verify:planning:dataconnect` via `checkpoint:002:emulator` cree un `PlanningEvent` + `PlanningAssignment`, modifie titre/equipe/statut/creneau/notes avec `UpdatePlanningEventDetails`, annule la carte via `CancelPlanningEvent` sans suppression physique, puis relit la carte; artefact `tmp/checkpoint-002/planning-local.json`.
+- Preuve documents locale du 2026-05-17, etendue le 2026-05-21: `npm run verify:documents:dataconnect` via `checkpoint:002:emulator` cree un `DocumentFolder`, un `DocumentAttache` libre et un document facture lie a un chantier, relit `storagePath`, `tailleBytes`, `sha256`, le lien facture et le document via `ListDocumentsByChantier`; artefact `tmp/checkpoint-002/documents-local.json`. Ce n'est pas encore un upload Storage.
+- Preuve planning locale du 2026-05-17, etendue le 2026-05-21: `npm run verify:planning:dataconnect` via `checkpoint:002:emulator` cree un client, un chantier, un `PlanningEvent` + `PlanningAssignment`, modifie titre/equipe/statut/creneau/notes avec `UpdatePlanningEventDetails`, annule la carte via `CancelPlanningEvent` sans suppression physique, puis relit la carte par periode et via `ListPlanningEventsByChantier`; artefact `tmp/checkpoint-002/planning-local.json`.
 - Preuve rapport locale du 2026-05-17: `npm run verify:reports:dataconnect` via `checkpoint:002:emulator` cree un `AnalyticsSnapshot`, ecrit un payload source JSON et un artefact CSV local sous `tmp/checkpoint-002/reports/`, cree un `Rapport`, le marque genere avec le chemin et le hash SHA-256 reels de cet artefact via `MarkRapportGenerated`, puis relit detail et liste; preuve `tmp/checkpoint-002/report-local.json`. Ce n'est pas encore un export Storage/PDF/XLSX.
 - Preuve analytics locale du 2026-05-17: `npm run snapshot:analytics:dataconnect` via `checkpoint:002:emulator` cree puis relit un `AnalyticsSnapshot` `dashboard-global` en emulateur; artefact `tmp/checkpoint-002/analytics-snapshot-local.json`.
 - Non deploye en sandbox distante.
@@ -769,15 +773,15 @@ Si SQL Connect ne repond pas ou si aucune donnee n'est disponible, le front gard
 | Dashboard | Previsionnel SQL si disponible + lecture `AnalyticsSnapshot` non bloquante | Store + TS si SQL/snapshot absents | Hooks SQL communs + snapshots. |
 | Clients | Lecture via store SQL et creation `CreateClient` si source Data Connect active | Previsionnel local + creation locale annoncee comme fallback | SQL `Client` + aliases. |
 | Chantiers | Lecture via store SQL et creation `CreateChantier` si source Data Connect active | Previsionnel local + creation locale annoncee comme fallback | SQL `Chantier` operationnel. |
-| Detail chantier | Chantier/factures via store SQL si actif + badges de source par bloc | images, timeline, documents, emails et planning encore locaux/statiques | `GetChantier` + docs/emails/planning SQL par chantier. |
+| Detail chantier | Chantier/factures via store SQL si actif + `ListDocumentsByChantier`, `ListEmailThreadsByChantier` et `ListPlanningEventsByChantier` pour les blocs relies | images, timeline et rapports encore locaux/statiques; modules SQL vides si indisponibles | `GetChantier` + rapports/agregats SQL par chantier. |
 | Factures | Creation/statut SQL si source active; blocage des factures locales en vue SQL; fichiers marques non durables | fallback local explicite hors source SQL | SQL par defaut + futur Storage facture. |
 | Documents | Metadata SQL partielle avec chemin pending, taille et hash SHA-256; si SQL est actif, un echec d'ecriture ne cree plus de copie locale silencieuse | fichiers memoire/localStorage seulement en fallback; pas encore upload Storage | Storage + SQL. |
 | Previsionnel tableur | Lecture/sauvegarde SQL | localStorage brouillon + checkpoints navigateur explicitement libelles locaux | SQL principal. |
 | Statistiques | Previsionnel SQL + lecture `AnalyticsSnapshot` non bloquante | TS fallback si SQL/snapshot absents | Couche analytics partagee + snapshots. |
 | Emails | Lecture `EmailThread` SQL et ecritures via adapter (`CreateEmailThread`, `CreateEmailMessage`, `CreateEmailAttachment`, `UpdateEmailThreadStatusAndLinks`) | Outlook local + seeds visibles comme fallback; pieces jointes Storage produit non finalisees | Backend Graph + index SQL complet + pieces jointes Storage. |
-| Planning | Lecture `PlanningEvent` par periode, creation SQL d'evenement + assignment, modification/deplacement SQL via `UpdatePlanningEventDetails`, annulation soft via `CancelPlanningEvent` | localStorage visible seulement hors source SQL; conflits et historique fin non modelises | Modele SQL complet avec historique d'annulation/deplacement et conflits. |
-| Rapports | Lecture `Rapport`, lecture snapshot analytics, creation de brouillon metadata SQL, preuve locale CSV + hash sous `tmp/` | brouillons locaux visibles comme fallback; pas encore Storage/PDF/XLSX | Jobs de generation PDF/Excel + Storage + hashes. |
-| Equipe | Lecture `ListUsers` des profils SQL applicatifs | equipes, membres, conges et matrice droits en localStorage | Modele SQL/RBAC complet. |
+| Planning | Lecture `PlanningEvent` par periode, lecture equipes finales SQL, creation SQL d'evenement + assignment + fiche intervention, modification/deplacement SQL via `UpdatePlanningEventDetails`, annulation soft via `CancelPlanningEvent` | localStorage visible seulement hors source SQL; templates equipes locales bloques quand SQL est la source; conflits et historique fin non modelises | Modele SQL complet avec historique d'annulation/deplacement, conflits et disponibilites equipe. |
+| Rapports | Lecture `Rapport`, relecture detail via `GetRapport`, lecture snapshot analytics, creation de brouillon metadata SQL, preuve locale CSV + hash sous `tmp/` | brouillons locaux visibles comme fallback; pas encore Storage/PDF/XLSX | Jobs de generation PDF/Excel + Storage + hashes. |
+| Equipe | Lecture `ListUsers`, demandes onboarding, equipes finales, fiches membres, conges, heures, preparation paie et deplacement de fiche vers une equipe finale SQL via `UpdateSossonTeamMember` quand Data Connect repond | droits UX `accessMatrix` et fallback equipe localStorage si SQL indisponible | RBAC serveur complet pour les droits applicatifs, suppression/archive RH SQL et rattachement heures chantier/planning. |
 
 ## 13. Auth, roles et securite
 
@@ -860,7 +864,7 @@ npm run emulators:dataconnect
 npm run checkpoint:002:emulator
 ```
 
-Cette commande injecte les seeds localement, verifie les listes operationnelles et le previsionnel, prouve que le seed previsionnel ne remonte pas dans les listes operationnelles, modifie puis restaure un statut chantier via `UpdateChantierStatut`, modifie puis restaure un client via `UpdateClient`, cree et relit un profil SQL `User` local via `ListUsers`, cree et relit des traces email/planning/rapport SQL locales, archive un comptage local propre sous `tmp/checkpoint-002/counts-local.json`, cree un `AnalyticsSnapshot` SQL local avant les donnees documents/RBAC de test, cree et relit une preuve factures SQL locale, cree et relit un cycle complet client operationnel -> chantier -> factures SQL local, cree et relit une preuve documents SQL locale avec `sha256` et lien facture, lance la verification RBAC locale, puis ecrit et relit la trace checkpoint/audit SQL.
+Cette commande injecte les seeds localement, verifie les listes operationnelles et le previsionnel, prouve que le seed previsionnel ne remonte pas dans les listes operationnelles, modifie puis restaure un statut chantier via `UpdateChantierStatut`, modifie puis restaure un client via `UpdateClient`, cree et relit des profils SQL `User` et le flux `SubmitCurrentTeamProfile` -> `ConvertTeamProfileSubmission` -> `User`, cree et relit des traces email/planning/rapport SQL locales dont la lecture email par chantier quand un chantier seed existe, archive un comptage local propre sous `tmp/checkpoint-002/counts-local.json`, cree un `AnalyticsSnapshot` SQL local avant les donnees documents/RBAC de test, cree et relit une preuve factures SQL locale, cree et relit un cycle complet client operationnel -> chantier -> factures SQL local, cree et relit une preuve documents SQL locale avec `sha256` et lien facture, lance la verification RBAC locale, puis ecrit et relit la trace checkpoint/audit SQL.
 
 Preuves locales attendues:
 
@@ -872,8 +876,8 @@ Preuves locales attendues:
 - `tmp/checkpoint-002/factures-local.json`: facture locale creee via `CreateFacture`, puis statut modifie via `SetFactureStatut`.
 - `tmp/checkpoint-002/operational-lifecycle-local.json`: profil `User` local autorise, prospect sans chantier, devis demande sans chantier, client operationnel, chantier rattache, devis signe et factures fournisseur definitives/categorisees crees puis relus; preuve que `origineImport` reste `operationnel` et que les lignes previsionnelles ne remontent pas comme operationnelles.
 - `npm run check:operational-lifecycle-proof`: relecture automatique de cette preuve locale; echoue si la preuve indique une action sandbox/production, un lien client/devis/chantier/facture incoherent, une facture sans categorie/poste impactant ou une fuite `prev-*` dans l'operationnel.
-- `tmp/checkpoint-002/team-users-local.json`: profil SQL `User` local cree puis relu via `ListUsers`.
-- `tmp/checkpoint-002/email-local.json`: fil, message et piece jointe email metadata crees puis relus.
+- `tmp/checkpoint-002/team-users-local.json`: profils SQL `User` locaux relus via `ListUsers`, demande `TeamProfileSubmission` creee par un demandeur sans `User`, conversion refusee hors gerant, puis conversion gerant relue comme `User` SQL actif.
+- `tmp/checkpoint-002/email-local.json`: fil, message et piece jointe email metadata crees puis relus; inclut la lecture `ListEmailThreadsByChantier` si un chantier operationnel seed est disponible.
 - `tmp/checkpoint-002/documents-local.json`: dossier document et metadata fichier crees puis relus avec `storagePath`, `tailleBytes` et `sha256`.
 - `tmp/checkpoint-002/planning-local.json`: carte planning et affectation creees, carte modifiee puis relue.
 - `tmp/checkpoint-002/report-local.json`: rapport cree, artefact CSV local hashe, rapport marque genere avec chemin/hash, puis relu.

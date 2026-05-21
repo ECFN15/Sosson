@@ -253,6 +253,14 @@ const diagramZoneSpecs: DiagramZoneSpec[] = [
   },
 ]
 
+const lifecycleDecisionQuestions = [
+  'Fiche client/prospect au premier contact',
+  'Client possible sans chantier',
+  'Domaine Devis separe',
+  'Toute facture fournisseur importee est definitive',
+  'Moteur live: visualisation base + diagramme metier + explorateur client/chantier/facture/devis',
+]
+
 const staticDiagramNodeByKey = new Map(diagramNodes.map(node => [node.key, node]))
 
 function diagramZoneBase(spec: DiagramZoneSpec) {
@@ -1060,7 +1068,7 @@ export function SossonEngineRoomPage() {
         columns: ['eventId', 'userId', 'assignmentRole', 'statut', 'notes', 'dateCreation'],
         relations: ['PlanningAssignment N..1 PlanningEvent', 'PlanningAssignment 0..1 User'],
         operations: ['CreatePlanningAssignment', 'UpdatePlanningAssignmentStatus'],
-        security: 'RH/equipes restent localStorage tant que modele SQL equipe n existe pas.',
+        security: 'Planning lit les equipes finales SQL; localStorage reste fallback visible et ne prouve pas la sandbox.',
         sampleRows: [],
         sqlShape: 'planningAssignments { id assignmentRole statut user { id nom } }',
       },
@@ -1439,6 +1447,24 @@ export function SossonEngineRoomPage() {
           </button>
         </div>
       </header>
+      <p className="bench-source-warning">
+        Les probes locaux aident l'audit; cela ne prouve pas une sandbox distante seedee. Ce n est pas un comptage sandbox distant.
+      </p>
+      <section className="bench-lifecycle-strip" aria-label="Decisions metier sandbox">
+        <div>
+          <span>Decisions qui cadrent la sandbox</span>
+          <strong>check:operational-lifecycle-decisions attendu OK</strong>
+        </div>
+        <a className="engine-page-link" href="docs/17-operational-lifecycle-scenario.md">
+          docs/17-operational-lifecycle-scenario.md
+        </a>
+        <code>tmp/checkpoint-002/operational-lifecycle-local.json</code>
+        <ul>
+          {lifecycleDecisionQuestions.map(question => (
+            <li key={question}>{question}</li>
+          ))}
+        </ul>
+      </section>
 
       <main className="bench-shell">
         <aside className="bench-sidebar">
@@ -2243,16 +2269,86 @@ const engineRoomCss = `
   color: #fff;
 }
 
+.bench-source-warning {
+  margin: 0;
+  border-bottom: 1px solid #F2E8DC;
+  background: #FFF7ED;
+  color: #7C2D12;
+  padding: 8px var(--engine-s-5);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.bench-lifecycle-strip {
+  display: grid;
+  grid-template-columns: minmax(220px, .9fr) auto auto minmax(360px, 1.4fr);
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid #F2E8DC;
+  background: #FFFFFF;
+  padding: 10px var(--engine-s-5);
+}
+
+.bench-lifecycle-strip span,
+.bench-lifecycle-strip strong {
+  display: block;
+}
+
+.bench-lifecycle-strip span {
+  color: #6B6B6B;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.bench-lifecycle-strip strong {
+  margin-top: 2px;
+  color: #1E1E1E;
+  font-size: 13px;
+}
+
+.bench-lifecycle-strip code,
+.engine-page-link {
+  border: 1px solid #F2E8DC;
+  border-radius: 10px;
+  background: #FAF6F2;
+  color: #3C3C3C;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.bench-lifecycle-strip ul {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bench-lifecycle-strip li {
+  border-radius: 999px;
+  background: #FDEBDD;
+  color: #7C2D12;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
 .bench-shell {
   display: grid;
   grid-template-columns: 324px minmax(0, 1fr);
-  height: calc(100svh - 72px);
-  min-height: 640px;
+  height: calc(100svh - 196px);
+  min-height: 520px;
 }
 
 .bench-sidebar {
   display: flex;
-  height: calc(100svh - 72px);
+  height: calc(100svh - 196px);
   min-height: 0;
   flex-direction: column;
   overflow: hidden;

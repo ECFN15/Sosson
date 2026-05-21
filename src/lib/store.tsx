@@ -9,6 +9,8 @@ import type { Client } from '@/data/clients'
 import type { Devis } from '@/data/devis'
 import { emails as seedEmails } from '@/data/emails'
 import { getCurrentUser, isFirebaseConfigured, onAuthChange } from '@/lib/auth'
+import type { AuthSessionStatus } from '@/lib/auth'
+import type { User as FirebaseUser } from 'firebase/auth'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
 import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
 import { buildPrevisionnelChantiers, buildPrevisionnelClients } from '@/lib/previsionnelModel'
@@ -29,6 +31,8 @@ interface OperationalDataset {
 
 interface AppState {
   user: User | null
+  firebaseUser: FirebaseUser | null
+  authStatus: AuthSessionStatus
   clients: Client[]
   chantiers: Chantier[]
   factures: Facture[]
@@ -60,6 +64,11 @@ const emails = seedEmails
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getCurrentUser())
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
+  const [authStatus, setAuthStatus] = useState<AuthSessionStatus>(() => {
+    if (isFirebaseConfigured) return 'loading'
+    return getCurrentUser() ? 'ready' : 'signed-out'
+  })
   const [authInitializing, setAuthInitializing] = useState(isFirebaseConfigured)
   const [clientsList, setClientsList] = useState<Client[]>(initialClients)
   const [chantiersList, setChantiersList] = useState<Chantier[]>(initialChantiers)
@@ -93,8 +102,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isFirebaseConfigured) return () => {}
 
-    return onAuthChange(profile => {
-      setUser(profile)
+    return onAuthChange(state => {
+      setUser(state.user)
+      setFirebaseUser(state.firebaseUser)
+      setAuthStatus(state.status)
       setAuthInitializing(false)
     })
   }, [])
@@ -199,6 +210,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         user,
+        firebaseUser,
+        authStatus,
         clients: clientsList,
         chantiers: chantiersList,
         factures: facturesList,

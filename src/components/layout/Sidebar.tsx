@@ -11,6 +11,7 @@ import {
   LineChart,
   BookOpen,
   UsersRound,
+  Handshake,
   Settings,
   Folder,
   ChevronDown,
@@ -34,6 +35,7 @@ type NavEntry = {
 
 const navMain: NavEntry[] = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord', accessKey: 'dashboard' },
+  { to: '/cowork', icon: Handshake, label: 'COWORK', accessKey: 'cowork' },
   { to: '/chantiers', icon: HardHat, label: 'Chantiers', accessKey: 'chantiers' },
   { to: '/clients', icon: Users, label: 'Clients', accessKey: 'clients' },
   { to: '/documents', icon: Folder, label: 'Documents', accessKey: 'documents' },

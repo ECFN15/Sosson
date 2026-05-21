@@ -4,6 +4,7 @@ import {
   createEmailThread,
   getEmailThread,
   listEmailThreads,
+  listEmailThreadsByChantier,
   listUnreadEmailThreads,
   updateEmailThreadStatusAndLinks,
 } from '@dataconnect/generated'
@@ -12,6 +13,7 @@ import type {
   CreateEmailMessageVariables,
   CreateEmailThreadVariables,
   GetEmailThreadVariables,
+  ListEmailThreadsByChantierVariables,
   UpdateEmailThreadStatusAndLinksVariables,
 } from '@dataconnect/generated'
 import { getSossonDataConnect } from '@/lib/dataconnect'
@@ -19,6 +21,12 @@ import { getSossonDataConnect } from '@/lib/dataconnect'
 export async function loadEmailThreadsFromSql() {
   const dc = getSossonDataConnect()
   const response = await listEmailThreads(dc)
+  return response.data.emailThreads
+}
+
+export async function loadEmailThreadsByChantierFromSql(input: ListEmailThreadsByChantierVariables) {
+  const dc = getSossonDataConnect()
+  const response = await listEmailThreadsByChantier(dc, input)
   return response.data.emailThreads
 }
 

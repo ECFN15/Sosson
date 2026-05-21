@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Building2, CalendarDays, HardHat, ReceiptText, ShieldCheck } from 'lucide-react'
-import { isLocalAuthFallbackEnabled, login } from '@/lib/auth'
+import { Building2, CalendarDays, Globe, HardHat, ReceiptText, ShieldCheck } from 'lucide-react'
+import { isLocalAuthFallbackEnabled, login, loginWithGoogle, loginWithPassword } from '@/lib/auth'
+import type { AuthSessionState } from '@/lib/auth'
 import { useApp } from '@/lib/store'
-import { users } from '@/data/users'
+import { users, type Role } from '@/data/users'
 import { chantierImages } from '@/data/media'
 
 const previewRows = [
@@ -15,28 +16,58 @@ const previewRows = [
 const devAccessUser = users.find(user => user.role === 'gerant') ?? users[0]
 
 function getSafeReturnPath(value: unknown) {
-  if (typeof value !== 'string') return '/dashboard'
-  if (!value.startsWith('/') || value.startsWith('//') || value.startsWith('/login')) return '/dashboard'
+  if (typeof value !== 'string') return null
+  if (!value.startsWith('/') || value.startsWith('//') || value.startsWith('/login')) return null
   return value
+}
+
+function getDefaultRouteForRole(role: Role) {
+  return role === 'chef_chantier' ? '/cowork' : '/dashboard'
 }
 
 export function LoginPage() {
   const { setUser } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
-  const returnPath = getSafeReturnPath((location.state as { from?: unknown } | null)?.from)
+  const explicitReturnPath = getSafeReturnPath((location.state as { from?: unknown } | null)?.from)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+
+  function handleAuthResult(result: AuthSessionState) {
+    if (result.status === 'ready' && result.user) {
+      setUser(result.user)
+      navigate(explicitReturnPath ?? getDefaultRouteForRole(result.user.role))
+      return
+    }
+
+    if (result.status === 'missing-profile') {
+      navigate('/complete-profile', { state: { from: explicitReturnPath ?? '/dashboard' } })
+      return
+    }
+
+    if (result.status === 'profile-pending') {
+      navigate('/profile-pending')
+      return
+    }
+
+    setError('Email ou mot de passe incorrect')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const user = await login(email, password)
-    if (user) {
-      setUser(user)
-      navigate(returnPath)
-    } else {
-      setError('Email ou mot de passe incorrect')
+    setError('')
+    handleAuthResult(await loginWithPassword(email, password))
+  }
+
+  async function handleGoogleLogin() {
+    setError('')
+    setIsGoogleLoading(true)
+    try {
+      handleAuthResult(await loginWithGoogle())
+    } finally {
+      setIsGoogleLoading(false)
     }
   }
 
@@ -48,7 +79,7 @@ export function LoginPage() {
     const user = await login(devAccessUser.email, 'demo')
     if (user) {
       setUser(user)
-      navigate(returnPath)
+      navigate(explicitReturnPath ?? getDefaultRouteForRole(user.role))
     } else {
       setError("Echec de l'acces dev")
     }
@@ -165,6 +196,18 @@ export function LoginPage() {
               Se connecter
             </button>
           </form>
+
+          <div className="mt-5">
+            <button
+              type="button"
+              onClick={() => void handleGoogleLogin()}
+              disabled={isGoogleLoading}
+              className="flex w-full items-center justify-center gap-3 rounded-[14px] border border-[#F2E8DC] px-4 py-3 text-sm font-semibold text-[#1E1E1E] transition-colors hover:border-[#EADBC8] hover:bg-[#FAF6F2] disabled:cursor-wait disabled:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F06B21]/20"
+            >
+              <Globe className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
+              {isGoogleLoading ? 'Connexion Google' : 'Continuer avec Google'}
+            </button>
+          </div>
 
           {isLocalAuthFallbackEnabled && (
           <div className="mt-6 border-t border-[#F2E8DC] pt-6">

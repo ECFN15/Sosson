@@ -26,6 +26,7 @@
     "verify:client-update:dataconnect": "node scripts/verify-client-update-dataconnect-local.mjs",
     "verify:factures:dataconnect": "node scripts/verify-factures-dataconnect-local.mjs",
     "verify:team-users:dataconnect": "node scripts/verify-team-users-dataconnect-local.mjs",
+    "verify:team-rh:dataconnect": "node scripts/verify-team-rh-dataconnect-local.mjs",
     "verify:email:dataconnect": "node scripts/verify-email-dataconnect-local.mjs",
     "verify:documents:dataconnect": "node scripts/verify-documents-dataconnect-local.mjs",
     "verify:planning:dataconnect": "node scripts/verify-planning-dataconnect-local.mjs",

@@ -1,22 +1,30 @@
 import {
   cancelPlanningEvent,
+  completePlanningJobSheet,
   createPlanningAssignment,
   createPlanningEvent,
+  createPlanningJobSheet,
+  listPlanningJobSheetsByEvent,
   listPlanningEventsByChantier,
   listPlanningEventsByPeriod,
+  updatePlanningJobSheetProgress,
   updatePlanningEventDetails,
   updatePlanningAssignmentStatus,
   updatePlanningEventStatus,
 } from '@dataconnect/generated'
 import type {
   CancelPlanningEventVariables,
+  CompletePlanningJobSheetVariables,
   CreatePlanningAssignmentVariables,
   CreatePlanningEventVariables,
+  CreatePlanningJobSheetVariables,
+  ListPlanningJobSheetsByEventVariables,
   ListPlanningEventsByChantierVariables,
   ListPlanningEventsByPeriodVariables,
   UpdatePlanningEventDetailsVariables,
   UpdatePlanningAssignmentStatusVariables,
   UpdatePlanningEventStatusVariables,
+  UpdatePlanningJobSheetProgressVariables,
 } from '@dataconnect/generated'
 import { getSossonDataConnect } from '@/lib/dataconnect'
 
@@ -30,6 +38,12 @@ export async function loadPlanningEventsByChantierFromSql(input: ListPlanningEve
   const dc = getSossonDataConnect()
   const response = await listPlanningEventsByChantier(dc, input)
   return response.data.planningEvents
+}
+
+export async function loadPlanningJobSheetsByEventFromSql(input: ListPlanningJobSheetsByEventVariables) {
+  const dc = getSossonDataConnect()
+  const response = await listPlanningJobSheetsByEvent(dc, input)
+  return response.data.planningJobSheets
 }
 
 export async function createPlanningEventInSql(input: CreatePlanningEventVariables) {
@@ -66,4 +80,22 @@ export async function updatePlanningAssignmentStatusInSql(input: UpdatePlanningA
   const dc = getSossonDataConnect()
   const response = await updatePlanningAssignmentStatus(dc, input)
   return response.data.planningAssignment_update?.id ?? null
+}
+
+export async function createPlanningJobSheetInSql(input: CreatePlanningJobSheetVariables) {
+  const dc = getSossonDataConnect()
+  const response = await createPlanningJobSheet(dc, input)
+  return response.data.planningJobSheet_insert.id
+}
+
+export async function updatePlanningJobSheetProgressInSql(input: UpdatePlanningJobSheetProgressVariables) {
+  const dc = getSossonDataConnect()
+  const response = await updatePlanningJobSheetProgress(dc, input)
+  return response.data.planningJobSheet_update?.id ?? null
+}
+
+export async function completePlanningJobSheetInSql(input: CompletePlanningJobSheetVariables) {
+  const dc = getSossonDataConnect()
+  const response = await completePlanningJobSheet(dc, input)
+  return response.data.planningJobSheet_update?.id ?? null
 }

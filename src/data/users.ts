@@ -6,6 +6,12 @@ export interface User {
   prenom: string
   email: string
   role: Role
+  profilStatut?: string | null
+  equipeTypeSouhaite?: string | null
+  equipeFinaleId?: string | null
+  poste?: string | null
+  telephone?: string | null
+  sourceConnexion?: string | null
   avatar: string
   password?: string
 }

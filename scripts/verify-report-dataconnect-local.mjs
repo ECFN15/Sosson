@@ -177,7 +177,6 @@ const snapshotResponse = await createAnalyticsSnapshot(
     payloadPath: payloadArtifact.path,
     payloadHash: payloadArtifact.sha256,
     sourceWatermark: sha256(`report-watermark-${stamp}`),
-    createdById: actor.id,
   },
   options,
 )
@@ -187,7 +186,6 @@ const reportResponse = await createRapport(
   dc,
   {
     snapshotId,
-    authorId: actor.id,
     clientId: null,
     chantierId: null,
     titre: `Rapport local ${stamp}`,

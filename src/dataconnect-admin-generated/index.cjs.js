@@ -7,236 +7,89 @@ const connectorConfig = {
 };
 exports.connectorConfig = connectorConfig;
 
-function getCurrentUser(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetCurrentUser', undefined, inputOpts);
-}
-exports.getCurrentUser = getCurrentUser;
-
-function listUsers(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListUsers', undefined, inputOpts);
-}
-exports.listUsers = listUsers;
-
-function listOperationalClients(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListOperationalClients', undefined, inputOpts);
-}
-exports.listOperationalClients = listOperationalClients;
-
-function getClient(dcOrVarsOrOptions, varsOrOptions, options) {
+function submitCurrentTeamProfile(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetClient', inputVars, inputOpts);
+  return dcInstance.executeMutation('SubmitCurrentTeamProfile', inputVars, inputOpts);
 }
-exports.getClient = getClient;
+exports.submitCurrentTeamProfile = submitCurrentTeamProfile;
 
-function listOperationalChantiers(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListOperationalChantiers', undefined, inputOpts);
-}
-exports.listOperationalChantiers = listOperationalChantiers;
-
-function getChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+function convertTeamProfileSubmission(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetChantier', inputVars, inputOpts);
+  return dcInstance.executeMutation('ConvertTeamProfileSubmission', inputVars, inputOpts);
 }
-exports.getChantier = getChantier;
+exports.convertTeamProfileSubmission = convertTeamProfileSubmission;
 
-function listDevis(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDevis', undefined, inputOpts);
-}
-exports.listDevis = listDevis;
-
-function listDevisByClient(dcOrVarsOrOptions, varsOrOptions, options) {
+function createSossonTeam(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDevisByClient', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateSossonTeam', inputVars, inputOpts);
 }
-exports.listDevisByClient = listDevisByClient;
+exports.createSossonTeam = createSossonTeam;
 
-function listDevisByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+function updateSossonTeam(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDevisByChantier', inputVars, inputOpts);
+  return dcInstance.executeMutation('UpdateSossonTeam', inputVars, inputOpts);
 }
-exports.listDevisByChantier = listDevisByChantier;
+exports.updateSossonTeam = updateSossonTeam;
 
-function listFactures(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListFactures', undefined, inputOpts);
-}
-exports.listFactures = listFactures;
-
-function listFacturesByStatut(dcOrVarsOrOptions, varsOrOptions, options) {
+function createSossonTeamMember(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListFacturesByStatut', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateSossonTeamMember', inputVars, inputOpts);
 }
-exports.listFacturesByStatut = listFacturesByStatut;
+exports.createSossonTeamMember = createSossonTeamMember;
 
-function listDocumentFolders(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDocumentFolders', undefined, inputOpts);
-}
-exports.listDocumentFolders = listDocumentFolders;
-
-function listDocumentsAttaches(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDocumentsAttaches', undefined, inputOpts);
-}
-exports.listDocumentsAttaches = listDocumentsAttaches;
-
-function listDocumentsByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+function updateSossonTeamMember(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDocumentsByChantier', inputVars, inputOpts);
+  return dcInstance.executeMutation('UpdateSossonTeamMember', inputVars, inputOpts);
 }
-exports.listDocumentsByChantier = listDocumentsByChantier;
+exports.updateSossonTeamMember = updateSossonTeamMember;
 
-function listPrevisionnelExercises(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListPrevisionnelExercises', undefined, inputOpts);
-}
-exports.listPrevisionnelExercises = listPrevisionnelExercises;
-
-function listPrevisionnelLinesByExercise(dcOrVarsOrOptions, varsOrOptions, options) {
+function createSossonTeamLeavePeriod(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListPrevisionnelLinesByExercise', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateSossonTeamLeavePeriod', inputVars, inputOpts);
 }
-exports.listPrevisionnelLinesByExercise = listPrevisionnelLinesByExercise;
+exports.createSossonTeamLeavePeriod = createSossonTeamLeavePeriod;
 
-function searchClientAliases(dcOrVarsOrOptions, varsOrOptions, options) {
+function createSossonWorkTimeEntry(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('SearchClientAliases', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateSossonWorkTimeEntry', inputVars, inputOpts);
 }
-exports.searchClientAliases = searchClientAliases;
+exports.createSossonWorkTimeEntry = createSossonWorkTimeEntry;
 
-function listPrevisionnelCellEdits(dcOrVarsOrOptions, varsOrOptions, options) {
+function createSossonPayrollPeriod(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListPrevisionnelCellEdits', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreateSossonPayrollPeriod', inputVars, inputOpts);
 }
-exports.listPrevisionnelCellEdits = listPrevisionnelCellEdits;
+exports.createSossonPayrollPeriod = createSossonPayrollPeriod;
 
-function listEmailThreads(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListEmailThreads', undefined, inputOpts);
-}
-exports.listEmailThreads = listEmailThreads;
-
-function listUnreadEmailThreads(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListUnreadEmailThreads', undefined, inputOpts);
-}
-exports.listUnreadEmailThreads = listUnreadEmailThreads;
-
-function getEmailThread(dcOrVarsOrOptions, varsOrOptions, options) {
+function createPlanningJobSheet(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetEmailThread', inputVars, inputOpts);
+  return dcInstance.executeMutation('CreatePlanningJobSheet', inputVars, inputOpts);
 }
-exports.getEmailThread = getEmailThread;
+exports.createPlanningJobSheet = createPlanningJobSheet;
 
-function listPlanningEventsByPeriod(dcOrVarsOrOptions, varsOrOptions, options) {
+function updatePlanningJobSheetProgress(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListPlanningEventsByPeriod', inputVars, inputOpts);
+  return dcInstance.executeMutation('UpdatePlanningJobSheetProgress', inputVars, inputOpts);
 }
-exports.listPlanningEventsByPeriod = listPlanningEventsByPeriod;
+exports.updatePlanningJobSheetProgress = updatePlanningJobSheetProgress;
 
-function listPlanningEventsByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+function completePlanningJobSheet(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
   dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListPlanningEventsByChantier', inputVars, inputOpts);
+  return dcInstance.executeMutation('CompletePlanningJobSheet', inputVars, inputOpts);
 }
-exports.listPlanningEventsByChantier = listPlanningEventsByChantier;
-
-function listAnalyticsSnapshots(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListAnalyticsSnapshots', inputVars, inputOpts);
-}
-exports.listAnalyticsSnapshots = listAnalyticsSnapshots;
-
-function getAnalyticsSnapshot(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetAnalyticsSnapshot', inputVars, inputOpts);
-}
-exports.getAnalyticsSnapshot = getAnalyticsSnapshot;
-
-function listRapports(dcOrOptions, options) {
-  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListRapports', undefined, inputOpts);
-}
-exports.listRapports = listRapports;
-
-function getRapport(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetRapport', inputVars, inputOpts);
-}
-exports.getRapport = getRapport;
-
-function listRecentAuditEvents(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListRecentAuditEvents', inputVars, inputOpts);
-}
-exports.listRecentAuditEvents = listRecentAuditEvents;
-
-function listEntityChangeLogs(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListEntityChangeLogs', inputVars, inputOpts);
-}
-exports.listEntityChangeLogs = listEntityChangeLogs;
-
-function listCheckpointRuns(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListCheckpointRuns', inputVars, inputOpts);
-}
-exports.listCheckpointRuns = listCheckpointRuns;
-
-function getCheckpointRun(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetCheckpointRun', inputVars, inputOpts);
-}
-exports.getCheckpointRun = getCheckpointRun;
-
-function listDataImportRuns(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('ListDataImportRuns', inputVars, inputOpts);
-}
-exports.listDataImportRuns = listDataImportRuns;
-
-function getDataImportRun(dcOrVarsOrOptions, varsOrOptions, options) {
-  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
-  dcInstance.useGen(true);
-  return dcInstance.executeQuery('GetDataImportRun', inputVars, inputOpts);
-}
-exports.getDataImportRun = getDataImportRun;
+exports.completePlanningJobSheet = completePlanningJobSheet;
 
 function createClient(dcOrVarsOrOptions, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
@@ -496,4 +349,284 @@ function createEntityChangeLog(dcOrVarsOrOptions, varsOrOptions, options) {
   return dcInstance.executeMutation('CreateEntityChangeLog', inputVars, inputOpts);
 }
 exports.createEntityChangeLog = createEntityChangeLog;
+
+function getCurrentUser(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetCurrentUser', undefined, inputOpts);
+}
+exports.getCurrentUser = getCurrentUser;
+
+function listUsers(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListUsers', undefined, inputOpts);
+}
+exports.listUsers = listUsers;
+
+function getCurrentTeamProfileSubmission(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetCurrentTeamProfileSubmission', undefined, inputOpts);
+}
+exports.getCurrentTeamProfileSubmission = getCurrentTeamProfileSubmission;
+
+function listTeamProfileSubmissions(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListTeamProfileSubmissions', undefined, inputOpts);
+}
+exports.listTeamProfileSubmissions = listTeamProfileSubmissions;
+
+function listSossonTeams(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListSossonTeams', undefined, inputOpts);
+}
+exports.listSossonTeams = listSossonTeams;
+
+function listSossonWorkTimeEntries(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListSossonWorkTimeEntries', inputVars, inputOpts);
+}
+exports.listSossonWorkTimeEntries = listSossonWorkTimeEntries;
+
+function listSossonPayrollPeriods(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListSossonPayrollPeriods', inputVars, inputOpts);
+}
+exports.listSossonPayrollPeriods = listSossonPayrollPeriods;
+
+function listOperationalClients(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListOperationalClients', undefined, inputOpts);
+}
+exports.listOperationalClients = listOperationalClients;
+
+function getClient(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetClient', inputVars, inputOpts);
+}
+exports.getClient = getClient;
+
+function listOperationalChantiers(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListOperationalChantiers', undefined, inputOpts);
+}
+exports.listOperationalChantiers = listOperationalChantiers;
+
+function getChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetChantier', inputVars, inputOpts);
+}
+exports.getChantier = getChantier;
+
+function listDevis(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDevis', undefined, inputOpts);
+}
+exports.listDevis = listDevis;
+
+function listDevisByClient(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDevisByClient', inputVars, inputOpts);
+}
+exports.listDevisByClient = listDevisByClient;
+
+function listDevisByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDevisByChantier', inputVars, inputOpts);
+}
+exports.listDevisByChantier = listDevisByChantier;
+
+function listFactures(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListFactures', undefined, inputOpts);
+}
+exports.listFactures = listFactures;
+
+function listFacturesByStatut(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListFacturesByStatut', inputVars, inputOpts);
+}
+exports.listFacturesByStatut = listFacturesByStatut;
+
+function listDocumentFolders(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDocumentFolders', undefined, inputOpts);
+}
+exports.listDocumentFolders = listDocumentFolders;
+
+function listDocumentsAttaches(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDocumentsAttaches', undefined, inputOpts);
+}
+exports.listDocumentsAttaches = listDocumentsAttaches;
+
+function listDocumentsByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDocumentsByChantier', inputVars, inputOpts);
+}
+exports.listDocumentsByChantier = listDocumentsByChantier;
+
+function listPrevisionnelExercises(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListPrevisionnelExercises', undefined, inputOpts);
+}
+exports.listPrevisionnelExercises = listPrevisionnelExercises;
+
+function listPrevisionnelLinesByExercise(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListPrevisionnelLinesByExercise', inputVars, inputOpts);
+}
+exports.listPrevisionnelLinesByExercise = listPrevisionnelLinesByExercise;
+
+function searchClientAliases(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('SearchClientAliases', inputVars, inputOpts);
+}
+exports.searchClientAliases = searchClientAliases;
+
+function listPrevisionnelCellEdits(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListPrevisionnelCellEdits', inputVars, inputOpts);
+}
+exports.listPrevisionnelCellEdits = listPrevisionnelCellEdits;
+
+function listEmailThreads(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListEmailThreads', undefined, inputOpts);
+}
+exports.listEmailThreads = listEmailThreads;
+
+function listEmailThreadsByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListEmailThreadsByChantier', inputVars, inputOpts);
+}
+exports.listEmailThreadsByChantier = listEmailThreadsByChantier;
+
+function listUnreadEmailThreads(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListUnreadEmailThreads', undefined, inputOpts);
+}
+exports.listUnreadEmailThreads = listUnreadEmailThreads;
+
+function getEmailThread(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetEmailThread', inputVars, inputOpts);
+}
+exports.getEmailThread = getEmailThread;
+
+function listPlanningEventsByPeriod(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListPlanningEventsByPeriod', inputVars, inputOpts);
+}
+exports.listPlanningEventsByPeriod = listPlanningEventsByPeriod;
+
+function listPlanningEventsByChantier(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListPlanningEventsByChantier', inputVars, inputOpts);
+}
+exports.listPlanningEventsByChantier = listPlanningEventsByChantier;
+
+function listPlanningJobSheetsByEvent(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListPlanningJobSheetsByEvent', inputVars, inputOpts);
+}
+exports.listPlanningJobSheetsByEvent = listPlanningJobSheetsByEvent;
+
+function listAnalyticsSnapshots(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListAnalyticsSnapshots', inputVars, inputOpts);
+}
+exports.listAnalyticsSnapshots = listAnalyticsSnapshots;
+
+function getAnalyticsSnapshot(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetAnalyticsSnapshot', inputVars, inputOpts);
+}
+exports.getAnalyticsSnapshot = getAnalyticsSnapshot;
+
+function listRapports(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListRapports', undefined, inputOpts);
+}
+exports.listRapports = listRapports;
+
+function getRapport(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetRapport', inputVars, inputOpts);
+}
+exports.getRapport = getRapport;
+
+function listRecentAuditEvents(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListRecentAuditEvents', inputVars, inputOpts);
+}
+exports.listRecentAuditEvents = listRecentAuditEvents;
+
+function listEntityChangeLogs(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListEntityChangeLogs', inputVars, inputOpts);
+}
+exports.listEntityChangeLogs = listEntityChangeLogs;
+
+function listCheckpointRuns(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListCheckpointRuns', inputVars, inputOpts);
+}
+exports.listCheckpointRuns = listCheckpointRuns;
+
+function getCheckpointRun(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetCheckpointRun', inputVars, inputOpts);
+}
+exports.getCheckpointRun = getCheckpointRun;
+
+function listDataImportRuns(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListDataImportRuns', inputVars, inputOpts);
+}
+exports.listDataImportRuns = listDataImportRuns;
+
+function getDataImportRun(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetDataImportRun', inputVars, inputOpts);
+}
+exports.getDataImportRun = getDataImportRun;
 

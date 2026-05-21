@@ -4,6 +4,7 @@ import {
   Calendar,
   FileText,
   Folder,
+  Handshake,
   HardHat,
   LayoutDashboard,
   LineChart,
@@ -16,6 +17,7 @@ import {
 
 export type ModuleKey =
   | 'dashboard'
+  | 'cowork'
   | 'chantiers'
   | 'clients'
   | 'documents'
@@ -44,6 +46,13 @@ const moduleMetaByKey: Record<ModuleKey, ModuleMeta> = {
     eyebrow: 'Command center',
     description: 'Priorites, marges, factures et risques chantier consolides.',
     Icon: LayoutDashboard,
+  },
+  cowork: {
+    key: 'cowork',
+    label: 'COWORK',
+    eyebrow: 'Terrain live',
+    description: 'Planning du jour, chat equipe, rapport chantier et conges.',
+    Icon: Handshake,
   },
   chantiers: {
     key: 'chantiers',

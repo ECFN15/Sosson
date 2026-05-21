@@ -50,8 +50,12 @@ const commands = [
     ],
   },
   {
-    label: 'Verification profils SQL User locaux',
+    label: 'Verification profils SQL User et onboarding locaux',
     args: ['run', 'verify:team-users:dataconnect'],
+  },
+  {
+    label: 'Verification RH equipe SQL locale',
+    args: ['run', 'verify:team-rh:dataconnect'],
   },
   {
     label: 'Verification email SQL local',
@@ -182,4 +186,4 @@ for (const item of commands) {
 }
 
 console.log('\nVerification checkpoint 002 emulateur OK.')
-console.log('Preuves locales ecrites dans tmp/checkpoint-002/counts-local.json, tmp/checkpoint-002/operational-boundary-local.json, tmp/checkpoint-002/chantier-status-local.json, tmp/checkpoint-002/client-update-local.json, tmp/checkpoint-002/team-users-local.json, tmp/checkpoint-002/email-local.json, tmp/checkpoint-002/previsionnel-edits-local.json, tmp/checkpoint-002/factures-local.json, tmp/checkpoint-002/operational-lifecycle-local.json, tmp/checkpoint-002/documents-local.json, tmp/checkpoint-002/planning-local.json, tmp/checkpoint-002/report-local.json, tmp/checkpoint-002/analytics-snapshot-local.json et tmp/checkpoint-002/checkpoint-audit-local.json.')
+console.log('Preuves locales ecrites dans tmp/checkpoint-002/counts-local.json, tmp/checkpoint-002/operational-boundary-local.json, tmp/checkpoint-002/chantier-status-local.json, tmp/checkpoint-002/client-update-local.json, tmp/checkpoint-002/team-users-local.json, tmp/checkpoint-002/team-rh-local.json, tmp/checkpoint-002/email-local.json, tmp/checkpoint-002/previsionnel-edits-local.json, tmp/checkpoint-002/factures-local.json, tmp/checkpoint-002/operational-lifecycle-local.json, tmp/checkpoint-002/documents-local.json, tmp/checkpoint-002/planning-local.json, tmp/checkpoint-002/report-local.json, tmp/checkpoint-002/analytics-snapshot-local.json et tmp/checkpoint-002/checkpoint-audit-local.json. La preuve team-users couvre aussi SubmitCurrentTeamProfile -> profile-pending -> ConvertTeamProfileSubmission -> User SQL; la preuve team-rh couvre equipes finales, fiches membres, conges, heures, preparation paie, affectation planning sossonTeamId, fiche intervention PlanningJobSheet et heures rattachees.')

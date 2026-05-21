@@ -3,6 +3,7 @@ import {
   createDocumentFolder,
   listDocumentFolders,
   listDocumentsAttaches,
+  listDocumentsByChantier,
   updateDocumentAttacheLinks,
 } from '@dataconnect/generated'
 import type {
@@ -10,6 +11,8 @@ import type {
   CreateDocumentFolderVariables,
   ListDocumentFoldersData,
   ListDocumentsAttachesData,
+  ListDocumentsByChantierData,
+  ListDocumentsByChantierVariables,
   UpdateDocumentAttacheLinksVariables,
 } from '@dataconnect/generated'
 import { getSossonDataConnect } from '@/lib/dataconnect'
@@ -30,9 +33,18 @@ function asDocumentStatus(value: string): DocumentStatus {
   return 'a_classer'
 }
 
-function documentFromSql(row: ListDocumentsAttachesData['documentAttaches'][number]): DocumentRecord {
-  const chantier = row.chantier ?? row.facture?.chantier
-  const client = row.client ?? chantier?.client ?? row.facture?.chantier.client
+type SqlDocumentRow =
+  | ListDocumentsAttachesData['documentAttaches'][number]
+  | ListDocumentsByChantierData['documentAttaches'][number]
+
+function factureChantier(row: SqlDocumentRow) {
+  const facture = row.facture
+  return facture && 'chantier' in facture ? facture.chantier : null
+}
+
+function documentFromSql(row: SqlDocumentRow): DocumentRecord {
+  const chantier = row.chantier ?? factureChantier(row)
+  const client = row.client ?? chantier?.client ?? null
 
   return {
     id: `sql-${row.id}`,
@@ -74,6 +86,12 @@ export async function loadDocumentsSqlData() {
     documents: documentsResponse.data.documentAttaches.map(documentFromSql),
     folders: foldersResponse.data.documentFolders.map(folderFromSql),
   }
+}
+
+export async function loadDocumentsByChantierFromSql(input: ListDocumentsByChantierVariables) {
+  const dc = getSossonDataConnect()
+  const response = await listDocumentsByChantier(dc, input)
+  return response.data.documentAttaches.map(documentFromSql)
 }
 
 export async function createDocumentFolderInSql(input: CreateDocumentFolderVariables) {

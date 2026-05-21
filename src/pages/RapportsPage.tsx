@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, FileText, Plus, RefreshCcw, ShieldCheck, TrendingUp } from 'lucide-react'
 import { useApp } from '@/lib/store'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
-import { createRapportInSql, loadRapportsFromSql } from '@/features/reports/reportSql'
+import { createRapportInSql, loadRapportFromSql, loadRapportsFromSql } from '@/features/reports/reportSql'
 import { loadAnalyticsSnapshotsFromSql } from '@/features/analytics/analyticsSql'
 import { ENV } from '@/lib/firebase'
 
@@ -36,7 +36,9 @@ type ReportDraft = {
 }
 
 type SqlReport = Awaited<ReturnType<typeof loadRapportsFromSql>>[number]
+type SqlReportDetail = NonNullable<Awaited<ReturnType<typeof loadRapportFromSql>>>
 type SqlSnapshot = Awaited<ReturnType<typeof loadAnalyticsSnapshotsFromSql>>[number]
+type DetailStatus = 'idle' | 'loading' | 'ready' | 'unavailable'
 
 const sourceLabels: Record<ReportSource, string> = {
   loading: 'SQL en lecture...',
@@ -126,6 +128,11 @@ function snapshotLabel(snapshot?: SqlSnapshot | null) {
   return `${snapshot.snapshotType} - ${snapshot.status}`
 }
 
+function detailSnapshotLabel(snapshot?: SqlReportDetail['snapshot'] | null) {
+  if (!snapshot) return 'Aucun snapshot relu'
+  return `${snapshot.snapshotType} - ${snapshot.status}`
+}
+
 export function RapportsPage() {
   const { user } = useApp()
   const [reports, setReports] = useState<ReportRow[]>(localReports)
@@ -133,6 +140,8 @@ export function RapportsPage() {
   const [snapshots, setSnapshots] = useState<SqlSnapshot[]>([])
   const [feedback, setFeedback] = useState('')
   const [selectedId, setSelectedId] = useState(localReports[0]?.id ?? '')
+  const [selectedDetail, setSelectedDetail] = useState<SqlReportDetail | null>(null)
+  const [detailStatus, setDetailStatus] = useState<DetailStatus>('idle')
   const [draft, setDraft] = useState<ReportDraft>({
     title: 'Rapport mensuel Sosson',
     type: 'direction',
@@ -163,12 +172,16 @@ export function RapportsPage() {
         setReports(rows)
         setSnapshots(loadedSnapshots)
         setSelectedId(rows[0]?.id ?? '')
+        setSelectedDetail(null)
+        setDetailStatus('idle')
         setSource(rows.length ? 'sql' : 'sql-empty')
       } catch (error) {
         console.info('Rapports SQL Connect indisponibles, fallback local visible.', error)
         if (!mounted) return
         setReports(localReports)
         setSelectedId(localReports[0]?.id ?? '')
+        setSelectedDetail(null)
+        setDetailStatus('idle')
         setSource('local-fallback')
         setFeedback('Rapports SQL indisponibles: affichage du fallback local.')
       }
@@ -180,6 +193,43 @@ export function RapportsPage() {
       mounted = false
     }
   }, [canUseReportSql])
+
+  useEffect(() => {
+    if (!canUseReportSql || selectedReport?.source !== 'sql') {
+      let cancelled = false
+      queueMicrotask(() => {
+        if (cancelled) return
+        setSelectedDetail(null)
+        setDetailStatus('idle')
+      })
+      return () => {
+        cancelled = true
+      }
+    }
+
+    let mounted = true
+
+    async function loadSqlDetail() {
+      setDetailStatus('loading')
+      try {
+        const detail = await loadRapportFromSql({ id: selectedReport.id })
+        if (!mounted) return
+        setSelectedDetail(detail ?? null)
+        setDetailStatus(detail ? 'ready' : 'unavailable')
+      } catch (error) {
+        console.info('Detail rapport SQL indisponible.', error)
+        if (!mounted) return
+        setSelectedDetail(null)
+        setDetailStatus('unavailable')
+      }
+    }
+
+    void loadSqlDetail()
+
+    return () => {
+      mounted = false
+    }
+  }, [canUseReportSql, selectedReport?.id, selectedReport?.source])
 
   const stats = useMemo(() => {
     const generated = reports.filter(report => report.status === 'generated').length
@@ -214,6 +264,8 @@ export function RapportsPage() {
       }
       setReports(current => [localReport, ...current])
       setSelectedId(localReport.id)
+      setSelectedDetail(null)
+      setDetailStatus('idle')
       setFeedback('Brouillon cree localement: ce n est pas une preuve SQL.')
       return
     }
@@ -221,7 +273,6 @@ export function RapportsPage() {
     try {
       const reportId = await createRapportInSql({
         snapshotId: latestSnapshot?.id ?? null,
-        authorId: null,
         clientId: null,
         chantierId: null,
         titre: title,
@@ -251,6 +302,8 @@ export function RapportsPage() {
       }
       setReports(current => [report, ...current])
       setSelectedId(report.id)
+      setSelectedDetail(null)
+      setDetailStatus('idle')
       setSource('sql')
       setFeedback(latestSnapshot
         ? 'Brouillon de rapport cree en SQL avec snapshot analytics.'
@@ -260,6 +313,16 @@ export function RapportsPage() {
       setFeedback('Rapport non cree: SQL Connect est indisponible ou le role SQL est insuffisant.')
     }
   }
+
+  const selectedSummary = selectedDetail?.summary ?? selectedReport?.summary ?? 'Pas de resume.'
+  const selectedExportPath = selectedDetail?.storagePath ?? selectedReport?.exportPath
+  const selectedHash = selectedDetail?.sha256 ?? selectedReport?.payloadHash
+  const selectedAuthor = selectedDetail?.author
+    ? `${selectedDetail.author.prenom} ${selectedDetail.author.nom}`
+    : selectedReport?.author
+  const selectedScope = selectedDetail?.chantier?.nom
+    ?? selectedDetail?.client?.nom
+    ?? (selectedDetail?.snapshot ? detailSnapshotLabel(selectedDetail.snapshot) : selectedReport?.scope)
 
   return (
     <div className="min-h-full bg-[#FAF6F2] px-6 py-6">
@@ -441,14 +504,24 @@ export function RapportsPage() {
               <div className="min-w-0">
                 <h2 className="text-[15px] font-semibold text-[#1E1E1E]">Selection</h2>
                 <p className="mt-2 text-sm font-semibold text-[#1E1E1E]">{selectedReport?.title ?? 'Aucun rapport'}</p>
-                <p className="mt-1 text-[12px] text-[#6B6B6B]">{selectedReport?.summary ?? 'Pas de resume.'}</p>
+                <p className="mt-1 text-[12px] text-[#6B6B6B]">{selectedSummary}</p>
               </div>
             </div>
 
             <div className="mt-4 space-y-2 text-[12px] text-[#6B6B6B]">
               <p>Source: {selectedReport?.source === 'sql' ? 'SQL' : 'fallback local'}</p>
-              <p>Export: {selectedReport?.exportPath ?? 'Aucun fichier Storage'}</p>
-              <p>Hash: {selectedReport?.payloadHash ?? 'Non renseigne'}</p>
+              <p>Detail: {selectedReport?.source === 'sql'
+                ? detailStatus === 'ready'
+                  ? 'GetRapport relu'
+                  : detailStatus === 'loading'
+                    ? 'GetRapport en lecture'
+                    : 'Detail SQL indisponible'
+                : 'fallback local'}</p>
+              <p>Auteur: {selectedAuthor ?? 'Non renseigne'}</p>
+              <p>Perimetre: {selectedScope ?? 'Non renseigne'}</p>
+              <p>Export: {selectedExportPath ?? 'Aucun fichier Storage ou chemin pending'}</p>
+              <p>Hash: {selectedHash ?? 'Non renseigne'}</p>
+              <p>Snapshot: {selectedDetail?.snapshot ? detailSnapshotLabel(selectedDetail.snapshot) : 'Non relu dans le detail'}</p>
             </div>
           </section>
 

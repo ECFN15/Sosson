@@ -7,6 +7,459 @@
 # =============================================================================
 
 
+# ---------- Onboarding equipe ------------------------------------------------
+
+mutation SubmitCurrentTeamProfile(
+  $email: String!
+  $nom: String!
+  $prenom: String!
+  $requestedTeamType: String!
+  $sourceConnexion: String
+) @auth(
+  level: USER
+  insecureReason: "Authenticated staff can submit only their own onboarding request keyed by auth.uid; this mutation never creates a User role or application access."
+) @transaction {
+  teamProfileSubmission_upsert(data: {
+    id_expr: "auth.uid"
+    email: $email
+    nom: $nom
+    prenom: $prenom
+    requestedTeamType: $requestedTeamType
+    status: "pending"
+    sourceConnexion: $sourceConnexion
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation ConvertTeamProfileSubmission(
+  $id: String!
+  $email: String!
+  $nom: String!
+  $prenom: String!
+  $role: String!
+  $avatar: String
+  $equipeTypeSouhaite: String
+  $equipeFinaleId: String
+  $poste: String
+  $telephone: String
+  $sourceConnexion: String
+  $convertedMemberId: String
+  $reviewNote: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; only a SQL gerant can convert an onboarding request into an application profile."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant']", message: "Role gerant requis pour convertir un profil.")
+    }
+    targetSubmission: teamProfileSubmission(key: { id: $id }) @check(expr: "this != null", message: "Demande onboarding introuvable.") @redact {
+      status @check(expr: "this == 'pending'", message: "Demande onboarding deja traitee.")
+    }
+  }
+  user_upsert(data: {
+    id: $id
+    email: $email
+    nom: $nom
+    prenom: $prenom
+    role: $role
+    profilStatut: "actif"
+    equipeTypeSouhaite: $equipeTypeSouhaite
+    equipeFinaleId: $equipeFinaleId
+    poste: $poste
+    telephone: $telephone
+    sourceConnexion: $sourceConnexion
+    avatar: $avatar
+    dateActivation_expr: "request.time"
+    dateModification_expr: "request.time"
+  })
+  teamProfileSubmission_update(id: $id, data: {
+    status: "converted"
+    convertedTeamId: $equipeFinaleId
+    convertedMemberId: $convertedMemberId
+    reviewNote: $reviewNote
+    reviewedById_expr: "auth.uid"
+    reviewedAt_expr: "request.time"
+    dateModification_expr: "request.time"
+  })
+}
+
+
+# ---------- Equipe RH --------------------------------------------------------
+
+mutation CreateSossonTeam(
+  $code: String!
+  $name: String!
+  $type: String!
+  $statut: String!
+  $theme: String
+  $leadName: String
+  $description: String
+  $activeSites: String
+  $ordre: Int
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; only managers can create final teams used by planning and HR workflows."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant']", message: "Role gerant requis pour creer une equipe.")
+    }
+  }
+  sossonTeam_insert(data: {
+    code: $code
+    name: $name
+    type: $type
+    statut: $statut
+    theme: $theme
+    leadName: $leadName
+    description: $description
+    activeSites: $activeSites
+    ordre: $ordre
+  })
+}
+
+mutation UpdateSossonTeam(
+  $id: UUID!
+  $name: String
+  $type: String
+  $statut: String
+  $theme: String
+  $leadName: String
+  $description: String
+  $activeSites: String
+  $ordre: Int
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; only managers can update final teams."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant']", message: "Role gerant requis pour modifier une equipe.")
+    }
+  }
+  sossonTeam_update(id: $id, data: {
+    name: $name
+    type: $type
+    statut: $statut
+    theme: $theme
+    leadName: $leadName
+    description: $description
+    activeSites: $activeSites
+    ordre: $ordre
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CreateSossonTeamMember(
+  $teamId: UUID!
+  $userId: String
+  $firstName: String!
+  $lastName: String!
+  $title: String!
+  $qualification: String
+  $level: String
+  $salaryGrossMonthly: Float
+  $contract: String
+  $coefficient: String
+  $email: String
+  $phone: String
+  $status: String!
+  $site: String
+  $activeSites: String
+  $responsibilities: String
+  $permissions: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; only managers can create HR job cards."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant']", message: "Role gerant requis pour creer une fiche equipe.")
+    }
+  }
+  sossonTeamMember_insert(data: {
+    teamId: $teamId
+    userId: $userId
+    firstName: $firstName
+    lastName: $lastName
+    title: $title
+    qualification: $qualification
+    level: $level
+    salaryGrossMonthly: $salaryGrossMonthly
+    contract: $contract
+    coefficient: $coefficient
+    email: $email
+    phone: $phone
+    status: $status
+    site: $site
+    activeSites: $activeSites
+    responsibilities: $responsibilities
+    permissions: $permissions
+  })
+}
+
+mutation UpdateSossonTeamMember(
+  $id: UUID!
+  $teamId: UUID
+  $userId: String
+  $title: String
+  $qualification: String
+  $level: String
+  $salaryGrossMonthly: Float
+  $contract: String
+  $coefficient: String
+  $phone: String
+  $status: String
+  $site: String
+  $activeSites: String
+  $responsibilities: String
+  $permissions: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; only managers can update HR job cards."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant']", message: "Role gerant requis pour modifier une fiche equipe.")
+    }
+  }
+  sossonTeamMember_update(id: $id, data: {
+    teamId: $teamId
+    userId: $userId
+    title: $title
+    qualification: $qualification
+    level: $level
+    salaryGrossMonthly: $salaryGrossMonthly
+    contract: $contract
+    coefficient: $coefficient
+    phone: $phone
+    status: $status
+    site: $site
+    activeSites: $activeSites
+    responsibilities: $responsibilities
+    permissions: $permissions
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CreateSossonTeamLeavePeriod(
+  $memberId: UUID!
+  $type: String!
+  $month: String!
+  $startDay: Int!
+  $endDay: Int!
+  $status: String!
+  $note: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff can record leave periods and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour enregistrer un conge.")
+    }
+  }
+  sossonTeamLeavePeriod_insert(data: {
+    memberId: $memberId
+    type: $type
+    month: $month
+    startDay: $startDay
+    endDay: $endDay
+    status: $status
+    note: $note
+    approvedById_expr: "auth.uid"
+  })
+}
+
+mutation CreateSossonWorkTimeEntry(
+  $memberId: UUID!
+  $chantierId: UUID
+  $planningEventId: UUID
+  $planningAssignmentId: UUID
+  $jobSheetId: UUID
+  $workDate: Date!
+  $hours: Float!
+  $kind: String!
+  $status: String!
+  $notes: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; authenticated staff can record work time and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour enregistrer des heures.")
+    }
+  }
+  sossonWorkTimeEntry_insert(data: {
+    memberId: $memberId
+    chantierId: $chantierId
+    planningEventId: $planningEventId
+    planningAssignmentId: $planningAssignmentId
+    jobSheetId: $jobSheetId
+    workDate: $workDate
+    hours: $hours
+    kind: $kind
+    status: $status
+    notes: $notes
+    approvedById_expr: "auth.uid"
+  })
+}
+
+mutation CreateSossonPayrollPeriod(
+  $memberId: UUID!
+  $periodLabel: String!
+  $year: Int!
+  $month: Int!
+  $baseSalaryGrossMonthly: Float
+  $overtimeHours: Float
+  $paidLeaveDays: Float
+  $absenceDays: Float
+  $grossEstimate: Float
+  $status: String!
+  $notes: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app for a single company; only managers can prepare payroll consolidation rows."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour preparer la paie.")
+    }
+  }
+  sossonPayrollPeriod_insert(data: {
+    memberId: $memberId
+    periodLabel: $periodLabel
+    year: $year
+    month: $month
+    baseSalaryGrossMonthly: $baseSalaryGrossMonthly
+    overtimeHours: $overtimeHours
+    paidLeaveDays: $paidLeaveDays
+    absenceDays: $absenceDays
+    grossEstimate: $grossEstimate
+    status: $status
+    notes: $notes
+  })
+}
+
+mutation CreatePlanningJobSheet(
+  $eventId: UUID!
+  $assignmentId: UUID
+  $chantierId: UUID
+  $sossonTeamId: UUID
+  $leadMemberId: UUID
+  $titre: String!
+  $statut: String!
+  $instructions: String
+  $plannedHours: Float
+  $actualHours: Float
+  $checklist: String
+  $materials: String
+  $blockers: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated planning staff can prepare execution job sheets and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour creer une fiche intervention.")
+    }
+  }
+  planningJobSheet_insert(data: {
+    eventId: $eventId
+    assignmentId: $assignmentId
+    chantierId: $chantierId
+    sossonTeamId: $sossonTeamId
+    leadMemberId: $leadMemberId
+    titre: $titre
+    statut: $statut
+    instructions: $instructions
+    plannedHours: $plannedHours
+    actualHours: $actualHours
+    checklist: $checklist
+    materials: $materials
+    blockers: $blockers
+    preparedById_expr: "auth.uid"
+    updatedById_expr: "auth.uid"
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation UpdatePlanningJobSheetProgress(
+  $id: UUID!
+  $statut: String!
+  $instructions: String
+  $plannedHours: Float
+  $actualHours: Float
+  $checklist: String
+  $materials: String
+  $blockers: String
+  $completionNotes: String
+  $proofStoragePath: String
+  $proofSha256: String
+  $reportStoragePath: String
+  $reportSha256: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated planning staff can update execution job sheets and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour modifier une fiche intervention.")
+    }
+  }
+  planningJobSheet_update(id: $id, data: {
+    statut: $statut
+    instructions: $instructions
+    plannedHours: $plannedHours
+    actualHours: $actualHours
+    checklist: $checklist
+    materials: $materials
+    blockers: $blockers
+    completionNotes: $completionNotes
+    proofStoragePath: $proofStoragePath
+    proofSha256: $proofSha256
+    reportStoragePath: $reportStoragePath
+    reportSha256: $reportSha256
+    updatedById_expr: "auth.uid"
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CompletePlanningJobSheet(
+  $id: UUID!
+  $actualHours: Float
+  $completionNotes: String
+  $proofStoragePath: String
+  $proofSha256: String
+  $reportStoragePath: String
+  $reportSha256: String
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated planning staff can complete execution job sheets and the transaction checks the SQL User role."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour terminer une fiche intervention.")
+    }
+  }
+  planningJobSheet_update(id: $id, data: {
+    statut: "completed"
+    actualHours: $actualHours
+    completionNotes: $completionNotes
+    proofStoragePath: $proofStoragePath
+    proofSha256: $proofSha256
+    reportStoragePath: $reportStoragePath
+    reportSha256: $reportSha256
+    completedById_expr: "auth.uid"
+    updatedById_expr: "auth.uid"
+    completedAt_expr: "request.time"
+    dateModification_expr: "request.time"
+  })
+}
+
+
 # ---------- Clients ----------------------------------------------------------
 
 mutation CreateClient(
@@ -623,8 +1076,6 @@ mutation CreatePlanningEvent(
   $endAt: Timestamp!
   $location: String
   $notes: String
-  $createdById: String
-  $updatedById: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can create shared planning events and the transaction checks the SQL User role."
@@ -643,15 +1094,14 @@ mutation CreatePlanningEvent(
     endAt: $endAt
     location: $location
     notes: $notes
-    createdById: $createdById
-    updatedById: $updatedById
+    createdById_expr: "auth.uid"
+    updatedById_expr: "auth.uid"
   })
 }
 
 mutation UpdatePlanningEventStatus(
   $id: UUID!
   $statut: String!
-  $updatedById: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can update planning status and the transaction checks the SQL User role."
@@ -663,7 +1113,7 @@ mutation UpdatePlanningEventStatus(
   }
   planningEvent_update(id: $id, data: {
     statut: $statut
-    updatedById: $updatedById
+    updatedById_expr: "auth.uid"
     dateModification_expr: "request.time"
   })
 }
@@ -678,7 +1128,6 @@ mutation UpdatePlanningEventDetails(
   $endAt: Timestamp!
   $location: String
   $notes: String
-  $updatedById: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can update planning event details and the transaction checks the SQL User role."
@@ -697,7 +1146,7 @@ mutation UpdatePlanningEventDetails(
     endAt: $endAt
     location: $location
     notes: $notes
-    updatedById: $updatedById
+    updatedById_expr: "auth.uid"
     dateModification_expr: "request.time"
   })
 }
@@ -705,7 +1154,6 @@ mutation UpdatePlanningEventDetails(
 mutation CancelPlanningEvent(
   $id: UUID!
   $notes: String
-  $updatedById: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated staff can cancel planning events without deleting the SQL record."
@@ -718,7 +1166,7 @@ mutation CancelPlanningEvent(
   planningEvent_update(id: $id, data: {
     statut: "cancelled"
     notes: $notes
-    updatedById: $updatedById
+    updatedById_expr: "auth.uid"
     dateModification_expr: "request.time"
   })
 }
@@ -726,6 +1174,7 @@ mutation CancelPlanningEvent(
 mutation CreatePlanningAssignment(
   $eventId: UUID!
   $userId: String
+  $sossonTeamId: UUID
   $assignmentRole: String
   $statut: String!
   $notes: String
@@ -741,6 +1190,7 @@ mutation CreatePlanningAssignment(
   planningAssignment_insert(data: {
     eventId: $eventId
     userId: $userId
+    sossonTeamId: $sossonTeamId
     assignmentRole: $assignmentRole
     statut: $statut
     notes: $notes
@@ -781,7 +1231,6 @@ mutation CreateAnalyticsSnapshot(
   $payloadPath: String
   $payloadHash: String
   $sourceWatermark: String
-  $createdById: String
 ) @auth(
   level: USER
   insecureReason: "Internal back-office app; authenticated managers can create analytics snapshots for reproducible reporting."
@@ -806,13 +1255,12 @@ mutation CreateAnalyticsSnapshot(
     payloadPath: $payloadPath
     payloadHash: $payloadHash
     sourceWatermark: $sourceWatermark
-    createdById: $createdById
+    createdById_expr: "auth.uid"
   })
 }
 
 mutation CreateRapport(
   $snapshotId: UUID
-  $authorId: String
   $clientId: UUID
   $chantierId: UUID
   $titre: String!
@@ -836,7 +1284,7 @@ mutation CreateRapport(
   }
   rapport_insert(data: {
     snapshotId: $snapshotId
-    authorId: $authorId
+    authorId_expr: "auth.uid"
     clientId: $clientId
     chantierId: $chantierId
     titre: $titre

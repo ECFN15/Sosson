@@ -16,14 +16,20 @@ import { useApp } from '@/lib/store'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
 import {
   cancelPlanningEventInSql,
+  completePlanningJobSheetInSql,
   createPlanningAssignmentInSql,
   createPlanningEventInSql,
+  createPlanningJobSheetInSql,
   loadPlanningEventsByPeriodFromSql,
+  updatePlanningJobSheetProgressInSql,
   updatePlanningEventDetailsInSql,
 } from '@/features/planning/planningSql'
+import { createWorkTimeEntryInSql, loadTeamDirectoryFromSql } from '@/features/team/teamSql'
+import { loadMembers, loadTeams, themeOptions } from '@/lib/teamDirectory'
 
 type PlanningStatus = 'planned' | 'blocked' | 'done' | 'cancelled'
 type PlanningSource = 'loading' | 'sql' | 'sql-empty' | 'local-fallback'
+type TeamDirectorySource = 'local' | 'loading-sql' | 'sql' | 'sql-empty' | 'sql-error'
 
 type Team = {
   id: string
@@ -32,6 +38,7 @@ type Team = {
   people: number
   accent: string
   bg: string
+  leadMemberId?: string
 }
 
 type PlanningItem = {
@@ -46,6 +53,15 @@ type PlanningItem = {
   notes: string
   source: 'sql' | 'local'
   sqlEventId?: string
+  assignmentId?: string
+  leadMemberId?: string
+  jobSheetId?: string
+  jobSheetStatus?: string
+  jobSheetInstructions?: string
+  jobSheetCompletionNotes?: string
+  plannedHours?: number
+  actualHours?: number
+  jobSheetWorkHours?: number
 }
 
 type PlanningDraft = Omit<PlanningItem, 'id' | 'source' | 'sqlEventId'>
@@ -53,7 +69,7 @@ type SqlPlanningEvent = Awaited<ReturnType<typeof loadPlanningEventsByPeriodFrom
 
 const STORAGE_KEY = 'sosson.planning.items.v1'
 
-const teams: Team[] = [
+const defaultPlanningTeams: Team[] = [
   { id: 'charpente', label: 'Equipe Charpente', short: 'Charpente', people: 4, accent: '#F06B21', bg: '#FDE9DB' },
   { id: 'couverture', label: 'Equipe Couverture', short: 'Couverture', people: 3, accent: '#6B91B5', bg: '#DCE9F2' },
   { id: 'menuiserie', label: 'Equipe Menuiserie', short: 'Menuiserie', people: 4, accent: '#C9A227', bg: '#FDEFC2' },
@@ -75,6 +91,48 @@ const planningSourceLabels: Record<PlanningSource, string> = {
   'local-fallback': 'Fallback local',
 }
 
+const teamDirectorySourceLabels: Record<TeamDirectorySource, string> = {
+  local: 'Equipes locales',
+  'loading-sql': 'Equipes SQL en lecture...',
+  sql: 'Equipes finales SQL',
+  'sql-empty': 'Equipes SQL vides',
+  'sql-error': 'Equipes locales',
+}
+
+function isUuidLike(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
+function makeShortTeamName(name: string) {
+  return name.replace(/^equipe\s+/i, '').trim() || name
+}
+
+function directoryToPlanningTeams(
+  directoryTeams: ReturnType<typeof loadTeams>,
+  directoryMembers: ReturnType<typeof loadMembers>,
+): Team[] {
+  if (!directoryTeams.length) return defaultPlanningTeams
+
+  return directoryTeams.map(team => {
+    const theme = themeOptions[team.theme]
+    const short = makeShortTeamName(team.name)
+    const teamMembers = directoryMembers.filter(member => member.teamId === team.id)
+    return {
+      id: team.id,
+      label: team.name,
+      short,
+      people: teamMembers.length,
+      accent: theme.edge,
+      bg: theme.bg,
+      leadMemberId: teamMembers[0]?.id,
+    }
+  })
+}
+
+function loadPlanningTeams(): Team[] {
+  return directoryToPlanningTeams(loadTeams(), loadMembers())
+}
+
 function normalizeStatus(value: string): PlanningStatus {
   if (value === 'cancelled') return value
   if (value === 'blocked' || value === 'done') return value
@@ -85,31 +143,60 @@ function dateTimeFromParts(date: string, time: string) {
   return new Date(`${date}T${time || '00:00'}:00`).toISOString()
 }
 
+function hoursBetween(startTime: string, endTime: string) {
+  const [startHour, startMinute] = startTime.split(':').map(Number)
+  const [endHour, endMinute] = endTime.split(':').map(Number)
+  const start = (Number.isFinite(startHour) ? startHour : 0) * 60 + (Number.isFinite(startMinute) ? startMinute : 0)
+  const end = (Number.isFinite(endHour) ? endHour : 0) * 60 + (Number.isFinite(endMinute) ? endMinute : 0)
+  return Math.max(0, Math.round(((end - start) / 60) * 100) / 100)
+}
+
+function positiveNumber(value: string) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0
+}
+
 function timeFromIso(value: string) {
   return new Date(value).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
 
-function teamIdFromSqlEvent(event: SqlPlanningEvent) {
+function teamIdFromSqlEvent(event: SqlPlanningEvent, planningTeams: Team[]) {
+  const sqlTeamId = event.assignmentsByPeriod[0]?.sossonTeam?.id
+  if (sqlTeamId && planningTeams.some(team => team.id === sqlTeamId)) return sqlTeamId
   const role = event.assignmentsByPeriod[0]?.assignmentRole
-  if (role && teams.some(team => team.id === role)) return role
-  if (teams.some(team => team.id === event.eventType)) return event.eventType
-  return teams[0].id
+  if (role && planningTeams.some(team => team.id === role)) return role
+  if (planningTeams.some(team => team.id === event.eventType)) return event.eventType
+  return planningTeams[0]?.id ?? ''
 }
 
-function sqlEventToPlanningItem(event: SqlPlanningEvent): PlanningItem {
+function sqlEventToPlanningItem(event: SqlPlanningEvent, planningTeams: Team[]): PlanningItem {
   const start = new Date(event.startAt)
+  const assignment = event.assignmentsByPeriod[0]
+  const jobSheet = event.jobSheetsByPeriod[0]
+  const jobSheetWorkHours = jobSheet?.workTimesByPeriodJobSheet.reduce((sum, entry) => sum + Number(entry.hours ?? 0), 0)
+  const teamId = teamIdFromSqlEvent(event, planningTeams)
+  const team = planningTeams.find(item => item.id === teamId)
   return {
     id: event.id,
     sqlEventId: event.id,
     source: 'sql',
     title: event.titre,
     chantierId: event.chantier?.id ?? '',
-    teamId: teamIdFromSqlEvent(event),
+    teamId,
     date: toDateKey(start),
     startTime: timeFromIso(event.startAt),
     endTime: timeFromIso(event.endAt),
     status: normalizeStatus(event.statut),
     notes: event.notes ?? '',
+    assignmentId: assignment?.id,
+    leadMemberId: jobSheet?.leadMember?.id ?? team?.leadMemberId,
+    jobSheetId: jobSheet?.id,
+    jobSheetStatus: jobSheet?.statut,
+    jobSheetInstructions: jobSheet?.instructions ?? undefined,
+    jobSheetCompletionNotes: jobSheet?.completionNotes ?? undefined,
+    plannedHours: jobSheet?.plannedHours ?? hoursBetween(timeFromIso(event.startAt), timeFromIso(event.endAt)),
+    actualHours: jobSheet?.actualHours ?? undefined,
+    jobSheetWorkHours,
   }
 }
 
@@ -177,17 +264,20 @@ function loadPlanningItems(): PlanningItem[] {
   }
 }
 
-function buildInitialItems(weekStart: Date, chantierOptions: Array<{ id: string; nom: string }>): PlanningItem[] {
+function buildInitialItems(weekStart: Date, chantierOptions: Array<{ id: string; nom: string }>, planningTeams: Team[]): PlanningItem[] {
   const firstChantier = chantierOptions[0]
   const secondChantier = chantierOptions[1] ?? firstChantier
   const thirdChantier = chantierOptions[2] ?? secondChantier
+  const firstTeamId = planningTeams[0]?.id ?? defaultPlanningTeams[0].id
+  const secondTeamId = planningTeams[1]?.id ?? planningTeams[0]?.id ?? defaultPlanningTeams[1].id
+  const thirdTeamId = planningTeams[2]?.id ?? planningTeams[0]?.id ?? defaultPlanningTeams[2].id
 
   return [
     {
       id: makeId(),
       title: firstChantier ? `Intervention - ${firstChantier.nom}` : 'Intervention chantier',
       chantierId: firstChantier?.id ?? '',
-      teamId: 'charpente',
+      teamId: firstTeamId,
       date: toDateKey(weekStart),
       startTime: '08:00',
       endTime: '17:00',
@@ -199,7 +289,7 @@ function buildInitialItems(weekStart: Date, chantierOptions: Array<{ id: string;
       id: makeId(),
       title: secondChantier ? `Couverture - ${secondChantier.nom}` : 'Couverture toiture',
       chantierId: secondChantier?.id ?? '',
-      teamId: 'couverture',
+      teamId: secondTeamId,
       date: toDateKey(addDays(weekStart, 1)),
       startTime: '08:00',
       endTime: '17:00',
@@ -211,7 +301,7 @@ function buildInitialItems(weekStart: Date, chantierOptions: Array<{ id: string;
       id: makeId(),
       title: thirdChantier ? `Point blocage - ${thirdChantier.nom}` : 'Point blocage chantier',
       chantierId: thirdChantier?.id ?? '',
-      teamId: 'gros-oeuvre',
+      teamId: thirdTeamId,
       date: toDateKey(addDays(weekStart, 2)),
       startTime: '09:00',
       endTime: '11:00',
@@ -266,17 +356,32 @@ function statusClass(status: PlanningStatus) {
 
 export function PlanningPage() {
   const { chantiers, user, dataSource } = useApp()
+  const [planningTeams, setPlanningTeams] = useState<Team[]>(() => loadPlanningTeams())
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [items, setItems] = useState<PlanningItem[]>(() => {
     const stored = loadPlanningItems()
-    return stored.length ? stored : buildInitialItems(startOfWeek(new Date()), chantiers)
+    return stored.length ? stored : buildInitialItems(startOfWeek(new Date()), chantiers, planningTeams)
   })
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null)
   const [draft, setDraft] = useState<PlanningDraft | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [jobSheetDraft, setJobSheetDraft] = useState({
+    instructions: '',
+    plannedHours: '7',
+    actualHours: '7',
+    checklist: '',
+    materials: '',
+    blockers: '',
+    completionNotes: '',
+  })
   const [planningSource, setPlanningSource] = useState<PlanningSource>('local-fallback')
+  const [teamDirectorySource, setTeamDirectorySource] = useState<TeamDirectorySource>('local')
+  const [teamDirectoryMessage, setTeamDirectoryMessage] = useState('Equipes lues depuis le repertoire local.')
   const canUsePlanningSql = dataSource === 'dataconnect' && isDataConnectEnabled && Boolean(user)
   const effectivePlanningSource: PlanningSource = canUsePlanningSql ? planningSource : 'local-fallback'
+  const shouldWritePlanningToSql = canUsePlanningSql && effectivePlanningSource !== 'local-fallback'
+  const missingSqlTeamDirectory = shouldWritePlanningToSql && teamDirectorySource !== 'sql'
+  const canCreatePlanningCard = planningTeams.length > 0 && !missingSqlTeamDirectory && teamDirectorySource !== 'loading-sql' && planningSource !== 'loading'
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart])
   const weekDateKeys = useMemo(() => new Set(days.map(toDateKey)), [days])
@@ -284,6 +389,28 @@ export function PlanningPage() {
   const selectedItem = selectedId ? items.find(item => item.id === selectedId) ?? null : null
   const chantierOptions = chantiers.length ? chantiers : []
   const defaultChantierId = chantierOptions[0]?.id ?? ''
+
+  useEffect(() => {
+    if (!selectedItem) return
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      const plannedHours = (selectedItem.plannedHours ?? hoursBetween(selectedItem.startTime, selectedItem.endTime)) || 7
+      const actualHours = selectedItem.actualHours ?? selectedItem.jobSheetWorkHours ?? plannedHours
+      setJobSheetDraft({
+        instructions: selectedItem.jobSheetInstructions ?? selectedItem.notes,
+        plannedHours: String(plannedHours),
+        actualHours: String(actualHours),
+        checklist: '',
+        materials: '',
+        blockers: '',
+        completionNotes: selectedItem.jobSheetCompletionNotes ?? '',
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [selectedItem])
 
   useEffect(() => {
     if (effectivePlanningSource !== 'local-fallback') return
@@ -303,6 +430,61 @@ export function PlanningPage() {
   }, [effectivePlanningSource, items])
 
   useEffect(() => {
+    if (!canUsePlanningSql) {
+      let cancelled = false
+      queueMicrotask(() => {
+        if (cancelled) return
+        setTeamDirectorySource('local')
+        setTeamDirectoryMessage('Equipes lues depuis le repertoire local.')
+        setPlanningTeams(loadPlanningTeams())
+      })
+      return () => {
+        cancelled = true
+      }
+    }
+
+    let mounted = true
+
+    async function loadSqlTeamDirectory() {
+      setTeamDirectorySource('loading-sql')
+      setTeamDirectoryMessage('Lecture des equipes finales SQL pour le planning.')
+
+      try {
+        const directory = await loadTeamDirectoryFromSql()
+        if (!mounted) return
+
+        if (directory.teams.length > 0) {
+          const nextTeams = directoryToPlanningTeams(directory.teams, directory.members)
+          setPlanningTeams(nextTeams)
+          setTeamDirectorySource('sql')
+          setTeamDirectoryMessage(`${nextTeams.length} equipe(s) finale(s) et ${directory.members.length} fiche(s) membre relues depuis SQL.`)
+          setDraft(prev => {
+            if (!prev || nextTeams.some(team => team.id === prev.teamId)) return prev
+            return { ...prev, teamId: nextTeams[0]?.id ?? defaultPlanningTeams[0].id }
+          })
+        } else {
+          setPlanningTeams([])
+          setSelectedId(null)
+          setDraft(null)
+          setTeamDirectorySource('sql-empty')
+          setTeamDirectoryMessage('SQL repond mais aucune equipe finale Sosson n existe encore. Creez une equipe finale avant de planifier en SQL.')
+        }
+      } catch (error) {
+        if (!mounted) return
+        setPlanningTeams(loadPlanningTeams())
+        setTeamDirectorySource('sql-error')
+        setTeamDirectoryMessage(`Equipes SQL indisponibles: ${error instanceof Error ? error.message : String(error)}.`)
+      }
+    }
+
+    void loadSqlTeamDirectory()
+
+    return () => {
+      mounted = false
+    }
+  }, [canUsePlanningSql])
+
+  useEffect(() => {
     if (!canUsePlanningSql) return
 
     let mounted = true
@@ -318,9 +500,9 @@ export function PlanningPage() {
           endAt: periodEnd.toISOString(),
         })
         if (!mounted) return
-        const sqlItems = sqlEvents.filter(event => event.statut !== 'cancelled').map(sqlEventToPlanningItem)
+        const sqlItems = sqlEvents.filter(event => event.statut !== 'cancelled').map(event => sqlEventToPlanningItem(event, planningTeams))
         setItems(sqlItems)
-        setSelectedId(sqlItems[0]?.id ?? null)
+        setSelectedId(planningTeams.length ? sqlItems[0]?.id ?? null : null)
         setDraft(null)
         setPlanningSource(sqlItems.length ? 'sql' : 'sql-empty')
       } catch (error) {
@@ -336,15 +518,26 @@ export function PlanningPage() {
     return () => {
       mounted = false
     }
-  }, [canUsePlanningSql, weekStart])
+  }, [canUsePlanningSql, planningTeams, weekStart])
 
   function getChantierName(chantierId: string) {
     return chantierOptions.find(chantier => chantier.id === chantierId)?.nom ?? 'Sans chantier'
   }
 
-  function openCreate(teamId = teams[0].id, date = toDateKey(days[0])) {
+  function openCreate(teamId = planningTeams[0]?.id ?? '', date = toDateKey(days[0])) {
+    if (!planningTeams.length) {
+      setFeedback(canUsePlanningSql
+        ? 'Creation bloquee: aucune equipe finale SQL n est disponible pour le planning.'
+        : 'Creation bloquee: aucune equipe locale n est disponible.')
+      return
+    }
+    if (missingSqlTeamDirectory) {
+      setFeedback('Creation bloquee: selectionnez une equipe finale SQL avant d enregistrer une carte durable.')
+      return
+    }
+    const selectedTeamId = planningTeams.some(team => team.id === teamId) ? teamId : planningTeams[0].id
     setSelectedId(null)
-    setDraft(createDraft(teamId, date, defaultChantierId))
+    setDraft(createDraft(selectedTeamId, date, defaultChantierId))
   }
 
   function openEdit(item: PlanningItem) {
@@ -375,6 +568,10 @@ export function PlanningPage() {
     if (selectedId) {
       const currentItem = items.find(item => item.id === selectedId)
       if (currentItem?.source === 'sql') {
+        if (teamDirectorySource !== 'sql' || !isUuidLike(draft.teamId)) {
+          setFeedback('Modification bloquee: une carte SQL doit rester rattachee a une equipe finale SQL.')
+          return
+        }
         try {
           await updatePlanningEventDetailsInSql({
             id: currentItem.sqlEventId ?? currentItem.id,
@@ -386,7 +583,6 @@ export function PlanningPage() {
             endAt: dateTimeFromParts(draft.date, draft.endTime),
             location: null,
             notes: draft.notes || null,
-            updatedById: user?.id ?? null,
           })
         } catch (error) {
           console.info('Mise a jour planning SQL impossible.', error)
@@ -408,7 +604,11 @@ export function PlanningPage() {
       source: 'local',
     }
 
-    if (canUsePlanningSql) {
+    if (shouldWritePlanningToSql) {
+      if (teamDirectorySource !== 'sql' || !isUuidLike(draft.teamId)) {
+        setFeedback('Carte non creee: une equipe finale SQL est requise.')
+        return
+      }
       try {
         const eventId = await createPlanningEventInSql({
           chantierId: draft.chantierId || null,
@@ -419,21 +619,42 @@ export function PlanningPage() {
           endAt: dateTimeFromParts(draft.date, draft.endTime),
           location: null,
           notes: draft.notes || null,
-          createdById: user?.id ?? null,
-          updatedById: user?.id ?? null,
         })
 
-        await createPlanningAssignmentInSql({
+        const assignmentId = await createPlanningAssignmentInSql({
           eventId,
           userId: null,
+          sossonTeamId: isUuidLike(draft.teamId) ? draft.teamId : null,
           assignmentRole: draft.teamId,
           statut: draft.status,
           notes: null,
+        })
+        const team = planningTeams.find(item => item.id === draft.teamId)
+        const jobSheetId = await createPlanningJobSheetInSql({
+          eventId,
+          assignmentId,
+          chantierId: draft.chantierId || null,
+          sossonTeamId: isUuidLike(draft.teamId) ? draft.teamId : null,
+          leadMemberId: team?.leadMemberId && isUuidLike(team.leadMemberId) ? team.leadMemberId : null,
+          titre: title,
+          statut: 'ready',
+          instructions: draft.notes || null,
+          plannedHours: hoursBetween(draft.startTime, draft.endTime),
+          actualHours: null,
+          checklist: null,
+          materials: null,
+          blockers: null,
         })
 
         nextItem.id = eventId
         nextItem.sqlEventId = eventId
         nextItem.source = 'sql'
+        nextItem.assignmentId = assignmentId
+        nextItem.leadMemberId = team?.leadMemberId
+        nextItem.jobSheetId = jobSheetId
+        nextItem.jobSheetStatus = 'ready'
+        nextItem.jobSheetInstructions = draft.notes
+        nextItem.plannedHours = hoursBetween(draft.startTime, draft.endTime)
         setPlanningSource('sql')
       } catch (error) {
         console.info('Creation planning SQL impossible.', error)
@@ -446,6 +667,168 @@ export function PlanningPage() {
     setSelectedId(nextItem.id)
     setDraft(null)
     if (nextItem.source === 'sql') setFeedback('Carte planning creee en SQL.')
+    else setFeedback('Carte locale creee dans le fallback planning visible.')
+  }
+
+  async function saveSelectedJobSheet() {
+    if (!selectedItem || selectedItem.source !== 'sql') {
+      setFeedback('La fiche intervention demande une carte planning SQL.')
+      return
+    }
+
+    const plannedHours = positiveNumber(jobSheetDraft.plannedHours)
+    const actualHours = positiveNumber(jobSheetDraft.actualHours)
+    const team = planningTeams.find(item => item.id === selectedItem.teamId)
+    if (teamDirectorySource !== 'sql' || !isUuidLike(selectedItem.teamId)) {
+      setFeedback('Fiche intervention non enregistree: la carte doit etre rattachee a une equipe finale SQL.')
+      return
+    }
+
+    try {
+      let jobSheetId = selectedItem.jobSheetId
+      if (!jobSheetId) {
+        jobSheetId = await createPlanningJobSheetInSql({
+          eventId: selectedItem.sqlEventId ?? selectedItem.id,
+          assignmentId: selectedItem.assignmentId ?? null,
+          chantierId: selectedItem.chantierId || null,
+          sossonTeamId: isUuidLike(selectedItem.teamId) ? selectedItem.teamId : null,
+          leadMemberId: selectedItem.leadMemberId && isUuidLike(selectedItem.leadMemberId)
+            ? selectedItem.leadMemberId
+            : team?.leadMemberId && isUuidLike(team.leadMemberId)
+              ? team.leadMemberId
+              : null,
+          titre: selectedItem.title,
+          statut: 'ready',
+          instructions: jobSheetDraft.instructions.trim() || null,
+          plannedHours,
+          actualHours: actualHours || null,
+          checklist: jobSheetDraft.checklist.trim() || null,
+          materials: jobSheetDraft.materials.trim() || null,
+          blockers: jobSheetDraft.blockers.trim() || null,
+        })
+      } else {
+        await updatePlanningJobSheetProgressInSql({
+          id: jobSheetId,
+          statut: actualHours > 0 ? 'in_progress' : selectedItem.jobSheetStatus ?? 'ready',
+          instructions: jobSheetDraft.instructions.trim() || null,
+          plannedHours,
+          actualHours: actualHours || null,
+          checklist: jobSheetDraft.checklist.trim() || null,
+          materials: jobSheetDraft.materials.trim() || null,
+          blockers: jobSheetDraft.blockers.trim() || null,
+          completionNotes: jobSheetDraft.completionNotes.trim() || null,
+          proofStoragePath: null,
+          proofSha256: null,
+          reportStoragePath: null,
+          reportSha256: null,
+        })
+      }
+
+      const nextStatus = actualHours > 0 ? 'in_progress' : 'ready'
+      setItems(prev => prev.map(item => (
+        item.id === selectedItem.id
+          ? {
+              ...item,
+              jobSheetId,
+              jobSheetStatus: nextStatus,
+              jobSheetInstructions: jobSheetDraft.instructions.trim(),
+              jobSheetCompletionNotes: jobSheetDraft.completionNotes.trim(),
+              plannedHours,
+              actualHours: actualHours || undefined,
+              leadMemberId: item.leadMemberId ?? team?.leadMemberId,
+            }
+          : item
+      )))
+      setFeedback('Fiche intervention enregistree en SQL.')
+    } catch (error) {
+      console.info('Fiche intervention SQL impossible.', error)
+      setFeedback(`Fiche intervention non enregistree: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  async function submitSelectedJobSheetHours() {
+    if (!selectedItem || selectedItem.source !== 'sql' || !selectedItem.jobSheetId) {
+      setFeedback('Creez d abord la fiche intervention SQL.')
+      return
+    }
+
+    const team = planningTeams.find(item => item.id === selectedItem.teamId)
+    const memberId = selectedItem.leadMemberId ?? team?.leadMemberId
+    if (!memberId || !isUuidLike(memberId)) {
+      setFeedback('Impossible de saisir les heures: aucun membre SQL pilote dans cette equipe.')
+      return
+    }
+
+    const hours = positiveNumber(jobSheetDraft.actualHours)
+    if (hours <= 0) {
+      setFeedback('Renseignez des heures reelles superieures a zero.')
+      return
+    }
+
+    try {
+      await createWorkTimeEntryInSql({
+        memberId,
+        chantierId: selectedItem.chantierId || null,
+        planningEventId: selectedItem.sqlEventId ?? selectedItem.id,
+        planningAssignmentId: selectedItem.assignmentId ?? null,
+        jobSheetId: selectedItem.jobSheetId,
+        workDate: selectedItem.date,
+        hours,
+        kind: 'chantier',
+        status: 'submitted',
+        notes: jobSheetDraft.completionNotes.trim() || `Heures issues de la fiche ${selectedItem.title}`,
+      })
+      setItems(prev => prev.map(item => (
+        item.id === selectedItem.id
+          ? {
+              ...item,
+              actualHours: hours,
+              jobSheetWorkHours: Number(item.jobSheetWorkHours ?? 0) + hours,
+              jobSheetStatus: 'in_progress',
+              leadMemberId: memberId,
+            }
+          : item
+      )))
+      setFeedback('Heures chantier rattachees a la fiche intervention SQL.')
+    } catch (error) {
+      console.info('Saisie heures fiche intervention impossible.', error)
+      setFeedback(`Heures non enregistrees: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  async function completeSelectedJobSheet() {
+    if (!selectedItem || selectedItem.source !== 'sql' || !selectedItem.jobSheetId) {
+      setFeedback('Creez d abord la fiche intervention SQL.')
+      return
+    }
+
+    const actualHours = positiveNumber(jobSheetDraft.actualHours)
+    try {
+      await completePlanningJobSheetInSql({
+        id: selectedItem.jobSheetId,
+        actualHours: actualHours || null,
+        completionNotes: jobSheetDraft.completionNotes.trim() || null,
+        proofStoragePath: null,
+        proofSha256: null,
+        reportStoragePath: null,
+        reportSha256: null,
+      })
+      setItems(prev => prev.map(item => (
+        item.id === selectedItem.id
+          ? {
+              ...item,
+              jobSheetStatus: 'completed',
+              status: 'done',
+              actualHours: actualHours || item.actualHours,
+              jobSheetCompletionNotes: jobSheetDraft.completionNotes.trim(),
+            }
+          : item
+      )))
+      setFeedback('Fiche intervention terminee en SQL.')
+    } catch (error) {
+      console.info('Cloture fiche intervention impossible.', error)
+      setFeedback(`Fiche non terminee: ${error instanceof Error ? error.message : String(error)}`)
+    }
   }
 
   async function deleteSelected() {
@@ -460,7 +843,6 @@ export function PlanningPage() {
         await cancelPlanningEventInSql({
           id: currentItem.sqlEventId ?? currentItem.id,
           notes: cancellationNote,
-          updatedById: user?.id ?? null,
         })
       } catch (error) {
         console.info('Annulation planning SQL impossible.', error)
@@ -484,6 +866,10 @@ export function PlanningPage() {
   async function moveItem(itemId: string, teamId: string, date: string) {
     const currentItem = items.find(item => item.id === itemId)
     if (currentItem?.source === 'sql') {
+      if (teamDirectorySource !== 'sql' || !isUuidLike(teamId)) {
+        setFeedback('Deplacement bloque: une carte SQL doit rester rattachee a une equipe finale SQL.')
+        return
+      }
       try {
         await updatePlanningEventDetailsInSql({
           id: currentItem.sqlEventId ?? currentItem.id,
@@ -495,7 +881,6 @@ export function PlanningPage() {
           endAt: dateTimeFromParts(date, currentItem.endTime),
           location: null,
           notes: currentItem.notes || null,
-          updatedById: user?.id ?? null,
         })
       } catch (error) {
         console.info('Deplacement planning SQL impossible.', error)
@@ -541,6 +926,9 @@ export function PlanningPage() {
             <span className="rounded-[10px] border border-[#F2E8DC] bg-white px-3 py-1.5 font-semibold text-[#3C3C3C]">
               Source: {planningSourceLabels[effectivePlanningSource]}
             </span>
+            <span className="rounded-[10px] border border-[#F2E8DC] bg-white px-3 py-1.5 font-semibold text-[#3C3C3C]" title={teamDirectoryMessage}>
+              Equipes: {teamDirectorySourceLabels[teamDirectorySource]}
+            </span>
             {feedback ? (
               <button
                 type="button"
@@ -574,7 +962,8 @@ export function PlanningPage() {
           <button
             type="button"
             onClick={() => openCreate()}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-[12px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17]"
+            disabled={!canCreatePlanningCard}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-[12px] bg-[#F06B21] px-4 text-sm font-semibold text-white transition hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:bg-[#CFC7BE] disabled:text-white"
           >
             <Plus className="h-4 w-4" strokeWidth={2} />
             Nouvelle carte
@@ -603,7 +992,7 @@ export function PlanningPage() {
                 })}
               </div>
 
-              {teams.map(team => (
+              {planningTeams.map(team => (
                 <div key={team.id} className="grid min-h-[132px] grid-cols-[128px_repeat(7,minmax(112px,1fr))] border-b border-[#F2E8DC] last:border-b-0">
                   <div className="border-r border-[#F2E8DC] bg-white p-3">
                     <div className="mb-2 h-2 w-8 rounded-full" style={{ backgroundColor: team.accent }} />
@@ -637,7 +1026,10 @@ export function PlanningPage() {
                               type="button"
                               draggable
                               onDragStart={event => onDragStart(event, item.id)}
-                              onClick={() => openEdit(item)}
+                              onClick={() => {
+                                setSelectedId(item.id)
+                                setDraft(null)
+                              }}
                               className={`w-full rounded-[10px] border-l-[3px] p-2 text-left transition hover:translate-y-[-1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F06B21]/30 ${
                                 selectedId === item.id ? 'ring-2 ring-[#F06B21]/25' : ''
                               }`}
@@ -665,6 +1057,14 @@ export function PlanningPage() {
                   })}
                 </div>
               ))}
+              {planningTeams.length === 0 ? (
+                <div className="grid min-h-[132px] place-items-center border-b border-[#F2E8DC] bg-white px-6 text-center">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1E1E1E]">Aucune equipe finale disponible pour le planning</p>
+                    <p className="mt-1 text-[12px] text-[#6B6B6B]">{teamDirectoryMessage}</p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </Card>
@@ -728,7 +1128,7 @@ export function PlanningPage() {
                       onChange={event => setDraft({ ...draft, teamId: event.target.value })}
                       className="mt-1 h-10 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-sm text-[#1E1E1E] outline-none focus:border-[#F06B21]"
                     >
-                      {teams.map(team => (
+                      {planningTeams.map(team => (
                         <option key={team.id} value={team.id}>
                           {team.short}
                         </option>
@@ -831,7 +1231,7 @@ export function PlanningPage() {
                   </div>
                   <div>
                     <p className="text-[12px] font-medium text-[#6B6B6B]">Equipe</p>
-                    <p className="mt-1 text-[#1E1E1E]">{teams.find(team => team.id === selectedItem.teamId)?.short}</p>
+                    <p className="mt-1 text-[#1E1E1E]">{planningTeams.find(team => team.id === selectedItem.teamId)?.short}</p>
                   </div>
                   <div>
                     <p className="text-[12px] font-medium text-[#6B6B6B]">Horaire</p>
@@ -842,6 +1242,95 @@ export function PlanningPage() {
                   <div>
                     <p className="text-[12px] font-medium text-[#6B6B6B]">Notes</p>
                     <p className="mt-1 text-sm text-[#1E1E1E]">{selectedItem.notes}</p>
+                  </div>
+                ) : null}
+                {selectedItem.source === 'sql' ? (
+                  <div className="rounded-[14px] border border-[#F2E8DC] bg-[#FAF6F2] p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[12px] font-semibold uppercase text-[#6B6B6B]">Fiche intervention</p>
+                        <p className="mt-1 text-[13px] font-semibold text-[#1E1E1E]">
+                          {selectedItem.jobSheetId ? 'Fiche SQL active' : 'A creer depuis cette carte'}
+                        </p>
+                      </div>
+                      <span className={`rounded-[8px] px-2 py-1 text-[11px] font-semibold ${statusClass(selectedItem.jobSheetStatus === 'completed' ? 'done' : selectedItem.jobSheetStatus === 'blocked' ? 'blocked' : 'planned')}`}>
+                        {selectedItem.jobSheetStatus ?? 'draft'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={jobSheetDraft.plannedHours}
+                        onChange={event => setJobSheetDraft(prev => ({ ...prev, plannedHours: event.target.value }))}
+                        type="number"
+                        min="0"
+                        step="0.25"
+                        className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-2 text-[12px] outline-none focus:border-[#F06B21]"
+                        placeholder="Heures prevues"
+                      />
+                      <input
+                        value={jobSheetDraft.actualHours}
+                        onChange={event => setJobSheetDraft(prev => ({ ...prev, actualHours: event.target.value }))}
+                        type="number"
+                        min="0"
+                        step="0.25"
+                        className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-2 text-[12px] outline-none focus:border-[#F06B21]"
+                        placeholder="Heures reelles"
+                      />
+                      <textarea
+                        value={jobSheetDraft.instructions}
+                        onChange={event => setJobSheetDraft(prev => ({ ...prev, instructions: event.target.value }))}
+                        rows={3}
+                        className="col-span-2 resize-none rounded-[10px] border border-[#F2E8DC] bg-white px-2 py-2 text-[12px] outline-none focus:border-[#F06B21]"
+                        placeholder="Consignes chantier"
+                      />
+                      <input
+                        value={jobSheetDraft.checklist}
+                        onChange={event => setJobSheetDraft(prev => ({ ...prev, checklist: event.target.value }))}
+                        className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-2 text-[12px] outline-none focus:border-[#F06B21]"
+                        placeholder="Checklist, separee par virgules"
+                      />
+                      <input
+                        value={jobSheetDraft.materials}
+                        onChange={event => setJobSheetDraft(prev => ({ ...prev, materials: event.target.value }))}
+                        className="col-span-2 h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-2 text-[12px] outline-none focus:border-[#F06B21]"
+                        placeholder="Materiel / approvisionnement"
+                      />
+                      <textarea
+                        value={jobSheetDraft.completionNotes}
+                        onChange={event => setJobSheetDraft(prev => ({ ...prev, completionNotes: event.target.value }))}
+                        rows={2}
+                        className="col-span-2 resize-none rounded-[10px] border border-[#F2E8DC] bg-white px-2 py-2 text-[12px] outline-none focus:border-[#F06B21]"
+                        placeholder="Retour terrain / fin intervention"
+                      />
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveSelectedJobSheet()}
+                        className="h-9 rounded-[10px] bg-[#1E1E1E] px-2 text-[11px] font-semibold text-white transition hover:bg-[#2A2A2A]"
+                      >
+                        Sauver
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void submitSelectedJobSheetHours()}
+                        disabled={!selectedItem.jobSheetId}
+                        className="h-9 rounded-[10px] border border-[#F2E8DC] bg-white px-2 text-[11px] font-semibold text-[#1E1E1E] transition hover:border-[#F06B21] disabled:cursor-not-allowed disabled:text-[#9CA3AF]"
+                      >
+                        Heures
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void completeSelectedJobSheet()}
+                        disabled={!selectedItem.jobSheetId}
+                        className="h-9 rounded-[10px] bg-[#F06B21] px-2 text-[11px] font-semibold text-white transition hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:bg-[#D99A72]"
+                      >
+                        Terminer
+                      </button>
+                    </div>
+                    <p className="mt-3 text-[11px] text-[#6B6B6B]">
+                      {Number(selectedItem.jobSheetWorkHours ?? 0).toFixed(1)} h deja reliees a cette fiche.
+                    </p>
                   </div>
                 ) : null}
                 <button

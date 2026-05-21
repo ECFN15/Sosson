@@ -18,8 +18,7 @@ export const db = getFirestore(firebaseApp)
 export const ENV = import.meta.env.VITE_ENV ?? 'sandbox'
 
 export const shouldUseAuthEmulator =
-  import.meta.env.VITE_AUTH_USE_EMULATOR === 'true' ||
-  (import.meta.env.DEV && ENV === 'sandbox' && import.meta.env.VITE_AUTH_USE_EMULATOR !== 'false')
+  import.meta.env.VITE_AUTH_USE_EMULATOR === 'true'
 
 if (shouldUseAuthEmulator) {
   const host = import.meta.env.VITE_AUTH_EMULATOR_HOST ?? '127.0.0.1'

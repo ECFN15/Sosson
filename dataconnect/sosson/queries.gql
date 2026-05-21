@@ -16,6 +16,12 @@ query GetCurrentUser @auth(level: USER) {
     nom
     prenom
     role
+    profilStatut
+    equipeTypeSouhaite
+    equipeFinaleId
+    poste
+    telephone
+    sourceConnexion
     avatar
   }
 }
@@ -25,14 +31,178 @@ query ListUsers
     level: USER
     insecureReason: "Internal back-office app for a single company; authenticated staff can inspect provisioned application profiles while role changes remain admin/provisioning-only."
   ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour lire les profils equipe.")
+  }
   users(orderBy: { nom: ASC }, limit: 100) {
     id
     email
     nom
     prenom
     role
+    profilStatut
+    equipeTypeSouhaite
+    equipeFinaleId
+    poste
+    telephone
+    sourceConnexion
     avatar
     dateCreation
+  }
+}
+
+query GetCurrentTeamProfileSubmission @auth(level: USER) {
+  teamProfileSubmission(key: { id_expr: "auth.uid" }) {
+    id
+    email
+    nom
+    prenom
+    requestedTeamType
+    status
+    sourceConnexion
+    convertedTeamId
+    convertedMemberId
+    reviewNote
+    reviewedAt
+    reviewedBy { id nom prenom avatar }
+    dateModification
+    dateCreation
+  }
+}
+
+query ListTeamProfileSubmissions
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated managers can inspect onboarding submissions before converting them into application profiles."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant']", message: "Role gerant requis pour lire les demandes onboarding.")
+  }
+  teamProfileSubmissions(orderBy: { dateCreation: DESC }, limit: 100) {
+    id
+    email
+    nom
+    prenom
+    requestedTeamType
+    status
+    sourceConnexion
+    convertedTeamId
+    convertedMemberId
+    reviewNote
+    reviewedAt
+    reviewedBy { id nom prenom avatar }
+    dateModification
+    dateCreation
+  }
+}
+
+query ListSossonTeams
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app for a single company; authenticated staff can inspect final teams and HR cards while write operations remain role-checked."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour lire les equipes finales.")
+  }
+  sossonTeams(orderBy: { ordre: ASC }, limit: 100) {
+    id
+    code
+    name
+    type
+    statut
+    theme
+    leadName
+    description
+    activeSites
+    ordre
+    dateModification
+    dateCreation
+    members: sossonTeamMembers_on_team(orderBy: { lastName: ASC }, limit: 500) {
+      id
+      firstName
+      lastName
+      title
+      qualification
+      level
+      salaryGrossMonthly
+      contract
+      coefficient
+      email
+      phone
+      status
+      site
+      activeSites
+      responsibilities
+      permissions
+      dateModification
+      dateCreation
+      user { id nom prenom email role avatar }
+      leaves: sossonTeamLeavePeriods_on_member(orderBy: { dateCreation: DESC }, limit: 100) {
+        id
+        type
+        month
+        startDay
+        endDay
+        status
+        note
+        dateCreation
+      }
+    }
+  }
+}
+
+query ListSossonWorkTimeEntries($startDate: Date!, $endDate: Date!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect work-time rows before payroll consolidation."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour lire les heures.")
+  }
+  sossonWorkTimeEntries(
+    where: { workDate: { ge: $startDate, le: $endDate } }
+    orderBy: { workDate: DESC }
+    limit: 1000
+  ) {
+    id
+    workDate
+    hours
+    kind
+    status
+    notes
+    dateCreation
+    member { id firstName lastName title team { id name code type } }
+    chantier { id nom statut client { id nom } }
+    planningEvent { id titre startAt endAt statut }
+    planningAssignment { id statut assignmentRole }
+    jobSheet { id titre statut }
+    approvedBy { id nom prenom avatar }
+  }
+}
+
+query ListSossonPayrollPeriods($year: Int!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated managers can inspect payroll preparation rows."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour lire la preparation paie.")
+  }
+  sossonPayrollPeriods(where: { year: { eq: $year } }, orderBy: { month: DESC }, limit: 1000) {
+    id
+    periodLabel
+    year
+    month
+    baseSalaryGrossMonthly
+    overtimeHours
+    paidLeaveDays
+    absenceDays
+    grossEstimate
+    status
+    notes
+    dateModification
+    dateCreation
+    member { id firstName lastName title team { id name code type } }
   }
 }
 
@@ -522,6 +692,29 @@ query ListEmailThreads
   }
 }
 
+query ListEmailThreadsByChantier($chantierId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can read email threads linked to a chantier without loading the whole mailbox index."
+  ) {
+  emailThreads(where: { chantierId: { eq: $chantierId } }, orderBy: { lastMessageAt: DESC }, limit: 200) {
+    id
+    provider
+    externalThreadId
+    subject
+    statut
+    importance
+    lastMessageAt
+    participantsSummary
+    messageCount
+    hasAttachments
+    dateModification
+    client { id nom type }
+    chantier { id nom statut client { id nom } }
+    assignedTo { id nom prenom avatar }
+  }
+}
+
 query ListUnreadEmailThreads
   @auth(
     level: USER
@@ -601,6 +794,9 @@ query ListPlanningEventsByPeriod($startAt: Timestamp!, $endAt: Timestamp!)
     level: USER
     insecureReason: "Internal back-office app; authenticated staff can read shared planning."
   ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour lire le planning.")
+  }
   planningEvents(where: { startAt: { ge: $startAt }, endAt: { le: $endAt } }, orderBy: { startAt: ASC }, limit: 500) {
     id
     titre
@@ -618,7 +814,45 @@ query ListPlanningEventsByPeriod($startAt: Timestamp!, $endAt: Timestamp!)
       assignmentRole
       statut
       notes
+      sossonTeam { id code name type theme }
       user { id nom prenom avatar role }
+    }
+    jobSheetsByPeriod: planningJobSheets_on_event(orderBy: { dateCreation: DESC }, limit: 20) {
+      id
+      titre
+      statut
+      instructions
+      plannedHours
+      actualHours
+      checklist
+      materials
+      blockers
+      completionNotes
+      proofStoragePath
+      proofSha256
+      reportStoragePath
+      reportSha256
+      completedAt
+      validatedAt
+      dateModification
+      dateCreation
+      assignment { id statut assignmentRole }
+      chantier { id nom statut }
+      sossonTeam { id code name type theme }
+      leadMember { id firstName lastName title }
+      preparedBy { id nom prenom avatar }
+      updatedBy { id nom prenom avatar }
+      completedBy { id nom prenom avatar }
+      validatedBy { id nom prenom avatar }
+      workTimesByPeriodJobSheet: sossonWorkTimeEntries_on_jobSheet(orderBy: { workDate: DESC }, limit: 100) {
+        id
+        workDate
+        hours
+        kind
+        status
+        notes
+        member { id firstName lastName title }
+      }
     }
   }
 }
@@ -628,6 +862,9 @@ query ListPlanningEventsByChantier($chantierId: UUID!)
     level: USER
     insecureReason: "Internal back-office app; authenticated staff can read planning linked to a chantier."
   ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour lire le planning chantier.")
+  }
   planningEvents(where: { chantierId: { eq: $chantierId } }, orderBy: { startAt: ASC }, limit: 300) {
     id
     titre
@@ -641,7 +878,68 @@ query ListPlanningEventsByChantier($chantierId: UUID!)
       id
       assignmentRole
       statut
+      sossonTeam { id code name type theme }
       user { id nom prenom avatar role }
+    }
+    jobSheetsByChantier: planningJobSheets_on_event(orderBy: { dateCreation: DESC }, limit: 20) {
+      id
+      titre
+      statut
+      instructions
+      plannedHours
+      actualHours
+      completionNotes
+      chantier { id nom statut }
+      sossonTeam { id code name type theme }
+      leadMember { id firstName lastName title }
+    }
+  }
+}
+
+query ListPlanningJobSheetsByEvent($eventId: UUID!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect execution sheets linked to a planning event."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante', 'chef_chantier']", message: "Role insuffisant pour lire les fiches d'intervention.")
+  }
+  planningJobSheets(where: { eventId: { eq: $eventId } }, orderBy: { dateCreation: DESC }, limit: 50) {
+    id
+    titre
+    statut
+    instructions
+    plannedHours
+    actualHours
+    checklist
+    materials
+    blockers
+    completionNotes
+    proofStoragePath
+    proofSha256
+    reportStoragePath
+    reportSha256
+    completedAt
+    validatedAt
+    dateModification
+    dateCreation
+    event { id titre startAt endAt statut }
+    assignment { id statut assignmentRole }
+    chantier { id nom statut }
+    sossonTeam { id code name type theme }
+    leadMember { id firstName lastName title }
+    preparedBy { id nom prenom avatar }
+    updatedBy { id nom prenom avatar }
+    completedBy { id nom prenom avatar }
+    validatedBy { id nom prenom avatar }
+    workTimesByEventJobSheet: sossonWorkTimeEntries_on_jobSheet(orderBy: { workDate: DESC }, limit: 100) {
+      id
+      workDate
+      hours
+      kind
+      status
+      notes
+      member { id firstName lastName title }
     }
   }
 }
