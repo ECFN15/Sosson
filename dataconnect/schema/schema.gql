@@ -28,7 +28,7 @@ type User @table {
   email: String! @col(dataType: "varchar(254)")
   nom: String! @col(dataType: "varchar(80)")
   prenom: String! @col(dataType: "varchar(80)")
-  # Rôle applicatif : "gerant" | "assistante" | "chef_chantier"
+  # Rôle applicatif : "gerant" | "assistante" | "chef_chantier" | "ouvrier"
   role: String! @col(dataType: "varchar(32)")
   # Statut d'activation du profil applicatif : "actif" | "a_classer" | "suspendu"
   profilStatut: String @default(value: "actif") @col(dataType: "varchar(32)")

@@ -380,7 +380,7 @@ secret Graph dans un bundle React`,
             ],
             code: `Firebase Auth UID
   -> User.id dans SQL
-  -> role gerant | assistante | chef_chantier
+  -> role gerant | assistante | chef_chantier | ouvrier
   -> checks serveur sur mutations sensibles`,
           },
           {

@@ -2,7 +2,7 @@ import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { useApp } from '@/lib/store'
-import { canAccessPath } from '@/lib/accessControl'
+import { canAccessPath, getDefaultPathForRole } from '@/lib/accessControl'
 import { getModuleMeta } from '@/lib/moduleMeta'
 
 /**
@@ -34,7 +34,7 @@ export function AppLayout() {
     return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
   }
   if (!canAccessPath(user.role, location.pathname, accessMatrix)) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to={getDefaultPathForRole(user.role, accessMatrix)} replace />
   }
 
   return (

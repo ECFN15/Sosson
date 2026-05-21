@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Building2, Check, ShieldCheck, UserRound } from 'lucide-react'
+import { Building2, ShieldCheck, UserRound } from 'lucide-react'
 import { useApp } from '@/lib/store'
 import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
+import { shouldUseDataConnectEmulator } from '@/lib/dataconnect'
 import {
   requestedTeamTypeLabels,
   requestedTeamTypes,
@@ -22,6 +23,19 @@ function splitDisplayName(displayName: string | null) {
   if (parts.length === 0) return { prenom: '', nom: '' }
   if (parts.length === 1) return { prenom: parts[0], nom: '' }
   return { prenom: parts[0], nom: parts.slice(1).join(' ') }
+}
+
+function getProfileSubmissionErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  const normalized = message.toLowerCase()
+
+  if (normalized.includes('failed to fetch')) {
+    return shouldUseDataConnectEmulator
+      ? "Impossible d'enregistrer le profil: SQL Connect local ne repond pas. Lancez npm run emulators:dataconnect, puis reessayez."
+      : "Impossible d'enregistrer le profil: SQL Connect sandbox ne repond pas. Reessayez dans un instant."
+  }
+
+  return message
 }
 
 export function ProfileCompletionPage() {
@@ -109,7 +123,7 @@ export function ProfileCompletionPage() {
       })
       navigate('/profile-pending', { replace: true })
     } catch (error) {
-      setError(error instanceof Error ? error.message : String(error))
+      setError(getProfileSubmissionErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -129,19 +143,11 @@ export function ProfileCompletionPage() {
                 <p className="text-xs text-[#A3A3A3]">Accueil profil interne</p>
               </div>
             </div>
-            <div className="mt-auto max-w-md">
+            <div className="mt-16 max-w-md">
               <p className="text-[40px] font-semibold leading-[1.02]">Profil a classer par l'equipe.</p>
               <p className="mt-4 text-sm leading-6 text-[#C9C9C9]">
                 La demande rejoint la page Equipe. Un gerant la convertit ensuite en fiche active avec poste, role et equipe finale.
               </p>
-            </div>
-            <div className="mt-8 grid gap-3 rounded-[20px] border border-[#2A2A2A] bg-[#242424] p-4 text-sm">
-              {['Connexion Firebase validee', 'Demande bornee a votre compte', 'Aucun droit admin auto-attribue'].map(item => (
-                <div key={item} className="flex items-center gap-2 text-[#E5E5E5]">
-                  <Check className="h-4 w-4 text-[#F06B21]" strokeWidth={1.75} />
-                  {item}
-                </div>
-              ))}
             </div>
           </section>
 

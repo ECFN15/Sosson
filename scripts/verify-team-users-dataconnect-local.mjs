@@ -131,10 +131,10 @@ const applicant = {
   sourceConnexion: 'email',
 }
 const converted = {
-  role: 'chef_chantier',
+  role: 'ouvrier',
   avatar: 'PD',
   equipeFinaleId: `team-chantier-bureau-${stamp}`,
-  poste: 'Conducteur travaux',
+  poste: 'Ouvrier',
   telephone: '06 00 00 00 02',
   convertedMemberId: `member-${stamp}`,
   reviewNote: 'Conversion locale de verification Data Connect.',

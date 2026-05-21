@@ -24,6 +24,7 @@ import { EquipePage } from '@/pages/EquipePage'
 import { EquipeProfilePage } from '@/pages/EquipeProfilePage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { useApp } from '@/lib/store'
+import { canAccessPath, getDefaultPathForRole } from '@/lib/accessControl'
 
 const PrevisionnelSpreadsheetPage = lazy(() =>
   import('@/pages/PrevisionnelSpreadsheetPage').then(module => ({
@@ -51,13 +52,16 @@ function RouteLoading() {
 }
 
 function FullscreenProtectedRoute({ children }: { children: ReactNode }) {
-  const { authInitializing, authStatus, user } = useApp()
+  const { accessMatrix, authInitializing, authStatus, user } = useApp()
   const location = useLocation()
 
   if (authInitializing) return <RouteLoading />
   if (authStatus === 'missing-profile') return <Navigate to="/complete-profile" replace state={{ from: `${location.pathname}${location.search}` }} />
   if (authStatus === 'profile-pending') return <Navigate to="/profile-pending" replace />
   if (!user) return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
+  if (!canAccessPath(user.role, location.pathname, accessMatrix)) {
+    return <Navigate to={getDefaultPathForRole(user.role, accessMatrix)} replace />
+  }
 
   return children
 }

@@ -33,7 +33,7 @@ export {
 } from '@/features/auth/teamProfileSubmission'
 export type { ListedTeamProfileSubmission } from '@/features/auth/teamProfileSubmission'
 
-const knownRoles: Role[] = ['gerant', 'assistante', 'chef_chantier']
+const knownRoles: Role[] = ['gerant', 'assistante', 'chef_chantier', 'ouvrier']
 const knownThemes: TeamTheme[] = ['charpente', 'couverture', 'menuiserie', 'gros_oeuvre', 'administratif']
 const knownMemberStatuses: MemberStatus[] = ['terrain', 'atelier', 'bureau', 'absent']
 const knownLeaveTypes: LeaveType[] = ['conges', 'formation', 'maladie', 'recuperation']
@@ -116,7 +116,10 @@ export function makeTeamCode(name: string) {
 }
 
 export function isUuidLike(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  return (
+    /^[0-9a-f]{32}$/i.test(value) ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+  )
 }
 
 function mapSqlUser(row: ListUsersData['users'][number]): SqlTeamProfile {

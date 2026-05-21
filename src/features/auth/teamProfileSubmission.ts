@@ -39,15 +39,14 @@ export function defaultRoleForRequestedTeamType(value: string | null | undefined
   const normalized = asRequestedTeamType(value)
   if (normalized === 'administratif') return 'assistante'
   if (normalized === 'gerant') return 'gerant'
-  return 'chef_chantier'
+  return 'ouvrier'
 }
 
 export function defaultPosteForRequestedTeamType(value: string | null | undefined) {
   const normalized = asRequestedTeamType(value)
   if (normalized === 'administratif') return 'Assistant administratif'
   if (normalized === 'gerant') return 'Gerant'
-  if (normalized === 'chantier_bureau') return 'Conducteur travaux'
-  return 'Membre chantier'
+  return 'Ouvrier'
 }
 
 export function sourceConnexionFromProvider(providerId: string | null | undefined) {

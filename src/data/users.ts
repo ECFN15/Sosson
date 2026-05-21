@@ -1,4 +1,4 @@
-export type Role = 'gerant' | 'assistante' | 'chef_chantier'
+export type Role = 'gerant' | 'assistante' | 'chef_chantier' | 'ouvrier'
 
 export interface User {
   id: string
@@ -19,7 +19,8 @@ export interface User {
 export const roleLabels: Record<Role, string> = {
   gerant: 'Gérant',
   assistante: 'Assistante de gestion',
-  chef_chantier: 'Chef de chantier',
+  chef_chantier: 'Responsable chantier',
+  ouvrier: 'Ouvrier',
 }
 
 export const users: User[] = [

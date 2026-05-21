@@ -66,22 +66,16 @@ export const defaultAccessMatrix: AccessMatrix = {
     parametres: noAccess,
   }),
   chef_chantier: roleAccess({
-    dashboard: readOnly,
     cowork: readWrite,
-    chantiers: readWrite,
-    clients: readOnly,
-    documents: readWrite,
-    factures: readOnly,
-    previsionnel: noAccess,
-    statistiques: noAccess,
-    emails: readOnly,
-    planning: readOnly,
-    rapports: noAccess,
-    moteur: readOnly,
-    documentation: readOnly,
-    equipe: readOnly,
-    parametres: noAccess,
   }),
+  ouvrier: roleAccess({
+    cowork: readWrite,
+  }),
+}
+
+export function getDefaultPathForRole(role: Role | undefined, matrix: AccessMatrix = defaultAccessMatrix) {
+  if (!role) return '/login'
+  return appPages.find(page => canAccessPage(role, page.key, matrix))?.path ?? '/login'
 }
 
 export function getPageByPath(pathname: string) {
@@ -129,6 +123,7 @@ export function normalizeAccessMatrix(value: unknown): AccessMatrix {
     gerant: normalizeRoleAccess(source.gerant, defaultAccessMatrix.gerant),
     assistante: normalizeRoleAccess(source.assistante, defaultAccessMatrix.assistante),
     chef_chantier: normalizeRoleAccess(source.chef_chantier, defaultAccessMatrix.chef_chantier),
+    ouvrier: normalizeRoleAccess(source.ouvrier, defaultAccessMatrix.ouvrier),
   }
 }
 

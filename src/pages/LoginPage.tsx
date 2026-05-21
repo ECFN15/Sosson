@@ -6,6 +6,7 @@ import type { AuthSessionState } from '@/lib/auth'
 import { useApp } from '@/lib/store'
 import { users, type Role } from '@/data/users'
 import { chantierImages } from '@/data/media'
+import { getDefaultPathForRole } from '@/lib/accessControl'
 
 const previewRows = [
   { label: 'Factures a traiter', value: '12', meta: '3 urgentes', Icon: ReceiptText },
@@ -22,7 +23,7 @@ function getSafeReturnPath(value: unknown) {
 }
 
 function getDefaultRouteForRole(role: Role) {
-  return role === 'chef_chantier' ? '/cowork' : '/dashboard'
+  return getDefaultPathForRole(role)
 }
 
 export function LoginPage() {

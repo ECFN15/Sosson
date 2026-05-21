@@ -3,7 +3,7 @@ import type { GetCurrentUserData } from '@dataconnect/generated'
 import type { Role, User } from '@/data/users'
 import { getSossonDataConnect, isDataConnectEnabled } from '@/lib/dataconnect'
 
-const validRoles: Role[] = ['gerant', 'assistante', 'chef_chantier']
+const validRoles: Role[] = ['gerant', 'assistante', 'chef_chantier', 'ouvrier']
 
 function asRole(value: string): Role | null {
   return validRoles.includes(value as Role) ? (value as Role) : null

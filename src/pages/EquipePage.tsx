@@ -63,13 +63,26 @@ import {
 import type { ListedTeamProfileSubmission, SqlTeamProfile } from '@/features/team/teamSql'
 import {
   buildInitials,
-  defaultPosteForRequestedTeamType,
-  defaultRoleForRequestedTeamType,
   labelRequestedTeamType,
 } from '@/features/auth/teamProfileSubmission'
 
-const roles: Role[] = ['gerant', 'assistante', 'chef_chantier']
+const roles: Role[] = ['gerant', 'assistante', 'chef_chantier', 'ouvrier']
 type TeamDirectorySource = 'local' | 'sql' | 'sql-empty'
+type ConversionDraft = {
+  role: Role
+  poste: string
+}
+
+const chantierValidationRoles: Role[] = ['ouvrier', 'chef_chantier']
+const administratifValidationRoles: Role[] = ['assistante']
+const gerantValidationRoles: Role[] = ['gerant']
+
+const conversionPosteOptions: Record<Role, string[]> = {
+  gerant: ['Gerant'],
+  assistante: ['Assistant administratif'],
+  chef_chantier: ["Chef d'equipe"],
+  ouvrier: ['Ouvrier', 'Membre chantier'],
+}
 
 const capabilityLabels: Record<AccessCapability, string> = {
   view: 'Voir',
@@ -94,6 +107,44 @@ function statusClass(status: MemberStatus) {
 
 function teamTypeFromTheme(theme: TeamTheme) {
   return theme === 'administratif' ? 'administratif' : 'chantier'
+}
+
+function defaultConversionRoleForRequestedTeamType(value: string | null | undefined): Role {
+  if (value === 'administratif') return 'assistante'
+  if (value === 'gerant') return 'gerant'
+  return 'ouvrier'
+}
+
+function getConversionRoleOptions(value: string | null | undefined) {
+  if (value === 'administratif') return administratifValidationRoles
+  if (value === 'gerant') return gerantValidationRoles
+  return chantierValidationRoles
+}
+
+function defaultPosteForRole(role: Role) {
+  return conversionPosteOptions[role][0]
+}
+
+function getPosteOptionsForRole(role: Role) {
+  return conversionPosteOptions[role]
+}
+
+function getDefaultConversionDraft(submission: ListedTeamProfileSubmission): ConversionDraft {
+  const role = defaultConversionRoleForRequestedTeamType(submission.requestedTeamType)
+  return {
+    role,
+    poste: defaultPosteForRole(role),
+  }
+}
+
+function permissionsForConversionRole(role: Role): PagePermissionKey[] {
+  if (role === 'gerant') return appPages.map(page => page.key)
+  if (role === 'assistante') return ['clients', 'factures', 'documents', 'emails']
+  return ['cowork']
+}
+
+function statusForConversionRole(role: Role): MemberStatus {
+  return role === 'assistante' || role === 'gerant' ? 'bureau' : 'terrain'
 }
 
 function todayKey() {
@@ -163,6 +214,7 @@ export function EquipePage() {
   const [permissionFeedback, setPermissionFeedback] = useState('')
   const [sqlProfiles, setSqlProfiles] = useState<SqlTeamProfile[]>([])
   const [profileSubmissions, setProfileSubmissions] = useState<ListedTeamProfileSubmission[]>([])
+  const [conversionDrafts, setConversionDrafts] = useState<Record<string, ConversionDraft>>({})
   const [sqlProfileStatus, setSqlProfileStatus] = useState<'idle' | 'loading' | 'sql' | 'unavailable'>('idle')
   const [sqlProfileMessage, setSqlProfileMessage] = useState('Lecture SQL User non lancee.')
   const [teamDirectorySource, setTeamDirectorySource] = useState<TeamDirectorySource>('local')
@@ -185,6 +237,23 @@ export function EquipePage() {
 
   function deny(message: string) {
     setPermissionFeedback(message)
+  }
+
+  function getConversionDraft(submission: ListedTeamProfileSubmission) {
+    return conversionDrafts[submission.id] ?? getDefaultConversionDraft(submission)
+  }
+
+  function updateConversionDraft(submission: ListedTeamProfileSubmission, patch: Partial<ConversionDraft>) {
+    setConversionDrafts(prev => {
+      const current = prev[submission.id] ?? getDefaultConversionDraft(submission)
+      return {
+        ...prev,
+        [submission.id]: {
+          ...current,
+          ...patch,
+        },
+      }
+    })
   }
 
   useEffect(() => {
@@ -721,8 +790,12 @@ export function EquipePage() {
       return
     }
 
-    const role = defaultRoleForRequestedTeamType(submission.requestedTeamType)
-    const title = defaultPosteForRequestedTeamType(submission.requestedTeamType)
+    const draft = getConversionDraft(submission)
+    const allowedRoles = getConversionRoleOptions(submission.requestedTeamType)
+    const role = allowedRoles.includes(draft.role)
+      ? draft.role
+      : defaultConversionRoleForRequestedTeamType(submission.requestedTeamType)
+    const title = (role === draft.role ? draft.poste.trim() : '') || defaultPosteForRole(role)
     const memberId = createId('member')
     let convertedMemberId = memberId
     const member: TeamMember = {
@@ -738,11 +811,11 @@ export function EquipePage() {
       coefficient: 'A definir',
       email: submission.email,
       phone: '',
-      status: submission.requestedTeamType === 'administratif' || submission.requestedTeamType === 'gerant' ? 'bureau' : 'terrain',
+      status: statusForConversionRole(role),
       site: selectedTeam.activeSites[0] || 'A affecter',
       activeSites: selectedTeam.activeSites,
       responsibilities: ['Fiche de poste a completer'],
-      permissions: role === 'assistante' ? ['clients', 'factures', 'documents', 'emails'] : ['chantiers', 'documents', 'planning'],
+      permissions: permissionsForConversionRole(role),
     }
 
     try {
@@ -827,6 +900,11 @@ export function EquipePage() {
           : item,
       ),
     )
+    setConversionDrafts(prev => {
+      const next = { ...prev }
+      delete next[submission.id]
+      return next
+    })
     deny(`${submission.prenom} ${submission.nom} est converti en profil applicatif et fiche equipe.`)
   }
 
@@ -896,6 +974,9 @@ export function EquipePage() {
               {profileSubmissions.map(submission => {
                 const alreadyMember = members.some(member => member.email.toLowerCase() === submission.email.toLowerCase())
                 const isPending = submission.status === 'pending'
+                const draft = getConversionDraft(submission)
+                const roleOptions = getConversionRoleOptions(submission.requestedTeamType)
+                const posteOptions = getPosteOptionsForRole(draft.role)
                 return (
                   <div key={submission.id} className="rounded-[16px] border border-[#F2E8DC] bg-[#FAF6F2] p-4">
                     <div className="flex items-start gap-3">
@@ -915,14 +996,51 @@ export function EquipePage() {
                         </div>
                       </div>
                     </div>
+                    {isPending && (
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">
+                            Role applicatif
+                          </span>
+                          <select
+                            value={draft.role}
+                            onChange={event => {
+                              const role = event.target.value as Role
+                              updateConversionDraft(submission, { role, poste: defaultPosteForRole(role) })
+                            }}
+                            disabled={alreadyMember || !canAdminEquipe}
+                            className="h-9 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] outline-none focus:border-[#F06B21] disabled:cursor-not-allowed disabled:bg-[#F5EEE7] disabled:text-[#9CA3AF]"
+                          >
+                            {roleOptions.map(role => (
+                              <option key={role} value={role}>{role} - {roleLabels[role]}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="block">
+                          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]">
+                            Poste
+                          </span>
+                          <select
+                            value={draft.poste}
+                            onChange={event => updateConversionDraft(submission, { poste: event.target.value })}
+                            disabled={alreadyMember || !canAdminEquipe}
+                            className="h-9 w-full rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] outline-none focus:border-[#F06B21] disabled:cursor-not-allowed disabled:bg-[#F5EEE7] disabled:text-[#9CA3AF]"
+                          >
+                            {posteOptions.map(poste => (
+                              <option key={poste} value={poste}>{poste}</option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => void convertSubmissionToSelectedTeam(submission)}
-                      disabled={!isPending || alreadyMember || !selectedTeam || !canAdminEquipe}
+                      disabled={!isPending || alreadyMember || !selectedTeam || !canAdminEquipe || !draft.poste.trim()}
                       className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-[12px] bg-[#F06B21] px-3 text-[12px] font-semibold text-white transition hover:bg-[#D95B17] disabled:cursor-not-allowed disabled:bg-[#D99A72]"
                     >
                       <UserPlus className="h-4 w-4" strokeWidth={1.75} />
-                      {alreadyMember ? 'Deja transpose' : selectedTeam ? `Transposer vers ${selectedTeam.name}` : 'Selectionner une equipe'}
+                      {alreadyMember ? 'Deja transpose' : selectedTeam ? `Valider vers ${selectedTeam.name}` : 'Selectionner une equipe'}
                     </button>
                   </div>
                 )

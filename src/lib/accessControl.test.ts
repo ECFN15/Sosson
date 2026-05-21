@@ -3,6 +3,7 @@ import {
   canAccessPage,
   defaultAccessMatrix,
   normalizeAccessMatrix,
+  getDefaultPathForRole,
   type AccessMatrix,
 } from '@/lib/accessControl'
 
@@ -51,5 +52,18 @@ describe('access control matrix', () => {
 
     expect(canAccessPage('assistante', 'factures', defaultAccessMatrix)).toBe(true)
     expect(canAccessPage('assistante', 'factures', normalized)).toBe(false)
+  })
+
+  it('keeps chantier profiles constrained to COWORK by default', () => {
+    expect(canAccessPage('chef_chantier', 'cowork', defaultAccessMatrix)).toBe(true)
+    expect(canAccessPage('chef_chantier', 'dashboard', defaultAccessMatrix)).toBe(false)
+    expect(canAccessPage('chef_chantier', 'chantiers', defaultAccessMatrix)).toBe(false)
+    expect(canAccessPage('chef_chantier', 'equipe', defaultAccessMatrix)).toBe(false)
+    expect(getDefaultPathForRole('chef_chantier', defaultAccessMatrix)).toBe('/cowork')
+
+    expect(canAccessPage('ouvrier', 'cowork', defaultAccessMatrix)).toBe(true)
+    expect(canAccessPage('ouvrier', 'dashboard', defaultAccessMatrix)).toBe(false)
+    expect(canAccessPage('ouvrier', 'equipe', defaultAccessMatrix)).toBe(false)
+    expect(getDefaultPathForRole('ouvrier', defaultAccessMatrix)).toBe('/cowork')
   })
 })

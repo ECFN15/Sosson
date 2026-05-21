@@ -6,7 +6,7 @@ import { connectorConfig } from '@dataconnect/admin-generated'
 
 const EMULATOR_HOST = '127.0.0.1'
 const EMULATOR_PORT = 9399
-const validRoles = new Set(['gerant', 'assistante', 'chef_chantier'])
+const validRoles = new Set(['gerant', 'assistante', 'chef_chantier', 'ouvrier'])
 
 const args = new Set(process.argv.slice(2))
 const fileArg = process.argv.find(arg => arg.startsWith('--file='))

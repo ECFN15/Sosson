@@ -239,7 +239,7 @@ export function CoworkPage() {
     () => members.filter(member => member.teamId === activeTeam?.id),
     [activeTeam?.id, members],
   )
-  const profileLabel = user?.role === 'chef_chantier' ? 'App terrain par defaut' : 'Vue supervision COWORK'
+  const profileLabel = user?.role === 'chef_chantier' || user?.role === 'ouvrier' ? 'App terrain par defaut' : 'Vue supervision COWORK'
 
   const planningItems = useMemo(() => {
     const stored = readPlanningItems()
