@@ -938,6 +938,7 @@ mutation CreatePrevisionnelWorkbookVersionPending(
   $id: String!
   $batchId: UUID
   $sourceSheet: String!
+  $label: String
   $storagePath: String!
   $currentStoragePath: String!
   $baseStoragePath: String
@@ -955,6 +956,7 @@ mutation CreatePrevisionnelWorkbookVersionPending(
     id: $id
     batchId: $batchId
     sourceSheet: $sourceSheet
+    label: $label
     status: "pending"
     storagePath: $storagePath
     currentStoragePath: $currentStoragePath
@@ -975,7 +977,7 @@ mutation MarkPrevisionnelWorkbookVersionGenerating(
 ) @transaction {
   query {
     currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
-      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour generer un export previsionnel.")
+      role @check(expr: "this in ['gerant', 'assistante'] && auth.token.sosson_worker == true", message: "Mutation reservee au worker serveur.")
     }
     targetVersion: previsionnelWorkbookVersion(key: { id: $id }) @check(expr: "this != null", message: "Version previsionnel introuvable.") @redact {
       status @check(expr: "this in ['pending', 'failed', 'generating']", message: "Version deja finalisee.")
@@ -1004,7 +1006,7 @@ mutation MarkPrevisionnelWorkbookVersionGenerated(
 ) @transaction {
   query {
     currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
-      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour finaliser un export previsionnel.")
+      role @check(expr: "this in ['gerant', 'assistante'] && auth.token.sosson_worker == true", message: "Mutation reservee au worker serveur.")
     }
     targetVersion: previsionnelWorkbookVersion(key: { id: $id }) @check(expr: "this != null", message: "Version previsionnel introuvable.") @redact {
       status @check(expr: "this in ['generating', 'generated']", message: "Version non en cours de generation.")
@@ -1033,7 +1035,7 @@ mutation MarkPrevisionnelWorkbookVersionFailed(
 ) @transaction {
   query {
     currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
-      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour finaliser un export previsionnel.")
+      role @check(expr: "this in ['gerant', 'assistante'] && auth.token.sosson_worker == true", message: "Mutation reservee au worker serveur.")
     }
     targetVersion: previsionnelWorkbookVersion(key: { id: $id }) @check(expr: "this != null", message: "Version previsionnel introuvable.") @redact {
       status @check(expr: "this in ['pending', 'generating', 'failed']", message: "Version deja generee.")

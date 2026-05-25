@@ -2645,6 +2645,7 @@ export interface GetPrevisionnelWorkbookVersionData {
   previsionnelWorkbookVersion?: {
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -2757,6 +2758,7 @@ export interface ListPrevisionnelWorkbookVersionsData {
   previsionnelWorkbookVersions: ({
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -2869,6 +2871,7 @@ export interface GetLatestGeneratedPrevisionnelWorkbookVersionData {
   previsionnelWorkbookVersions: ({
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -8277,6 +8280,7 @@ export interface CreatePrevisionnelWorkbookVersionPendingVariables {
   id: string;
   batchId?: UUIDString | null;
   sourceSheet: string;
+  label?: string | null;
   storagePath: string;
   currentStoragePath: string;
   baseStoragePath?: string | null;
@@ -8335,6 +8339,7 @@ export default function CreatePrevisionnelWorkbookVersionPendingComponent() {
     id: ..., 
     batchId: ..., // optional
     sourceSheet: ..., 
+    label: ..., // optional
     storagePath: ..., 
     currentStoragePath: ..., 
     baseStoragePath: ..., // optional
@@ -8342,7 +8347,7 @@ export default function CreatePrevisionnelWorkbookVersionPendingComponent() {
   };
   mutation.mutate(createPrevisionnelWorkbookVersionPendingVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ id: ..., batchId: ..., sourceSheet: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
+  mutation.mutate({ id: ..., batchId: ..., sourceSheet: ..., label: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {

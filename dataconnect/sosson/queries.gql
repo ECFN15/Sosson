@@ -681,6 +681,7 @@ query GetPrevisionnelWorkbookVersion($id: String!)
   previsionnelWorkbookVersion(key: { id: $id }) {
     id
     sourceSheet
+    label
     status
     storagePath
     currentStoragePath
@@ -717,6 +718,7 @@ query ListPrevisionnelWorkbookVersions($sourceSheet: String!)
   previsionnelWorkbookVersions(where: { sourceSheet: { eq: $sourceSheet } }, orderBy: { dateCreation: DESC }, limit: 50) {
     id
     sourceSheet
+    label
     status
     storagePath
     currentStoragePath
@@ -746,11 +748,12 @@ query GetLatestGeneratedPrevisionnelWorkbookVersion($sourceSheet: String!)
   }
   previsionnelWorkbookVersions(
     where: { sourceSheet: { eq: $sourceSheet }, status: { eq: "generated" } }
-    orderBy: { generatedAt: DESC }
+    orderBy: { dateCreation: DESC }
     limit: 1
   ) {
     id
     sourceSheet
+    label
     status
     storagePath
     currentStoragePath

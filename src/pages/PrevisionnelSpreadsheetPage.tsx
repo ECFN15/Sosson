@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
-import { ArchiveRestore, ArrowLeft, Cloud, Download, RotateCcw, Save } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { ArchiveRestore, ArrowLeft, Cloud, Download, History, RotateCcw, Save } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   createPrevisionnelWorkbookVersionPendingInSql,
   getLatestGeneratedPrevisionnelWorkbookVersionFromSql,
@@ -42,7 +42,10 @@ import {
 import type { CurrentSheetColumn, CurrentSheetRow } from '@/data/previsionnelCurrentSheet'
 
 const STORAGE_KEY = `sosson:previsionnel:${currentPrevisionnelSheet.sheet}:cell-updates`
+const DRAFT_STORAGE_KEY = `sosson:previsionnel:${currentPrevisionnelSheet.sheet}:active-draft`
 const BASELINE_CHECKPOINT_ID = PREVISIONNEL_BASELINE_CHECKPOINT.id
+const LEAVE_WITH_UNSAVED_MESSAGE =
+  'Des modifications du previsionnel sont encore en brouillon local. Elles seront recuperees dans ce navigateur, mais elles ne sont pas encore sauvegardees dans SQL ni dans Excel Storage.'
 
 type SqlStatus = 'idle' | 'loading' | 'ready' | 'saving' | 'unavailable' | 'error'
 type SqlCellBinding = {
@@ -66,8 +69,17 @@ type DraftCell = {
   value: string
   numeric: boolean
 }
+type StoredDraftCell = {
+  sourceSheet: string
+  savedAt: string
+  userId?: string | null
+  userName?: string | null
+  workbookVersionId?: string | null
+  draftCell: DraftCell
+}
 type WorkbookVersionSqlLike = {
   id: string
+  label?: string | null
   status: string
   storagePath?: string | null
   currentStoragePath?: string | null
@@ -113,6 +125,32 @@ function asDisplay(value: string | number | null | undefined) {
 
 function asNumber(value: string | number | null | undefined) {
   return parseSpreadsheetNumber(value ?? null)
+}
+
+function readStoredDraftCell() {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as StoredDraftCell
+    if (parsed.sourceSheet !== currentPrevisionnelSheet.sheet) return null
+    if (!parsed.draftCell?.ref) return null
+    return parsed.draftCell
+  } catch {
+    return null
+  }
+}
+
+function saveLabelWithMetadata(label: string, user: { prenom: string; nom: string } | null | undefined, date: Date) {
+  const profileName = user ? `${user.prenom} ${user.nom}`.trim() : 'Profil inconnu'
+  const stamp = date.toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const text = label.trim() || 'Sauvegarde previsionnel'
+  return `${text} - ${stamp} - ${profileName}`.slice(0, 160)
 }
 
 function rowInitialValue(row: CurrentSheetRow, col: string) {
@@ -335,6 +373,7 @@ function areSpreadsheetRowPropsEqual(previous: SpreadsheetRowProps, next: Spread
 
 export function PrevisionnelSpreadsheetPage() {
   const { user } = useApp()
+  const navigate = useNavigate()
   const cellInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const cellInputRefCallbacks = useRef<Record<string, (node: HTMLInputElement | null) => void>>({})
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -353,9 +392,10 @@ export function PrevisionnelSpreadsheetPage() {
   const [workbookVersion, setWorkbookVersion] = useState<WorkbookVersionState | null>(null)
   const [workbookMessage, setWorkbookMessage] = useState('Excel Storage non genere')
   const [workbookRetrying, setWorkbookRetrying] = useState(false)
+  const [saveLabel, setSaveLabel] = useState('')
   const [activeCell, setActiveCell] = useState<string | null>(null)
   const [editingCell, setEditingCell] = useState<string | null>(null)
-  const [draftCell, setDraftCell] = useState<DraftCell | null>(null)
+  const [draftCell, setDraftCell] = useState<DraftCell | null>(() => readStoredDraftCell())
   const [selectedCheckpointId, setSelectedCheckpointId] = useState<string>(BASELINE_CHECKPOINT_ID)
   const [userCheckpoints, setUserCheckpoints] = useState<PrevisionnelUserCheckpoint[]>(() =>
     readUserCheckpoints(currentPrevisionnelSheet.sheet),
@@ -377,6 +417,23 @@ export function PrevisionnelSpreadsheetPage() {
   useEffect(() => {
     draftCellRef.current = draftCell
   }, [draftCell])
+
+  useEffect(() => {
+    if (!draftCell) {
+      localStorage.removeItem(DRAFT_STORAGE_KEY)
+      return
+    }
+
+    const stored: StoredDraftCell = {
+      sourceSheet: currentPrevisionnelSheet.sheet,
+      savedAt: new Date().toISOString(),
+      userId: user?.id ?? null,
+      userName: user ? `${user.prenom} ${user.nom}`.trim() : null,
+      workbookVersionId: workbookVersion?.id ?? null,
+      draftCell,
+    }
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(stored))
+  }, [draftCell, user, workbookVersion?.id])
 
   useEffect(
     () => () => {
@@ -523,6 +580,19 @@ export function PrevisionnelSpreadsheetPage() {
   const activeCoordinates = activePosition ? refCoordinates(activeCell) : null
   const activeRowNumber = activeCoordinates?.rowNumber ?? null
   const draftRowNumber = refCoordinates(draftCell?.ref ?? null)?.rowNumber ?? null
+
+  useEffect(() => {
+    if (editedCount === 0) return
+
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = LEAVE_WITH_UNSAVED_MESSAGE
+      return LEAVE_WITH_UNSAVED_MESSAGE
+    }
+
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [editedCount])
 
   const valueFor = useCallback(
     (ref: string, fallback: string | number | null) => {
@@ -718,6 +788,13 @@ export function PrevisionnelSpreadsheetPage() {
     await exportCurrentPrevisionnelWorkbookFromCells(buildExportUpdates(editedWithDraft(edited), sqlValues), currentPrevisionnelSheet.sheet)
   }
 
+  function handleBackToPrevisionnel() {
+    const unsavedCount = Object.keys(editedWithDraft(edited)).length
+    if (unsavedCount > 0 && !window.confirm(`${LEAVE_WITH_UNSAVED_MESSAGE}\n\nQuitter le tableur maintenant ?`)) return
+    commitDraft()
+    navigate('/previsionnel')
+  }
+
   async function handleSaveSql() {
     const editedForSave = editedWithDraft(edited)
 
@@ -800,6 +877,7 @@ export function PrevisionnelSpreadsheetPage() {
       const versionDate = new Date()
       const versionId = createPrevisionnelWorkbookVersionId(versionDate)
       const versionPaths = buildPrevisionnelWorkbookVersionPaths(versionId, versionDate)
+      const versionLabel = saveLabelWithMetadata(saveLabel, user, versionDate)
       const baseStoragePath =
         workbookVersion?.status === 'generated' && workbookVersion.storagePath ? workbookVersion.storagePath : null
 
@@ -807,6 +885,7 @@ export function PrevisionnelSpreadsheetPage() {
         id: versionId,
         batchId: sqlBatchId,
         sourceSheet: currentPrevisionnelSheet.sheet,
+        label: versionLabel,
         storagePath: versionPaths.storagePath,
         currentStoragePath: versionPaths.currentStoragePath,
         baseStoragePath,
@@ -815,6 +894,7 @@ export function PrevisionnelSpreadsheetPage() {
 
       const pendingWorkbookVersion: WorkbookVersionState = {
         id: versionId,
+        label: versionLabel,
         status: 'pending',
         storagePath: versionPaths.storagePath,
         currentStoragePath: versionPaths.currentStoragePath,
@@ -862,6 +942,7 @@ export function PrevisionnelSpreadsheetPage() {
       })
       editedRef.current = {}
       setEdited({})
+      setSaveLabel('')
       draftCellRef.current = null
       setDraftCell(null)
       setSqlStatus('ready')
@@ -1184,12 +1265,20 @@ export function PrevisionnelSpreadsheetPage() {
       </style>
       <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#EADBC8] bg-white px-2">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
-          <Link
-            to="/previsionnel"
+          <button
+            type="button"
+            onClick={handleBackToPrevisionnel}
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
           >
             <ArrowLeft className="h-4 w-4 text-[#F06B21]" />
             Retour
+          </button>
+          <Link
+            to="/previsionnel/backups"
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2]"
+          >
+            <History className="h-4 w-4 text-[#F06B21]" />
+            Sauvegardes
           </Link>
           <button
             type="button"
@@ -1246,6 +1335,13 @@ export function PrevisionnelSpreadsheetPage() {
             <ArchiveRestore className="h-4 w-4 text-[#F06B21]" />
             Revenir checkpoint navigateur
           </button>
+          <input
+            value={saveLabel}
+            onChange={event => setSaveLabel(event.target.value.slice(0, 96))}
+            placeholder="Libelle sauvegarde"
+            className="h-9 w-[220px] shrink-0 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] outline-none placeholder:text-[#A3988D] focus:ring-2 focus:ring-[#F06B21]/20"
+            title="Libelle metier du checkpoint officiel. La date, l'heure et le profil sont ajoutes automatiquement."
+          />
           <button
             type="button"
             onClick={() => void handleSaveSql()}
@@ -1281,7 +1377,11 @@ export function PrevisionnelSpreadsheetPage() {
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: workbookStatusColor }} />
           Excel Storage: {workbookMessage}
         </span>
-        {editedCount > 0 && <span className="ml-auto text-[#1E1E1E]">{editedCount} cellule(s) modifiee(s)</span>}
+        {editedCount > 0 && (
+          <span className="ml-auto text-[#1E1E1E]">
+            {editedCount} cellule(s) modifiee(s) - brouillon local auto-enregistre
+          </span>
+        )}
       </div>
 
       <section className="min-h-0 flex-1 overflow-hidden bg-white">

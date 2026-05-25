@@ -297,13 +297,21 @@ Le bouton `Sauvegarder SQL` :
 - enregistre toutes les cellules modifiees dans `PrevisionnelCellEdit` pour conserver l'export Excel exact
 - garde le fallback `localStorage` si SQL Connect n'est pas disponible
 
-Un lot local, non deploye en sandbox, ajoute le versionnement Excel Storage du previsionnel :
-- `PrevisionnelWorkbookVersion` suit chaque export serveur avec statut `pending`, `generating`, `generated` ou `failed`, chemins Storage, hash SHA-256, auteur et retry.
+Un lot deploye et valide en sandbox le 25 mai 2026 ajoute le versionnement Excel Storage du previsionnel :
+- `PrevisionnelWorkbookVersion` suit chaque export serveur avec statut `pending`, `generating`, `generated` ou `failed`, libelle metier, chemins Storage, hash SHA-256, auteur et retry.
 - `PrevisionnelImportBatch` porte aussi `sourceStoragePath`, `sourceSha256` et `originalFileName` pour lier le seed SQL au fichier source `previsionnel/source/PREVISIONNEL-original.xlsx`.
 - `PrevisionnelCellEdit` conserve maintenant l'auteur SQL de l'edit via `auth.uid`.
 - la Cloud Function callable `generatePrevisionnelWorkbook` genere le `.xlsx` avec `exceljs`, ecrit `previsionnel/versions/...` et `previsionnel/current/PREVISIONNEL-current.xlsx`, puis marque la version `generated` ou `failed`.
-- la page tableur appelle ce flux apres la sauvegarde SQL et affiche explicitement l'etat Excel Storage; l'export navigateur reste un brouillon local, pas le fichier officiel.
+- les mutations worker `MarkPrevisionnelWorkbookVersionGenerating/Generated/Failed` exigent maintenant le claim impersonne `sosson_worker` ajoute uniquement par la Cloud Function; un client front `gerant/assistante` ne suffit plus pour marquer une version generee.
+- la promotion vers `previsionnel/current/PREVISIONNEL-current.xlsx` verifie avant ecriture qu'aucune version plus recente n'est `pending`, `generating` ou `generated`; la derniere version logique est triee par `dateCreation DESC` pour eviter qu'une ancienne generation terminee tardivement redevienne courante.
+- la Cloud Function callable `createPrevisionnelWorkbookDownloadUrl` verifie Firebase Auth + role SQL via Data Connect, resout les chemins depuis SQL/constantes serveur, refuse les chemins hors `previsionnel/` et retourne une URL signee courte duree. Storage reste ferme par `storage.rules`; le service account runtime sandbox a `roles/iam.serviceAccountTokenCreator` pour signer les URLs.
+- la page `src/pages/PrevisionnelBackupsPage.tsx`, route `/previsionnel/backups`, liste l'original, le courant et les checkpoints historises avec libelle, date, auteur, statut, hash, liens console GCS et telechargement navigateur via URL signee.
+- la page tableur appelle ce flux apres la sauvegarde SQL et affiche explicitement l'etat Excel Storage; l'export navigateur reste un brouillon local, pas le fichier officiel. Elle conserve aussi le draft actif en `localStorage`, avertit avant sortie avec edits locaux, et permet de saisir un libelle de checkpoint; date/heure/profil sont ajoutes automatiquement au libelle stocke.
 - commandes ajoutees : `npm run verify:previsionnel-workbook:local` et `npm run upload:previsionnel-source:sandbox`.
+- etat sandbox confirme : fichier original `previsionnel/source/PREVISIONNEL-original.xlsx` uploade dans `sosson-sandbox.firebasestorage.app` avec SHA-256 `95d30a33b56f2d5051592ad258a5cd5e7a18b5ee124bd60fc0c5c95dbf9452f7`; derniere version generee `previsionnel/versions/PREVISIONNEL-2026-05-25-1424-pwv-20260525142423-pzqlras2.xlsx` et `previsionnel/current/PREVISIONNEL-current.xlsx` avec SHA-256 `29e575c0ec9aee578c59d68eb55b014556dda666d3027ac0e3afc80462026ecb`.
+- smoke sandbox du telechargement signe confirme : utilisateur Auth/SQL temporaire `assistante`, appel `current`, telechargement de `previsionnel/current/PREVISIONNEL-current.xlsx`, 460115 octets, puis nettoyage du profil temporaire.
+- note technique : `exceljs` exige de materialiser les formules partagees du classeur source avant d'appliquer les edits SQL, sinon certaines plages Excel historiques peuvent echouer a l'ecriture.
+- rapport de session detaille : `docs/21-previsionnel-backups-session-report.md`.
 
 La page `src/pages/StatistiquesPage.tsx` tente maintenant de lire les exercices et les lignes courantes depuis SQL Connect.
 Si SQL Connect ou l'auth ne repond pas, elle retombe sur les donnees TS nettoyees.

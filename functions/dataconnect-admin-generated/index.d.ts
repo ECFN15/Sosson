@@ -545,6 +545,7 @@ export interface CreatePrevisionnelWorkbookVersionPendingVariables {
   id: string;
   batchId?: UUIDString | null;
   sourceSheet: string;
+  label?: string | null;
   storagePath: string;
   currentStoragePath: string;
   baseStoragePath?: string | null;
@@ -1113,6 +1114,7 @@ export interface GetLatestGeneratedPrevisionnelWorkbookVersionData {
   previsionnelWorkbookVersions: ({
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -1148,6 +1150,7 @@ export interface GetPrevisionnelWorkbookVersionData {
   previsionnelWorkbookVersion?: {
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -2210,6 +2213,7 @@ export interface ListPrevisionnelWorkbookVersionsData {
   previsionnelWorkbookVersions: ({
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;

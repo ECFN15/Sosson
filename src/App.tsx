@@ -18,6 +18,7 @@ import { MicrosoftCallbackPage } from '@/pages/MicrosoftCallbackPage'
 import { PlanningPage } from '@/pages/PlanningPage'
 import { RapportsPage } from '@/pages/RapportsPage'
 import { PrevisionnelPage } from '@/pages/PrevisionnelPage'
+import { PrevisionnelBackupsPage } from '@/pages/PrevisionnelBackupsPage'
 import { StatistiquesPage } from '@/pages/StatistiquesPage'
 import { SossonDocsPage } from '@/pages/SossonDocsPage'
 import { SqlDeploymentPage } from '@/pages/SqlDeploymentPage'
@@ -107,6 +108,7 @@ function App() {
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/factures" element={<FacturesPage />} />
             <Route path="/previsionnel" element={<PrevisionnelPage />} />
+            <Route path="/previsionnel/backups" element={<PrevisionnelBackupsPage />} />
             <Route path="/statistiques" element={<StatistiquesPage />} />
             <Route path="/emails" element={<EmailsPage />} />
             <Route path="/planning" element={<PlanningPage />} />

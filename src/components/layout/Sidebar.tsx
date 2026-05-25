@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Clock3,
   Database,
+  Archive,
 } from 'lucide-react'
 import { logout } from '@/lib/auth'
 import { useApp } from '@/lib/store'
@@ -41,6 +42,7 @@ const navMain: NavEntry[] = [
   { to: '/documents', icon: Folder, label: 'Documents', accessKey: 'documents' },
   { to: '/factures', icon: FileText, label: 'Factures', accessKey: 'factures' },
   { to: '/previsionnel', icon: TableProperties, label: 'Previsionnel', accessKey: 'previsionnel' },
+  { to: '/previsionnel/backups', icon: Archive, label: 'Sauvegardes prev.', accessKey: 'previsionnel' },
   { to: '/statistiques', icon: LineChart, label: 'Statistiques', accessKey: 'statistiques' },
   { to: '/emails', icon: Mail, label: 'Emails', accessKey: 'emails' },
   { to: '/planning', icon: Calendar, label: 'Planning', accessKey: 'planning' },

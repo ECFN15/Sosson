@@ -47,6 +47,23 @@ function cellEditValue(edit) {
   return null
 }
 
+function materializeSharedFormulas(worksheet) {
+  worksheet.eachRow(row => {
+    row.eachCell({ includeEmpty: false }, cell => {
+      if (!cell.value || typeof cell.value !== 'object') return
+      if (!('sharedFormula' in cell.value) && cell.value.shareType !== 'shared') return
+
+      const formula = cell.formula
+      if (!formula) return
+
+      cell.value = {
+        formula,
+        result: cell.result ?? null,
+      }
+    })
+  })
+}
+
 async function readFirstAvailable(storage, paths) {
   const attempted = []
   for (const path of paths.filter(Boolean)) {
@@ -68,6 +85,7 @@ export async function generatePrevisionnelWorkbookVersion({
   latestGeneratedVersion,
   cellEdits,
   storage,
+  shouldPromoteCurrent = () => true,
   logger = console,
 }) {
   const sourceCandidates = [
@@ -85,6 +103,8 @@ export async function generatePrevisionnelWorkbookVersion({
   if (!worksheet) {
     throw new Error(`Onglet ${version.sourceSheet} introuvable dans le classeur source ${source.path}`)
   }
+
+  materializeSharedFormulas(worksheet)
 
   const skippedCellRefs = []
   let appliedEditCount = 0
@@ -118,7 +138,15 @@ export async function generatePrevisionnelWorkbookVersion({
   }
 
   await storage.write(version.storagePath, output, metadata)
-  await storage.write(version.currentStoragePath, output, metadata)
+  const currentPromoted = await shouldPromoteCurrent({
+    version,
+    storagePath: version.storagePath,
+    currentStoragePath: version.currentStoragePath,
+    sha256: outputHash,
+  })
+  if (currentPromoted) {
+    await storage.write(version.currentStoragePath, output, metadata)
+  }
 
   if (skippedCellRefs.length > 0) {
     logger.warn?.(
@@ -133,6 +161,7 @@ export async function generatePrevisionnelWorkbookVersion({
     sha256: outputHash,
     sizeBytes: output.length,
     appliedEditCount,
+    currentPromoted,
     skippedCellRefs,
   }
 }

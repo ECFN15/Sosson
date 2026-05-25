@@ -3171,6 +3171,7 @@ export interface GetPrevisionnelWorkbookVersionData {
   previsionnelWorkbookVersion?: {
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -3310,6 +3311,7 @@ export interface ListPrevisionnelWorkbookVersionsData {
   previsionnelWorkbookVersions: ({
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -3449,6 +3451,7 @@ export interface GetLatestGeneratedPrevisionnelWorkbookVersionData {
   previsionnelWorkbookVersions: ({
     id: string;
     sourceSheet: string;
+    label?: string | null;
     status: string;
     storagePath: string;
     currentStoragePath: string;
@@ -10050,6 +10053,7 @@ export interface CreatePrevisionnelWorkbookVersionPendingVariables {
   id: string;
   batchId?: UUIDString | null;
   sourceSheet: string;
+  label?: string | null;
   storagePath: string;
   currentStoragePath: string;
   baseStoragePath?: string | null;
@@ -10078,6 +10082,7 @@ const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVe
   id: ..., 
   batchId: ..., // optional
   sourceSheet: ..., 
+  label: ..., // optional
   storagePath: ..., 
   currentStoragePath: ..., 
   baseStoragePath: ..., // optional
@@ -10088,7 +10093,7 @@ const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVe
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await createPrevisionnelWorkbookVersionPending(createPrevisionnelWorkbookVersionPendingVars);
 // Variables can be defined inline as well.
-const { data } = await createPrevisionnelWorkbookVersionPending({ id: ..., batchId: ..., sourceSheet: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
+const { data } = await createPrevisionnelWorkbookVersionPending({ id: ..., batchId: ..., sourceSheet: ..., label: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -10116,6 +10121,7 @@ const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVe
   id: ..., 
   batchId: ..., // optional
   sourceSheet: ..., 
+  label: ..., // optional
   storagePath: ..., 
   currentStoragePath: ..., 
   baseStoragePath: ..., // optional
@@ -10125,7 +10131,7 @@ const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVe
 // Call the `createPrevisionnelWorkbookVersionPendingRef()` function to get a reference to the mutation.
 const ref = createPrevisionnelWorkbookVersionPendingRef(createPrevisionnelWorkbookVersionPendingVars);
 // Variables can be defined inline as well.
-const ref = createPrevisionnelWorkbookVersionPendingRef({ id: ..., batchId: ..., sourceSheet: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
+const ref = createPrevisionnelWorkbookVersionPendingRef({ id: ..., batchId: ..., sourceSheet: ..., label: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);

@@ -15,8 +15,10 @@ const allow = {
   storagePathMetadata: new Set([
     'src/features/documents/documentSql.ts',
     'src/features/documents/storagePaths.ts',
+    'src/features/previsionnel/previsionnelWorkbookExport.ts',
     'src/pages/DocumentsPage.tsx',
     'src/pages/FacturesPage.tsx',
+    'src/pages/PrevisionnelSpreadsheetPage.tsx',
   ]),
   pathBuilder: new Set([
     'src/features/documents/storagePaths.ts',

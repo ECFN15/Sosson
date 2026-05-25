@@ -411,6 +411,7 @@ type PrevisionnelWorkbookVersion @table {
   id: String! @col(dataType: "varchar(80)")
   batch: PrevisionnelImportBatch
   sourceSheet: String! @col(dataType: "varchar(32)")
+  label: String @col(dataType: "varchar(160)")
   # Statut : "pending" | "generating" | "generated" | "failed"
   status: String! @default(value: "pending") @col(dataType: "varchar(32)")
   storagePath: String! @col(dataType: "varchar(500)")
