@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits034: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:BJ110",
+      sourceSheet: "2025-26",
+      cellRef: "BJ110",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ111",
+      sourceSheet: "2025-26",
+      cellRef: "BJ111",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ112",
+      sourceSheet: "2025-26",
+      cellRef: "BJ112",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ113",
+      sourceSheet: "2025-26",
+      cellRef: "BJ113",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ114",
+      sourceSheet: "2025-26",
+      cellRef: "BJ114",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ115",
+      sourceSheet: "2025-26",
+      cellRef: "BJ115",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ117",
+      sourceSheet: "2025-26",
+      cellRef: "BJ117",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ118",
+      sourceSheet: "2025-26",
+      cellRef: "BJ118",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ119",
+      sourceSheet: "2025-26",
+      cellRef: "BJ119",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ120",
+      sourceSheet: "2025-26",
+      cellRef: "BJ120",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ121",
+      sourceSheet: "2025-26",
+      cellRef: "BJ121",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ122",
+      sourceSheet: "2025-26",
+      cellRef: "BJ122",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ123",
+      sourceSheet: "2025-26",
+      cellRef: "BJ123",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ124",
+      sourceSheet: "2025-26",
+      cellRef: "BJ124",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ125",
+      sourceSheet: "2025-26",
+      cellRef: "BJ125",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ126",
+      sourceSheet: "2025-26",
+      cellRef: "BJ126",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ127",
+      sourceSheet: "2025-26",
+      cellRef: "BJ127",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ129",
+      sourceSheet: "2025-26",
+      cellRef: "BJ129",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ130",
+      sourceSheet: "2025-26",
+      cellRef: "BJ130",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ132",
+      sourceSheet: "2025-26",
+      cellRef: "BJ132",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ134",
+      sourceSheet: "2025-26",
+      cellRef: "BJ134",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ135",
+      sourceSheet: "2025-26",
+      cellRef: "BJ135",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ136",
+      sourceSheet: "2025-26",
+      cellRef: "BJ136",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ137",
+      sourceSheet: "2025-26",
+      cellRef: "BJ137",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ138",
+      sourceSheet: "2025-26",
+      cellRef: "BJ138",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ139",
+      sourceSheet: "2025-26",
+      cellRef: "BJ139",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ140",
+      sourceSheet: "2025-26",
+      cellRef: "BJ140",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ141",
+      sourceSheet: "2025-26",
+      cellRef: "BJ141",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ142",
+      sourceSheet: "2025-26",
+      cellRef: "BJ142",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ143",
+      sourceSheet: "2025-26",
+      cellRef: "BJ143",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ144",
+      sourceSheet: "2025-26",
+      cellRef: "BJ144",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ145",
+      sourceSheet: "2025-26",
+      cellRef: "BJ145",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ146",
+      sourceSheet: "2025-26",
+      cellRef: "BJ146",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ147",
+      sourceSheet: "2025-26",
+      cellRef: "BJ147",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ148",
+      sourceSheet: "2025-26",
+      cellRef: "BJ148",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ149",
+      sourceSheet: "2025-26",
+      cellRef: "BJ149",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ150",
+      sourceSheet: "2025-26",
+      cellRef: "BJ150",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ151",
+      sourceSheet: "2025-26",
+      cellRef: "BJ151",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ152",
+      sourceSheet: "2025-26",
+      cellRef: "BJ152",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ153",
+      sourceSheet: "2025-26",
+      cellRef: "BJ153",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ154",
+      sourceSheet: "2025-26",
+      cellRef: "BJ154",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ155",
+      sourceSheet: "2025-26",
+      cellRef: "BJ155",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ156",
+      sourceSheet: "2025-26",
+      cellRef: "BJ156",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ157",
+      sourceSheet: "2025-26",
+      cellRef: "BJ157",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ158",
+      sourceSheet: "2025-26",
+      cellRef: "BJ158",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ159",
+      sourceSheet: "2025-26",
+      cellRef: "BJ159",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ160",
+      sourceSheet: "2025-26",
+      cellRef: "BJ160",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ161",
+      sourceSheet: "2025-26",
+      cellRef: "BJ161",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ162",
+      sourceSheet: "2025-26",
+      cellRef: "BJ162",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BJ163",
+      sourceSheet: "2025-26",
+      cellRef: "BJ163",
+      valueText: null,
+      numericValue: 0
+    }
+  ])
+}

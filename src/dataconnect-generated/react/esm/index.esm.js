@@ -1,4 +1,4 @@
-import { submitCurrentTeamProfileRef, convertTeamProfileSubmissionRef, createSossonTeamRef, updateSossonTeamRef, createSossonTeamMemberRef, updateSossonTeamMemberRef, createSossonTeamLeavePeriodRef, createSossonWorkTimeEntryRef, createSossonPayrollPeriodRef, createPlanningJobSheetRef, updatePlanningJobSheetProgressRef, completePlanningJobSheetRef, createClientRef, updateClientRef, createChantierRef, updateChantierStatutRef, createDevisRef, updateDevisStatutRef, createFactureRef, setFactureStatutRef, createDocumentFolderRef, createDocumentAttacheRef, updateDocumentAttacheLinksRef, createPrevisionnelImportBatchRef, updatePrevisionnelMonthlyAmountRef, updatePrevisionnelLineAmountsRef, linkPrevisionnelLineToChantierRef, upsertPrevisionnelCellEditRef, createEmailThreadRef, updateEmailThreadStatusAndLinksRef, createEmailMessageRef, createEmailAttachmentRef, createPlanningEventRef, updatePlanningEventStatusRef, updatePlanningEventDetailsRef, cancelPlanningEventRef, createPlanningAssignmentRef, updatePlanningAssignmentStatusRef, createAnalyticsSnapshotRef, createRapportRef, markRapportGeneratedRef, createAuditEventRef, createCheckpointRunRef, createCheckpointStepRef, createCheckpointArtifactRef, createCheckpointDecisionRef, createDataImportRunRef, createDataImportIssueRef, createEntityChangeLogRef, getCurrentUserRef, listUsersRef, getCurrentTeamProfileSubmissionRef, listTeamProfileSubmissionsRef, listSossonTeamsRef, listSossonWorkTimeEntriesRef, listSossonPayrollPeriodsRef, listOperationalClientsRef, getClientRef, listOperationalChantiersRef, getChantierRef, listDevisRef, listDevisByClientRef, listDevisByChantierRef, listFacturesRef, listFacturesByStatutRef, listDocumentFoldersRef, listDocumentsAttachesRef, listDocumentsByChantierRef, listPrevisionnelExercisesRef, listPrevisionnelLinesByExerciseRef, searchClientAliasesRef, listPrevisionnelCellEditsRef, listEmailThreadsRef, listEmailThreadsByChantierRef, listUnreadEmailThreadsRef, getEmailThreadRef, listPlanningEventsByPeriodRef, listPlanningEventsByChantierRef, listPlanningJobSheetsByEventRef, listAnalyticsSnapshotsRef, getAnalyticsSnapshotRef, listRapportsRef, getRapportRef, listRecentAuditEventsRef, listEntityChangeLogsRef, listCheckpointRunsRef, getCheckpointRunRef, listDataImportRunsRef, getDataImportRunRef, connectorConfig } from '../../esm/index.esm.js';
+import { submitCurrentTeamProfileRef, convertTeamProfileSubmissionRef, createSossonTeamRef, updateSossonTeamRef, createSossonTeamMemberRef, updateSossonTeamMemberRef, createSossonTeamLeavePeriodRef, createSossonWorkTimeEntryRef, createSossonPayrollPeriodRef, createPlanningJobSheetRef, updatePlanningJobSheetProgressRef, completePlanningJobSheetRef, createClientRef, updateClientRef, createChantierRef, updateChantierStatutRef, createDevisRef, updateDevisStatutRef, createFactureRef, setFactureStatutRef, createDocumentFolderRef, createDocumentAttacheRef, updateDocumentAttacheLinksRef, createPrevisionnelImportBatchRef, updatePrevisionnelMonthlyAmountRef, updatePrevisionnelLineAmountsRef, linkPrevisionnelLineToChantierRef, upsertPrevisionnelCellEditRef, createPrevisionnelWorkbookVersionPendingRef, markPrevisionnelWorkbookVersionGeneratingRef, markPrevisionnelWorkbookVersionGeneratedRef, markPrevisionnelWorkbookVersionFailedRef, createEmailThreadRef, updateEmailThreadStatusAndLinksRef, createEmailMessageRef, createEmailAttachmentRef, createPlanningEventRef, updatePlanningEventStatusRef, updatePlanningEventDetailsRef, cancelPlanningEventRef, createPlanningAssignmentRef, updatePlanningAssignmentStatusRef, createAnalyticsSnapshotRef, createRapportRef, markRapportGeneratedRef, createAuditEventRef, createCheckpointRunRef, createCheckpointStepRef, createCheckpointArtifactRef, createCheckpointDecisionRef, createDataImportRunRef, createDataImportIssueRef, createEntityChangeLogRef, getCurrentUserRef, listUsersRef, getCurrentTeamProfileSubmissionRef, listTeamProfileSubmissionsRef, listSossonTeamsRef, listSossonWorkTimeEntriesRef, listSossonPayrollPeriodsRef, listOperationalClientsRef, getClientRef, listOperationalChantiersRef, getChantierRef, listDevisRef, listDevisByClientRef, listDevisByChantierRef, listFacturesRef, listFacturesByStatutRef, listDocumentFoldersRef, listDocumentsAttachesRef, listDocumentsByChantierRef, listPrevisionnelExercisesRef, listPrevisionnelLinesByExerciseRef, searchClientAliasesRef, listPrevisionnelCellEditsRef, getPrevisionnelWorkbookVersionRef, listPrevisionnelWorkbookVersionsRef, getLatestGeneratedPrevisionnelWorkbookVersionRef, listEmailThreadsRef, listEmailThreadsByChantierRef, listUnreadEmailThreadsRef, getEmailThreadRef, listPlanningEventsByPeriodRef, listPlanningEventsByChantierRef, listPlanningJobSheetsByEventRef, listAnalyticsSnapshotsRef, getAnalyticsSnapshotRef, listRapportsRef, getRapportRef, listRecentAuditEventsRef, listEntityChangeLogsRef, listCheckpointRunsRef, getCheckpointRunRef, listDataImportRunsRef, getDataImportRunRef, connectorConfig } from '../../esm/index.esm.js';
 import { validateArgs, CallerSdkTypeEnum } from 'firebase/data-connect';
 import { useDataConnectQuery, useDataConnectMutation, validateReactArgs } from '@tanstack-query-firebase/react/data-connect';
 
@@ -222,6 +222,38 @@ export function useUpsertPrevisionnelCellEdit(dcOrOptions, options) {
   const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
   function refFactory(vars) {
     return upsertPrevisionnelCellEditRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useCreatePrevisionnelWorkbookVersionPending(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return createPrevisionnelWorkbookVersionPendingRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useMarkPrevisionnelWorkbookVersionGenerating(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return markPrevisionnelWorkbookVersionGeneratingRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useMarkPrevisionnelWorkbookVersionGenerated(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return markPrevisionnelWorkbookVersionGeneratedRef(dcInstance, vars);
+  }
+  return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useMarkPrevisionnelWorkbookVersionFailed(dcOrOptions, options) {
+  const { dc: dcInstance, vars: inputOpts } = validateArgs(connectorConfig, dcOrOptions, options);
+  function refFactory(vars) {
+    return markPrevisionnelWorkbookVersionFailedRef(dcInstance, vars);
   }
   return useDataConnectMutation(refFactory, inputOpts, CallerSdkTypeEnum.GeneratedReact);
 }
@@ -530,6 +562,24 @@ export function useSearchClientAliases(dcOrVars, varsOrOptions, options) {
 export function useListPrevisionnelCellEdits(dcOrVars, varsOrOptions, options) {
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   const ref = listPrevisionnelCellEditsRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useGetPrevisionnelWorkbookVersion(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = getPrevisionnelWorkbookVersionRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useListPrevisionnelWorkbookVersions(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = listPrevisionnelWorkbookVersionsRef(dcInstance, inputVars);
+  return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
+}
+
+export function useGetLatestGeneratedPrevisionnelWorkbookVersion(dcOrVars, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateReactArgs(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  const ref = getLatestGeneratedPrevisionnelWorkbookVersionRef(dcInstance, inputVars);
   return useDataConnectQuery(ref, inputOpts, CallerSdkTypeEnum.GeneratedReact);
 }
 

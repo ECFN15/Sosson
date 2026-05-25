@@ -36,7 +36,7 @@ const files = {
       /npm run checkpoint:002:local/,
       /npm run checkpoint:002:emulator/,
       /npm run reset:dataconnect:local -- --yes-local-reset/,
-      /npm run seed:sandbox -- --dry-run --kind=all --output=tmp\/checkpoint-002\/seed-sandbox-dry-run\.json/,
+      /npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp\/checkpoint-002\/seed-sandbox-dry-run\.json/,
       /firebase deploy --only dataconnect --project sosson-sandbox/,
       /validation humaine/,
     ],

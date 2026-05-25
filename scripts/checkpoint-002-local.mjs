@@ -38,7 +38,7 @@ const commands = [
       'seed:sandbox',
       '--',
       '--dry-run',
-      '--kind=all',
+      '--kind=previsionnel',
       '--output=tmp/checkpoint-002/seed-sandbox-dry-run.json',
     ],
   },

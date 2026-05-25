@@ -183,7 +183,7 @@ le schema existe, mais le seed n'a pas encore ete charge.
 - `schema.gql` = la structure relationnelle
 - `queries.gql` = les lectures autorisees
 - `mutations.gql` = les ecritures autorisees
-- `seed_data.gql` = les donnees initiales de sandbox
+- `seed_data.gql` = jeu operationnel demo pour tests locaux/emulateur; ne pas injecter en sandbox reelle sans validation explicite
 
 ### Schema metier courant
 
@@ -198,10 +198,12 @@ Les champs derives comme les depenses agregees, la marge ou la tendance budgetai
 
 ### Seed courant
 
-Le seed sandbox prevu contient :
-- 3 clients
-- 4 chantiers
-- 12 factures
+Le fichier `dataconnect/seed_data.gql` contient encore un jeu operationnel fictif historique pour les tests locaux/emulateur :
+- 3 clients demo
+- 4 chantiers demo
+- 12 factures demo
+
+Il ne doit plus etre injecte en sandbox reelle par defaut. Le script `seed:sandbox` importe le previsionnel Excel par defaut; l'import de ce jeu demo exige un flag explicite `--include-demo-operational-seed`.
 
 Le seed **ne cree pas les `User`** car `User.id` doit correspondre a un vrai `auth.uid` Firebase.
 

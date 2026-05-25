@@ -38,7 +38,7 @@ Raison principale: le schéma et les scripts locaux sont structurés, les garde-
 | Lifecycle readiness | `npm run check:operational-lifecycle-readiness` | Documentation/gates lifecycle cohérents. |
 | Décisions lifecycle | `npm run check:operational-lifecycle-decisions` | 9 réponses métier présentes. |
 | Sources front | `npm run audit:frontend-sources -- --output=tmp/checkpoint-002/frontend-sources-audit.json` | 55 imports locaux/seeds, 27 usages `localStorage`, 3 usages Firestore, 0 import direct SDK SQL dans pages. |
-| Dry-run seed sandbox | `npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run-audit.json` | Liste des fichiers seed produite sans mutation distante. |
+| Dry-run seed sandbox | `npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run-audit.json` | Liste des fichiers seed produite sans mutation distante. |
 | Dry-run SQL users | `npm run provision:sql-users -- --file=dataconnect/user_profiles.example.json --dry-run` | Profil exemple masqué, aucune mutation. |
 | Checkpoint émulateur complet | `npm run checkpoint:002:emulator` | OK après déplacement temporaire de PGlite sur `E:` et correction de l'ordre du comptage propre. Aucune sandbox touchée. |
 | CI sandbox locale | `npm run ci:sandbox` | OK: lint, tests, garde-fous, doc links, generated clean et build sandbox passent. |

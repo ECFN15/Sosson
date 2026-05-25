@@ -121,7 +121,7 @@ Cette commande regroupe les preuves locales non destructives:
 - `npm run ci:sandbox`;
 - `npm run audit:frontend-sources -- --output=tmp/checkpoint-002/frontend-sources.json`;
 - `npm run count:dataconnect -- --dry-run --output=tmp/checkpoint-002/counts-dry-run.json`;
-- `npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json`;
+- `npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json`;
 - `npm run provision:sql-users -- --file=dataconnect/user_profiles.example.json --dry-run`.
 
 Elle ne valide pas la sandbox distante: emulateur SQL Connect, seed reel, comptage sandbox, vrais profils SQL `User`, deploy/test rules sandbox, RBAC serveur, Storage produit et monitoring restent hors de son perimetre.

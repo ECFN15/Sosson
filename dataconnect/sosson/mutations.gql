@@ -813,6 +813,9 @@ mutation CreatePrevisionnelImportBatch(
   $workbook: String!
   $sourcePath: String!
   $workbookHash: String
+  $sourceStoragePath: String
+  $sourceSha256: String
+  $originalFileName: String
   $notes: String
 ) @auth(
   level: USER
@@ -827,6 +830,9 @@ mutation CreatePrevisionnelImportBatch(
     workbook: $workbook
     sourcePath: $sourcePath
     workbookHash: $workbookHash
+    sourceStoragePath: $sourceStoragePath
+    sourceSha256: $sourceSha256
+    originalFileName: $originalFileName
     notes: $notes
   })
 }
@@ -923,6 +929,121 @@ mutation UpsertPrevisionnelCellEdit(
     cellRef: $cellRef
     valueText: $valueText
     numericValue: $numericValue
+    authorId_expr: "auth.uid"
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation CreatePrevisionnelWorkbookVersionPending(
+  $id: String!
+  $batchId: UUID
+  $sourceSheet: String!
+  $storagePath: String!
+  $currentStoragePath: String!
+  $baseStoragePath: String
+  $editCount: Int!
+) @auth(
+  level: USER
+  insecureReason: "Internal back-office app; authenticated staff can request a server-side Excel export while generation happens outside the browser."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour generer un export previsionnel.")
+    }
+  }
+  previsionnelWorkbookVersion_insert(data: {
+    id: $id
+    batchId: $batchId
+    sourceSheet: $sourceSheet
+    status: "pending"
+    storagePath: $storagePath
+    currentStoragePath: $currentStoragePath
+    baseStoragePath: $baseStoragePath
+    editCount: $editCount
+    retryCount: 0
+    requestedById_expr: "auth.uid"
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation MarkPrevisionnelWorkbookVersionGenerating(
+  $id: String!
+  $retryCount: Int!
+) @auth(
+  level: USER
+  insecureReason: "Server-side export worker marks a previsionnel workbook version as generating using the requesting user's RBAC context."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour generer un export previsionnel.")
+    }
+    targetVersion: previsionnelWorkbookVersion(key: { id: $id }) @check(expr: "this != null", message: "Version previsionnel introuvable.") @redact {
+      status @check(expr: "this in ['pending', 'failed', 'generating']", message: "Version deja finalisee.")
+    }
+  }
+  previsionnelWorkbookVersion_update(id: $id, data: {
+    status: "generating"
+    retryCount: $retryCount
+    generationStartedAt_expr: "request.time"
+    failedAt: null
+    errorMessage: null
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation MarkPrevisionnelWorkbookVersionGenerated(
+  $id: String!
+  $storagePath: String!
+  $currentStoragePath: String!
+  $sha256: String!
+  $sizeBytes: Int!
+  $editCount: Int!
+) @auth(
+  level: USER
+  insecureReason: "Server-side export worker records generated workbook metadata after Storage writes complete."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour finaliser un export previsionnel.")
+    }
+    targetVersion: previsionnelWorkbookVersion(key: { id: $id }) @check(expr: "this != null", message: "Version previsionnel introuvable.") @redact {
+      status @check(expr: "this in ['generating', 'generated']", message: "Version non en cours de generation.")
+    }
+  }
+  previsionnelWorkbookVersion_update(id: $id, data: {
+    status: "generated"
+    storagePath: $storagePath
+    currentStoragePath: $currentStoragePath
+    sha256: $sha256
+    sizeBytes: $sizeBytes
+    editCount: $editCount
+    generatedAt_expr: "request.time"
+    failedAt: null
+    errorMessage: null
+    dateModification_expr: "request.time"
+  })
+}
+
+mutation MarkPrevisionnelWorkbookVersionFailed(
+  $id: String!
+  $errorMessage: String!
+) @auth(
+  level: USER
+  insecureReason: "Server-side export worker records failed workbook generation without discarding SQL edits."
+) @transaction {
+  query {
+    currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+      role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour finaliser un export previsionnel.")
+    }
+    targetVersion: previsionnelWorkbookVersion(key: { id: $id }) @check(expr: "this != null", message: "Version previsionnel introuvable.") @redact {
+      status @check(expr: "this in ['pending', 'generating', 'failed']", message: "Version deja generee.")
+    }
+  }
+  previsionnelWorkbookVersion_update(id: $id, data: {
+    status: "failed"
+    failedAt_expr: "request.time"
+    errorMessage: $errorMessage
+    dateModification_expr: "request.time"
   })
 }
 

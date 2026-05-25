@@ -679,7 +679,7 @@ Attention: ces chiffres decrivent le seed previsionnel genere. Ils ne garantisse
 
 ## 10. Seeds: ce qui peuple la base
 
-### Seed simple
+### Seed demo local
 
 Fichier:
 
@@ -687,7 +687,7 @@ Fichier:
 dataconnect/seed_data.gql
 ```
 
-Contenu attendu:
+Contenu du jeu fictif historique:
 
 ```text
 3 clients
@@ -699,6 +699,8 @@ Contenu attendu:
 Pourquoi 0 user ?
 
 Parce que `User.id` doit correspondre a un vrai Firebase Auth UID. On ne peut pas inventer proprement un UID dans un seed metier.
+
+Ce fichier sert aux preuves locales/emulateur et aux sandboxes jetables. Il ne doit plus etre charge en sandbox reelle par defaut: `scripts/seed-dataconnect-sandbox.mjs` importe le previsionnel Excel par defaut et bloque ce jeu demo sans `--include-demo-operational-seed`.
 
 ### Seed previsionnel
 
@@ -925,16 +927,16 @@ firebase deploy --only dataconnect --project sosson-sandbox
 Seed sandbox prepare, sans mutation distante:
 
 ```bash
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 ```
 
 Execution reelle sandbox, seulement apres validation humaine explicite:
 
 ```bash
-ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all
+ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel
 ```
 
-Le dry-run archive la liste des fichiers a executer. Le 2026-05-17, cette liste contient 113 fichiers: `dataconnect/seed_data.gql` puis les chunks `dataconnect/previsionnel_seed/*.gql`.
+Le dry-run archive la liste des fichiers a executer. La reprise sandbox cible les chunks Excel `dataconnect/previsionnel_seed/*.gql`; le jeu demo `dataconnect/seed_data.gql` est exclu sans `--include-demo-operational-seed`.
 
 Le seed reel ne suffit pas a valider checkpoint 002: il doit etre suivi d'un comptage sandbox archive et d'une verification des vrais profils SQL `User`.
 

@@ -168,6 +168,30 @@ function recomputeTotalRows(values: SpreadsheetCellUpdates, sheet: CurrentPrevis
   })
 }
 
+function hasCell(row: CurrentSheetRow | undefined, col: string) {
+  return Boolean(row?.cells.some(cell => cell.col === col))
+}
+
+function sumRowRange(values: SpreadsheetCellUpdates, sheet: CurrentPrevisionnelSheet, col: string, start: number, end: number) {
+  return sheet.rows.reduce((sum, row) => {
+    if (row.rowNumber < start || row.rowNumber > end) return sum
+    return sum + rowAmount(values, row, col)
+  }, 0)
+}
+
+function recomputeExcelSummaryRows(values: SpreadsheetCellUpdates, sheet: CurrentPrevisionnelSheet) {
+  if (sheet.sheet !== '2025-26') return
+
+  const byRow = new Map(sheet.rows.map(row => [row.rowNumber, row]))
+  const summaryRow = byRow.get(171)
+  if (!summaryRow) return
+
+  // These formulas mirror the source workbook PREVISIONNEL.xlsx / 2025-26.
+  setComputed(values, summaryRow, 'D', round2(sumRowRange(values, sheet, 'D', 8, 170)))
+  setComputed(values, summaryRow, 'E', round2(sumRowRange(values, sheet, 'E', 32, 170)))
+  setComputed(values, summaryRow, 'F', round2(sumRowRange(values, sheet, 'F', 32, 132)))
+}
+
 function applyValuesToRows(rows: CurrentSheetRow[], values: SpreadsheetCellUpdates): CurrentSheetRow[] {
   return rows.map(row => ({
     ...row,
@@ -194,17 +218,20 @@ export function buildSpreadsheetView(
 
   sheet.rows.forEach(row => recomputeLine(values, row, sheet.monthPairs))
   recomputeTotalRows(values, sheet)
+  recomputeExcelSummaryRows(values, sheet)
 
   const businessRows = sheet.rows.filter(isBusinessRow)
-  const kpis = {
-    caPrevision: round2(sumRows(values, businessRows, 'D')),
-    caContrat: round2(sumRows(values, businessRows, 'E')),
-    monthlyPlanned: round2(
-      businessRows.reduce(
-        (sum, row) => sum + sheet.monthPairs.reduce((monthSum, pair) => monthSum + rowAmount(values, row, pair.planned), 0),
-        0,
-      ),
+  const officialSummaryRow = sheet.rows.find(row => row.rowNumber === 171)
+  const fallbackMonthlyPlanned = round2(
+    businessRows.reduce(
+      (sum, row) => sum + sheet.monthPairs.reduce((monthSum, pair) => monthSum + rowAmount(values, row, pair.planned), 0),
+      0,
     ),
+  )
+  const kpis = {
+    caPrevision: hasCell(officialSummaryRow, 'D') ? rowAmount(values, officialSummaryRow!, 'D') : round2(sumRows(values, businessRows, 'D')),
+    caContrat: hasCell(officialSummaryRow, 'E') ? rowAmount(values, officialSummaryRow!, 'E') : round2(sumRows(values, businessRows, 'E')),
+    monthlyPlanned: hasCell(officialSummaryRow, 'F') ? rowAmount(values, officialSummaryRow!, 'F') : fallbackMonthlyPlanned,
   }
 
   return {

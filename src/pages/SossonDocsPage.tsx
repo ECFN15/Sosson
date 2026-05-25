@@ -893,7 +893,7 @@ origineImport: previsionnel`,
       'npm run checkpoint:002:local',
       'npm run emulators:dataconnect',
       'npm run checkpoint:002:emulator',
-      'npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json',
+      'npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json',
       'npm run dashboard',
     ],
     sections: [

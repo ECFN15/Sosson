@@ -3,8 +3,8 @@
 
 > A lire en priorite avant toute intervention importante sur le repo.
 >
-> Derniere mise a jour : 16 mai 2026
-> Version : 0.4.0
+> Derniere mise a jour : 22 mai 2026
+> Version : 0.4.1
 
 ---
 
@@ -37,7 +37,7 @@ Le produit vise a centraliser :
 - les emails et documents lies aux dossiers
 - la vision budgetaire et operationnelle
 
-### Etat global au 16 mai 2026
+### Etat global au 22 mai 2026
 
 La base du projet est maintenant saine :
 - le front React/Vite existe et tourne
@@ -48,12 +48,16 @@ La base du projet est maintenant saine :
 - la base Postgres `fdcdb` existe
 - les tables `user`, `client`, `chantier`, `facture` existent
 - le connecteur `sosson` est deploye
+- le 22 mai 2026, la migration SQL Connect sandbox a ete appliquee et le schema sandbox matche exactement le schema local
+- un profil SQL `User` sandbox `gerant` a ete provisionne depuis un vrai UID Firebase Auth
+- le seed previsionnel Excel sandbox est charge et le comptage sandbox confirme 13 exercices, 898 lignes previsionnelles, 1577 montants mensuels, 887 montants par lot et 2347 cellules exactes `2025-26`
+- le seed operationnel fictif historique charge par erreur le 22 mai 2026 a ete nettoye : la sandbox contient maintenant 0 client operationnel, 0 chantier operationnel et 0 facture operationnelle
 
 Ce qui reste **non termine** :
-- le seed sandbox reel reste a valider explicitement sur l'environnement Firebase cible
 - le front est encore hybride : SQL Connect est partiellement branche, mais plusieurs pages restent locales ou derivees des seeds/previsionnel
 - le profil applicatif utilisateur tente maintenant SQL `GetCurrentUser`, avec Firestore encore en fallback transitoire
-- le RBAC serveur SQL Connect est implemente localement sur les mutations sensibles; les lectures RH sensibles (`ListUsers`, demandes onboarding, equipes RH, heures, paie) exigent aussi un `User` SQL courant et un check de role serveur, mais rien n'est encore deploye/verifie sur sandbox
+- le RBAC serveur SQL Connect est deploye en sandbox, mais les workflows sensibles restent a verifier fonctionnellement avec plusieurs roles reels
+- le smoke front sandbox reste a faire : login Firebase, `GetCurrentUser`, lecture/ecriture SQL, refresh, et detection explicite des fallbacks
 - la production ne doit pas encore etre consideree comme validee
 
 ### Decision de cadrage
@@ -156,6 +160,20 @@ Resultat confirme :
 - schema `main` migre
 - connecteur `sosson` deploye
 
+Le 22 mai 2026, une reprise sandbox a aussi abouti :
+
+```bash
+firebase dataconnect:sql:migrate --project sosson-sandbox --service sosson-sandbox-service --location europe-west9 --force
+firebase deploy --only dataconnect --project sosson-sandbox --force
+```
+
+Resultat confirme :
+- schema Cloud SQL sandbox migre jusqu'a matcher exactement le schema SQL Connect local
+- schema `main` redeploye
+- connecteur `sosson` redeploye
+- diff post-deploy et post-seed sans ecart
+- preuves archivees sous `tmp/checkpoint-002/`
+
 ### Consequence concrete
 
 La console Firebase peut afficher les tables :
@@ -164,8 +182,7 @@ La console Firebase peut afficher les tables :
 - `Chantier`
 - `Facture`
 
-Si la console affiche des tables vides avec un bouton "Ajouter des donnees", c'est normal :
-le schema existe, mais le seed n'a pas encore ete charge.
+La sandbox contient maintenant le seed previsionnel Excel. Les donnees operationnelles fictives historiques (`seed_data.gql`) ont ete supprimees de la sandbox et le script sandbox les bloque sans flag explicite.
 
 ---
 
@@ -186,7 +203,7 @@ le schema existe, mais le seed n'a pas encore ete charge.
 - `schema.gql` = la structure relationnelle
 - `queries.gql` = les lectures autorisees
 - `mutations.gql` = les ecritures autorisees
-- `seed_data.gql` = les donnees initiales de sandbox
+- `seed_data.gql` = jeu operationnel demo pour tests locaux/emulateur; ne pas injecter en sandbox reelle sans validation explicite
 - `previsionnel_seed_data.gql` = seed genere depuis le fichier Excel previsionnel pour alimenter clients/chantiers historiques
 
 ### Schema metier courant
@@ -203,20 +220,24 @@ Les champs derives comme les depenses agregees, la marge ou la tendance budgetai
 
 ### Seed courant
 
-Le seed sandbox prevu contient :
-- 3 clients
-- 4 chantiers
-- 12 factures
+Le fichier `dataconnect/seed_data.gql` contient encore un jeu operationnel fictif historique pour les tests locaux/emulateur :
+- 3 clients demo
+- 4 chantiers demo
+- 12 factures demo
+
+Il ne doit plus etre injecte en sandbox reelle par defaut. Le script `seed:sandbox` importe le previsionnel Excel par defaut; l'import de ce jeu demo exige un flag explicite `--include-demo-operational-seed`.
 
 Le seed **ne cree pas les `User`** car `User.id` doit correspondre a un vrai `auth.uid` Firebase.
 
-Un seed previsionnel complementaire existe maintenant :
+Un seed previsionnel complementaire existe maintenant et a ete injecte en sandbox le 22 mai 2026 :
 - fichier : `dataconnect/previsionnel_seed_data.gql`
 - fichiers chunkes executables : `dataconnect/previsionnel_seed/*.gql`
 - generation : `npm run seed:previsionnel:generate`
 - injection locale : `npm run seed:previsionnel:dataconnect`
 - verification locale : `npm run verify:previsionnel:dataconnect`
-- contenu courant : 13 exercices, 586 clients, 616 alias, 898 chantiers, 898 lignes previsionnelles, 1577 montants mensuels et 887 montants par lot
+- contenu courant : 13 exercices, 586 clients, 616 alias, 898 chantiers, 898 lignes previsionnelles, 1577 montants mensuels, 887 montants par lot et 2347 cellules exactes `2025-26`
+- verification sandbox : `npm run verify:previsionnel:sandbox-source -- --sandbox --yes-sandbox --user-profiles=dataconnect/user_profiles.local.json --output=tmp/checkpoint-002/verify-previsionnel-sandbox-source.json`
+- valeurs Excel officielles `2025-26` verifiees en sandbox : `D171=6334248.36`, `E171=1517256.88`, `F171=2105226.24`; `E8:E170=1638743.76` est le contrat brut, mais la formule source officielle est `E32:E170`
 - les clients/chantiers crees par ce seed portent `origineImport: "previsionnel"`; les listes operationnelles SQL filtrent `origineImport: "operationnel"`
 - les lignes de synthese Excel (`Cumul`, `Total`, etc.) sont exclues
 - le jaune Excel signifie facture envoyee (`invoiceSent`), pas facture payee / encaissee
@@ -230,14 +251,14 @@ Le schema SQL Connect contient maintenant les tables previsionnelles :
 - `PrevisionnelLotAmount`
 - `PrevisionnelCellEdit`
 
-Un lot local, non deploye en sandbox, ajoute aussi le flux de premiere connexion equipe :
+Un lot deploye en sandbox cote schema/connecteur, mais pas encore valide fonctionnellement en sandbox, ajoute aussi le flux de premiere connexion equipe :
 - `TeamProfileSubmission` collecte les demandes de profil creees apres une connexion Firebase Auth sans `User` SQL actif.
 - la mutation self-service `SubmitCurrentTeamProfile` ecrit uniquement la demande bornee a `auth.uid` et ne cree aucun role applicatif.
 - la mutation `ConvertTeamProfileSubmission`, reservee au role SQL `gerant`, exige une demande existante encore `pending`, convertit cette demande en vrai `User` SQL actif, conserve `sourceConnexion` (`google` / `email`) et refuse une reconversion.
 - le front expose `/complete-profile`, `/profile-pending`, la connexion Google Firebase et une reception des demandes dans `Equipe`.
-- ce flux est compile localement, mais n'est pas encore deploye ni valide en sandbox distante.
+- ce flux est compile localement et deploye en sandbox cote schema/connecteur, mais le smoke front `/complete-profile` -> `/profile-pending` -> conversion gerant reste a faire.
 
-Un lot local, non deploye en sandbox, ajoute aussi le socle RH equipe :
+Un lot deploye en sandbox cote schema/connecteur, mais pas encore valide fonctionnellement en sandbox, ajoute aussi le socle RH equipe :
 - `SossonTeam`
 - `SossonTeamMember`
 - `SossonTeamLeavePeriod`
@@ -245,9 +266,9 @@ Un lot local, non deploye en sandbox, ajoute aussi le socle RH equipe :
 - `SossonPayrollPeriod`
 - `PlanningJobSheet`
 
-Ces tables servent aux equipes finales, fiches de poste, conges, saisies d'heures, preparation paie et fiches d'intervention issues du planning. Ce n'est pas un module de bulletin legal. La page `Equipe` lit les equipes/membres/conges SQL quand Data Connect est actif, peut creer une equipe finale, une fiche membre, un conge, une ligne d'heures et un brouillon de paie SQL, avec fallback local visible pour les donnees equipe historiques. Elle sait aussi deplacer une fiche membre SQL vers une autre equipe finale SQL via `UpdateSossonTeamMember`; le deplacement vers une equipe locale est refuse quand la fiche vient de SQL. La route detail `/equipe/profils/:memberId` est maintenant SQL-aware : elle relit et modifie une fiche membre SQL, ajoute des conges, saisit des heures et prepare un brouillon de paie quand le membre vient de SQL. La conversion d'une demande onboarding cree aussi une fiche membre SQL quand l'equipe finale selectionnee vient de SQL. La page `Planning` charge maintenant directement les equipes finales SQL via `loadTeamDirectoryFromSql`, renseigne `sossonTeamId` dans `PlanningAssignment`, cree une `PlanningJobSheet` pour les cartes SQL, puis peut rattacher les heures a la fiche, a l'evenement planning, a l'affectation et au chantier. Les champs acteur sensibles (`approvedBy`, `createdBy`, `updatedBy`, `author`) sont maintenant lies serveur via `auth.uid` sur les mutations concernees et audites par `npm run check:dataconnect-auth`. Cette tranche est compilee et prouvee en emulateur local par `npm run verify:team-rh:dataconnect`, mais n'est pas encore deployee ni validee en sandbox distante.
+Ces tables servent aux equipes finales, fiches de poste, conges, saisies d'heures, preparation paie et fiches d'intervention issues du planning. Ce n'est pas un module de bulletin legal. La page `Equipe` lit les equipes/membres/conges SQL quand Data Connect est actif, peut creer une equipe finale, une fiche membre, un conge, une ligne d'heures et un brouillon de paie SQL, avec fallback local visible pour les donnees equipe historiques. Elle sait aussi deplacer une fiche membre SQL vers une autre equipe finale SQL via `UpdateSossonTeamMember`; le deplacement vers une equipe locale est refuse quand la fiche vient de SQL. La route detail `/equipe/profils/:memberId` est maintenant SQL-aware : elle relit et modifie une fiche membre SQL, ajoute des conges, saisit des heures et prepare un brouillon de paie quand le membre vient de SQL. La conversion d'une demande onboarding cree aussi une fiche membre SQL quand l'equipe finale selectionnee vient de SQL. La page `Planning` charge maintenant directement les equipes finales SQL via `loadTeamDirectoryFromSql`, renseigne `sossonTeamId` dans `PlanningAssignment`, cree une `PlanningJobSheet` pour les cartes SQL, puis peut rattacher les heures a la fiche, a l'evenement planning, a l'affectation et au chantier. Les champs acteur sensibles (`approvedBy`, `createdBy`, `updatedBy`, `author`) sont maintenant lies serveur via `auth.uid` sur les mutations concernees et audites par `npm run check:dataconnect-auth`. Cette tranche est compilee et prouvee en emulateur local par `npm run verify:team-rh:dataconnect`; elle est maintenant deployee en sandbox cote schema/connecteur, mais pas encore validee fonctionnellement sur le front sandbox.
 
-Un premier lot local, non deploye en sandbox, prepare aussi la tracabilite SQL :
+Un premier lot deploye en sandbox cote schema/connecteur prepare aussi la tracabilite SQL :
 - `AuditEvent`
 - `CheckpointRun`
 - `CheckpointStep`
@@ -257,9 +278,9 @@ Un premier lot local, non deploye en sandbox, prepare aussi la tracabilite SQL :
 - `DataImportIssue`
 - `EntityChangeLog`
 
-Ces tables sont destinees a indexer et historiser les checkpoints, imports, preuves, hashes et changements d'entites. Les gros logs/fichiers restent hors SQL. Leur presence dans le repo ne prouve pas encore leur existence en sandbox distante.
+Ces tables sont destinees a indexer et historiser les checkpoints, imports, preuves, hashes et changements d'entites. Les gros logs/fichiers restent hors SQL. Leur existence schema en sandbox est maintenant confirmee par le deploy/diff; leur contenu fonctionnel reste a alimenter par les workflows et checkpoints sandbox.
 
-Un deuxieme lot local, non deploye en sandbox, prepare aussi les domaines email, planning, rapports et analytics :
+Un deuxieme lot deploye en sandbox cote schema/connecteur prepare aussi les domaines email, planning, rapports et analytics :
 - `EmailThread`
 - `EmailMessage`
 - `EmailAttachment`
@@ -268,13 +289,21 @@ Un deuxieme lot local, non deploye en sandbox, prepare aussi les domaines email,
 - `AnalyticsSnapshot`
 - `Rapport`
 
-Les operations Data Connect et adapters front existent pour ces domaines (`src/features/email`, `src/features/planning`, `src/features/reports`, `src/features/analytics`). Emails, Planning, Rapports, Dashboard et Statistiques ont un raccordement SQL partiel avec fallbacks visibles. La page Emails lit l'index SQL et peut indexer un fil/message; la preuve locale cree et relit aussi une piece jointe metadata. La page Planning lit, cree, modifie, deplace et annule maintenant les cartes SQL quand Data Connect est la source active; l'annulation passe par `CancelPlanningEvent` et conserve la ligne SQL avec statut `cancelled`. Les fiches Client et Chantier savent aussi modifier respectivement un client via `UpdateClient` et un statut via `UpdateChantierStatut` quand Data Connect est la source active, avec fallback local explicite sinon. La page Factures sait creer une facture via `CreateFacture` et modifier son statut via `SetFactureStatut`, avec fallback annonce hors source SQL. Le tableur Previsionnel sait modifier un montant mensuel via `UpdatePrevisionnelMonthlyAmount` et sauvegarder une cellule exacte via `UpsertPrevisionnelCellEdit`, avec fallback `localStorage` annonce quand SQL n'est pas disponible. La page Rapports lit/cree des metadonnees SQL et une preuve locale genere un artefact CSV sous `tmp/`, calcule son hash reel, puis marque le rapport comme genere avec ce chemin/hash. La page Equipe lit `ListUsers`, `ListTeamProfileSubmissions` et le repertoire RH SQL via `src/features/team/teamSql.ts`; ces lectures RH sensibles ont maintenant un check de role serveur audite par `npm run check:dataconnect-queries`. La fiche detail membre sait maintenant relire et modifier une fiche SQL, mais les droits applicatifs restent encore en `localStorage`. `AnalyticsSnapshot`, une preuve edition previsionnel, une preuve edition client, une preuve statut chantier, une preuve facture, une preuve email, une preuve planning et une preuve rapport sont crees et relus en emulateur local par `npm run checkpoint:002:emulator`. Rien de cela ne prouve encore leur existence ou leur contenu en sandbox distante.
+Les operations Data Connect et adapters front existent pour ces domaines (`src/features/email`, `src/features/planning`, `src/features/reports`, `src/features/analytics`). Emails, Planning, Rapports, Dashboard et Statistiques ont un raccordement SQL partiel avec fallbacks visibles. La page Emails lit l'index SQL et peut indexer un fil/message; la preuve locale cree et relit aussi une piece jointe metadata. La page Planning lit, cree, modifie, deplace et annule maintenant les cartes SQL quand Data Connect est la source active; l'annulation passe par `CancelPlanningEvent` et conserve la ligne SQL avec statut `cancelled`. Les fiches Client et Chantier savent aussi modifier respectivement un client via `UpdateClient` et un statut via `UpdateChantierStatut` quand Data Connect est la source active, avec fallback local explicite sinon. La page Factures sait creer une facture via `CreateFacture` et modifier son statut via `SetFactureStatut`, avec fallback annonce hors source SQL. Le tableur Previsionnel sait modifier un montant mensuel via `UpdatePrevisionnelMonthlyAmount` et sauvegarder une cellule exacte via `UpsertPrevisionnelCellEdit`, avec fallback `localStorage` annonce quand SQL n'est pas disponible. La page Rapports lit/cree des metadonnees SQL et une preuve locale genere un artefact CSV sous `tmp/`, calcule son hash reel, puis marque le rapport comme genere avec ce chemin/hash. La page Equipe lit `ListUsers`, `ListTeamProfileSubmissions` et le repertoire RH SQL via `src/features/team/teamSql.ts`; ces lectures RH sensibles ont maintenant un check de role serveur audite par `npm run check:dataconnect-queries`. La fiche detail membre sait maintenant relire et modifier une fiche SQL, mais les droits applicatifs restent encore en `localStorage`. `AnalyticsSnapshot`, une preuve edition previsionnel, une preuve edition client, une preuve statut chantier, une preuve facture, une preuve email, une preuve planning et une preuve rapport sont crees et relus en emulateur local par `npm run checkpoint:002:emulator`. Le schema de ces domaines existe maintenant en sandbox, mais leur contenu et leurs workflows front restent a valider en sandbox.
 
 La page `src/pages/PrevisionnelPage.tsx` charge maintenant les valeurs `2025-26` depuis SQL Connect quand disponible.
 Le bouton `Sauvegarder SQL` :
 - met a jour les montants mensuels dans `PrevisionnelMonthlyAmount`
 - enregistre toutes les cellules modifiees dans `PrevisionnelCellEdit` pour conserver l'export Excel exact
 - garde le fallback `localStorage` si SQL Connect n'est pas disponible
+
+Un lot local, non deploye en sandbox, ajoute le versionnement Excel Storage du previsionnel :
+- `PrevisionnelWorkbookVersion` suit chaque export serveur avec statut `pending`, `generating`, `generated` ou `failed`, chemins Storage, hash SHA-256, auteur et retry.
+- `PrevisionnelImportBatch` porte aussi `sourceStoragePath`, `sourceSha256` et `originalFileName` pour lier le seed SQL au fichier source `previsionnel/source/PREVISIONNEL-original.xlsx`.
+- `PrevisionnelCellEdit` conserve maintenant l'auteur SQL de l'edit via `auth.uid`.
+- la Cloud Function callable `generatePrevisionnelWorkbook` genere le `.xlsx` avec `exceljs`, ecrit `previsionnel/versions/...` et `previsionnel/current/PREVISIONNEL-current.xlsx`, puis marque la version `generated` ou `failed`.
+- la page tableur appelle ce flux apres la sauvegarde SQL et affiche explicitement l'etat Excel Storage; l'export navigateur reste un brouillon local, pas le fichier officiel.
+- commandes ajoutees : `npm run verify:previsionnel-workbook:local` et `npm run upload:previsionnel-source:sandbox`.
 
 La page `src/pages/StatistiquesPage.tsx` tente maintenant de lire les exercices et les lignes courantes depuis SQL Connect.
 Si SQL Connect ou l'auth ne repond pas, elle retombe sur les donnees TS nettoyees.
@@ -430,14 +459,16 @@ Aujourd'hui :
 
 ## 13. Priorites immediates
 
-Ordre recommande pour reprendre demain :
+Ordre recommande pour reprendre le 2026-05-23 :
 
-1. Valider en sandbox les regles Firestore/Storage durcies.
-2. Provisionner et verifier les profils SQL `User` sandbox lus par `GetCurrentUser`.
-3. Valider en sandbox les mutations et lectures SQL Connect sensibles durcies par RBAC serveur.
-4. Valider en sandbox la separation `origineImport` entre chantiers operationnels et historique previsionnel.
-5. Remplacer progressivement les fallbacks locaux par des hooks SQL Connect metier.
-6. Executer et valider le seed sandbox reel avec le script garde `seed:sandbox`.
+Reference de reprise detaillee : `docs/19-emulator-to-sandbox-roadmap.md`.
+
+1. Faire le smoke front sandbox avec le profil SQL `gerant` provisionne : login Firebase, `GetCurrentUser`, dashboard, clients, chantiers, factures, previsionnel.
+2. Valider en sandbox les mutations et lectures SQL Connect sensibles durcies par RBAC serveur, idealement avec au moins un deuxieme role non-gerant.
+3. Valider en sandbox la separation `origineImport` entre chantiers operationnels et historique previsionnel depuis l'UI et/ou des lectures SQL.
+4. Verifier que chaque page annonce clairement les fallbacks locaux et ne presente pas un fallback comme une sauvegarde SQL.
+5. Alimenter et verifier progressivement les domaines non couverts par le seed massif : documents, emails, planning, rapports, analytics, audit/checkpoints.
+6. Decider si backups, auto-resize et deletion protection Cloud SQL sandbox doivent etre actives avant de conserver des donnees sandbox importantes.
 7. Une fois le flux sandbox stable, preparer la suite sur production.
 
 ---
@@ -475,6 +506,7 @@ npm run update:operational-lifecycle-decisions -- --file=tmp/checkpoint-002/answ
 npm run emulators:dataconnect
 npm run checkpoint:002:emulator
 npm run verify:previsionnel-edits:dataconnect
+npm run verify:previsionnel-workbook:local
 npm run verify:operational-boundary:dataconnect
 npm run verify:operational-lifecycle:dataconnect
 npm run verify:team-users:dataconnect
@@ -489,7 +521,9 @@ npm run verify:planning:dataconnect
 npm run verify:reports:dataconnect
 npm run snapshot:analytics:dataconnect
 npm run reset:dataconnect:local -- --yes-local-reset
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run verify:previsionnel:sandbox-source -- --sandbox --yes-sandbox --user-profiles=dataconnect/user_profiles.local.json --output=tmp/checkpoint-002/verify-previsionnel-sandbox-source.json
+npm run upload:previsionnel-source:sandbox -- --sandbox --yes-sandbox --source=...
 firebase deploy --only dataconnect --project sosson-sandbox
 firebase dataconnect:sdk:generate
 ```
@@ -502,6 +536,7 @@ Notes :
 - `update:operational-lifecycle-decisions` applique localement les 9 reponses metier depuis un JSON sous `tmp/`; utiliser `--dry-run` avant modification reelle. Il ne touche ni SQL Connect ni sandbox.
 - `checkpoint:002:emulator` demande l'emulateur Data Connect deja lance dans un autre terminal; il enchaine maintenant les seeds, verifications, frontiere operationnel/previsionnel, preuve statut chantier SQL, preuve edition client SQL, preuve profils/onboarding SQL, preuve RH equipe SQL, preuves email/planning/rapport SQL locales, comptage local propre, snapshot analytics SQL local, preuve edition previsionnel SQL locale, preuve factures SQL locale, preuve lifecycle client/devis/chantier/factures SQL locale, preuve documents SQL locale, RBAC local et trace SQL checkpoint/audit locale.
 - `verify:previsionnel-edits:dataconnect` modifie puis restaure un montant mensuel previsionnel seed via `UpdatePrevisionnelMonthlyAmount`, puis upsert une cellule de preuve via `UpsertPrevisionnelCellEdit`; il ne touche pas la sandbox.
+- `verify:previsionnel-workbook:local` cree en emulateur une version Excel previsionnel `pending`, genere un `.xlsx` via le moteur serveur contre un Storage local sous `tmp/`, verifie le hash et simule un statut `failed` sans perdre l'edit SQL; il ne touche pas la sandbox.
 - `verify:operational-boundary:dataconnect` verifie en emulateur que le seed previsionnel ne remonte pas dans les listes operationnelles.
 - `verify:operational-lifecycle:dataconnect` cree en emulateur un profil `User` local autorise, un prospect sans chantier, un devis demande, un client operationnel, un chantier rattache, un devis signe et des factures definitives/categorisees; il relit les listes operationnelles, verifie `origineImport: "operationnel"` et archive `tmp/checkpoint-002/operational-lifecycle-local.json`; il ne touche pas la sandbox.
 - `verify:team-users:dataconnect` cree puis relit des profils `User` locaux, cree une demande `TeamProfileSubmission`, verifie l'absence de `User` avant conversion, refuse une conversion hors gerant, puis convertit la demande `pending` en `User` SQL actif via un gerant, conserve `sourceConnexion` et refuse une reconversion; il ne provisionne rien en sandbox.
@@ -516,7 +551,9 @@ Notes :
 - `verify:checkpoint-audit:dataconnect` ecrit puis relit les tables checkpoint/audit/import/change log dans l'emulateur uniquement.
 - `snapshot:analytics:dataconnect` cree puis relit un `AnalyticsSnapshot` local et archive `tmp/checkpoint-002/analytics-snapshot-local.json`.
 - `reset:dataconnect:local` supprime uniquement `dataconnect/.dataconnect/pgliteData` et sert a repartir d'une base emulateur propre; ne pas confondre avec une action sandbox.
-- `seed:sandbox -- --dry-run` archive la liste des seeds sandbox sous `tmp/`; l'execution reelle exige `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`.
+- `seed:sandbox -- --dry-run --kind=previsionnel` archive la liste du seed Excel sandbox sous `tmp/`; l'execution reelle exige `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`. Le seed operationnel demo exige en plus `--include-demo-operational-seed`.
+- `verify:previsionnel:sandbox-source` lit la sandbox distante et compare SQL Connect au fichier Excel source local; il exige `ALLOW_SANDBOX_DATACONNECT_READ=true`, `--sandbox`, `--yes-sandbox`, un fichier `--user-profiles` reel et une sortie sous `tmp/`.
+- `upload:previsionnel-source:sandbox` envoie le fichier Excel source original vers Storage sandbox uniquement avec `ALLOW_SANDBOX_STORAGE_WRITE=true`, `--sandbox`, `--yes-sandbox` et `--source=...`; il refuse d'ecraser un source different.
 - `firebase deploy --only dataconnect --project sosson-sandbox` reste une action sandbox reelle a validation humaine.
 
 ### Auth / projet actif

@@ -61,7 +61,7 @@ const checks = [
       'scripts/seed-dataconnect-sandbox.mjs',
       '--sandbox',
       '--yes-sandbox',
-      '--kind=operational',
+      '--kind=previsionnel',
     ],
     env: {},
     expectedMessage: 'Seed sandbox bloque',
@@ -71,7 +71,7 @@ const checks = [
     args: [
       'scripts/seed-dataconnect-sandbox.mjs',
       '--dry-run',
-      '--kind=operational',
+      '--kind=previsionnel',
       `--output=docs/seed-sandbox-guardrails-${process.pid}.json`,
     ],
     env: {},
@@ -128,6 +128,7 @@ const sourceChecks = [
     path: 'scripts/seed-dataconnect-sandbox.mjs',
     required: [
       /ALLOW_SANDBOX_DATACONNECT_SEED/,
+      /includeDemoOperationalSeed/,
       /args\.has\('--sandbox'\)/,
       /args\.has\('--yes-sandbox'\)/,
       /'--project',\s*PROJECT/,

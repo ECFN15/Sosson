@@ -1,4 +1,8 @@
 import {
+  createPrevisionnelWorkbookVersionPending,
+  getLatestGeneratedPrevisionnelWorkbookVersion,
+  getPrevisionnelWorkbookVersion,
+  listPrevisionnelWorkbookVersions,
   listPrevisionnelCellEdits,
   listPrevisionnelExercises,
   listPrevisionnelLinesByExercise,
@@ -7,6 +11,10 @@ import {
   upsertPrevisionnelCellEdit,
 } from '@dataconnect/generated'
 import type {
+  CreatePrevisionnelWorkbookVersionPendingVariables,
+  GetLatestGeneratedPrevisionnelWorkbookVersionData,
+  GetPrevisionnelWorkbookVersionData,
+  ListPrevisionnelWorkbookVersionsData,
   ListPrevisionnelCellEditsData,
   ListPrevisionnelExercisesData,
   ListPrevisionnelLinesByExerciseData,
@@ -19,6 +27,10 @@ import { getSossonDataConnect } from '@/lib/dataconnect'
 export type SqlPrevisionnelExercise = ListPrevisionnelExercisesData['previsionnelExercises'][number]
 export type SqlPrevisionnelLine = ListPrevisionnelLinesByExerciseData['previsionnelLines'][number]
 export type SqlPrevisionnelCellEdit = ListPrevisionnelCellEditsData['previsionnelCellEdits'][number]
+export type SqlPrevisionnelWorkbookVersion = ListPrevisionnelWorkbookVersionsData['previsionnelWorkbookVersions'][number]
+export type SqlLatestPrevisionnelWorkbookVersion =
+  GetLatestGeneratedPrevisionnelWorkbookVersionData['previsionnelWorkbookVersions'][number]
+export type SqlPrevisionnelWorkbookVersionDetail = NonNullable<GetPrevisionnelWorkbookVersionData['previsionnelWorkbookVersion']>
 
 export async function listPrevisionnelExercisesFromSql() {
   const dc = getSossonDataConnect()
@@ -72,4 +84,27 @@ export async function updatePrevisionnelLineAmountsInSql(input: UpdatePrevisionn
 export async function upsertPrevisionnelCellEditInSql(input: UpsertPrevisionnelCellEditVariables) {
   const dc = getSossonDataConnect()
   await upsertPrevisionnelCellEdit(dc, input)
+}
+
+export async function createPrevisionnelWorkbookVersionPendingInSql(input: CreatePrevisionnelWorkbookVersionPendingVariables) {
+  const dc = getSossonDataConnect()
+  await createPrevisionnelWorkbookVersionPending(dc, input)
+}
+
+export async function getPrevisionnelWorkbookVersionFromSql(id: string) {
+  const dc = getSossonDataConnect()
+  const response = await getPrevisionnelWorkbookVersion(dc, { id })
+  return response.data.previsionnelWorkbookVersion ?? null
+}
+
+export async function listPrevisionnelWorkbookVersionsFromSql(sourceSheet: string) {
+  const dc = getSossonDataConnect()
+  const response = await listPrevisionnelWorkbookVersions(dc, { sourceSheet })
+  return response.data.previsionnelWorkbookVersions
+}
+
+export async function getLatestGeneratedPrevisionnelWorkbookVersionFromSql(sourceSheet: string) {
+  const dc = getSossonDataConnect()
+  const response = await getLatestGeneratedPrevisionnelWorkbookVersion(dc, { sourceSheet })
+  return response.data.previsionnelWorkbookVersions[0] ?? null
 }

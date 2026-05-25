@@ -60,12 +60,16 @@ function makeSheet(rows: CurrentSheetRow[]): CurrentPrevisionnelSheet {
 }
 
 function businessRow(rowNumber: number, values: Partial<Record<string, SpreadsheetCellValue>>): CurrentSheetRow {
-  const cols = ['B', 'D', 'E', 'G', 'H', 'I', 'J', 'AQ', 'AR', 'AS', 'AT', 'AU', 'BP']
+  const cols = ['B', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'AQ', 'AR', 'AS', 'AT', 'AU', 'BP']
   return row(
     rowNumber,
     'chantier',
     cols.map(col => cell(rowNumber, col, values[col] ?? null, ['B', 'D', 'E', 'G', 'I', 'AR', 'AS', 'AT', 'AU'].includes(col))),
   )
+}
+
+function summaryRow171(): CurrentSheetRow {
+  return row(171, 'total', ['D', 'E', 'F'].map(col => cell(171, col, null, false)))
 }
 
 function totalRow(rowNumber: number): CurrentSheetRow {
@@ -189,6 +193,28 @@ describe('previsionnel spreadsheet recalculations', () => {
       monthlyPlanned: 350.75,
     })
     expect(view.rows[0]?.cells.find(item => item.ref === 'BP6')?.value).toBe(300.25)
+  })
+
+  it('uses the official Excel 2025-26 summary formulas for row 171 KPIs', () => {
+    const sheet = makeSheet([
+      businessRow(23, { D: 1000, E: 100, F: 10 }),
+      businessRow(30, { D: 2000, E: 200, F: 20 }),
+      businessRow(32, { D: 3000, E: 300, F: 30 }),
+      businessRow(132, { D: 4000, E: 400, F: 40 }),
+      businessRow(133, { D: 5000, E: 500, F: 50 }),
+      summaryRow171(),
+    ])
+
+    const view = buildSpreadsheetView(sheet, {}, {})
+
+    expect(view.values.D171).toBe(15000)
+    expect(view.values.E171).toBe(1200)
+    expect(view.values.F171).toBe(70)
+    expect(view.kpis).toEqual({
+      caPrevision: 15000,
+      caContrat: 1200,
+      monthlyPlanned: 70,
+    })
   })
 
   it('gives edited values precedence over SQL values and preserves explicit computed-cell overrides', () => {

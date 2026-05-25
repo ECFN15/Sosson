@@ -29,8 +29,8 @@ Statut de cloture: checkpoint 001 ferme comme audit local/documentaire, mais pas
 | Sujet | Decision checkpoint 001 | Preuve actuelle | Manquant checkpoint 002 |
 |---|---|---|---|
 | Validation sandbox reelle | Non executee sans validation humaine. | Config `.firebaserc`, `firebase.json`, scripts et docs prets. | Deploy/verification sandbox explicitement approuves et traces. |
-| Etat chiffre base distante | Inconnu. | Volumes seeds connus: seed simple 3/4/12; previsionnel genere 13/586/616/898/1577/887. | Comptage distant par table sur `sosson-sandbox`. |
-| Seed sandbox reel | Non confirme. | `dataconnect/seed_data.gql` et chunks previsionnels existent. | Injection sandbox + verification sandbox, pas seulement locale. |
+| Etat chiffre base distante | Inconnu. | Volumes seeds connus: demo local 3/4/12; previsionnel Excel genere 13/586/616/898/1577/887. | Comptage distant par table sur `sosson-sandbox`. |
+| Seed sandbox reel | Non confirme. | Les chunks previsionnels Excel existent; `dataconnect/seed_data.gql` est un jeu demo local, pas le seed sandbox par defaut. | Injection sandbox previsionnelle + verification sandbox, pas seulement locale. |
 | Decisions ouvertes | Documentees dans la roadmap agents. | Section "Cloture checkpoint 001" de `docs/12-ai-agent-roadmap.md`. | ADR ou decision ownerisee pour chaque point. |
 | Risques acceptes | Acceptes uniquement en sandbox/local. | RBAC durci localement mais non prouve sandbox, Storage deny par defaut, profil Firestore fallback, localStorage brouillons. | Gates de sortie fermes avant production. |
 | Gates production | Production non prete. | Checklist QA et runbooks ajoutes. | Validation complete checkpoint 002. |
@@ -193,7 +193,7 @@ Ce qui reste local/mock/hybride:
 | `npm run count:dataconnect -- --dry-run` | OK, prepare le comptage local/sandbox sans lecture ni mutation. |
 | `npm run count:dataconnect -- --dry-run --output=tmp/checkpoint-002/counts-dry-run.json` | OK, ecrit une preuve locale ignoree par git. |
 | `npm run count:dataconnect -- --dry-run --output=docs/counts.json` | KO attendu, le script refuse une preuve de comptage hors `tmp/`. |
-| `npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json` | OK, archive la liste de 113 fichiers seed sandbox sans mutation distante. |
+| `npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json` | OK, archive la liste de 113 fichiers seed sandbox sans mutation distante. |
 | `npm run provision:sql-users -- --file=dataconnect/user_profiles.example.json --dry-run` | OK, valide le format de provisioning sans mutation et masque UID/email dans la sortie. |
 | `npm run checkpoint:002:local` | OK le 2026-05-17 14:44 +02:00, enchaine CI sandbox locale, audit front, dry-run comptage archive sous `tmp/`, dry-run seed sandbox archive sous `tmp/` et dry-run provisioning. |
 | `npm run checkpoint:002:emulator` | OK avec emulateur local propre, orchestre seeds, verifies, comptage pre-RBAC et verification RBAC. |

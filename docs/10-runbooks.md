@@ -227,16 +227,16 @@ Le seed sandbox ecrit dans une base distante reelle. Il est prepare par script g
 Dry-run sans mutation:
 
 ```bash
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 ```
 
 Execution reelle sandbox, uniquement apres validation:
 
 ```bash
-ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all
+ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel
 ```
 
-Le script execute `dataconnect/seed_data.gql`, puis les chunks `dataconnect/previsionnel_seed/*.gql`. En cas d'echec partiel, ne pas supprimer de donnees: noter le fichier en erreur et corriger avant relance validee.
+Le script execute les chunks Excel `dataconnect/previsionnel_seed/*.gql`. Il ne charge plus `dataconnect/seed_data.gql` par defaut, car ce fichier contient des clients/chantiers/factures demo. En cas d'echec partiel, ne pas supprimer de donnees: noter le fichier en erreur et corriger avant relance validee.
 
 ### Action risquee: provisioning `User` SQL sandbox
 

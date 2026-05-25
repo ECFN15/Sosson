@@ -6,18 +6,30 @@ const SERVICE = 'sosson-sandbox-service'
 const LOCATION = 'europe-west9'
 const PROJECT = 'sosson-sandbox'
 const PREVISIONNEL_SEED_DIR = resolve('dataconnect/previsionnel_seed')
+const FIREBASE_CLI = process.env.FIREBASE_CLI || 'firebase'
 
 const args = new Set(process.argv.slice(2))
 const kindArg = process.argv.find(arg => arg.startsWith('--kind='))
-const kind = kindArg?.slice('--kind='.length) || 'all'
+const kind = kindArg?.slice('--kind='.length) || 'previsionnel'
 const outputArg = process.argv.find(arg => arg.startsWith('--output='))
 const outputPath = outputArg?.slice('--output='.length)
 const dryRun = args.has('--dry-run')
 const sandbox = args.has('--sandbox')
 const yesSandbox = args.has('--yes-sandbox')
+const includeDemoOperationalSeed = args.has('--include-demo-operational-seed')
 
 if (!['operational', 'previsionnel', 'all'].includes(kind)) {
   console.error('--kind doit valoir operational, previsionnel ou all.')
+  process.exit(1)
+}
+
+if ((kind === 'operational' || kind === 'all') && !includeDemoOperationalSeed) {
+  console.error(
+    'Seed operationnel demo bloque.\n' +
+      '`dataconnect/seed_data.gql` contient des clients/chantiers/factures fictifs historiques.\n' +
+      'Utiliser --kind=previsionnel pour importer uniquement la base Excel.\n' +
+      'Ajouter --include-demo-operational-seed seulement pour une sandbox jetable ou un test local explicitement fictif.'
+  )
   process.exit(1)
 }
 
@@ -92,9 +104,9 @@ if (dryRun) {
 
 if (!sandbox || !yesSandbox || process.env.ALLOW_SANDBOX_DATACONNECT_SEED !== 'true') {
   console.error(
-    'Seed sandbox bloque.\n' +
+      'Seed sandbox bloque.\n' +
       'Cette action ecrit dans une base distante reelle. Relancer seulement apres validation humaine avec:\n' +
-      'ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all'
+      'ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel'
   )
   process.exit(1)
 }
@@ -105,10 +117,8 @@ for (const [index, file] of seedFiles.entries()) {
   console.log(`[${index + 1}/${seedFiles.length}] Executing ${file}`)
 
   const result = spawnSync(
-    'npx',
+    FIREBASE_CLI,
     [
-      '-y',
-      'firebase-tools@latest',
       'dataconnect:execute',
       file,
       '--service',

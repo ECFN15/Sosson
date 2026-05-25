@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits037: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:BL126",
+      sourceSheet: "2025-26",
+      cellRef: "BL126",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL127",
+      sourceSheet: "2025-26",
+      cellRef: "BL127",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL129",
+      sourceSheet: "2025-26",
+      cellRef: "BL129",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL130",
+      sourceSheet: "2025-26",
+      cellRef: "BL130",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL132",
+      sourceSheet: "2025-26",
+      cellRef: "BL132",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL134",
+      sourceSheet: "2025-26",
+      cellRef: "BL134",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL135",
+      sourceSheet: "2025-26",
+      cellRef: "BL135",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL136",
+      sourceSheet: "2025-26",
+      cellRef: "BL136",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL137",
+      sourceSheet: "2025-26",
+      cellRef: "BL137",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL138",
+      sourceSheet: "2025-26",
+      cellRef: "BL138",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL139",
+      sourceSheet: "2025-26",
+      cellRef: "BL139",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL140",
+      sourceSheet: "2025-26",
+      cellRef: "BL140",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL141",
+      sourceSheet: "2025-26",
+      cellRef: "BL141",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL142",
+      sourceSheet: "2025-26",
+      cellRef: "BL142",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL143",
+      sourceSheet: "2025-26",
+      cellRef: "BL143",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL144",
+      sourceSheet: "2025-26",
+      cellRef: "BL144",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL145",
+      sourceSheet: "2025-26",
+      cellRef: "BL145",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL146",
+      sourceSheet: "2025-26",
+      cellRef: "BL146",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL147",
+      sourceSheet: "2025-26",
+      cellRef: "BL147",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL148",
+      sourceSheet: "2025-26",
+      cellRef: "BL148",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL149",
+      sourceSheet: "2025-26",
+      cellRef: "BL149",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL150",
+      sourceSheet: "2025-26",
+      cellRef: "BL150",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL151",
+      sourceSheet: "2025-26",
+      cellRef: "BL151",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL152",
+      sourceSheet: "2025-26",
+      cellRef: "BL152",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL153",
+      sourceSheet: "2025-26",
+      cellRef: "BL153",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL154",
+      sourceSheet: "2025-26",
+      cellRef: "BL154",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL155",
+      sourceSheet: "2025-26",
+      cellRef: "BL155",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL156",
+      sourceSheet: "2025-26",
+      cellRef: "BL156",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL157",
+      sourceSheet: "2025-26",
+      cellRef: "BL157",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL158",
+      sourceSheet: "2025-26",
+      cellRef: "BL158",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL159",
+      sourceSheet: "2025-26",
+      cellRef: "BL159",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL160",
+      sourceSheet: "2025-26",
+      cellRef: "BL160",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL161",
+      sourceSheet: "2025-26",
+      cellRef: "BL161",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL162",
+      sourceSheet: "2025-26",
+      cellRef: "BL162",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL163",
+      sourceSheet: "2025-26",
+      cellRef: "BL163",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL164",
+      sourceSheet: "2025-26",
+      cellRef: "BL164",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL165",
+      sourceSheet: "2025-26",
+      cellRef: "BL165",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL166",
+      sourceSheet: "2025-26",
+      cellRef: "BL166",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BL167",
+      sourceSheet: "2025-26",
+      cellRef: "BL167",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN23",
+      sourceSheet: "2025-26",
+      cellRef: "BN23",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN27",
+      sourceSheet: "2025-26",
+      cellRef: "BN27",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN28",
+      sourceSheet: "2025-26",
+      cellRef: "BN28",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN29",
+      sourceSheet: "2025-26",
+      cellRef: "BN29",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN30",
+      sourceSheet: "2025-26",
+      cellRef: "BN30",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN31",
+      sourceSheet: "2025-26",
+      cellRef: "BN31",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN32",
+      sourceSheet: "2025-26",
+      cellRef: "BN32",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN33",
+      sourceSheet: "2025-26",
+      cellRef: "BN33",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN34",
+      sourceSheet: "2025-26",
+      cellRef: "BN34",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN35",
+      sourceSheet: "2025-26",
+      cellRef: "BN35",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:BN36",
+      sourceSheet: "2025-26",
+      cellRef: "BN36",
+      valueText: null,
+      numericValue: 0
+    }
+  ])
+}

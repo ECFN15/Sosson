@@ -92,7 +92,7 @@ npm run check:operational-lifecycle-decisions
 ### 5. Dry-runs sans mutation distante
 
 ```bash
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 npm run count:dataconnect -- --dry-run --output=tmp/checkpoint-002/counts-dry-run.json
 npm run provision:sql-users -- --file=dataconnect/user_profiles.example.json --dry-run
 ```
@@ -188,7 +188,7 @@ Si le déploiement change le schéma, collecter:
 
 ```bash
 $env:ALLOW_SANDBOX_DATACONNECT_SEED='true'
-npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all --output=tmp/checkpoint-002/seed-sandbox-real.json
+npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-real.json
 ```
 
 Ensuite relire les compteurs sandbox avec la commande prévue par le repo, seulement après vérification des flags de sécurité du script.

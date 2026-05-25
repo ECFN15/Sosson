@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Cloud, FileSpreadsheet, Filter, Loader2, Maximize2, Search, Send, TableProperties } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { loadPrevisionnelSheetFromSql } from '@/features/previsionnel/previsionnelSql'
+import { buildPrevisionnelSqlGridState } from '@/features/previsionnel/previsionnelSqlValues'
 import { currentPrevisionnelSheet } from '@/data/previsionnelCurrentSheet'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
 import { waitForFirebaseUser } from '@/lib/firebaseAuthState'
@@ -25,9 +26,6 @@ const typeLabels: Record<CurrentSheetLineType, string> = {
 const editableTypes: CurrentSheetLineType[] = ['chantier', 'commission', 'avoir', 'remboursement', 'facturation', 'example']
 const STORAGE_KEY = `sosson:previsionnel:${currentPrevisionnelSheet.sheet}:cell-updates`
 type SqlStatus = 'idle' | 'loading' | 'ready' | 'unavailable' | 'error'
-type SqlPrevisionnelSheet = Awaited<ReturnType<typeof loadPrevisionnelSheetFromSql>>
-type SqlPrevisionnelLine = SqlPrevisionnelSheet['lines'][number]
-type SqlPrevisionnelCellEdit = SqlPrevisionnelSheet['cellEdits'][number]
 
 function preloadSpreadsheetPage() {
   return import('@/pages/PrevisionnelSpreadsheetPage')
@@ -36,31 +34,6 @@ function preloadSpreadsheetPage() {
 function asDisplay(value: string | number | null | undefined) {
   if (value === null || value === undefined) return ''
   return String(value)
-}
-
-function buildSqlValues(lines: SqlPrevisionnelLine[], cellEdits: SqlPrevisionnelCellEdit[]) {
-  const values: SpreadsheetCellUpdates = {}
-
-  lines.forEach(line => {
-    values[`A${line.sourceRow}`] = line.caTce
-    values[`B${line.sourceRow}`] = line.clientName || line.rawName
-    values[`D${line.sourceRow}`] = line.caPrevision
-    values[`E${line.sourceRow}`] = line.caContrat
-
-    line.monthly.forEach(month => {
-      const pair = currentPrevisionnelSheet.monthPairs[month.monthOrder - 1]
-      if (!pair) return
-
-      values[`${pair.planned}${line.sourceRow}`] = month.planned
-      values[`${pair.realized}${line.sourceRow}`] = month.realized
-    })
-  })
-
-  cellEdits.forEach(cell => {
-    values[cell.cellRef] = cell.numericValue ?? cell.valueText ?? ''
-  })
-
-  return values
 }
 
 export function PrevisionnelPage() {
@@ -125,7 +98,7 @@ export function PrevisionnelPage() {
           return
         }
 
-        setSqlValues(buildSqlValues(lines, cellEdits))
+        setSqlValues(buildPrevisionnelSqlGridState(currentPrevisionnelSheet, lines, cellEdits).values)
         setSqlLineCount(lines.length)
         setSqlCellEditCount(cellEdits.length)
         setSqlStatus('ready')
@@ -172,28 +145,28 @@ export function PrevisionnelPage() {
         : 'Fallback local visible'
   const sourceDetail =
     sqlStatus === 'ready'
-      ? `${sqlLineCount} ligne(s) SQL + ${sqlCellEditCount} edit(s) exact(s)`
+      ? `${sqlLineCount} ligne(s) SQL + ${sqlCellEditCount} cellule(s) exactes`
       : 'Feuille TS et brouillon navigateur, pas une preuve sandbox distante'
   const kpiCards = [
     {
       label: 'CA prevision',
       value: euro(caPrevision),
-      detail: sqlStatus === 'ready' ? 'Colonne D relue SQL puis recalculee' : 'Colonne D fallback local recalculee',
+      detail: sqlStatus === 'ready' ? 'Cellule D171 selon la logique Excel' : 'Cellule D171 depuis la reference locale',
     },
     {
       label: 'CA contrat',
       value: euro(caContrat),
-      detail: sqlStatus === 'ready' ? 'Colonne E relue SQL puis recalculee' : 'Colonne E fallback local recalculee',
+      detail: sqlStatus === 'ready' ? 'Cellule E171 selon la logique Excel' : 'Cellule E171 depuis la reference locale',
     },
     {
-      label: 'Prevu mensuel',
+      label: 'Total feuille',
       value: euro(monthlyPlanned),
-      detail: sqlStatus === 'ready' ? 'AR:BO depuis SQL quand disponible' : 'AR:BO depuis feuille locale',
+      detail: sqlStatus === 'ready' ? 'Cellule F171 selon la logique Excel' : 'Cellule F171 depuis la reference locale',
     },
     {
       label: 'Cellules modifiees',
       value: editedCount.toLocaleString('fr-FR'),
-      detail: sqlStatus === 'ready' ? `${sqlCellEditCount} edit(s) SQL + brouillon navigateur` : 'Brouillon navigateur local',
+      detail: sqlStatus === 'ready' ? `${sqlCellEditCount} cellule(s) SQL + brouillon navigateur` : 'Brouillon navigateur local',
     },
   ]
 

@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits017: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:AZ137",
+      sourceSheet: "2025-26",
+      cellRef: "AZ137",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ138",
+      sourceSheet: "2025-26",
+      cellRef: "AZ138",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ139",
+      sourceSheet: "2025-26",
+      cellRef: "AZ139",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ140",
+      sourceSheet: "2025-26",
+      cellRef: "AZ140",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ141",
+      sourceSheet: "2025-26",
+      cellRef: "AZ141",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ142",
+      sourceSheet: "2025-26",
+      cellRef: "AZ142",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ143",
+      sourceSheet: "2025-26",
+      cellRef: "AZ143",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ144",
+      sourceSheet: "2025-26",
+      cellRef: "AZ144",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ145",
+      sourceSheet: "2025-26",
+      cellRef: "AZ145",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ146",
+      sourceSheet: "2025-26",
+      cellRef: "AZ146",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ147",
+      sourceSheet: "2025-26",
+      cellRef: "AZ147",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ148",
+      sourceSheet: "2025-26",
+      cellRef: "AZ148",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ149",
+      sourceSheet: "2025-26",
+      cellRef: "AZ149",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ150",
+      sourceSheet: "2025-26",
+      cellRef: "AZ150",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ151",
+      sourceSheet: "2025-26",
+      cellRef: "AZ151",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ152",
+      sourceSheet: "2025-26",
+      cellRef: "AZ152",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ153",
+      sourceSheet: "2025-26",
+      cellRef: "AZ153",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ154",
+      sourceSheet: "2025-26",
+      cellRef: "AZ154",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ155",
+      sourceSheet: "2025-26",
+      cellRef: "AZ155",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ156",
+      sourceSheet: "2025-26",
+      cellRef: "AZ156",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ157",
+      sourceSheet: "2025-26",
+      cellRef: "AZ157",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ158",
+      sourceSheet: "2025-26",
+      cellRef: "AZ158",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ159",
+      sourceSheet: "2025-26",
+      cellRef: "AZ159",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ160",
+      sourceSheet: "2025-26",
+      cellRef: "AZ160",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ161",
+      sourceSheet: "2025-26",
+      cellRef: "AZ161",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ162",
+      sourceSheet: "2025-26",
+      cellRef: "AZ162",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ163",
+      sourceSheet: "2025-26",
+      cellRef: "AZ163",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ164",
+      sourceSheet: "2025-26",
+      cellRef: "AZ164",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ165",
+      sourceSheet: "2025-26",
+      cellRef: "AZ165",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ166",
+      sourceSheet: "2025-26",
+      cellRef: "AZ166",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AZ167",
+      sourceSheet: "2025-26",
+      cellRef: "AZ167",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:B7",
+      sourceSheet: "2025-26",
+      cellRef: "B7",
+      valueText: "Commission ",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B9",
+      sourceSheet: "2025-26",
+      cellRef: "B9",
+      valueText: "Commission BAZIRE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B10",
+      sourceSheet: "2025-26",
+      cellRef: "B10",
+      valueText: "Commission ESCANOR",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B11",
+      sourceSheet: "2025-26",
+      cellRef: "B11",
+      valueText: "Commission BACON",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B12",
+      sourceSheet: "2025-26",
+      cellRef: "B12",
+      valueText: "Commission PIERRE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B13",
+      sourceSheet: "2025-26",
+      cellRef: "B13",
+      valueText: "Commission CANU",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B14",
+      sourceSheet: "2025-26",
+      cellRef: "B14",
+      valueText: "Commission PIEPLU",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B15",
+      sourceSheet: "2025-26",
+      cellRef: "B15",
+      valueText: "Commission AUVRAY",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B16",
+      sourceSheet: "2025-26",
+      cellRef: "B16",
+      valueText: "Commission LGO",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B17",
+      sourceSheet: "2025-26",
+      cellRef: "B17",
+      valueText: "Commission NM ",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B18",
+      sourceSheet: "2025-26",
+      cellRef: "B18",
+      valueText: "Constructys remboursement formation",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B19",
+      sourceSheet: "2025-26",
+      cellRef: "B19",
+      valueText: "facture location NESTA+FIAT",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B20",
+      sourceSheet: "2025-26",
+      cellRef: "B20",
+      valueText: "ENP fourniture Laine 80mm",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B21",
+      sourceSheet: "2025-26",
+      cellRef: "B21",
+      valueText: "Facturation CLEAN PAYSAGE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B22",
+      sourceSheet: "2025-26",
+      cellRef: "B22",
+      valueText: "Facturation BE HOME",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B23",
+      sourceSheet: "2025-26",
+      cellRef: "B23",
+      valueText: "SEC à Moulines (pour chantier poret)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B24",
+      sourceSheet: "2025-26",
+      cellRef: "B24",
+      valueText: "loret avoir",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B27",
+      sourceSheet: "2025-26",
+      cellRef: "B27",
+      valueText: "CHARLET",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B28",
+      sourceSheet: "2025-26",
+      cellRef: "B28",
+      valueText: "LEPROVOT",
+      numericValue: null
+    }
+  ])
+}

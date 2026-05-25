@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits018: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:B29",
+      sourceSheet: "2025-26",
+      cellRef: "B29",
+      valueText: "BRIERE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B30",
+      sourceSheet: "2025-26",
+      cellRef: "B30",
+      valueText: "DUTRIPON R",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B31",
+      sourceSheet: "2025-26",
+      cellRef: "B31",
+      valueText: "HUCHET",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B32",
+      sourceSheet: "2025-26",
+      cellRef: "B32",
+      valueText: "CRUCHON  LEGUEVASQUES",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B33",
+      sourceSheet: "2025-26",
+      cellRef: "B33",
+      valueText: "CAMPAGNILE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B34",
+      sourceSheet: "2025-26",
+      cellRef: "B34",
+      valueText: "GAUDIN",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B35",
+      sourceSheet: "2025-26",
+      cellRef: "B35",
+      valueText: "RAVENEL",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B36",
+      sourceSheet: "2025-26",
+      cellRef: "B36",
+      valueText: "SEEGERS ",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B37",
+      sourceSheet: "2025-26",
+      cellRef: "B37",
+      valueText: "BRETEAU",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B38",
+      sourceSheet: "2025-26",
+      cellRef: "B38",
+      valueText: "HERMILLY CARREAU",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B39",
+      sourceSheet: "2025-26",
+      cellRef: "B39",
+      valueText: "GUILLOT 1",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B40",
+      sourceSheet: "2025-26",
+      cellRef: "B40",
+      valueText: "GUILLOT 2",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B41",
+      sourceSheet: "2025-26",
+      cellRef: "B41",
+      valueText: "GUILLOT 18",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B42",
+      sourceSheet: "2025-26",
+      cellRef: "B42",
+      valueText: "SIMONET",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B43",
+      sourceSheet: "2025-26",
+      cellRef: "B43",
+      valueText: "MORIVAL (abris cloture)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B44",
+      sourceSheet: "2025-26",
+      cellRef: "B44",
+      valueText: "DUFOUR G",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B46",
+      sourceSheet: "2025-26",
+      cellRef: "B46",
+      valueText: "BOUTY",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B47",
+      sourceSheet: "2025-26",
+      cellRef: "B47",
+      valueText: "SAMSON Agnes",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B48",
+      sourceSheet: "2025-26",
+      cellRef: "B48",
+      valueText: "BARON",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B49",
+      sourceSheet: "2025-26",
+      cellRef: "B49",
+      valueText: "VALSEMEY",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B50",
+      sourceSheet: "2025-26",
+      cellRef: "B50",
+      valueText: "DEFRETIN Q",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B51",
+      sourceSheet: "2025-26",
+      cellRef: "B51",
+      valueText: "MONIN M ",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B52",
+      sourceSheet: "2025-26",
+      cellRef: "B52",
+      valueText: "GUESNON",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B53",
+      sourceSheet: "2025-26",
+      cellRef: "B53",
+      valueText: "DELASALLE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B54",
+      sourceSheet: "2025-26",
+      cellRef: "B54",
+      valueText: "VIRAY (ami larcher)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B55",
+      sourceSheet: "2025-26",
+      cellRef: "B55",
+      valueText: "COISSAC ",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B56",
+      sourceSheet: "2025-26",
+      cellRef: "B56",
+      valueText: "GUAY LEMAZURIER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B57",
+      sourceSheet: "2025-26",
+      cellRef: "B57",
+      valueText: "GERVAIS",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B58",
+      sourceSheet: "2025-26",
+      cellRef: "B58",
+      valueText: "GESLAIN",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B59",
+      sourceSheet: "2025-26",
+      cellRef: "B59",
+      valueText: "DECLERCK NORGOLL",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B60",
+      sourceSheet: "2025-26",
+      cellRef: "B60",
+      valueText: "RAOULT",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B61",
+      sourceSheet: "2025-26",
+      cellRef: "B61",
+      valueText: "BEAUSSIER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B62",
+      sourceSheet: "2025-26",
+      cellRef: "B62",
+      valueText: "CHAPRON",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B63",
+      sourceSheet: "2025-26",
+      cellRef: "B63",
+      valueText: "CHAUVEAU",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B64",
+      sourceSheet: "2025-26",
+      cellRef: "B64",
+      valueText: "DENOS KOPP",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B65",
+      sourceSheet: "2025-26",
+      cellRef: "B65",
+      valueText: "GAUDIN",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B66",
+      sourceSheet: "2025-26",
+      cellRef: "B66",
+      valueText: "GLOWACKI",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B67",
+      sourceSheet: "2025-26",
+      cellRef: "B67",
+      valueText: "LAUVERGNE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B68",
+      sourceSheet: "2025-26",
+      cellRef: "B68",
+      valueText: "GUILLEMOT",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B69",
+      sourceSheet: "2025-26",
+      cellRef: "B69",
+      valueText: "KUFEL",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B70",
+      sourceSheet: "2025-26",
+      cellRef: "B70",
+      valueText: "LAURENT",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B71",
+      sourceSheet: "2025-26",
+      cellRef: "B71",
+      valueText: "LECLERC DUMARAIS",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B72",
+      sourceSheet: "2025-26",
+      cellRef: "B72",
+      valueText: "LEMOIGNE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B73",
+      sourceSheet: "2025-26",
+      cellRef: "B73",
+      valueText: "LEPLUS",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B74",
+      sourceSheet: "2025-26",
+      cellRef: "B74",
+      valueText: "LEPRETE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B75",
+      sourceSheet: "2025-26",
+      cellRef: "B75",
+      valueText: "LEROYER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B76",
+      sourceSheet: "2025-26",
+      cellRef: "B76",
+      valueText: "OLIVIER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B77",
+      sourceSheet: "2025-26",
+      cellRef: "B77",
+      valueText: "URBAIN",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B78",
+      sourceSheet: "2025-26",
+      cellRef: "B78",
+      valueText: "SIGNORET",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B79",
+      sourceSheet: "2025-26",
+      cellRef: "B79",
+      valueText: "CAMBAY",
+      numericValue: null
+    }
+  ])
+}

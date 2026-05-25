@@ -33,6 +33,9 @@ This README will guide you through the process of using the generated JavaScript
   - [*ListPrevisionnelLinesByExercise*](#listprevisionnellinesbyexercise)
   - [*SearchClientAliases*](#searchclientaliases)
   - [*ListPrevisionnelCellEdits*](#listprevisionnelcelledits)
+  - [*GetPrevisionnelWorkbookVersion*](#getprevisionnelworkbookversion)
+  - [*ListPrevisionnelWorkbookVersions*](#listprevisionnelworkbookversions)
+  - [*GetLatestGeneratedPrevisionnelWorkbookVersion*](#getlatestgeneratedprevisionnelworkbookversion)
   - [*ListEmailThreads*](#listemailthreads)
   - [*ListEmailThreadsByChantier*](#listemailthreadsbychantier)
   - [*ListUnreadEmailThreads*](#listunreademailthreads)
@@ -79,6 +82,10 @@ This README will guide you through the process of using the generated JavaScript
   - [*UpdatePrevisionnelLineAmounts*](#updateprevisionnellineamounts)
   - [*LinkPrevisionnelLineToChantier*](#linkprevisionnellinetochantier)
   - [*UpsertPrevisionnelCellEdit*](#upsertprevisionnelcelledit)
+  - [*CreatePrevisionnelWorkbookVersionPending*](#createprevisionnelworkbookversionpending)
+  - [*MarkPrevisionnelWorkbookVersionGenerating*](#markprevisionnelworkbookversiongenerating)
+  - [*MarkPrevisionnelWorkbookVersionGenerated*](#markprevisionnelworkbookversiongenerated)
+  - [*MarkPrevisionnelWorkbookVersionFailed*](#markprevisionnelworkbookversionfailed)
   - [*CreateEmailThread*](#createemailthread)
   - [*UpdateEmailThreadStatusAndLinks*](#updateemailthreadstatusandlinks)
   - [*CreateEmailMessage*](#createemailmessage)
@@ -2665,6 +2672,9 @@ export interface ListPrevisionnelExercisesData {
       workbook: string;
       sourcePath: string;
       workbookHash?: string | null;
+      sourceStoragePath?: string | null;
+      sourceSha256?: string | null;
+      originalFileName?: string | null;
       importedAt: TimestampString;
     } & PrevisionnelImportBatch_Key;
   } & PrevisionnelExercise_Key)[];
@@ -3042,7 +3052,13 @@ export interface ListPrevisionnelCellEditsData {
     cellRef: string;
     valueText?: string | null;
     numericValue?: number | null;
-    dateModification: TimestampString;
+    author?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
   } & PrevisionnelCellEdit_Key)[];
 }
 ```
@@ -3106,6 +3122,420 @@ console.log(data.previsionnelCellEdits);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.previsionnelCellEdits);
+});
+```
+
+## GetPrevisionnelWorkbookVersion
+You can execute the `GetPrevisionnelWorkbookVersion` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+getPrevisionnelWorkbookVersion(vars: GetPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+
+interface GetPrevisionnelWorkbookVersionRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetPrevisionnelWorkbookVersionVariables): QueryRef<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+}
+export const getPrevisionnelWorkbookVersionRef: GetPrevisionnelWorkbookVersionRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getPrevisionnelWorkbookVersion(dc: DataConnect, vars: GetPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+
+interface GetPrevisionnelWorkbookVersionRef {
+  ...
+  (dc: DataConnect, vars: GetPrevisionnelWorkbookVersionVariables): QueryRef<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+}
+export const getPrevisionnelWorkbookVersionRef: GetPrevisionnelWorkbookVersionRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getPrevisionnelWorkbookVersionRef:
+```typescript
+const name = getPrevisionnelWorkbookVersionRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetPrevisionnelWorkbookVersion` query requires an argument of type `GetPrevisionnelWorkbookVersionVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetPrevisionnelWorkbookVersionVariables {
+  id: string;
+}
+```
+### Return Type
+Recall that executing the `GetPrevisionnelWorkbookVersion` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetPrevisionnelWorkbookVersionData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetPrevisionnelWorkbookVersionData {
+  previsionnelWorkbookVersion?: {
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generationStartedAt?: TimestampString | null;
+    generatedAt?: TimestampString | null;
+    failedAt?: TimestampString | null;
+    errorMessage?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key;
+}
+```
+### Using `GetPrevisionnelWorkbookVersion`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getPrevisionnelWorkbookVersion, GetPrevisionnelWorkbookVersionVariables } from '@dataconnect/generated';
+
+// The `GetPrevisionnelWorkbookVersion` query requires an argument of type `GetPrevisionnelWorkbookVersionVariables`:
+const getPrevisionnelWorkbookVersionVars: GetPrevisionnelWorkbookVersionVariables = {
+  id: ..., 
+};
+
+// Call the `getPrevisionnelWorkbookVersion()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getPrevisionnelWorkbookVersion(getPrevisionnelWorkbookVersionVars);
+// Variables can be defined inline as well.
+const { data } = await getPrevisionnelWorkbookVersion({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getPrevisionnelWorkbookVersion(dataConnect, getPrevisionnelWorkbookVersionVars);
+
+console.log(data.previsionnelWorkbookVersion);
+
+// Or, you can use the `Promise` API.
+getPrevisionnelWorkbookVersion(getPrevisionnelWorkbookVersionVars).then((response) => {
+  const data = response.data;
+  console.log(data.previsionnelWorkbookVersion);
+});
+```
+
+### Using `GetPrevisionnelWorkbookVersion`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getPrevisionnelWorkbookVersionRef, GetPrevisionnelWorkbookVersionVariables } from '@dataconnect/generated';
+
+// The `GetPrevisionnelWorkbookVersion` query requires an argument of type `GetPrevisionnelWorkbookVersionVariables`:
+const getPrevisionnelWorkbookVersionVars: GetPrevisionnelWorkbookVersionVariables = {
+  id: ..., 
+};
+
+// Call the `getPrevisionnelWorkbookVersionRef()` function to get a reference to the query.
+const ref = getPrevisionnelWorkbookVersionRef(getPrevisionnelWorkbookVersionVars);
+// Variables can be defined inline as well.
+const ref = getPrevisionnelWorkbookVersionRef({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getPrevisionnelWorkbookVersionRef(dataConnect, getPrevisionnelWorkbookVersionVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.previsionnelWorkbookVersion);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.previsionnelWorkbookVersion);
+});
+```
+
+## ListPrevisionnelWorkbookVersions
+You can execute the `ListPrevisionnelWorkbookVersions` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+listPrevisionnelWorkbookVersions(vars: ListPrevisionnelWorkbookVersionsVariables, options?: ExecuteQueryOptions): QueryPromise<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+
+interface ListPrevisionnelWorkbookVersionsRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListPrevisionnelWorkbookVersionsVariables): QueryRef<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+}
+export const listPrevisionnelWorkbookVersionsRef: ListPrevisionnelWorkbookVersionsRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+listPrevisionnelWorkbookVersions(dc: DataConnect, vars: ListPrevisionnelWorkbookVersionsVariables, options?: ExecuteQueryOptions): QueryPromise<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+
+interface ListPrevisionnelWorkbookVersionsRef {
+  ...
+  (dc: DataConnect, vars: ListPrevisionnelWorkbookVersionsVariables): QueryRef<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+}
+export const listPrevisionnelWorkbookVersionsRef: ListPrevisionnelWorkbookVersionsRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the listPrevisionnelWorkbookVersionsRef:
+```typescript
+const name = listPrevisionnelWorkbookVersionsRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `ListPrevisionnelWorkbookVersions` query requires an argument of type `ListPrevisionnelWorkbookVersionsVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface ListPrevisionnelWorkbookVersionsVariables {
+  sourceSheet: string;
+}
+```
+### Return Type
+Recall that executing the `ListPrevisionnelWorkbookVersions` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `ListPrevisionnelWorkbookVersionsData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface ListPrevisionnelWorkbookVersionsData {
+  previsionnelWorkbookVersions: ({
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generationStartedAt?: TimestampString | null;
+    generatedAt?: TimestampString | null;
+    failedAt?: TimestampString | null;
+    errorMessage?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key)[];
+}
+```
+### Using `ListPrevisionnelWorkbookVersions`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, listPrevisionnelWorkbookVersions, ListPrevisionnelWorkbookVersionsVariables } from '@dataconnect/generated';
+
+// The `ListPrevisionnelWorkbookVersions` query requires an argument of type `ListPrevisionnelWorkbookVersionsVariables`:
+const listPrevisionnelWorkbookVersionsVars: ListPrevisionnelWorkbookVersionsVariables = {
+  sourceSheet: ..., 
+};
+
+// Call the `listPrevisionnelWorkbookVersions()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await listPrevisionnelWorkbookVersions(listPrevisionnelWorkbookVersionsVars);
+// Variables can be defined inline as well.
+const { data } = await listPrevisionnelWorkbookVersions({ sourceSheet: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await listPrevisionnelWorkbookVersions(dataConnect, listPrevisionnelWorkbookVersionsVars);
+
+console.log(data.previsionnelWorkbookVersions);
+
+// Or, you can use the `Promise` API.
+listPrevisionnelWorkbookVersions(listPrevisionnelWorkbookVersionsVars).then((response) => {
+  const data = response.data;
+  console.log(data.previsionnelWorkbookVersions);
+});
+```
+
+### Using `ListPrevisionnelWorkbookVersions`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, listPrevisionnelWorkbookVersionsRef, ListPrevisionnelWorkbookVersionsVariables } from '@dataconnect/generated';
+
+// The `ListPrevisionnelWorkbookVersions` query requires an argument of type `ListPrevisionnelWorkbookVersionsVariables`:
+const listPrevisionnelWorkbookVersionsVars: ListPrevisionnelWorkbookVersionsVariables = {
+  sourceSheet: ..., 
+};
+
+// Call the `listPrevisionnelWorkbookVersionsRef()` function to get a reference to the query.
+const ref = listPrevisionnelWorkbookVersionsRef(listPrevisionnelWorkbookVersionsVars);
+// Variables can be defined inline as well.
+const ref = listPrevisionnelWorkbookVersionsRef({ sourceSheet: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = listPrevisionnelWorkbookVersionsRef(dataConnect, listPrevisionnelWorkbookVersionsVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.previsionnelWorkbookVersions);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.previsionnelWorkbookVersions);
+});
+```
+
+## GetLatestGeneratedPrevisionnelWorkbookVersion
+You can execute the `GetLatestGeneratedPrevisionnelWorkbookVersion` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+getLatestGeneratedPrevisionnelWorkbookVersion(vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+
+interface GetLatestGeneratedPrevisionnelWorkbookVersionRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables): QueryRef<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+}
+export const getLatestGeneratedPrevisionnelWorkbookVersionRef: GetLatestGeneratedPrevisionnelWorkbookVersionRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getLatestGeneratedPrevisionnelWorkbookVersion(dc: DataConnect, vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+
+interface GetLatestGeneratedPrevisionnelWorkbookVersionRef {
+  ...
+  (dc: DataConnect, vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables): QueryRef<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+}
+export const getLatestGeneratedPrevisionnelWorkbookVersionRef: GetLatestGeneratedPrevisionnelWorkbookVersionRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getLatestGeneratedPrevisionnelWorkbookVersionRef:
+```typescript
+const name = getLatestGeneratedPrevisionnelWorkbookVersionRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetLatestGeneratedPrevisionnelWorkbookVersion` query requires an argument of type `GetLatestGeneratedPrevisionnelWorkbookVersionVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetLatestGeneratedPrevisionnelWorkbookVersionVariables {
+  sourceSheet: string;
+}
+```
+### Return Type
+Recall that executing the `GetLatestGeneratedPrevisionnelWorkbookVersion` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetLatestGeneratedPrevisionnelWorkbookVersionData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetLatestGeneratedPrevisionnelWorkbookVersionData {
+  previsionnelWorkbookVersions: ({
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generatedAt?: TimestampString | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key)[];
+}
+```
+### Using `GetLatestGeneratedPrevisionnelWorkbookVersion`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getLatestGeneratedPrevisionnelWorkbookVersion, GetLatestGeneratedPrevisionnelWorkbookVersionVariables } from '@dataconnect/generated';
+
+// The `GetLatestGeneratedPrevisionnelWorkbookVersion` query requires an argument of type `GetLatestGeneratedPrevisionnelWorkbookVersionVariables`:
+const getLatestGeneratedPrevisionnelWorkbookVersionVars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables = {
+  sourceSheet: ..., 
+};
+
+// Call the `getLatestGeneratedPrevisionnelWorkbookVersion()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getLatestGeneratedPrevisionnelWorkbookVersion(getLatestGeneratedPrevisionnelWorkbookVersionVars);
+// Variables can be defined inline as well.
+const { data } = await getLatestGeneratedPrevisionnelWorkbookVersion({ sourceSheet: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getLatestGeneratedPrevisionnelWorkbookVersion(dataConnect, getLatestGeneratedPrevisionnelWorkbookVersionVars);
+
+console.log(data.previsionnelWorkbookVersions);
+
+// Or, you can use the `Promise` API.
+getLatestGeneratedPrevisionnelWorkbookVersion(getLatestGeneratedPrevisionnelWorkbookVersionVars).then((response) => {
+  const data = response.data;
+  console.log(data.previsionnelWorkbookVersions);
+});
+```
+
+### Using `GetLatestGeneratedPrevisionnelWorkbookVersion`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getLatestGeneratedPrevisionnelWorkbookVersionRef, GetLatestGeneratedPrevisionnelWorkbookVersionVariables } from '@dataconnect/generated';
+
+// The `GetLatestGeneratedPrevisionnelWorkbookVersion` query requires an argument of type `GetLatestGeneratedPrevisionnelWorkbookVersionVariables`:
+const getLatestGeneratedPrevisionnelWorkbookVersionVars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables = {
+  sourceSheet: ..., 
+};
+
+// Call the `getLatestGeneratedPrevisionnelWorkbookVersionRef()` function to get a reference to the query.
+const ref = getLatestGeneratedPrevisionnelWorkbookVersionRef(getLatestGeneratedPrevisionnelWorkbookVersionVars);
+// Variables can be defined inline as well.
+const ref = getLatestGeneratedPrevisionnelWorkbookVersionRef({ sourceSheet: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getLatestGeneratedPrevisionnelWorkbookVersionRef(dataConnect, getLatestGeneratedPrevisionnelWorkbookVersionVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.previsionnelWorkbookVersions);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.previsionnelWorkbookVersions);
 });
 ```
 
@@ -8976,6 +9406,9 @@ export interface CreatePrevisionnelImportBatchVariables {
   workbook: string;
   sourcePath: string;
   workbookHash?: string | null;
+  sourceStoragePath?: string | null;
+  sourceSha256?: string | null;
+  originalFileName?: string | null;
   notes?: string | null;
 }
 ```
@@ -9001,6 +9434,9 @@ const createPrevisionnelImportBatchVars: CreatePrevisionnelImportBatchVariables 
   workbook: ..., 
   sourcePath: ..., 
   workbookHash: ..., // optional
+  sourceStoragePath: ..., // optional
+  sourceSha256: ..., // optional
+  originalFileName: ..., // optional
   notes: ..., // optional
 };
 
@@ -9008,7 +9444,7 @@ const createPrevisionnelImportBatchVars: CreatePrevisionnelImportBatchVariables 
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await createPrevisionnelImportBatch(createPrevisionnelImportBatchVars);
 // Variables can be defined inline as well.
-const { data } = await createPrevisionnelImportBatch({ workbook: ..., sourcePath: ..., workbookHash: ..., notes: ..., });
+const { data } = await createPrevisionnelImportBatch({ workbook: ..., sourcePath: ..., workbookHash: ..., sourceStoragePath: ..., sourceSha256: ..., originalFileName: ..., notes: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -9036,13 +9472,16 @@ const createPrevisionnelImportBatchVars: CreatePrevisionnelImportBatchVariables 
   workbook: ..., 
   sourcePath: ..., 
   workbookHash: ..., // optional
+  sourceStoragePath: ..., // optional
+  sourceSha256: ..., // optional
+  originalFileName: ..., // optional
   notes: ..., // optional
 };
 
 // Call the `createPrevisionnelImportBatchRef()` function to get a reference to the mutation.
 const ref = createPrevisionnelImportBatchRef(createPrevisionnelImportBatchVars);
 // Variables can be defined inline as well.
-const ref = createPrevisionnelImportBatchRef({ workbook: ..., sourcePath: ..., workbookHash: ..., notes: ..., });
+const ref = createPrevisionnelImportBatchRef({ workbook: ..., sourcePath: ..., workbookHash: ..., sourceStoragePath: ..., sourceSha256: ..., originalFileName: ..., notes: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -9571,6 +10010,505 @@ executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.query);
   console.log(data.previsionnelCellEdit_upsert);
+});
+```
+
+## CreatePrevisionnelWorkbookVersionPending
+You can execute the `CreatePrevisionnelWorkbookVersionPending` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+createPrevisionnelWorkbookVersionPending(vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationPromise<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+
+interface CreatePrevisionnelWorkbookVersionPendingRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationRef<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+}
+export const createPrevisionnelWorkbookVersionPendingRef: CreatePrevisionnelWorkbookVersionPendingRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+createPrevisionnelWorkbookVersionPending(dc: DataConnect, vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationPromise<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+
+interface CreatePrevisionnelWorkbookVersionPendingRef {
+  ...
+  (dc: DataConnect, vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationRef<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+}
+export const createPrevisionnelWorkbookVersionPendingRef: CreatePrevisionnelWorkbookVersionPendingRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the createPrevisionnelWorkbookVersionPendingRef:
+```typescript
+const name = createPrevisionnelWorkbookVersionPendingRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `CreatePrevisionnelWorkbookVersionPending` mutation requires an argument of type `CreatePrevisionnelWorkbookVersionPendingVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface CreatePrevisionnelWorkbookVersionPendingVariables {
+  id: string;
+  batchId?: UUIDString | null;
+  sourceSheet: string;
+  storagePath: string;
+  currentStoragePath: string;
+  baseStoragePath?: string | null;
+  editCount: number;
+}
+```
+### Return Type
+Recall that executing the `CreatePrevisionnelWorkbookVersionPending` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `CreatePrevisionnelWorkbookVersionPendingData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface CreatePrevisionnelWorkbookVersionPendingData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_insert: PrevisionnelWorkbookVersion_Key;
+}
+```
+### Using `CreatePrevisionnelWorkbookVersionPending`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, createPrevisionnelWorkbookVersionPending, CreatePrevisionnelWorkbookVersionPendingVariables } from '@dataconnect/generated';
+
+// The `CreatePrevisionnelWorkbookVersionPending` mutation requires an argument of type `CreatePrevisionnelWorkbookVersionPendingVariables`:
+const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVersionPendingVariables = {
+  id: ..., 
+  batchId: ..., // optional
+  sourceSheet: ..., 
+  storagePath: ..., 
+  currentStoragePath: ..., 
+  baseStoragePath: ..., // optional
+  editCount: ..., 
+};
+
+// Call the `createPrevisionnelWorkbookVersionPending()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await createPrevisionnelWorkbookVersionPending(createPrevisionnelWorkbookVersionPendingVars);
+// Variables can be defined inline as well.
+const { data } = await createPrevisionnelWorkbookVersionPending({ id: ..., batchId: ..., sourceSheet: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await createPrevisionnelWorkbookVersionPending(dataConnect, createPrevisionnelWorkbookVersionPendingVars);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_insert);
+
+// Or, you can use the `Promise` API.
+createPrevisionnelWorkbookVersionPending(createPrevisionnelWorkbookVersionPendingVars).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_insert);
+});
+```
+
+### Using `CreatePrevisionnelWorkbookVersionPending`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, createPrevisionnelWorkbookVersionPendingRef, CreatePrevisionnelWorkbookVersionPendingVariables } from '@dataconnect/generated';
+
+// The `CreatePrevisionnelWorkbookVersionPending` mutation requires an argument of type `CreatePrevisionnelWorkbookVersionPendingVariables`:
+const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVersionPendingVariables = {
+  id: ..., 
+  batchId: ..., // optional
+  sourceSheet: ..., 
+  storagePath: ..., 
+  currentStoragePath: ..., 
+  baseStoragePath: ..., // optional
+  editCount: ..., 
+};
+
+// Call the `createPrevisionnelWorkbookVersionPendingRef()` function to get a reference to the mutation.
+const ref = createPrevisionnelWorkbookVersionPendingRef(createPrevisionnelWorkbookVersionPendingVars);
+// Variables can be defined inline as well.
+const ref = createPrevisionnelWorkbookVersionPendingRef({ id: ..., batchId: ..., sourceSheet: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = createPrevisionnelWorkbookVersionPendingRef(dataConnect, createPrevisionnelWorkbookVersionPendingVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_insert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_insert);
+});
+```
+
+## MarkPrevisionnelWorkbookVersionGenerating
+You can execute the `MarkPrevisionnelWorkbookVersionGenerating` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+markPrevisionnelWorkbookVersionGenerating(vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+
+interface MarkPrevisionnelWorkbookVersionGeneratingRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+}
+export const markPrevisionnelWorkbookVersionGeneratingRef: MarkPrevisionnelWorkbookVersionGeneratingRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+markPrevisionnelWorkbookVersionGenerating(dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+
+interface MarkPrevisionnelWorkbookVersionGeneratingRef {
+  ...
+  (dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+}
+export const markPrevisionnelWorkbookVersionGeneratingRef: MarkPrevisionnelWorkbookVersionGeneratingRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the markPrevisionnelWorkbookVersionGeneratingRef:
+```typescript
+const name = markPrevisionnelWorkbookVersionGeneratingRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `MarkPrevisionnelWorkbookVersionGenerating` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratingVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface MarkPrevisionnelWorkbookVersionGeneratingVariables {
+  id: string;
+  retryCount: number;
+}
+```
+### Return Type
+Recall that executing the `MarkPrevisionnelWorkbookVersionGenerating` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `MarkPrevisionnelWorkbookVersionGeneratingData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface MarkPrevisionnelWorkbookVersionGeneratingData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+```
+### Using `MarkPrevisionnelWorkbookVersionGenerating`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, markPrevisionnelWorkbookVersionGenerating, MarkPrevisionnelWorkbookVersionGeneratingVariables } from '@dataconnect/generated';
+
+// The `MarkPrevisionnelWorkbookVersionGenerating` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratingVariables`:
+const markPrevisionnelWorkbookVersionGeneratingVars: MarkPrevisionnelWorkbookVersionGeneratingVariables = {
+  id: ..., 
+  retryCount: ..., 
+};
+
+// Call the `markPrevisionnelWorkbookVersionGenerating()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await markPrevisionnelWorkbookVersionGenerating(markPrevisionnelWorkbookVersionGeneratingVars);
+// Variables can be defined inline as well.
+const { data } = await markPrevisionnelWorkbookVersionGenerating({ id: ..., retryCount: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await markPrevisionnelWorkbookVersionGenerating(dataConnect, markPrevisionnelWorkbookVersionGeneratingVars);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_update);
+
+// Or, you can use the `Promise` API.
+markPrevisionnelWorkbookVersionGenerating(markPrevisionnelWorkbookVersionGeneratingVars).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_update);
+});
+```
+
+### Using `MarkPrevisionnelWorkbookVersionGenerating`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, markPrevisionnelWorkbookVersionGeneratingRef, MarkPrevisionnelWorkbookVersionGeneratingVariables } from '@dataconnect/generated';
+
+// The `MarkPrevisionnelWorkbookVersionGenerating` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratingVariables`:
+const markPrevisionnelWorkbookVersionGeneratingVars: MarkPrevisionnelWorkbookVersionGeneratingVariables = {
+  id: ..., 
+  retryCount: ..., 
+};
+
+// Call the `markPrevisionnelWorkbookVersionGeneratingRef()` function to get a reference to the mutation.
+const ref = markPrevisionnelWorkbookVersionGeneratingRef(markPrevisionnelWorkbookVersionGeneratingVars);
+// Variables can be defined inline as well.
+const ref = markPrevisionnelWorkbookVersionGeneratingRef({ id: ..., retryCount: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = markPrevisionnelWorkbookVersionGeneratingRef(dataConnect, markPrevisionnelWorkbookVersionGeneratingVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_update);
+});
+```
+
+## MarkPrevisionnelWorkbookVersionGenerated
+You can execute the `MarkPrevisionnelWorkbookVersionGenerated` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+markPrevisionnelWorkbookVersionGenerated(vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+
+interface MarkPrevisionnelWorkbookVersionGeneratedRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+}
+export const markPrevisionnelWorkbookVersionGeneratedRef: MarkPrevisionnelWorkbookVersionGeneratedRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+markPrevisionnelWorkbookVersionGenerated(dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+
+interface MarkPrevisionnelWorkbookVersionGeneratedRef {
+  ...
+  (dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+}
+export const markPrevisionnelWorkbookVersionGeneratedRef: MarkPrevisionnelWorkbookVersionGeneratedRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the markPrevisionnelWorkbookVersionGeneratedRef:
+```typescript
+const name = markPrevisionnelWorkbookVersionGeneratedRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `MarkPrevisionnelWorkbookVersionGenerated` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratedVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface MarkPrevisionnelWorkbookVersionGeneratedVariables {
+  id: string;
+  storagePath: string;
+  currentStoragePath: string;
+  sha256: string;
+  sizeBytes: number;
+  editCount: number;
+}
+```
+### Return Type
+Recall that executing the `MarkPrevisionnelWorkbookVersionGenerated` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `MarkPrevisionnelWorkbookVersionGeneratedData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface MarkPrevisionnelWorkbookVersionGeneratedData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+```
+### Using `MarkPrevisionnelWorkbookVersionGenerated`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, markPrevisionnelWorkbookVersionGenerated, MarkPrevisionnelWorkbookVersionGeneratedVariables } from '@dataconnect/generated';
+
+// The `MarkPrevisionnelWorkbookVersionGenerated` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratedVariables`:
+const markPrevisionnelWorkbookVersionGeneratedVars: MarkPrevisionnelWorkbookVersionGeneratedVariables = {
+  id: ..., 
+  storagePath: ..., 
+  currentStoragePath: ..., 
+  sha256: ..., 
+  sizeBytes: ..., 
+  editCount: ..., 
+};
+
+// Call the `markPrevisionnelWorkbookVersionGenerated()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await markPrevisionnelWorkbookVersionGenerated(markPrevisionnelWorkbookVersionGeneratedVars);
+// Variables can be defined inline as well.
+const { data } = await markPrevisionnelWorkbookVersionGenerated({ id: ..., storagePath: ..., currentStoragePath: ..., sha256: ..., sizeBytes: ..., editCount: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await markPrevisionnelWorkbookVersionGenerated(dataConnect, markPrevisionnelWorkbookVersionGeneratedVars);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_update);
+
+// Or, you can use the `Promise` API.
+markPrevisionnelWorkbookVersionGenerated(markPrevisionnelWorkbookVersionGeneratedVars).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_update);
+});
+```
+
+### Using `MarkPrevisionnelWorkbookVersionGenerated`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, markPrevisionnelWorkbookVersionGeneratedRef, MarkPrevisionnelWorkbookVersionGeneratedVariables } from '@dataconnect/generated';
+
+// The `MarkPrevisionnelWorkbookVersionGenerated` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratedVariables`:
+const markPrevisionnelWorkbookVersionGeneratedVars: MarkPrevisionnelWorkbookVersionGeneratedVariables = {
+  id: ..., 
+  storagePath: ..., 
+  currentStoragePath: ..., 
+  sha256: ..., 
+  sizeBytes: ..., 
+  editCount: ..., 
+};
+
+// Call the `markPrevisionnelWorkbookVersionGeneratedRef()` function to get a reference to the mutation.
+const ref = markPrevisionnelWorkbookVersionGeneratedRef(markPrevisionnelWorkbookVersionGeneratedVars);
+// Variables can be defined inline as well.
+const ref = markPrevisionnelWorkbookVersionGeneratedRef({ id: ..., storagePath: ..., currentStoragePath: ..., sha256: ..., sizeBytes: ..., editCount: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = markPrevisionnelWorkbookVersionGeneratedRef(dataConnect, markPrevisionnelWorkbookVersionGeneratedVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_update);
+});
+```
+
+## MarkPrevisionnelWorkbookVersionFailed
+You can execute the `MarkPrevisionnelWorkbookVersionFailed` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+markPrevisionnelWorkbookVersionFailed(vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+
+interface MarkPrevisionnelWorkbookVersionFailedRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationRef<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+}
+export const markPrevisionnelWorkbookVersionFailedRef: MarkPrevisionnelWorkbookVersionFailedRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+markPrevisionnelWorkbookVersionFailed(dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+
+interface MarkPrevisionnelWorkbookVersionFailedRef {
+  ...
+  (dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationRef<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+}
+export const markPrevisionnelWorkbookVersionFailedRef: MarkPrevisionnelWorkbookVersionFailedRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the markPrevisionnelWorkbookVersionFailedRef:
+```typescript
+const name = markPrevisionnelWorkbookVersionFailedRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `MarkPrevisionnelWorkbookVersionFailed` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionFailedVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface MarkPrevisionnelWorkbookVersionFailedVariables {
+  id: string;
+  errorMessage: string;
+}
+```
+### Return Type
+Recall that executing the `MarkPrevisionnelWorkbookVersionFailed` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `MarkPrevisionnelWorkbookVersionFailedData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface MarkPrevisionnelWorkbookVersionFailedData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+```
+### Using `MarkPrevisionnelWorkbookVersionFailed`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, markPrevisionnelWorkbookVersionFailed, MarkPrevisionnelWorkbookVersionFailedVariables } from '@dataconnect/generated';
+
+// The `MarkPrevisionnelWorkbookVersionFailed` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionFailedVariables`:
+const markPrevisionnelWorkbookVersionFailedVars: MarkPrevisionnelWorkbookVersionFailedVariables = {
+  id: ..., 
+  errorMessage: ..., 
+};
+
+// Call the `markPrevisionnelWorkbookVersionFailed()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await markPrevisionnelWorkbookVersionFailed(markPrevisionnelWorkbookVersionFailedVars);
+// Variables can be defined inline as well.
+const { data } = await markPrevisionnelWorkbookVersionFailed({ id: ..., errorMessage: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await markPrevisionnelWorkbookVersionFailed(dataConnect, markPrevisionnelWorkbookVersionFailedVars);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_update);
+
+// Or, you can use the `Promise` API.
+markPrevisionnelWorkbookVersionFailed(markPrevisionnelWorkbookVersionFailedVars).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_update);
+});
+```
+
+### Using `MarkPrevisionnelWorkbookVersionFailed`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, markPrevisionnelWorkbookVersionFailedRef, MarkPrevisionnelWorkbookVersionFailedVariables } from '@dataconnect/generated';
+
+// The `MarkPrevisionnelWorkbookVersionFailed` mutation requires an argument of type `MarkPrevisionnelWorkbookVersionFailedVariables`:
+const markPrevisionnelWorkbookVersionFailedVars: MarkPrevisionnelWorkbookVersionFailedVariables = {
+  id: ..., 
+  errorMessage: ..., 
+};
+
+// Call the `markPrevisionnelWorkbookVersionFailedRef()` function to get a reference to the mutation.
+const ref = markPrevisionnelWorkbookVersionFailedRef(markPrevisionnelWorkbookVersionFailedVars);
+// Variables can be defined inline as well.
+const ref = markPrevisionnelWorkbookVersionFailedRef({ id: ..., errorMessage: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = markPrevisionnelWorkbookVersionFailedRef(dataConnect, markPrevisionnelWorkbookVersionFailedVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.query);
+console.log(data.previsionnelWorkbookVersion_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.query);
+  console.log(data.previsionnelWorkbookVersion_update);
 });
 ```
 

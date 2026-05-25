@@ -170,13 +170,13 @@ Gate:
 Dry-run sans mutation distante:
 
 ```bash
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 ```
 
 Seed sandbox reel, seulement apres validation humaine:
 
 ```bash
-ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all
+ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel
 ```
 
 Preuves:
@@ -193,8 +193,8 @@ Action corrective:
 Gate:
 
 - projet affiche/confirme: `sosson-sandbox`;
-- seed operationnel execute depuis `dataconnect/seed_data.gql`;
 - seed previsionnel execute depuis `dataconnect/previsionnel_seed/*.gql`;
+- seed demo operationnel `dataconnect/seed_data.gql` non execute sauf validation explicite et flag `--include-demo-operational-seed`;
 - aucune commande production;
 - si un seed echoue au milieu, ne pas supprimer de donnees: noter le fichier en erreur, corriger le script/schema si necessaire, puis demander validation avant relance.
 

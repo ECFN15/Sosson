@@ -190,9 +190,9 @@ mutation @transaction {
       lineCount: 101,
       chantierCount: 101,
       caPrevision: 6334248.36,
-      caContrat: 1638743.76,
-      plannedTotal: 2170205.81,
-      realizedTotal: 1362790.96,
+      caContrat: 1517256.88,
+      plannedTotal: 2105226.24,
+      realizedTotal: 1367581.5,
       invoicedTotal: 1162968.72
     }
   ])

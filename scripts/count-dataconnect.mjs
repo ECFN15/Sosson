@@ -11,6 +11,7 @@ import {
   listFactures,
   listOperationalChantiers,
   listOperationalClients,
+  listPrevisionnelCellEdits,
   listPrevisionnelExercises,
   listPrevisionnelLinesByExercise,
 } from '@dataconnect/admin-generated'
@@ -166,6 +167,7 @@ const [
   foldersResponse,
   documentsResponse,
   exercisesResponse,
+  cellEditsResponse,
 ] = await Promise.all([
   listOperationalClients(dc),
   listOperationalChantiers(dc),
@@ -174,6 +176,7 @@ const [
   listDocumentFolders(dc),
   listDocumentsAttaches(dc),
   listPrevisionnelExercises(dc),
+  listPrevisionnelCellEdits(dc, { sourceSheet: '2025-26' }),
 ])
 
 const exercises = exercisesResponse.data.previsionnelExercises
@@ -243,6 +246,7 @@ const counts = {
     expectedChantiersFromExerciseMetadata: previsionnelExpectedChantiers,
     loadedMonthlyAmountsViaNestedQuery: loadedMonthlyAmounts,
     loadedLotAmountsViaNestedQuery: loadedLotAmounts,
+    exactCellEdits2025_26: cellEditsResponse.data.previsionnelCellEdits.length,
     lineQueryMayBeTruncated: loadedPrevisionnelLines.length < previsionnelExpectedLines,
   },
   knownUserProfiles: userChecks,

@@ -206,14 +206,14 @@ Le fichier `dataconnect/user_profiles.local.json` doit rester local et ne doit p
 Dry-run sans mutation:
 
 ```bash
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 ```
 
 Seed réel, seulement après validation:
 
 ```bash
 $env:ALLOW_SANDBOX_DATACONNECT_SEED='true'
-npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all --output=tmp/checkpoint-002/seed-sandbox-real.json
+npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-real.json
 ```
 
 ### Étape 7 - Vérifier les compteurs sandbox
@@ -312,7 +312,7 @@ Point important: le projet `gcloud` courant n'est pas `sosson-sandbox`. Il faut 
 | `firebase deploy --only dataconnect --project sosson-sandbox` | Oui | Déploie schéma/connecteur Data Connect. | `services:list`, `sql:diff`, smoke queries. | Ne pas relancer en boucle; lire le diff/erreur. |
 | `firebase dataconnect:sdk:generate` | Non distant, oui fichiers locaux générés | Régénère les SDKs locaux. | `npm run check:generated-clean`, build. | Ne jamais éditer les SDKs à la main. |
 | `npm run provision:sql-users -- --sandbox --yes-sandbox --file=...` | Oui | Crée/met à jour les profils SQL `User` sandbox. | `GetCurrentUser`, `ListUsers` selon rôle. | Stop si UID Firebase incertain. |
-| `npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all` | Oui | Injecte les seeds opérationnels/prévisionnels. | `count:dataconnect --sandbox`. | Stop si erreur partielle; ne pas bricoler console. |
+| `npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel` | Oui | Injecte uniquement le seed prévisionnel Excel. | `count:dataconnect --sandbox`. | Stop si erreur partielle; ne pas bricoler console. |
 | `npm run count:dataconnect -- --sandbox --yes-sandbox` | Lecture distante | Relit les compteurs sandbox. | JSON sous `tmp`. | Stop si projet/flags incohérents. |
 
 ## 9. Checklist avant déploiement sandbox

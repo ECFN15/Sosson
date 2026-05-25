@@ -532,7 +532,26 @@ export interface CreatePrevisionnelImportBatchVariables {
   workbook: string;
   sourcePath: string;
   workbookHash?: string | null;
+  sourceStoragePath?: string | null;
+  sourceSha256?: string | null;
+  originalFileName?: string | null;
   notes?: string | null;
+}
+
+export interface CreatePrevisionnelWorkbookVersionPendingData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_insert: PrevisionnelWorkbookVersion_Key;
+}
+
+export interface CreatePrevisionnelWorkbookVersionPendingVariables {
+  id: string;
+  batchId?: UUIDString | null;
+  sourceSheet: string;
+  storagePath: string;
+  currentStoragePath: string;
+  baseStoragePath?: string | null;
+  editCount: number;
 }
 
 export interface CreateRapportData {
@@ -1091,6 +1110,79 @@ export interface GetEmailThreadData {
 
 export interface GetEmailThreadVariables {
   id: UUIDString;
+}
+
+export interface GetLatestGeneratedPrevisionnelWorkbookVersionData {
+  previsionnelWorkbookVersions: ({
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generatedAt?: TimestampString | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key)[];
+}
+
+export interface GetLatestGeneratedPrevisionnelWorkbookVersionVariables {
+  sourceSheet: string;
+}
+
+export interface GetPrevisionnelWorkbookVersionData {
+  previsionnelWorkbookVersion?: {
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generationStartedAt?: TimestampString | null;
+    generatedAt?: TimestampString | null;
+    failedAt?: TimestampString | null;
+    errorMessage?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key;
+}
+
+export interface GetPrevisionnelWorkbookVersionVariables {
+  id: string;
 }
 
 export interface GetRapportData {
@@ -2024,7 +2116,13 @@ export interface ListPrevisionnelCellEditsData {
     cellRef: string;
     valueText?: string | null;
     numericValue?: number | null;
-    dateModification: TimestampString;
+    author?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
   } & PrevisionnelCellEdit_Key)[];
 }
 
@@ -2051,6 +2149,9 @@ export interface ListPrevisionnelExercisesData {
       workbook: string;
       sourcePath: string;
       workbookHash?: string | null;
+      sourceStoragePath?: string | null;
+      sourceSha256?: string | null;
+      originalFileName?: string | null;
       importedAt: TimestampString;
     } & PrevisionnelImportBatch_Key;
   } & PrevisionnelExercise_Key)[];
@@ -2106,6 +2207,44 @@ export interface ListPrevisionnelLinesByExerciseData {
 
 export interface ListPrevisionnelLinesByExerciseVariables {
   exerciseId: UUIDString;
+}
+
+export interface ListPrevisionnelWorkbookVersionsData {
+  previsionnelWorkbookVersions: ({
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generationStartedAt?: TimestampString | null;
+    generatedAt?: TimestampString | null;
+    failedAt?: TimestampString | null;
+    errorMessage?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key)[];
+}
+
+export interface ListPrevisionnelWorkbookVersionsVariables {
+  sourceSheet: string;
 }
 
 export interface ListRapportsData {
@@ -2398,6 +2537,43 @@ export interface ListUsersData {
   } & User_Key)[];
 }
 
+export interface MarkPrevisionnelWorkbookVersionFailedData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+
+export interface MarkPrevisionnelWorkbookVersionFailedVariables {
+  id: string;
+  errorMessage: string;
+}
+
+export interface MarkPrevisionnelWorkbookVersionGeneratedData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+
+export interface MarkPrevisionnelWorkbookVersionGeneratedVariables {
+  id: string;
+  storagePath: string;
+  currentStoragePath: string;
+  sha256: string;
+  sizeBytes: number;
+  editCount: number;
+}
+
+export interface MarkPrevisionnelWorkbookVersionGeneratingData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+
+export interface MarkPrevisionnelWorkbookVersionGeneratingVariables {
+  id: string;
+  retryCount: number;
+}
+
 export interface MarkRapportGeneratedData {
   query?: {
   };
@@ -2457,6 +2633,11 @@ export interface PrevisionnelLotAmount_Key {
 export interface PrevisionnelMonthlyAmount_Key {
   id: UUIDString;
   __typename?: 'PrevisionnelMonthlyAmount_Key';
+}
+
+export interface PrevisionnelWorkbookVersion_Key {
+  id: string;
+  __typename?: 'PrevisionnelWorkbookVersion_Key';
 }
 
 export interface Rapport_Key {
@@ -3104,6 +3285,54 @@ export const upsertPrevisionnelCellEditRef: UpsertPrevisionnelCellEditRef;
 export function upsertPrevisionnelCellEdit(vars: UpsertPrevisionnelCellEditVariables): MutationPromise<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
 export function upsertPrevisionnelCellEdit(dc: DataConnect, vars: UpsertPrevisionnelCellEditVariables): MutationPromise<UpsertPrevisionnelCellEditData, UpsertPrevisionnelCellEditVariables>;
 
+interface CreatePrevisionnelWorkbookVersionPendingRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationRef<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationRef<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+  operationName: string;
+}
+export const createPrevisionnelWorkbookVersionPendingRef: CreatePrevisionnelWorkbookVersionPendingRef;
+
+export function createPrevisionnelWorkbookVersionPending(vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationPromise<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+export function createPrevisionnelWorkbookVersionPending(dc: DataConnect, vars: CreatePrevisionnelWorkbookVersionPendingVariables): MutationPromise<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+
+interface MarkPrevisionnelWorkbookVersionGeneratingRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+  operationName: string;
+}
+export const markPrevisionnelWorkbookVersionGeneratingRef: MarkPrevisionnelWorkbookVersionGeneratingRef;
+
+export function markPrevisionnelWorkbookVersionGenerating(vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+export function markPrevisionnelWorkbookVersionGenerating(dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratingVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+
+interface MarkPrevisionnelWorkbookVersionGeneratedRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationRef<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+  operationName: string;
+}
+export const markPrevisionnelWorkbookVersionGeneratedRef: MarkPrevisionnelWorkbookVersionGeneratedRef;
+
+export function markPrevisionnelWorkbookVersionGenerated(vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+export function markPrevisionnelWorkbookVersionGenerated(dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionGeneratedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+
+interface MarkPrevisionnelWorkbookVersionFailedRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationRef<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationRef<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+  operationName: string;
+}
+export const markPrevisionnelWorkbookVersionFailedRef: MarkPrevisionnelWorkbookVersionFailedRef;
+
+export function markPrevisionnelWorkbookVersionFailed(vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+export function markPrevisionnelWorkbookVersionFailed(dc: DataConnect, vars: MarkPrevisionnelWorkbookVersionFailedVariables): MutationPromise<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+
 interface CreateEmailThreadRef {
   /* Allow users to create refs without passing in DataConnect */
   (vars: CreateEmailThreadVariables): MutationRef<CreateEmailThreadData, CreateEmailThreadVariables>;
@@ -3631,6 +3860,42 @@ export const listPrevisionnelCellEditsRef: ListPrevisionnelCellEditsRef;
 
 export function listPrevisionnelCellEdits(vars: ListPrevisionnelCellEditsVariables, options?: ExecuteQueryOptions): QueryPromise<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
 export function listPrevisionnelCellEdits(dc: DataConnect, vars: ListPrevisionnelCellEditsVariables, options?: ExecuteQueryOptions): QueryPromise<ListPrevisionnelCellEditsData, ListPrevisionnelCellEditsVariables>;
+
+interface GetPrevisionnelWorkbookVersionRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetPrevisionnelWorkbookVersionVariables): QueryRef<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetPrevisionnelWorkbookVersionVariables): QueryRef<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+  operationName: string;
+}
+export const getPrevisionnelWorkbookVersionRef: GetPrevisionnelWorkbookVersionRef;
+
+export function getPrevisionnelWorkbookVersion(vars: GetPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+export function getPrevisionnelWorkbookVersion(dc: DataConnect, vars: GetPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+
+interface ListPrevisionnelWorkbookVersionsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListPrevisionnelWorkbookVersionsVariables): QueryRef<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListPrevisionnelWorkbookVersionsVariables): QueryRef<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+  operationName: string;
+}
+export const listPrevisionnelWorkbookVersionsRef: ListPrevisionnelWorkbookVersionsRef;
+
+export function listPrevisionnelWorkbookVersions(vars: ListPrevisionnelWorkbookVersionsVariables, options?: ExecuteQueryOptions): QueryPromise<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+export function listPrevisionnelWorkbookVersions(dc: DataConnect, vars: ListPrevisionnelWorkbookVersionsVariables, options?: ExecuteQueryOptions): QueryPromise<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+
+interface GetLatestGeneratedPrevisionnelWorkbookVersionRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables): QueryRef<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables): QueryRef<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+  operationName: string;
+}
+export const getLatestGeneratedPrevisionnelWorkbookVersionRef: GetLatestGeneratedPrevisionnelWorkbookVersionRef;
+
+export function getLatestGeneratedPrevisionnelWorkbookVersion(vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+export function getLatestGeneratedPrevisionnelWorkbookVersion(dc: DataConnect, vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables, options?: ExecuteQueryOptions): QueryPromise<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
 
 interface ListEmailThreadsRef {
   /* Allow users to create refs without passing in DataConnect */

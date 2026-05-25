@@ -40,6 +40,9 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*ListPrevisionnelLinesByExercise*](#listprevisionnellinesbyexercise)
   - [*SearchClientAliases*](#searchclientaliases)
   - [*ListPrevisionnelCellEdits*](#listprevisionnelcelledits)
+  - [*GetPrevisionnelWorkbookVersion*](#getprevisionnelworkbookversion)
+  - [*ListPrevisionnelWorkbookVersions*](#listprevisionnelworkbookversions)
+  - [*GetLatestGeneratedPrevisionnelWorkbookVersion*](#getlatestgeneratedprevisionnelworkbookversion)
   - [*ListEmailThreads*](#listemailthreads)
   - [*ListEmailThreadsByChantier*](#listemailthreadsbychantier)
   - [*ListUnreadEmailThreads*](#listunreademailthreads)
@@ -86,6 +89,10 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*UpdatePrevisionnelLineAmounts*](#updateprevisionnellineamounts)
   - [*LinkPrevisionnelLineToChantier*](#linkprevisionnellinetochantier)
   - [*UpsertPrevisionnelCellEdit*](#upsertprevisionnelcelledit)
+  - [*CreatePrevisionnelWorkbookVersionPending*](#createprevisionnelworkbookversionpending)
+  - [*MarkPrevisionnelWorkbookVersionGenerating*](#markprevisionnelworkbookversiongenerating)
+  - [*MarkPrevisionnelWorkbookVersionGenerated*](#markprevisionnelworkbookversiongenerated)
+  - [*MarkPrevisionnelWorkbookVersionFailed*](#markprevisionnelworkbookversionfailed)
   - [*CreateEmailThread*](#createemailthread)
   - [*UpdateEmailThreadStatusAndLinks*](#updateemailthreadstatusandlinks)
   - [*CreateEmailMessage*](#createemailmessage)
@@ -2242,6 +2249,9 @@ export interface ListPrevisionnelExercisesData {
       workbook: string;
       sourcePath: string;
       workbookHash?: string | null;
+      sourceStoragePath?: string | null;
+      sourceSha256?: string | null;
+      originalFileName?: string | null;
       importedAt: TimestampString;
     } & PrevisionnelImportBatch_Key;
   } & PrevisionnelExercise_Key)[];
@@ -2543,7 +2553,13 @@ export interface ListPrevisionnelCellEditsData {
     cellRef: string;
     valueText?: string | null;
     numericValue?: number | null;
-    dateModification: TimestampString;
+    author?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      dateModification: TimestampString;
   } & PrevisionnelCellEdit_Key)[];
 }
 ```
@@ -2594,6 +2610,339 @@ export default function ListPrevisionnelCellEditsComponent() {
   // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
   if (query.isSuccess) {
     console.log(query.data.previsionnelCellEdits);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## GetPrevisionnelWorkbookVersion
+You can execute the `GetPrevisionnelWorkbookVersion` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useGetPrevisionnelWorkbookVersion(dc: DataConnect, vars: GetPrevisionnelWorkbookVersionVariables, options?: useDataConnectQueryOptions<GetPrevisionnelWorkbookVersionData>): UseDataConnectQueryResult<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useGetPrevisionnelWorkbookVersion(vars: GetPrevisionnelWorkbookVersionVariables, options?: useDataConnectQueryOptions<GetPrevisionnelWorkbookVersionData>): UseDataConnectQueryResult<GetPrevisionnelWorkbookVersionData, GetPrevisionnelWorkbookVersionVariables>;
+```
+
+### Variables
+The `GetPrevisionnelWorkbookVersion` Query requires an argument of type `GetPrevisionnelWorkbookVersionVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface GetPrevisionnelWorkbookVersionVariables {
+  id: string;
+}
+```
+### Return Type
+Recall that calling the `GetPrevisionnelWorkbookVersion` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `GetPrevisionnelWorkbookVersion` Query is of type `GetPrevisionnelWorkbookVersionData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface GetPrevisionnelWorkbookVersionData {
+  previsionnelWorkbookVersion?: {
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generationStartedAt?: TimestampString | null;
+    generatedAt?: TimestampString | null;
+    failedAt?: TimestampString | null;
+    errorMessage?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key;
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `GetPrevisionnelWorkbookVersion`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, GetPrevisionnelWorkbookVersionVariables } from '@dataconnect/generated';
+import { useGetPrevisionnelWorkbookVersion } from '@dataconnect/generated/react'
+
+export default function GetPrevisionnelWorkbookVersionComponent() {
+  // The `useGetPrevisionnelWorkbookVersion` Query hook requires an argument of type `GetPrevisionnelWorkbookVersionVariables`:
+  const getPrevisionnelWorkbookVersionVars: GetPrevisionnelWorkbookVersionVariables = {
+    id: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useGetPrevisionnelWorkbookVersion(getPrevisionnelWorkbookVersionVars);
+  // Variables can be defined inline as well.
+  const query = useGetPrevisionnelWorkbookVersion({ id: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useGetPrevisionnelWorkbookVersion(dataConnect, getPrevisionnelWorkbookVersionVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetPrevisionnelWorkbookVersion(getPrevisionnelWorkbookVersionVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetPrevisionnelWorkbookVersion(dataConnect, getPrevisionnelWorkbookVersionVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.previsionnelWorkbookVersion);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## ListPrevisionnelWorkbookVersions
+You can execute the `ListPrevisionnelWorkbookVersions` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useListPrevisionnelWorkbookVersions(dc: DataConnect, vars: ListPrevisionnelWorkbookVersionsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelWorkbookVersionsData>): UseDataConnectQueryResult<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useListPrevisionnelWorkbookVersions(vars: ListPrevisionnelWorkbookVersionsVariables, options?: useDataConnectQueryOptions<ListPrevisionnelWorkbookVersionsData>): UseDataConnectQueryResult<ListPrevisionnelWorkbookVersionsData, ListPrevisionnelWorkbookVersionsVariables>;
+```
+
+### Variables
+The `ListPrevisionnelWorkbookVersions` Query requires an argument of type `ListPrevisionnelWorkbookVersionsVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface ListPrevisionnelWorkbookVersionsVariables {
+  sourceSheet: string;
+}
+```
+### Return Type
+Recall that calling the `ListPrevisionnelWorkbookVersions` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `ListPrevisionnelWorkbookVersions` Query is of type `ListPrevisionnelWorkbookVersionsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface ListPrevisionnelWorkbookVersionsData {
+  previsionnelWorkbookVersions: ({
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generationStartedAt?: TimestampString | null;
+    generatedAt?: TimestampString | null;
+    failedAt?: TimestampString | null;
+    errorMessage?: string | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `ListPrevisionnelWorkbookVersions`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, ListPrevisionnelWorkbookVersionsVariables } from '@dataconnect/generated';
+import { useListPrevisionnelWorkbookVersions } from '@dataconnect/generated/react'
+
+export default function ListPrevisionnelWorkbookVersionsComponent() {
+  // The `useListPrevisionnelWorkbookVersions` Query hook requires an argument of type `ListPrevisionnelWorkbookVersionsVariables`:
+  const listPrevisionnelWorkbookVersionsVars: ListPrevisionnelWorkbookVersionsVariables = {
+    sourceSheet: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useListPrevisionnelWorkbookVersions(listPrevisionnelWorkbookVersionsVars);
+  // Variables can be defined inline as well.
+  const query = useListPrevisionnelWorkbookVersions({ sourceSheet: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useListPrevisionnelWorkbookVersions(dataConnect, listPrevisionnelWorkbookVersionsVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelWorkbookVersions(listPrevisionnelWorkbookVersionsVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useListPrevisionnelWorkbookVersions(dataConnect, listPrevisionnelWorkbookVersionsVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.previsionnelWorkbookVersions);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## GetLatestGeneratedPrevisionnelWorkbookVersion
+You can execute the `GetLatestGeneratedPrevisionnelWorkbookVersion` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useGetLatestGeneratedPrevisionnelWorkbookVersion(dc: DataConnect, vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables, options?: useDataConnectQueryOptions<GetLatestGeneratedPrevisionnelWorkbookVersionData>): UseDataConnectQueryResult<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useGetLatestGeneratedPrevisionnelWorkbookVersion(vars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables, options?: useDataConnectQueryOptions<GetLatestGeneratedPrevisionnelWorkbookVersionData>): UseDataConnectQueryResult<GetLatestGeneratedPrevisionnelWorkbookVersionData, GetLatestGeneratedPrevisionnelWorkbookVersionVariables>;
+```
+
+### Variables
+The `GetLatestGeneratedPrevisionnelWorkbookVersion` Query requires an argument of type `GetLatestGeneratedPrevisionnelWorkbookVersionVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface GetLatestGeneratedPrevisionnelWorkbookVersionVariables {
+  sourceSheet: string;
+}
+```
+### Return Type
+Recall that calling the `GetLatestGeneratedPrevisionnelWorkbookVersion` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `GetLatestGeneratedPrevisionnelWorkbookVersion` Query is of type `GetLatestGeneratedPrevisionnelWorkbookVersionData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface GetLatestGeneratedPrevisionnelWorkbookVersionData {
+  previsionnelWorkbookVersions: ({
+    id: string;
+    sourceSheet: string;
+    status: string;
+    storagePath: string;
+    currentStoragePath: string;
+    baseStoragePath?: string | null;
+    sha256?: string | null;
+    sizeBytes?: number | null;
+    editCount: number;
+    retryCount: number;
+    generatedAt?: TimestampString | null;
+    dateModification: TimestampString;
+    dateCreation: TimestampString;
+    requestedBy?: {
+      id: string;
+      nom: string;
+      prenom: string;
+      avatar?: string | null;
+    } & User_Key;
+      batch?: {
+        id: UUIDString;
+        workbook: string;
+        sourceStoragePath?: string | null;
+        sourceSha256?: string | null;
+        originalFileName?: string | null;
+      } & PrevisionnelImportBatch_Key;
+  } & PrevisionnelWorkbookVersion_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `GetLatestGeneratedPrevisionnelWorkbookVersion`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, GetLatestGeneratedPrevisionnelWorkbookVersionVariables } from '@dataconnect/generated';
+import { useGetLatestGeneratedPrevisionnelWorkbookVersion } from '@dataconnect/generated/react'
+
+export default function GetLatestGeneratedPrevisionnelWorkbookVersionComponent() {
+  // The `useGetLatestGeneratedPrevisionnelWorkbookVersion` Query hook requires an argument of type `GetLatestGeneratedPrevisionnelWorkbookVersionVariables`:
+  const getLatestGeneratedPrevisionnelWorkbookVersionVars: GetLatestGeneratedPrevisionnelWorkbookVersionVariables = {
+    sourceSheet: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useGetLatestGeneratedPrevisionnelWorkbookVersion(getLatestGeneratedPrevisionnelWorkbookVersionVars);
+  // Variables can be defined inline as well.
+  const query = useGetLatestGeneratedPrevisionnelWorkbookVersion({ sourceSheet: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useGetLatestGeneratedPrevisionnelWorkbookVersion(dataConnect, getLatestGeneratedPrevisionnelWorkbookVersionVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetLatestGeneratedPrevisionnelWorkbookVersion(getLatestGeneratedPrevisionnelWorkbookVersionVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetLatestGeneratedPrevisionnelWorkbookVersion(dataConnect, getLatestGeneratedPrevisionnelWorkbookVersionVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.previsionnelWorkbookVersions);
   }
   return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -7397,6 +7746,9 @@ export interface CreatePrevisionnelImportBatchVariables {
   workbook: string;
   sourcePath: string;
   workbookHash?: string | null;
+  sourceStoragePath?: string | null;
+  sourceSha256?: string | null;
+  originalFileName?: string | null;
   notes?: string | null;
 }
 ```
@@ -7452,11 +7804,14 @@ export default function CreatePrevisionnelImportBatchComponent() {
     workbook: ..., 
     sourcePath: ..., 
     workbookHash: ..., // optional
+    sourceStoragePath: ..., // optional
+    sourceSha256: ..., // optional
+    originalFileName: ..., // optional
     notes: ..., // optional
   };
   mutation.mutate(createPrevisionnelImportBatchVars);
   // Variables can be defined inline as well.
-  mutation.mutate({ workbook: ..., sourcePath: ..., workbookHash: ..., notes: ..., });
+  mutation.mutate({ workbook: ..., sourcePath: ..., workbookHash: ..., sourceStoragePath: ..., sourceSha256: ..., originalFileName: ..., notes: ..., });
 
   // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
   const options = {
@@ -7899,6 +8254,420 @@ export default function UpsertPrevisionnelCellEditComponent() {
   if (mutation.isSuccess) {
     console.log(mutation.data.query);
     console.log(mutation.data.previsionnelCellEdit_upsert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreatePrevisionnelWorkbookVersionPending
+You can execute the `CreatePrevisionnelWorkbookVersionPending` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreatePrevisionnelWorkbookVersionPending(options?: useDataConnectMutationOptions<CreatePrevisionnelWorkbookVersionPendingData, FirebaseError, CreatePrevisionnelWorkbookVersionPendingVariables>): UseDataConnectMutationResult<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreatePrevisionnelWorkbookVersionPending(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePrevisionnelWorkbookVersionPendingData, FirebaseError, CreatePrevisionnelWorkbookVersionPendingVariables>): UseDataConnectMutationResult<CreatePrevisionnelWorkbookVersionPendingData, CreatePrevisionnelWorkbookVersionPendingVariables>;
+```
+
+### Variables
+The `CreatePrevisionnelWorkbookVersionPending` Mutation requires an argument of type `CreatePrevisionnelWorkbookVersionPendingVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreatePrevisionnelWorkbookVersionPendingVariables {
+  id: string;
+  batchId?: UUIDString | null;
+  sourceSheet: string;
+  storagePath: string;
+  currentStoragePath: string;
+  baseStoragePath?: string | null;
+  editCount: number;
+}
+```
+### Return Type
+Recall that calling the `CreatePrevisionnelWorkbookVersionPending` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreatePrevisionnelWorkbookVersionPending` Mutation is of type `CreatePrevisionnelWorkbookVersionPendingData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreatePrevisionnelWorkbookVersionPendingData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_insert: PrevisionnelWorkbookVersion_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreatePrevisionnelWorkbookVersionPending`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreatePrevisionnelWorkbookVersionPendingVariables } from '@dataconnect/generated';
+import { useCreatePrevisionnelWorkbookVersionPending } from '@dataconnect/generated/react'
+
+export default function CreatePrevisionnelWorkbookVersionPendingComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreatePrevisionnelWorkbookVersionPending();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreatePrevisionnelWorkbookVersionPending(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreatePrevisionnelWorkbookVersionPending(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreatePrevisionnelWorkbookVersionPending(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreatePrevisionnelWorkbookVersionPending` Mutation requires an argument of type `CreatePrevisionnelWorkbookVersionPendingVariables`:
+  const createPrevisionnelWorkbookVersionPendingVars: CreatePrevisionnelWorkbookVersionPendingVariables = {
+    id: ..., 
+    batchId: ..., // optional
+    sourceSheet: ..., 
+    storagePath: ..., 
+    currentStoragePath: ..., 
+    baseStoragePath: ..., // optional
+    editCount: ..., 
+  };
+  mutation.mutate(createPrevisionnelWorkbookVersionPendingVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., batchId: ..., sourceSheet: ..., storagePath: ..., currentStoragePath: ..., baseStoragePath: ..., editCount: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createPrevisionnelWorkbookVersionPendingVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.previsionnelWorkbookVersion_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## MarkPrevisionnelWorkbookVersionGenerating
+You can execute the `MarkPrevisionnelWorkbookVersionGenerating` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useMarkPrevisionnelWorkbookVersionGenerating(options?: useDataConnectMutationOptions<MarkPrevisionnelWorkbookVersionGeneratingData, FirebaseError, MarkPrevisionnelWorkbookVersionGeneratingVariables>): UseDataConnectMutationResult<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useMarkPrevisionnelWorkbookVersionGenerating(dc: DataConnect, options?: useDataConnectMutationOptions<MarkPrevisionnelWorkbookVersionGeneratingData, FirebaseError, MarkPrevisionnelWorkbookVersionGeneratingVariables>): UseDataConnectMutationResult<MarkPrevisionnelWorkbookVersionGeneratingData, MarkPrevisionnelWorkbookVersionGeneratingVariables>;
+```
+
+### Variables
+The `MarkPrevisionnelWorkbookVersionGenerating` Mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratingVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface MarkPrevisionnelWorkbookVersionGeneratingVariables {
+  id: string;
+  retryCount: number;
+}
+```
+### Return Type
+Recall that calling the `MarkPrevisionnelWorkbookVersionGenerating` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `MarkPrevisionnelWorkbookVersionGenerating` Mutation is of type `MarkPrevisionnelWorkbookVersionGeneratingData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface MarkPrevisionnelWorkbookVersionGeneratingData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `MarkPrevisionnelWorkbookVersionGenerating`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, MarkPrevisionnelWorkbookVersionGeneratingVariables } from '@dataconnect/generated';
+import { useMarkPrevisionnelWorkbookVersionGenerating } from '@dataconnect/generated/react'
+
+export default function MarkPrevisionnelWorkbookVersionGeneratingComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerating();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerating(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerating(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerating(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useMarkPrevisionnelWorkbookVersionGenerating` Mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratingVariables`:
+  const markPrevisionnelWorkbookVersionGeneratingVars: MarkPrevisionnelWorkbookVersionGeneratingVariables = {
+    id: ..., 
+    retryCount: ..., 
+  };
+  mutation.mutate(markPrevisionnelWorkbookVersionGeneratingVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., retryCount: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(markPrevisionnelWorkbookVersionGeneratingVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.previsionnelWorkbookVersion_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## MarkPrevisionnelWorkbookVersionGenerated
+You can execute the `MarkPrevisionnelWorkbookVersionGenerated` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useMarkPrevisionnelWorkbookVersionGenerated(options?: useDataConnectMutationOptions<MarkPrevisionnelWorkbookVersionGeneratedData, FirebaseError, MarkPrevisionnelWorkbookVersionGeneratedVariables>): UseDataConnectMutationResult<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useMarkPrevisionnelWorkbookVersionGenerated(dc: DataConnect, options?: useDataConnectMutationOptions<MarkPrevisionnelWorkbookVersionGeneratedData, FirebaseError, MarkPrevisionnelWorkbookVersionGeneratedVariables>): UseDataConnectMutationResult<MarkPrevisionnelWorkbookVersionGeneratedData, MarkPrevisionnelWorkbookVersionGeneratedVariables>;
+```
+
+### Variables
+The `MarkPrevisionnelWorkbookVersionGenerated` Mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratedVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface MarkPrevisionnelWorkbookVersionGeneratedVariables {
+  id: string;
+  storagePath: string;
+  currentStoragePath: string;
+  sha256: string;
+  sizeBytes: number;
+  editCount: number;
+}
+```
+### Return Type
+Recall that calling the `MarkPrevisionnelWorkbookVersionGenerated` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `MarkPrevisionnelWorkbookVersionGenerated` Mutation is of type `MarkPrevisionnelWorkbookVersionGeneratedData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface MarkPrevisionnelWorkbookVersionGeneratedData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `MarkPrevisionnelWorkbookVersionGenerated`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, MarkPrevisionnelWorkbookVersionGeneratedVariables } from '@dataconnect/generated';
+import { useMarkPrevisionnelWorkbookVersionGenerated } from '@dataconnect/generated/react'
+
+export default function MarkPrevisionnelWorkbookVersionGeneratedComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerated();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerated(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerated(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMarkPrevisionnelWorkbookVersionGenerated(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useMarkPrevisionnelWorkbookVersionGenerated` Mutation requires an argument of type `MarkPrevisionnelWorkbookVersionGeneratedVariables`:
+  const markPrevisionnelWorkbookVersionGeneratedVars: MarkPrevisionnelWorkbookVersionGeneratedVariables = {
+    id: ..., 
+    storagePath: ..., 
+    currentStoragePath: ..., 
+    sha256: ..., 
+    sizeBytes: ..., 
+    editCount: ..., 
+  };
+  mutation.mutate(markPrevisionnelWorkbookVersionGeneratedVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., storagePath: ..., currentStoragePath: ..., sha256: ..., sizeBytes: ..., editCount: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(markPrevisionnelWorkbookVersionGeneratedVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.previsionnelWorkbookVersion_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## MarkPrevisionnelWorkbookVersionFailed
+You can execute the `MarkPrevisionnelWorkbookVersionFailed` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useMarkPrevisionnelWorkbookVersionFailed(options?: useDataConnectMutationOptions<MarkPrevisionnelWorkbookVersionFailedData, FirebaseError, MarkPrevisionnelWorkbookVersionFailedVariables>): UseDataConnectMutationResult<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useMarkPrevisionnelWorkbookVersionFailed(dc: DataConnect, options?: useDataConnectMutationOptions<MarkPrevisionnelWorkbookVersionFailedData, FirebaseError, MarkPrevisionnelWorkbookVersionFailedVariables>): UseDataConnectMutationResult<MarkPrevisionnelWorkbookVersionFailedData, MarkPrevisionnelWorkbookVersionFailedVariables>;
+```
+
+### Variables
+The `MarkPrevisionnelWorkbookVersionFailed` Mutation requires an argument of type `MarkPrevisionnelWorkbookVersionFailedVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface MarkPrevisionnelWorkbookVersionFailedVariables {
+  id: string;
+  errorMessage: string;
+}
+```
+### Return Type
+Recall that calling the `MarkPrevisionnelWorkbookVersionFailed` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `MarkPrevisionnelWorkbookVersionFailed` Mutation is of type `MarkPrevisionnelWorkbookVersionFailedData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface MarkPrevisionnelWorkbookVersionFailedData {
+  query?: {
+  };
+    previsionnelWorkbookVersion_update?: PrevisionnelWorkbookVersion_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `MarkPrevisionnelWorkbookVersionFailed`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, MarkPrevisionnelWorkbookVersionFailedVariables } from '@dataconnect/generated';
+import { useMarkPrevisionnelWorkbookVersionFailed } from '@dataconnect/generated/react'
+
+export default function MarkPrevisionnelWorkbookVersionFailedComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useMarkPrevisionnelWorkbookVersionFailed();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useMarkPrevisionnelWorkbookVersionFailed(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMarkPrevisionnelWorkbookVersionFailed(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMarkPrevisionnelWorkbookVersionFailed(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useMarkPrevisionnelWorkbookVersionFailed` Mutation requires an argument of type `MarkPrevisionnelWorkbookVersionFailedVariables`:
+  const markPrevisionnelWorkbookVersionFailedVars: MarkPrevisionnelWorkbookVersionFailedVariables = {
+    id: ..., 
+    errorMessage: ..., 
+  };
+  mutation.mutate(markPrevisionnelWorkbookVersionFailedVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., errorMessage: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(markPrevisionnelWorkbookVersionFailedVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.query);
+    console.log(mutation.data.previsionnelWorkbookVersion_update);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }

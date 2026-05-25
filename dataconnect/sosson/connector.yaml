@@ -4,6 +4,9 @@ generate:
     - outputDir: ..\..\src\dataconnect-admin-generated
       package: "@dataconnect/admin-generated"
       packageJsonDir: ..\..
+    - outputDir: ..\..\functions\dataconnect-admin-generated
+      package: "@dataconnect/functions-admin-generated"
+      packageJsonDir: ..\..\functions
   javascriptSdk:
     - outputDir: ..\..\src\dataconnect-generated
       package: "@dataconnect/generated"

@@ -3,9 +3,12 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, resolve } from 'node:path'
 
 const SOURCE_PATH = resolve('src/data/previsionnel.ts')
+const CURRENT_SHEET_PATH = resolve('src/data/previsionnelCurrentSheet.ts')
 const OUTPUT_PATH = resolve('dataconnect/previsionnel_seed_data.gql')
 const OUTPUT_DIR = resolve('dataconnect/previsionnel_seed')
 const TEMPLATE_PATH = resolve('public/excel/previsionnel-template.xlsx')
+const SOURCE_STORAGE_PATH = 'previsionnel/source/PREVISIONNEL-original.xlsx'
+const ORIGINAL_FILE_NAME = 'PREVISIONNEL-original.xlsx'
 const CHUNK_SIZE = 50
 const BATCH_ID = uuidFrom('previsionnel-import:PREVISIONNEL.xlsx:2013-14-2025-26')
 
@@ -36,11 +39,52 @@ const syntheticLinePatterns = [
   /\breste\s+[aà]\s+facturer\b/i,
   /\bfacturation\s+globale\b/i,
 ]
+const editableSourceLineTypes = new Set(['chantier', 'commission', 'avoir', 'remboursement', 'facturation', 'example'])
 
-function extractConst(source, name, nextName) {
-  const match = source.match(new RegExp(`export const ${name}[^=]*= ([\\s\\S]*?)\\nexport const ${nextName}`))
-  if (!match) throw new Error(`Impossible de lire ${name} dans ${SOURCE_PATH}`)
-  return JSON.parse(match[1].replace(/ as const\s*$/, ''))
+function extractJsonConst(source, name, filePath = SOURCE_PATH) {
+  const marker = `export const ${name}`
+  const start = source.indexOf(marker)
+  if (start < 0) throw new Error(`Impossible de lire ${name} dans ${filePath}`)
+
+  const equals = source.indexOf('=', start)
+  let index = equals + 1
+  while (/\s/.test(source[index])) index += 1
+
+  const open = source[index]
+  const close = open === '[' ? ']' : open === '{' ? '}' : null
+  if (!close) throw new Error(`Constante ${name} non JSON dans ${filePath}`)
+
+  let depth = 0
+  let inString = false
+  let escaped = false
+
+  for (let cursor = index; cursor < source.length; cursor += 1) {
+    const char = source[cursor]
+
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (char === '\\') {
+        escaped = true
+      } else if (char === '"') {
+        inString = false
+      }
+      continue
+    }
+
+    if (char === '"') {
+      inString = true
+      continue
+    }
+
+    if (char === open) depth += 1
+    if (char === close) {
+      depth -= 1
+      if (depth === 0) return JSON.parse(source.slice(index, cursor + 1))
+    }
+  }
+
+  throw new Error(`Fin JSON introuvable pour ${name} dans ${filePath}`)
 }
 
 function normalizeId(value) {
@@ -115,9 +159,83 @@ function chunks(items) {
   return result
 }
 
+function cellNumber(row, col) {
+  const value = row?.cells?.find(cell => cell.col === col)?.value
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+function sumCurrentSheetRange(sheet, col, start, end) {
+  return sheet.rows.reduce((sum, row) => {
+    if (row.rowNumber < start || row.rowNumber > end) return sum
+    return sum + cellNumber(row, col)
+  }, 0)
+}
+
+function currentSheetRealizedTotal(sheet) {
+  const realizedColumns = sheet.monthPairs.map(pair => pair.realized)
+  return realizedColumns.reduce((sum, col) => sum + cellNumber(sheet.rows.find(row => row.rowNumber === 174), col), 0)
+}
+
+function loadCurrentSheetExerciseOverrides() {
+  const sheet = loadCurrentSheet()
+  if (!sheet) return new Map()
+
+  const summaryRow = sheet.rows.find(row => row.rowNumber === 171)
+  if (!summaryRow) return new Map()
+
+  return new Map([
+    [
+      sheet.sheet,
+      {
+        caPrevision: sumCurrentSheetRange(sheet, 'D', 8, 170),
+        caContrat: sumCurrentSheetRange(sheet, 'E', 32, 170),
+        plannedTotal: sumCurrentSheetRange(sheet, 'F', 32, 132),
+        realizedTotal: currentSheetRealizedTotal(sheet),
+      },
+    ],
+  ])
+}
+
+function loadCurrentSheet() {
+  if (!existsSync(CURRENT_SHEET_PATH)) return null
+  const currentSource = readFileSync(CURRENT_SHEET_PATH, 'utf8')
+  const sheet = extractJsonConst(currentSource, 'currentPrevisionnelSheet', CURRENT_SHEET_PATH)
+  return sheet?.sheet ? sheet : null
+}
+
+function currentSheetCellValueRows() {
+  const sheet = loadCurrentSheet()
+  if (!sheet) return []
+
+  return sheet.rows.flatMap(row =>
+    row.cells
+      .filter(cell => {
+        if (!editableSourceLineTypes.has(row.lineType)) return false
+        if (!cell.editable) return false
+        if (cell.value === null || cell.value === undefined) return false
+        if (typeof cell.value === 'string' && cell.value === '') return false
+        return true
+      })
+      .map(cell => {
+        if (typeof cell.value === 'string' && cell.value.length > 255) {
+          throw new Error(`Cellule ${cell.ref} trop longue pour PrevisionnelCellEdit.valueText`)
+        }
+
+        return {
+          id: `${sheet.sheet}:${cell.ref}`,
+          sourceSheet: sheet.sheet,
+          cellRef: cell.ref,
+          valueText: typeof cell.value === 'string' ? cell.value : null,
+          numericValue: typeof cell.value === 'number' && Number.isFinite(cell.value) ? cell.value : null,
+        }
+      }),
+  )
+}
+
 const source = readFileSync(SOURCE_PATH, 'utf8')
-const allLines = extractConst(source, 'previsionnelLines', 'previsionnelExercises')
+const allLines = extractJsonConst(source, 'previsionnelLines')
 const lines = allLines.filter(isOperationalLine)
+const exerciseOverrides = loadCurrentSheetExerciseOverrides()
 const clientsByKey = new Map()
 const exercisesByName = new Map()
 const aliasesByKey = new Map()
@@ -179,7 +297,9 @@ lines.forEach(line => {
 })
 
 const clientRows = Array.from(clientsByKey.values()).sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
-const exerciseRows = Array.from(exercisesByName.values()).sort((a, b) => a.exercise.localeCompare(b.exercise))
+const exerciseRows = Array.from(exercisesByName.values())
+  .map(exercise => ({ ...exercise, ...exerciseOverrides.get(exercise.sheet) }))
+  .sort((a, b) => a.exercise.localeCompare(b.exercise))
 const aliasRows = Array.from(aliasesByKey.values())
   .filter(alias => alias.clientId)
   .sort((a, b) => a.alias.localeCompare(b.alias, 'fr'))
@@ -259,6 +379,7 @@ const lotRows = previsionnelLineRows.flatMap(row =>
     amount,
   })),
 )
+const cellEditRows = currentSheetCellValueRows().sort((a, b) => a.cellRef.localeCompare(b.cellRef, 'fr', { numeric: true }))
 
 const output = [
   '# =============================================================================',
@@ -274,6 +395,7 @@ const output = [
   `# Lignes previsionnelles: ${previsionnelLineRows.length}`,
   `# Montants mensuels: ${monthlyRows.length}`,
   `# Montants par lot: ${lotRows.length}`,
+  `# Cellules exactes 2025-26: ${cellEditRows.length}`,
   `# Lignes source operationnelles: ${lines.length}`,
   '#',
   '# Execution locale:',
@@ -287,6 +409,9 @@ const output = [
   '      workbook: "PREVISIONNEL.xlsx",',
   '      sourcePath: "C:/Users/pcpor/OneDrive/Bureau/prévisionnelsosson/PREVISIONNEL.xlsx",',
   `      workbookHash: ${workbookHash() ? gqlString(workbookHash()) : 'null'},`,
+  `      sourceStoragePath: ${gqlString(SOURCE_STORAGE_PATH)},`,
+  `      sourceSha256: ${workbookHash() ? gqlString(workbookHash()) : 'null'},`,
+  `      originalFileName: ${gqlString(ORIGINAL_FILE_NAME)},`,
   '      notes: "Import genere depuis src/data/previsionnel.ts. Jaune Excel = facture envoyee, pas paiement."',
   '    }',
   '  ])',
@@ -439,6 +564,22 @@ chunks(lotRows).forEach((chunk, chunkIndex) => {
   output.push('  ])', '')
 })
 
+chunks(cellEditRows).forEach((chunk, chunkIndex) => {
+  output.push(`  cellEdits${String(chunkIndex + 1).padStart(3, '0')}: previsionnelCellEdit_upsertMany(data: [`)
+  chunk.forEach((cell, index) => {
+    output.push(
+      '    {',
+      `      id: ${gqlString(cell.id)},`,
+      `      sourceSheet: ${gqlString(cell.sourceSheet)},`,
+      `      cellRef: ${gqlString(cell.cellRef)},`,
+      `      valueText: ${cell.valueText === null ? 'null' : gqlString(cell.valueText)},`,
+      `      numericValue: ${cell.numericValue === null ? 'null' : gqlNumber(cell.numericValue)}`,
+      `    }${index === chunk.length - 1 ? '' : ','}`,
+    )
+  })
+  output.push('  ])', '')
+})
+
 output.push('}', '')
 
 mkdirSync(dirname(OUTPUT_PATH), { recursive: true })
@@ -466,3 +607,4 @@ console.log(`Generated ${OUTPUT_PATH}`)
 console.log(`Generated ${readdirSync(OUTPUT_DIR).length} chunked seed files in ${OUTPUT_DIR}`)
 console.log(`${clientRows.length} clients, ${chantierRows.length} chantiers, ${previsionnelLineRows.length} previsionnel lines`)
 console.log(`${monthlyRows.length} monthly amounts, ${lotRows.length} lot amounts, ${aliasRows.length} aliases`)
+console.log(`${cellEditRows.length} exact current-sheet cell values`)

@@ -2,11 +2,22 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState, type Clipboard
 import { ArchiveRestore, ArrowLeft, Cloud, Download, RotateCcw, Save } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import {
+  createPrevisionnelWorkbookVersionPendingInSql,
+  getLatestGeneratedPrevisionnelWorkbookVersionFromSql,
+  getPrevisionnelWorkbookVersionFromSql,
   loadPrevisionnelSheetFromSql,
   updatePrevisionnelLineAmountsInSql,
   updatePrevisionnelMonthlyAmountInSql,
   upsertPrevisionnelCellEditInSql,
 } from '@/features/previsionnel/previsionnelSql'
+import {
+  buildPrevisionnelWorkbookVersionPaths,
+  createPrevisionnelWorkbookVersionId,
+  PREVISIONNEL_CURRENT_STORAGE_PATH,
+  triggerPrevisionnelWorkbookGeneration,
+  type PrevisionnelWorkbookGenerationStatus,
+} from '@/features/previsionnel/previsionnelWorkbookExport'
+import { buildPrevisionnelSqlGridState } from '@/features/previsionnel/previsionnelSqlValues'
 import { currentPrevisionnelSheet } from '@/data/previsionnelCurrentSheet'
 import { exportCurrentPrevisionnelWorkbookFromCells, type WorkbookCellUpdates } from '@/lib/previsionnelExport'
 import { isDataConnectEnabled } from '@/lib/dataconnect'
@@ -55,12 +66,44 @@ type DraftCell = {
   value: string
   numeric: boolean
 }
+type WorkbookVersionSqlLike = {
+  id: string
+  status: string
+  storagePath?: string | null
+  currentStoragePath?: string | null
+  sha256?: string | null
+  generatedAt?: string | null
+  errorMessage?: string | null
+}
+type WorkbookVersionState = Omit<WorkbookVersionSqlLike, 'status'> & {
+  status: PrevisionnelWorkbookGenerationStatus
+}
 
 const SPREADSHEET_ROW_HEIGHT = 32
 const SPREADSHEET_ROW_OVERSCAN = 6
 
 function cellEditId(sheet: string, ref: string) {
   return `${sheet}:${ref}`
+}
+
+function normalizeWorkbookStatus(status: string): PrevisionnelWorkbookGenerationStatus {
+  if (status === 'generating' || status === 'generated' || status === 'failed') return status
+  return 'pending'
+}
+
+function workbookVersionState(version: WorkbookVersionSqlLike): WorkbookVersionState {
+  return {
+    ...version,
+    status: normalizeWorkbookStatus(version.status),
+  }
+}
+
+function workbookVersionMessage(version: WorkbookVersionState | null) {
+  if (!version) return 'aucune version Storage generee'
+  if (version.status === 'generated') return `generated ${version.sha256 ? version.sha256.slice(0, 8) : 'sans hash'}`
+  if (version.status === 'failed') return `failed ${version.errorMessage ?? ''}`.trim()
+  if (version.status === 'generating') return 'generating'
+  return 'pending'
 }
 
 function asDisplay(value: string | number | null | undefined) {
@@ -306,6 +349,10 @@ export function PrevisionnelSpreadsheetPage() {
   const [sqlValues, setSqlValues] = useState<WorkbookCellUpdates>({})
   const [sqlBindings, setSqlBindings] = useState<Record<string, SqlCellBinding>>({})
   const [sqlLineBindings, setSqlLineBindings] = useState<Record<number, SqlLineBinding>>({})
+  const [sqlBatchId, setSqlBatchId] = useState<string | null>(null)
+  const [workbookVersion, setWorkbookVersion] = useState<WorkbookVersionState | null>(null)
+  const [workbookMessage, setWorkbookMessage] = useState('Excel Storage non genere')
+  const [workbookRetrying, setWorkbookRetrying] = useState(false)
   const [activeCell, setActiveCell] = useState<string | null>(null)
   const [editingCell, setEditingCell] = useState<string | null>(null)
   const [draftCell, setDraftCell] = useState<DraftCell | null>(null)
@@ -384,41 +431,35 @@ export function PrevisionnelSpreadsheetPage() {
           return
         }
 
-        const nextValues: WorkbookCellUpdates = {}
-        const nextBindings: Record<string, SqlCellBinding> = {}
-        const nextLineBindings: Record<number, SqlLineBinding> = {}
-
-        lines.forEach(line => {
-          nextLineBindings[line.sourceRow] = { lineId: line.id }
-          nextValues[`A${line.sourceRow}`] = line.caTce
-          nextValues[`B${line.sourceRow}`] = line.clientName || line.rawName
-          nextValues[`D${line.sourceRow}`] = line.caPrevision
-          nextValues[`E${line.sourceRow}`] = line.caContrat
-
-          line.monthly.forEach(month => {
-            const pair = currentPrevisionnelSheet.monthPairs[month.monthOrder - 1]
-            if (!pair) return
-
-            const plannedRef = `${pair.planned}${line.sourceRow}`
-            const realizedRef = `${pair.realized}${line.sourceRow}`
-            nextValues[plannedRef] = month.planned
-            nextValues[realizedRef] = month.realized
-            nextBindings[plannedRef] = { monthlyId: month.id, field: 'planned' }
-            nextBindings[realizedRef] = { monthlyId: month.id, field: 'realized' }
-          })
-        })
-
-        cellEdits.forEach(cell => {
-          nextValues[cell.cellRef] = cell.numericValue ?? cell.valueText ?? ''
-        })
-        const linesResponse = { data: { previsionnelLines: lines } }
+        const { values: nextValues, cellBindings: nextBindings, lineBindings: nextLineBindings } = buildPrevisionnelSqlGridState(
+          currentPrevisionnelSheet,
+          lines,
+          cellEdits,
+        )
 
         if (!mounted) return
         setSqlValues(nextValues)
         setSqlBindings(nextBindings)
         setSqlLineBindings(nextLineBindings)
+        setSqlBatchId(exercise.batch.id)
         setSqlStatus('ready')
-        setSqlMessage(`${linesResponse.data.previsionnelLines.length} lignes chargées depuis SQL Connect`)
+        try {
+          const latestWorkbookVersion = await getLatestGeneratedPrevisionnelWorkbookVersionFromSql(currentPrevisionnelSheet.sheet)
+          if (!mounted) return
+          if (latestWorkbookVersion) {
+            const nextWorkbookVersion = workbookVersionState(latestWorkbookVersion)
+            setWorkbookVersion(nextWorkbookVersion)
+            setWorkbookMessage(workbookVersionMessage(nextWorkbookVersion))
+          } else {
+            setWorkbookVersion(null)
+            setWorkbookMessage('aucune version Storage generated connue')
+          }
+        } catch (error) {
+          if (!mounted) return
+          setWorkbookVersion(null)
+          setWorkbookMessage(`versioning Excel Storage indisponible: ${error instanceof Error ? error.message : 'erreur inconnue'}`)
+        }
+        setSqlMessage(`${lines.length} lignes et ${cellEdits.length} cellule(s) exactes chargées depuis SQL Connect`)
       } catch (error) {
         if (!mounted) return
         setSqlStatus('error')
@@ -468,6 +509,16 @@ export function PrevisionnelSpreadsheetPage() {
   const editedCount =
     Object.keys(edited).length + (draftCell && !Object.prototype.hasOwnProperty.call(edited, draftCell.ref) ? 1 : 0)
   const sqlCanSave = sqlStatus === 'ready'
+  const canRetryWorkbookGeneration =
+    Boolean(workbookVersion) && (workbookVersion?.status === 'failed' || workbookVersion?.status === 'pending')
+  const workbookStatusColor =
+    workbookVersion?.status === 'generated'
+      ? '#1E8E3E'
+      : workbookVersion?.status === 'failed'
+        ? '#B3261E'
+        : workbookVersion?.status === 'generating' || workbookVersion?.status === 'pending'
+          ? '#F06B21'
+          : '#C8B18C'
   const activePosition = activeCell ? (cellPositionByRef.get(activeCell) ?? null) : null
   const activeCoordinates = activePosition ? refCoordinates(activeCell) : null
   const activeRowNumber = activeCoordinates?.rowNumber ?? null
@@ -682,7 +733,7 @@ export function PrevisionnelSpreadsheetPage() {
 
     const changedSqlRefs = Object.keys(editedForSave).filter(ref => sqlBindings[ref])
     setSqlStatus('saving')
-    setSqlMessage('Sauvegarde SQL Connect en cours...')
+    setSqlMessage('Sauvegarde SQL Connect en cours, puis creation de la version Excel Storage...')
 
     try {
       const grouped = new Map<string, { planned?: number; realized?: number }>()
@@ -746,6 +797,62 @@ export function PrevisionnelSpreadsheetPage() {
         }),
       )
 
+      const versionDate = new Date()
+      const versionId = createPrevisionnelWorkbookVersionId(versionDate)
+      const versionPaths = buildPrevisionnelWorkbookVersionPaths(versionId, versionDate)
+      const baseStoragePath =
+        workbookVersion?.status === 'generated' && workbookVersion.storagePath ? workbookVersion.storagePath : null
+
+      await createPrevisionnelWorkbookVersionPendingInSql({
+        id: versionId,
+        batchId: sqlBatchId,
+        sourceSheet: currentPrevisionnelSheet.sheet,
+        storagePath: versionPaths.storagePath,
+        currentStoragePath: versionPaths.currentStoragePath,
+        baseStoragePath,
+        editCount: Object.keys(editedForSave).length,
+      })
+
+      const pendingWorkbookVersion: WorkbookVersionState = {
+        id: versionId,
+        status: 'pending',
+        storagePath: versionPaths.storagePath,
+        currentStoragePath: versionPaths.currentStoragePath,
+        sha256: null,
+        generatedAt: null,
+        errorMessage: null,
+      }
+      setWorkbookVersion(pendingWorkbookVersion)
+      setWorkbookMessage(workbookVersionMessage(pendingWorkbookVersion))
+      setSqlMessage(`${Object.keys(editedForSave).length} cellule(s) sauvegardee(s) dans SQL. Export Excel serveur en cours...`)
+
+      let generatedWorkbookVersion = pendingWorkbookVersion
+      try {
+        const generation = await triggerPrevisionnelWorkbookGeneration(versionId)
+        const refreshed = await getPrevisionnelWorkbookVersionFromSql(versionId).catch(() => null)
+        generatedWorkbookVersion = refreshed
+          ? workbookVersionState(refreshed)
+          : {
+              ...pendingWorkbookVersion,
+              status: generation.status,
+              storagePath: generation.storagePath ?? versionPaths.storagePath,
+              currentStoragePath: generation.currentStoragePath ?? versionPaths.currentStoragePath,
+              sha256: generation.sha256 ?? null,
+              errorMessage: generation.errorMessage ?? null,
+            }
+      } catch (error) {
+        const refreshed = await getPrevisionnelWorkbookVersionFromSql(versionId).catch(() => null)
+        generatedWorkbookVersion = refreshed
+          ? workbookVersionState(refreshed)
+          : {
+              ...pendingWorkbookVersion,
+              status: 'failed',
+              errorMessage: error instanceof Error ? error.message : 'erreur inconnue',
+            }
+      }
+
+      setWorkbookVersion(generatedWorkbookVersion)
+      setWorkbookMessage(workbookVersionMessage(generatedWorkbookVersion))
       setSqlValues(prev => {
         const next = { ...prev }
         Object.entries(editedForSave).forEach(([ref, value]) => {
@@ -758,10 +865,59 @@ export function PrevisionnelSpreadsheetPage() {
       draftCellRef.current = null
       setDraftCell(null)
       setSqlStatus('ready')
-      setSqlMessage(`${Object.keys(editedForSave).length} cellule(s) sauvegardée(s) dans SQL Connect`)
+      setSqlMessage(
+        generatedWorkbookVersion.status === 'generated'
+          ? `${Object.keys(editedForSave).length} cellule(s) sauvegardee(s) dans SQL Connect et Excel Storage generated`
+          : `${Object.keys(editedForSave).length} cellule(s) sauvegardee(s) dans SQL Connect ; Excel Storage ${generatedWorkbookVersion.status}`,
+      )
     } catch (error) {
       setSqlStatus('error')
-      setSqlMessage(`Échec sauvegarde SQL : ${error instanceof Error ? error.message : 'erreur inconnue'}`)
+      setSqlMessage(`Echec sauvegarde SQL ou creation version Excel: ${error instanceof Error ? error.message : 'erreur inconnue'}`)
+    }
+  }
+
+  async function handleRetryWorkbookGeneration() {
+    if (!workbookVersion) return
+
+    setWorkbookRetrying(true)
+    setWorkbookVersion(prev => (prev ? { ...prev, status: 'generating', errorMessage: null } : prev))
+    setWorkbookMessage('relance generation Excel Storage...')
+
+    try {
+      const generation = await triggerPrevisionnelWorkbookGeneration(workbookVersion.id)
+      const refreshed = await getPrevisionnelWorkbookVersionFromSql(workbookVersion.id).catch(() => null)
+      const nextWorkbookVersion = refreshed
+        ? workbookVersionState(refreshed)
+        : workbookVersionState({
+            ...workbookVersion,
+            status: generation.status,
+            storagePath: generation.storagePath ?? workbookVersion.storagePath,
+            currentStoragePath: generation.currentStoragePath ?? workbookVersion.currentStoragePath,
+            sha256: generation.sha256 ?? workbookVersion.sha256,
+            errorMessage: generation.errorMessage ?? null,
+          })
+
+      setWorkbookVersion(nextWorkbookVersion)
+      setWorkbookMessage(workbookVersionMessage(nextWorkbookVersion))
+      setSqlMessage(
+        nextWorkbookVersion.status === 'generated'
+          ? 'Export Excel Storage genere depuis les edits SQL conserves'
+          : `Export Excel Storage ${nextWorkbookVersion.status}`,
+      )
+    } catch (error) {
+      const refreshed = await getPrevisionnelWorkbookVersionFromSql(workbookVersion.id).catch(() => null)
+      const nextWorkbookVersion = refreshed
+        ? workbookVersionState(refreshed)
+        : {
+            ...workbookVersion,
+            status: 'failed' as const,
+            errorMessage: error instanceof Error ? error.message : 'erreur inconnue',
+          }
+      setWorkbookVersion(nextWorkbookVersion)
+      setWorkbookMessage(workbookVersionMessage(nextWorkbookVersion))
+      setSqlMessage(`Echec relance Excel Storage: ${nextWorkbookVersion.errorMessage ?? 'erreur inconnue'}`)
+    } finally {
+      setWorkbookRetrying(false)
     }
   }
 
@@ -1053,10 +1209,11 @@ export function PrevisionnelSpreadsheetPage() {
           <button
             type="button"
             onClick={() => void handleExport()}
+            title="Export local navigateur uniquement. Le fichier Storage officiel est genere cote serveur apres Sauvegarder SQL."
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#F06B21] px-3 text-[12px] font-semibold text-white hover:bg-[#D95B17]"
           >
             <Download className="h-4 w-4" />
-            Exporter le Excel
+            Export local
           </button>
           <button
             type="button"
@@ -1096,8 +1253,19 @@ export function PrevisionnelSpreadsheetPage() {
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#1E1E1E] px-3 text-[12px] font-semibold text-white hover:bg-[#3C3C3C] disabled:cursor-not-allowed disabled:bg-[#C8B18C]"
           >
             <Cloud className="h-4 w-4" />
-            Sauvegarder SQL
+            Sauvegarder SQL + Excel
           </button>
+          {canRetryWorkbookGeneration && (
+            <button
+              type="button"
+              onClick={() => void handleRetryWorkbookGeneration()}
+              disabled={workbookRetrying}
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#F2E8DC] bg-white px-3 text-[12px] font-semibold text-[#1E1E1E] hover:bg-[#FAF6F2] disabled:cursor-not-allowed disabled:text-[#A3988D]"
+            >
+              <Cloud className="h-4 w-4 text-[#F06B21]" />
+              Relancer Excel Storage
+            </button>
+          )}
         </div>
       </div>
       <div className="flex h-8 shrink-0 items-center gap-2 border-b border-[#EADBC8] bg-[#FAF6F2] px-3 text-[11px] font-semibold text-[#6B6B6B]">
@@ -1109,6 +1277,10 @@ export function PrevisionnelSpreadsheetPage() {
           }}
         />
         <span className="truncate">{sqlMessage}</span>
+        <span className="hidden items-center gap-1 truncate md:inline-flex" title={workbookVersion?.currentStoragePath ?? PREVISIONNEL_CURRENT_STORAGE_PATH}>
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: workbookStatusColor }} />
+          Excel Storage: {workbookMessage}
+        </span>
         {editedCount > 0 && <span className="ml-auto text-[#1E1E1E]">{editedCount} cellule(s) modifiee(s)</span>}
       </div>
 

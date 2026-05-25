@@ -5,6 +5,7 @@ import {
   type PrevisionnelExercise,
   type PrevisionnelLine,
 } from '@/data/previsionnel'
+import { currentPrevisionnelSheet, type CurrentPrevisionnelSheet } from '@/data/previsionnelCurrentSheet'
 import { operationalPrevisionnelLines } from '@/lib/previsionnelModel'
 
 export const categoryLabels: Record<PrevisionnelCategory, string> = {
@@ -120,7 +121,43 @@ function aggregateExercises(lines: PrevisionnelLine[]): PrevisionnelExercise[] {
   return Array.from(grouped.values()).sort((a, b) => a.exercise.localeCompare(b.exercise))
 }
 
-export const cleanPrevisionnelExercises = aggregateExercises(operationalPrevisionnelLines)
+function currentSheetCellNumber(sheet: CurrentPrevisionnelSheet, rowNumber: number, col: string) {
+  const row = sheet.rows.find(item => item.rowNumber === rowNumber)
+  const value = row?.cells.find(cell => cell.col === col)?.value
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+function sumCurrentSheetRange(sheet: CurrentPrevisionnelSheet, col: string, start: number, end: number) {
+  let total = 0
+  for (let rowNumber = start; rowNumber <= end; rowNumber += 1) {
+    total += currentSheetCellNumber(sheet, rowNumber, col)
+  }
+  return Number(total.toFixed(2))
+}
+
+function currentSheetRealizedTotal(sheet: CurrentPrevisionnelSheet) {
+  return Number(
+    sheet.monthPairs
+      .reduce((sum, pair) => sum + currentSheetCellNumber(sheet, 174, pair.realized), 0)
+      .toFixed(2),
+  )
+}
+
+function applyCurrentSheetOfficialTotals(exercises: PrevisionnelExercise[]) {
+  return exercises.map(exercise => {
+    if (exercise.sheet !== currentPrevisionnelSheet.sheet) return exercise
+
+    return {
+      ...exercise,
+      caPrevision: sumCurrentSheetRange(currentPrevisionnelSheet, 'D', 8, 170),
+      caContrat: sumCurrentSheetRange(currentPrevisionnelSheet, 'E', 32, 170),
+      plannedTotal: sumCurrentSheetRange(currentPrevisionnelSheet, 'F', 32, 132),
+      realizedTotal: currentSheetRealizedTotal(currentPrevisionnelSheet),
+    }
+  })
+}
+
+export const cleanPrevisionnelExercises = applyCurrentSheetOfficialTotals(aggregateExercises(operationalPrevisionnelLines))
 
 export function latestExercise() {
   return cleanPrevisionnelExercises[cleanPrevisionnelExercises.length - 1] ?? previsionnelExercises[previsionnelExercises.length - 1]

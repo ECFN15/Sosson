@@ -238,7 +238,7 @@ Rendre les controles repetables.
 - `.github/workflows/sandbox-checks.yml` execute `npm run ci:sandbox` apres `npm ci`, pour rester aligne avec la chaine locale.
 - `npm run ci:sandbox` regroupe les controles locaux.
 - `npm run checkpoint:002:local` ajoute audit front hybride, dry-run comptage et dry-run provisioning.
-- `npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json` prepare et archive la liste des seeds sandbox; l'execution reelle est gardee par `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`.
+- `npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json` prepare et archive la liste des seeds sandbox; l'execution reelle est gardee par `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`.
 - `npm run check:sandbox-guardrails` couvre les scenarios negatifs sandbox, le refus du reset local sans confirmation, l'ignore git des preuves locales / `pgliteData` et la non-regression vers des UID/emails bruts.
 - `npm run check:doc-entrypoints` bloque le retour du README template Vite, verifie les points d'entree checkpoint 002 et garde la page `/documentation` en 8 chapitres separes.
 - `npm run check:doc-links` bloque les liens Markdown locaux morts dans `README.md`, `documentation.md`, `AGENTS.md` et `docs/`.

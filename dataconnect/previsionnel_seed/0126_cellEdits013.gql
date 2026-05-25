@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits013: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:AX78",
+      sourceSheet: "2025-26",
+      cellRef: "AX78",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX79",
+      sourceSheet: "2025-26",
+      cellRef: "AX79",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX80",
+      sourceSheet: "2025-26",
+      cellRef: "AX80",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX81",
+      sourceSheet: "2025-26",
+      cellRef: "AX81",
+      valueText: null,
+      numericValue: -0.22
+    },
+    {
+      id: "2025-26:AX83",
+      sourceSheet: "2025-26",
+      cellRef: "AX83",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX84",
+      sourceSheet: "2025-26",
+      cellRef: "AX84",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX85",
+      sourceSheet: "2025-26",
+      cellRef: "AX85",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX86",
+      sourceSheet: "2025-26",
+      cellRef: "AX86",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX87",
+      sourceSheet: "2025-26",
+      cellRef: "AX87",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX89",
+      sourceSheet: "2025-26",
+      cellRef: "AX89",
+      valueText: null,
+      numericValue: 30300.98
+    },
+    {
+      id: "2025-26:AX90",
+      sourceSheet: "2025-26",
+      cellRef: "AX90",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX91",
+      sourceSheet: "2025-26",
+      cellRef: "AX91",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX92",
+      sourceSheet: "2025-26",
+      cellRef: "AX92",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX94",
+      sourceSheet: "2025-26",
+      cellRef: "AX94",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX95",
+      sourceSheet: "2025-26",
+      cellRef: "AX95",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX96",
+      sourceSheet: "2025-26",
+      cellRef: "AX96",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX97",
+      sourceSheet: "2025-26",
+      cellRef: "AX97",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX98",
+      sourceSheet: "2025-26",
+      cellRef: "AX98",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX99",
+      sourceSheet: "2025-26",
+      cellRef: "AX99",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX100",
+      sourceSheet: "2025-26",
+      cellRef: "AX100",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX101",
+      sourceSheet: "2025-26",
+      cellRef: "AX101",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX102",
+      sourceSheet: "2025-26",
+      cellRef: "AX102",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX103",
+      sourceSheet: "2025-26",
+      cellRef: "AX103",
+      valueText: null,
+      numericValue: 340
+    },
+    {
+      id: "2025-26:AX104",
+      sourceSheet: "2025-26",
+      cellRef: "AX104",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX105",
+      sourceSheet: "2025-26",
+      cellRef: "AX105",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX106",
+      sourceSheet: "2025-26",
+      cellRef: "AX106",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX107",
+      sourceSheet: "2025-26",
+      cellRef: "AX107",
+      valueText: null,
+      numericValue: 3216.36
+    },
+    {
+      id: "2025-26:AX108",
+      sourceSheet: "2025-26",
+      cellRef: "AX108",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX109",
+      sourceSheet: "2025-26",
+      cellRef: "AX109",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX110",
+      sourceSheet: "2025-26",
+      cellRef: "AX110",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX111",
+      sourceSheet: "2025-26",
+      cellRef: "AX111",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX112",
+      sourceSheet: "2025-26",
+      cellRef: "AX112",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX113",
+      sourceSheet: "2025-26",
+      cellRef: "AX113",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX114",
+      sourceSheet: "2025-26",
+      cellRef: "AX114",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX115",
+      sourceSheet: "2025-26",
+      cellRef: "AX115",
+      valueText: null,
+      numericValue: 874
+    },
+    {
+      id: "2025-26:AX118",
+      sourceSheet: "2025-26",
+      cellRef: "AX118",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX119",
+      sourceSheet: "2025-26",
+      cellRef: "AX119",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX120",
+      sourceSheet: "2025-26",
+      cellRef: "AX120",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX121",
+      sourceSheet: "2025-26",
+      cellRef: "AX121",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX122",
+      sourceSheet: "2025-26",
+      cellRef: "AX122",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX123",
+      sourceSheet: "2025-26",
+      cellRef: "AX123",
+      valueText: null,
+      numericValue: 17559.52
+    },
+    {
+      id: "2025-26:AX124",
+      sourceSheet: "2025-26",
+      cellRef: "AX124",
+      valueText: null,
+      numericValue: 10526.82
+    },
+    {
+      id: "2025-26:AX125",
+      sourceSheet: "2025-26",
+      cellRef: "AX125",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX126",
+      sourceSheet: "2025-26",
+      cellRef: "AX126",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX127",
+      sourceSheet: "2025-26",
+      cellRef: "AX127",
+      valueText: null,
+      numericValue: 3716.56
+    },
+    {
+      id: "2025-26:AX129",
+      sourceSheet: "2025-26",
+      cellRef: "AX129",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX130",
+      sourceSheet: "2025-26",
+      cellRef: "AX130",
+      valueText: null,
+      numericValue: 4129.82
+    },
+    {
+      id: "2025-26:AX132",
+      sourceSheet: "2025-26",
+      cellRef: "AX132",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX134",
+      sourceSheet: "2025-26",
+      cellRef: "AX134",
+      valueText: null,
+      numericValue: 0
+    },
+    {
+      id: "2025-26:AX135",
+      sourceSheet: "2025-26",
+      cellRef: "AX135",
+      valueText: null,
+      numericValue: 0
+    }
+  ])
+}

@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits041: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:D44",
+      sourceSheet: "2025-26",
+      cellRef: "D44",
+      valueText: null,
+      numericValue: 1502.01
+    },
+    {
+      id: "2025-26:D46",
+      sourceSheet: "2025-26",
+      cellRef: "D46",
+      valueText: null,
+      numericValue: 51000
+    },
+    {
+      id: "2025-26:D47",
+      sourceSheet: "2025-26",
+      cellRef: "D47",
+      valueText: null,
+      numericValue: 63000
+    },
+    {
+      id: "2025-26:D48",
+      sourceSheet: "2025-26",
+      cellRef: "D48",
+      valueText: null,
+      numericValue: 78076.47
+    },
+    {
+      id: "2025-26:D49",
+      sourceSheet: "2025-26",
+      cellRef: "D49",
+      valueText: null,
+      numericValue: 61127.78
+    },
+    {
+      id: "2025-26:D50",
+      sourceSheet: "2025-26",
+      cellRef: "D50",
+      valueText: null,
+      numericValue: 45710.77
+    },
+    {
+      id: "2025-26:D51",
+      sourceSheet: "2025-26",
+      cellRef: "D51",
+      valueText: null,
+      numericValue: 92232.69
+    },
+    {
+      id: "2025-26:D52",
+      sourceSheet: "2025-26",
+      cellRef: "D52",
+      valueText: null,
+      numericValue: 32718.45
+    },
+    {
+      id: "2025-26:D53",
+      sourceSheet: "2025-26",
+      cellRef: "D53",
+      valueText: null,
+      numericValue: 142549.41
+    },
+    {
+      id: "2025-26:D54",
+      sourceSheet: "2025-26",
+      cellRef: "D54",
+      valueText: null,
+      numericValue: 76547.95
+    },
+    {
+      id: "2025-26:D55",
+      sourceSheet: "2025-26",
+      cellRef: "D55",
+      valueText: null,
+      numericValue: 29182.48
+    },
+    {
+      id: "2025-26:D56",
+      sourceSheet: "2025-26",
+      cellRef: "D56",
+      valueText: null,
+      numericValue: 57581.9
+    },
+    {
+      id: "2025-26:D57",
+      sourceSheet: "2025-26",
+      cellRef: "D57",
+      valueText: null,
+      numericValue: 129236
+    },
+    {
+      id: "2025-26:D58",
+      sourceSheet: "2025-26",
+      cellRef: "D58",
+      valueText: null,
+      numericValue: 66982.32
+    },
+    {
+      id: "2025-26:D59",
+      sourceSheet: "2025-26",
+      cellRef: "D59",
+      valueText: null,
+      numericValue: 37831.45
+    },
+    {
+      id: "2025-26:D60",
+      sourceSheet: "2025-26",
+      cellRef: "D60",
+      valueText: null,
+      numericValue: 196666
+    },
+    {
+      id: "2025-26:D61",
+      sourceSheet: "2025-26",
+      cellRef: "D61",
+      valueText: null,
+      numericValue: 88843.61
+    },
+    {
+      id: "2025-26:D62",
+      sourceSheet: "2025-26",
+      cellRef: "D62",
+      valueText: null,
+      numericValue: 20997.32
+    },
+    {
+      id: "2025-26:D63",
+      sourceSheet: "2025-26",
+      cellRef: "D63",
+      valueText: null,
+      numericValue: 86969
+    },
+    {
+      id: "2025-26:D64",
+      sourceSheet: "2025-26",
+      cellRef: "D64",
+      valueText: null,
+      numericValue: 52395
+    },
+    {
+      id: "2025-26:D65",
+      sourceSheet: "2025-26",
+      cellRef: "D65",
+      valueText: null,
+      numericValue: 71806.76
+    },
+    {
+      id: "2025-26:D66",
+      sourceSheet: "2025-26",
+      cellRef: "D66",
+      valueText: null,
+      numericValue: 141779
+    },
+    {
+      id: "2025-26:D67",
+      sourceSheet: "2025-26",
+      cellRef: "D67",
+      valueText: null,
+      numericValue: 67113.22
+    },
+    {
+      id: "2025-26:D68",
+      sourceSheet: "2025-26",
+      cellRef: "D68",
+      valueText: null,
+      numericValue: 80923.61
+    },
+    {
+      id: "2025-26:D69",
+      sourceSheet: "2025-26",
+      cellRef: "D69",
+      valueText: null,
+      numericValue: 76836
+    },
+    {
+      id: "2025-26:D70",
+      sourceSheet: "2025-26",
+      cellRef: "D70",
+      valueText: null,
+      numericValue: 80706.6
+    },
+    {
+      id: "2025-26:D71",
+      sourceSheet: "2025-26",
+      cellRef: "D71",
+      valueText: null,
+      numericValue: 160086
+    },
+    {
+      id: "2025-26:D72",
+      sourceSheet: "2025-26",
+      cellRef: "D72",
+      valueText: null,
+      numericValue: 19248
+    },
+    {
+      id: "2025-26:D73",
+      sourceSheet: "2025-26",
+      cellRef: "D73",
+      valueText: null,
+      numericValue: 30937
+    },
+    {
+      id: "2025-26:D74",
+      sourceSheet: "2025-26",
+      cellRef: "D74",
+      valueText: null,
+      numericValue: 98822
+    },
+    {
+      id: "2025-26:D75",
+      sourceSheet: "2025-26",
+      cellRef: "D75",
+      valueText: null,
+      numericValue: 76200
+    },
+    {
+      id: "2025-26:D76",
+      sourceSheet: "2025-26",
+      cellRef: "D76",
+      valueText: null,
+      numericValue: 5468
+    },
+    {
+      id: "2025-26:D77",
+      sourceSheet: "2025-26",
+      cellRef: "D77",
+      valueText: null,
+      numericValue: 6229.55
+    },
+    {
+      id: "2025-26:D78",
+      sourceSheet: "2025-26",
+      cellRef: "D78",
+      valueText: null,
+      numericValue: 26545.41
+    },
+    {
+      id: "2025-26:D79",
+      sourceSheet: "2025-26",
+      cellRef: "D79",
+      valueText: null,
+      numericValue: 18318.27
+    },
+    {
+      id: "2025-26:D80",
+      sourceSheet: "2025-26",
+      cellRef: "D80",
+      valueText: null,
+      numericValue: 7897.06
+    },
+    {
+      id: "2025-26:D81",
+      sourceSheet: "2025-26",
+      cellRef: "D81",
+      valueText: null,
+      numericValue: 29711.17
+    },
+    {
+      id: "2025-26:D83",
+      sourceSheet: "2025-26",
+      cellRef: "D83",
+      valueText: null,
+      numericValue: 15021.55
+    },
+    {
+      id: "2025-26:D84",
+      sourceSheet: "2025-26",
+      cellRef: "D84",
+      valueText: null,
+      numericValue: 6700
+    },
+    {
+      id: "2025-26:D86",
+      sourceSheet: "2025-26",
+      cellRef: "D86",
+      valueText: null,
+      numericValue: 10064.29
+    },
+    {
+      id: "2025-26:D87",
+      sourceSheet: "2025-26",
+      cellRef: "D87",
+      valueText: null,
+      numericValue: 1756.2
+    },
+    {
+      id: "2025-26:D88",
+      sourceSheet: "2025-26",
+      cellRef: "D88",
+      valueText: null,
+      numericValue: 5684
+    },
+    {
+      id: "2025-26:D89",
+      sourceSheet: "2025-26",
+      cellRef: "D89",
+      valueText: null,
+      numericValue: 42929.84
+    },
+    {
+      id: "2025-26:D90",
+      sourceSheet: "2025-26",
+      cellRef: "D90",
+      valueText: null,
+      numericValue: 97448
+    },
+    {
+      id: "2025-26:D91",
+      sourceSheet: "2025-26",
+      cellRef: "D91",
+      valueText: null,
+      numericValue: 7000
+    },
+    {
+      id: "2025-26:D92",
+      sourceSheet: "2025-26",
+      cellRef: "D92",
+      valueText: null,
+      numericValue: 9536.11
+    },
+    {
+      id: "2025-26:D94",
+      sourceSheet: "2025-26",
+      cellRef: "D94",
+      valueText: null,
+      numericValue: 199.2
+    },
+    {
+      id: "2025-26:D95",
+      sourceSheet: "2025-26",
+      cellRef: "D95",
+      valueText: null,
+      numericValue: 16853.37
+    },
+    {
+      id: "2025-26:D96",
+      sourceSheet: "2025-26",
+      cellRef: "D96",
+      valueText: null,
+      numericValue: 54411.21
+    },
+    {
+      id: "2025-26:D97",
+      sourceSheet: "2025-26",
+      cellRef: "D97",
+      valueText: null,
+      numericValue: 3547.07
+    }
+  ])
+}

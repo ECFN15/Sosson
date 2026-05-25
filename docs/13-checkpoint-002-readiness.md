@@ -46,7 +46,7 @@ Ce document ne remplace pas les runbooks. Il sert de checklist preuve par preuve
 | Ne pas exposer de secret front | `scripts/check-front-secrets.mjs` | OK. | Garder le check CI. |
 | Ne pas permettre au navigateur de choisir son role | `scripts/check-auth-safety.mjs`, `scripts/check-dataconnect-auth-invariants.mjs`, `scripts/check-dataconnect-client-surface.mjs`, `scripts/provision-sql-users.mjs`, SDKs regeneres | `UpsertCurrentUser` absent des SDKs generes et controle par CI; provisioning admin via `dc.upsert('User', ...)`; aucun role fourni par le navigateur. | Valider sur sandbox avec vrais UID Firebase Auth. |
 | Cloturer checkpoint 001 | `docs/11-audit-checkpoint-001.md`, `docs/12-ai-agent-roadmap.md` | Section cloture + owners + gates + plan. | Reporter les preuves sandbox reelles. |
-| Seed sandbox reel | `scripts/seed-dataconnect-sandbox.mjs`, `dataconnect/seed_data.gql`, `dataconnect/previsionnel_seed/*.gql` | Dry-run possible; ecriture sandbox bloquee sans `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`. | Seed distant execute et verifie par comptage sandbox archive. |
+| Seed sandbox reel | `scripts/seed-dataconnect-sandbox.mjs`, `dataconnect/previsionnel_seed/*.gql` | Dry-run possible; ecriture sandbox bloquee sans `ALLOW_SANDBOX_DATACONNECT_SEED=true`, `--sandbox` et `--yes-sandbox`; le seed demo `dataconnect/seed_data.gql` est bloque sans `--include-demo-operational-seed`. | Seed distant execute et verifie par comptage sandbox archive. |
 | Comptage base distante | `scripts/count-dataconnect.mjs` | Dry-run possible; lecture sandbox bloquee sans validation humaine; `--user-profiles` et `--output` sont obligatoires en sandbox; le fichier exemple de profils est refuse. | Sortie JSON sandbox avec volumes par table, profils connus via `uidFingerprint` + domaine email, et roles SQL conformes au fichier valide humainement. |
 | Profil applicatif SQL | `src/features/auth/sqlUserProfile.ts`, `src/lib/auth.ts`, `scripts/check-firestore-boundary.mjs` | `GetCurrentUser` tente avant Firestore; aucun nouvel usage Firestore n'est autorise hors fallback transitoire. | Creer un vrai `User` SQL sandbox et tester login. |
 | Navigateur ne choisit pas son role | `scripts/provision-sql-users.mjs`, `dataconnect/user_profiles.example.json` | Provisioning admin direct prepare et verifie localement; front ne peut plus appeler `UpsertCurrentUser` car l'operation n'est plus exposee; les scripts sandbox refusent le fichier exemple et les UID placeholders. | Executer sur sandbox apres validation humaine avec `dataconnect/user_profiles.local.json`. |
@@ -90,7 +90,7 @@ npm run audit:frontend-sources -- --output=tmp/checkpoint-002/frontend-sources.j
 npm run checkpoint:002:local
 npm run ci:sandbox
 npm run count:dataconnect -- --dry-run
-npm run seed:sandbox -- --dry-run --kind=all --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
+npm run seed:sandbox -- --dry-run --kind=previsionnel --output=tmp/checkpoint-002/seed-sandbox-dry-run.json
 npm run provision:sql-users -- --file=dataconnect/user_profiles.example.json --dry-run
 npm run seed:dataconnect
 npm run seed:previsionnel:dataconnect
@@ -212,7 +212,7 @@ Le gabarit d'execution complet est dans `docs/15-checkpoint-002-sandbox-executio
 ```bash
 firebase deploy --only firestore:rules,storage --project sosson-sandbox
 firebase deploy --only dataconnect --project sosson-sandbox
-ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=all
+ALLOW_SANDBOX_DATACONNECT_SEED=true npm run seed:sandbox -- --sandbox --yes-sandbox --kind=previsionnel
 ALLOW_SANDBOX_USER_PROVISIONING=true npm run provision:sql-users -- --sandbox --yes-sandbox --file=dataconnect/user_profiles.local.json
 ALLOW_SANDBOX_DATACONNECT_READ=true npm run count:dataconnect -- --sandbox --yes-sandbox --user-profiles=dataconnect/user_profiles.local.json --output=tmp/checkpoint-002/counts-sandbox.json
 ```

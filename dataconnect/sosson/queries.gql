@@ -591,6 +591,9 @@ query ListPrevisionnelExercises
       workbook
       sourcePath
       workbookHash
+      sourceStoragePath
+      sourceSha256
+      originalFileName
       importedAt
     }
   }
@@ -662,7 +665,105 @@ query ListPrevisionnelCellEdits($sourceSheet: String!)
     cellRef
     valueText
     numericValue
+    author { id nom prenom avatar }
     dateModification
+  }
+}
+
+query GetPrevisionnelWorkbookVersion($id: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect previsionnel workbook export status while writes stay role-checked."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour lire les exports previsionnel.")
+  }
+  previsionnelWorkbookVersion(key: { id: $id }) {
+    id
+    sourceSheet
+    status
+    storagePath
+    currentStoragePath
+    baseStoragePath
+    sha256
+    sizeBytes
+    editCount
+    retryCount
+    generationStartedAt
+    generatedAt
+    failedAt
+    errorMessage
+    dateModification
+    dateCreation
+    requestedBy { id nom prenom avatar }
+    batch {
+      id
+      workbook
+      sourceStoragePath
+      sourceSha256
+      originalFileName
+    }
+  }
+}
+
+query ListPrevisionnelWorkbookVersions($sourceSheet: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can inspect previsionnel workbook export history."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour lire les exports previsionnel.")
+  }
+  previsionnelWorkbookVersions(where: { sourceSheet: { eq: $sourceSheet } }, orderBy: { dateCreation: DESC }, limit: 50) {
+    id
+    sourceSheet
+    status
+    storagePath
+    currentStoragePath
+    baseStoragePath
+    sha256
+    sizeBytes
+    editCount
+    retryCount
+    generationStartedAt
+    generatedAt
+    failedAt
+    errorMessage
+    dateModification
+    dateCreation
+    requestedBy { id nom prenom avatar }
+    batch { id workbook sourceStoragePath sourceSha256 originalFileName }
+  }
+}
+
+query GetLatestGeneratedPrevisionnelWorkbookVersion($sourceSheet: String!)
+  @auth(
+    level: USER
+    insecureReason: "Internal back-office app; authenticated staff can find the latest generated previsionnel workbook version."
+  ) {
+  currentUser: user(key: { id_expr: "auth.uid" }) @check(expr: "this != null", message: "Profil SQL requis.") @redact {
+    role @check(expr: "this in ['gerant', 'assistante']", message: "Role insuffisant pour lire les exports previsionnel.")
+  }
+  previsionnelWorkbookVersions(
+    where: { sourceSheet: { eq: $sourceSheet }, status: { eq: "generated" } }
+    orderBy: { generatedAt: DESC }
+    limit: 1
+  ) {
+    id
+    sourceSheet
+    status
+    storagePath
+    currentStoragePath
+    baseStoragePath
+    sha256
+    sizeBytes
+    editCount
+    retryCount
+    generatedAt
+    dateModification
+    dateCreation
+    requestedBy { id nom prenom avatar }
+    batch { id workbook sourceStoragePath sourceSha256 originalFileName }
   }
 }
 

@@ -308,6 +308,9 @@ type PrevisionnelImportBatch @table {
   workbook: String! @col(dataType: "varchar(200)")
   sourcePath: String! @col(dataType: "varchar(255)")
   workbookHash: String @col(dataType: "varchar(64)")
+  sourceStoragePath: String @col(dataType: "varchar(500)")
+  sourceSha256: String @col(dataType: "varchar(64)")
+  originalFileName: String @col(dataType: "varchar(255)")
   importedAt: Timestamp! @default(expr: "request.time")
   notes: String
 }
@@ -396,7 +399,34 @@ type PrevisionnelCellEdit @table {
   cellRef: String! @col(dataType: "varchar(16)")
   valueText: String @col(dataType: "varchar(255)")
   numericValue: Float @col(dataType: "numeric(14, 2)")
+  author: User
   dateModification: Timestamp! @default(expr: "request.time")
+}
+
+
+# Version Excel generee cote serveur depuis les cellules SQL.
+# Les fichiers binaires vivent dans Cloud Storage ; SQL conserve seulement
+# l'etat, les chemins, les hashes et l'auteur pour rendre les exports relancables.
+type PrevisionnelWorkbookVersion @table {
+  id: String! @col(dataType: "varchar(80)")
+  batch: PrevisionnelImportBatch
+  sourceSheet: String! @col(dataType: "varchar(32)")
+  # Statut : "pending" | "generating" | "generated" | "failed"
+  status: String! @default(value: "pending") @col(dataType: "varchar(32)")
+  storagePath: String! @col(dataType: "varchar(500)")
+  currentStoragePath: String! @col(dataType: "varchar(500)")
+  baseStoragePath: String @col(dataType: "varchar(500)")
+  sha256: String @col(dataType: "varchar(64)")
+  sizeBytes: Int
+  editCount: Int! @default(value: 0)
+  retryCount: Int! @default(value: 0)
+  requestedBy: User
+  generationStartedAt: Timestamp
+  generatedAt: Timestamp
+  failedAt: Timestamp
+  errorMessage: String
+  dateModification: Timestamp! @default(expr: "request.time")
+  dateCreation: Timestamp! @default(expr: "request.time")
 }
 
 

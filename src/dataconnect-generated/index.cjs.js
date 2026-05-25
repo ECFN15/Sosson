@@ -405,6 +405,62 @@ exports.upsertPrevisionnelCellEdit = function upsertPrevisionnelCellEdit(dcOrVar
 }
 ;
 
+const createPrevisionnelWorkbookVersionPendingRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreatePrevisionnelWorkbookVersionPending', inputVars);
+}
+createPrevisionnelWorkbookVersionPendingRef.operationName = 'CreatePrevisionnelWorkbookVersionPending';
+exports.createPrevisionnelWorkbookVersionPendingRef = createPrevisionnelWorkbookVersionPendingRef;
+
+exports.createPrevisionnelWorkbookVersionPending = function createPrevisionnelWorkbookVersionPending(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createPrevisionnelWorkbookVersionPendingRef(dcInstance, inputVars));
+}
+;
+
+const markPrevisionnelWorkbookVersionGeneratingRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'MarkPrevisionnelWorkbookVersionGenerating', inputVars);
+}
+markPrevisionnelWorkbookVersionGeneratingRef.operationName = 'MarkPrevisionnelWorkbookVersionGenerating';
+exports.markPrevisionnelWorkbookVersionGeneratingRef = markPrevisionnelWorkbookVersionGeneratingRef;
+
+exports.markPrevisionnelWorkbookVersionGenerating = function markPrevisionnelWorkbookVersionGenerating(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(markPrevisionnelWorkbookVersionGeneratingRef(dcInstance, inputVars));
+}
+;
+
+const markPrevisionnelWorkbookVersionGeneratedRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'MarkPrevisionnelWorkbookVersionGenerated', inputVars);
+}
+markPrevisionnelWorkbookVersionGeneratedRef.operationName = 'MarkPrevisionnelWorkbookVersionGenerated';
+exports.markPrevisionnelWorkbookVersionGeneratedRef = markPrevisionnelWorkbookVersionGeneratedRef;
+
+exports.markPrevisionnelWorkbookVersionGenerated = function markPrevisionnelWorkbookVersionGenerated(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(markPrevisionnelWorkbookVersionGeneratedRef(dcInstance, inputVars));
+}
+;
+
+const markPrevisionnelWorkbookVersionFailedRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'MarkPrevisionnelWorkbookVersionFailed', inputVars);
+}
+markPrevisionnelWorkbookVersionFailedRef.operationName = 'MarkPrevisionnelWorkbookVersionFailed';
+exports.markPrevisionnelWorkbookVersionFailedRef = markPrevisionnelWorkbookVersionFailedRef;
+
+exports.markPrevisionnelWorkbookVersionFailed = function markPrevisionnelWorkbookVersionFailed(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(markPrevisionnelWorkbookVersionFailedRef(dcInstance, inputVars));
+}
+;
+
 const createEmailThreadRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
@@ -1041,6 +1097,51 @@ exports.listPrevisionnelCellEdits = function listPrevisionnelCellEdits(dcOrVars,
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(listPrevisionnelCellEditsRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const getPrevisionnelWorkbookVersionRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetPrevisionnelWorkbookVersion', inputVars);
+}
+getPrevisionnelWorkbookVersionRef.operationName = 'GetPrevisionnelWorkbookVersion';
+exports.getPrevisionnelWorkbookVersionRef = getPrevisionnelWorkbookVersionRef;
+
+exports.getPrevisionnelWorkbookVersion = function getPrevisionnelWorkbookVersion(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getPrevisionnelWorkbookVersionRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const listPrevisionnelWorkbookVersionsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListPrevisionnelWorkbookVersions', inputVars);
+}
+listPrevisionnelWorkbookVersionsRef.operationName = 'ListPrevisionnelWorkbookVersions';
+exports.listPrevisionnelWorkbookVersionsRef = listPrevisionnelWorkbookVersionsRef;
+
+exports.listPrevisionnelWorkbookVersions = function listPrevisionnelWorkbookVersions(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listPrevisionnelWorkbookVersionsRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
+}
+;
+
+const getLatestGeneratedPrevisionnelWorkbookVersionRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetLatestGeneratedPrevisionnelWorkbookVersion', inputVars);
+}
+getLatestGeneratedPrevisionnelWorkbookVersionRef.operationName = 'GetLatestGeneratedPrevisionnelWorkbookVersion';
+exports.getLatestGeneratedPrevisionnelWorkbookVersionRef = getLatestGeneratedPrevisionnelWorkbookVersionRef;
+
+exports.getLatestGeneratedPrevisionnelWorkbookVersion = function getLatestGeneratedPrevisionnelWorkbookVersion(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getLatestGeneratedPrevisionnelWorkbookVersionRef(dcInstance, inputVars), inputOpts && inputOpts.fetchPolicy);
 }
 ;
 

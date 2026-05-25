@@ -1,0 +1,354 @@
+mutation @transaction {
+  cellEdits019: previsionnelCellEdit_upsertMany(data: [
+    {
+      id: "2025-26:B80",
+      sourceSheet: "2025-26",
+      cellRef: "B80",
+      valueText: "DUFOUR Maxime",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B81",
+      sourceSheet: "2025-26",
+      cellRef: "B81",
+      valueText: "PHILIPPE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B83",
+      sourceSheet: "2025-26",
+      cellRef: "B83",
+      valueText: "EPINETTE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B84",
+      sourceSheet: "2025-26",
+      cellRef: "B84",
+      valueText: "LEROUTIER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B85",
+      sourceSheet: "2025-26",
+      cellRef: "B85",
+      valueText: "GLOBALE CONSTRUCTION",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B86",
+      sourceSheet: "2025-26",
+      cellRef: "B86",
+      valueText: "HAMON Alexandre (Bardage)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B87",
+      sourceSheet: "2025-26",
+      cellRef: "B87",
+      valueText: "LEGENDRE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B88",
+      sourceSheet: "2025-26",
+      cellRef: "B88",
+      valueText: "SIMONET (garage)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B89",
+      sourceSheet: "2025-26",
+      cellRef: "B89",
+      valueText: "ETOURMY BAILLY",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B90",
+      sourceSheet: "2025-26",
+      cellRef: "B90",
+      valueText: "SCI COTARD",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B91",
+      sourceSheet: "2025-26",
+      cellRef: "B91",
+      valueText: "DÉFIBAT",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B92",
+      sourceSheet: "2025-26",
+      cellRef: "B92",
+      valueText: "BROSSARD",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B94",
+      sourceSheet: "2025-26",
+      cellRef: "B94",
+      valueText: "MAIRIE BRETTEVILLE LAIZE BANC",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B95",
+      sourceSheet: "2025-26",
+      cellRef: "B95",
+      valueText: "BRUNSCHVICG",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B96",
+      sourceSheet: "2025-26",
+      cellRef: "B96",
+      valueText: "HAMON Alexandre (Bardage)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B97",
+      sourceSheet: "2025-26",
+      cellRef: "B97",
+      valueText: "BACON ALVIN ",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B98",
+      sourceSheet: "2025-26",
+      cellRef: "B98",
+      valueText: "QUERON QUELLIER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B99",
+      sourceSheet: "2025-26",
+      cellRef: "B99",
+      valueText: "BEN JULIEN",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B100",
+      sourceSheet: "2025-26",
+      cellRef: "B100",
+      valueText: "LECONTE STEPHANE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B101",
+      sourceSheet: "2025-26",
+      cellRef: "B101",
+      valueText: "BERGAR",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B102",
+      sourceSheet: "2025-26",
+      cellRef: "B102",
+      valueText: "PEPIN JACQUES",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B103",
+      sourceSheet: "2025-26",
+      cellRef: "B103",
+      valueText: "BRETEAU (crémone)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B104",
+      sourceSheet: "2025-26",
+      cellRef: "B104",
+      valueText: "OSCAR ORGANISATION (Toussaint)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B105",
+      sourceSheet: "2025-26",
+      cellRef: "B105",
+      valueText: "GANIVET",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B106",
+      sourceSheet: "2025-26",
+      cellRef: "B106",
+      valueText: "BERNARD",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B107",
+      sourceSheet: "2025-26",
+      cellRef: "B107",
+      valueText: "LEQUITTE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B108",
+      sourceSheet: "2025-26",
+      cellRef: "B108",
+      valueText: "DROCOURT (légume)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B109",
+      sourceSheet: "2025-26",
+      cellRef: "B109",
+      valueText: "LEGEAI",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B110",
+      sourceSheet: "2025-26",
+      cellRef: "B110",
+      valueText: "ROUSSEL (réglage menuiserie)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B111",
+      sourceSheet: "2025-26",
+      cellRef: "B111",
+      valueText: "OLIVIER (plan de travail)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B112",
+      sourceSheet: "2025-26",
+      cellRef: "B112",
+      valueText: "COTENTIN",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B113",
+      sourceSheet: "2025-26",
+      cellRef: "B113",
+      valueText: "PORET",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B114",
+      sourceSheet: "2025-26",
+      cellRef: "B114",
+      valueText: "FRANCOIS (fourniture bardage)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B115",
+      sourceSheet: "2025-26",
+      cellRef: "B115",
+      valueText: "SAS COLLEVILLE PRODUCTION",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B117",
+      sourceSheet: "2025-26",
+      cellRef: "B117",
+      valueText: "GESLAIN reno",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B118",
+      sourceSheet: "2025-26",
+      cellRef: "B118",
+      valueText: "PFEIFFER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B119",
+      sourceSheet: "2025-26",
+      cellRef: "B119",
+      valueText: "DUCHESNE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B120",
+      sourceSheet: "2025-26",
+      cellRef: "B120",
+      valueText: "RAVENEL (batiment garage)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B121",
+      sourceSheet: "2025-26",
+      cellRef: "B121",
+      valueText: "GLOWACKI",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B122",
+      sourceSheet: "2025-26",
+      cellRef: "B122",
+      valueText: "BOUJRAD",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B123",
+      sourceSheet: "2025-26",
+      cellRef: "B123",
+      valueText: "OLIVIER (rénovation complete)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B124",
+      sourceSheet: "2025-26",
+      cellRef: "B124",
+      valueText: "OLIVIER (devis fenetre)",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B125",
+      sourceSheet: "2025-26",
+      cellRef: "B125",
+      valueText: "ISABELLE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B126",
+      sourceSheet: "2025-26",
+      cellRef: "B126",
+      valueText: "DESFONTAINE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B127",
+      sourceSheet: "2025-26",
+      cellRef: "B127",
+      valueText: "JÉROME FROGER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B129",
+      sourceSheet: "2025-26",
+      cellRef: "B129",
+      valueText: "LECOEUR",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B130",
+      sourceSheet: "2025-26",
+      cellRef: "B130",
+      valueText: "HERMILLY CARREAU",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B132",
+      sourceSheet: "2025-26",
+      cellRef: "B132",
+      valueText: "LIGNE EXEMPLE GARDER",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B134",
+      sourceSheet: "2025-26",
+      cellRef: "B134",
+      valueText: "LEMOINE",
+      numericValue: null
+    },
+    {
+      id: "2025-26:B135",
+      sourceSheet: "2025-26",
+      cellRef: "B135",
+      valueText: "ROHRBACH",
+      numericValue: null
+    }
+  ])
+}
